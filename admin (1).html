@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONC SPS — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f2044;
+    --blue: #1a3a6b;
+    --accent: #2e80e8;
+    --gold: #f0a500;
+    --green: #22c55e;
+    --red: #ef4444;
+    --orange: #f97316;
+    --light: #f0f5ff;
+    --white: #ffffff;
+    --gray: #64748b;
+    --border: #dce7f7;
+    --bg: #f5f8ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--navy); }
+
+  /* ── LOGIN ── */
+  #loginScreen {
+    position: fixed; inset: 0;
+    background: linear-gradient(160deg, #0f2044, #1a3a6b);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+  }
+
+  .login-box {
+    background: white; border-radius: 24px;
+    padding: 40px 36px; width: 100%; max-width: 380px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+    text-align: center;
+    animation: fadeUp 0.5s ease;
+  }
+
+  .login-logo {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #f5c842);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900; font-size: 22px; color: var(--navy);
+    box-shadow: 0 8px 24px rgba(240,165,0,0.3);
+  }
+
+  .login-box h2 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900; font-size: 22px; color: var(--navy);
+    margin-bottom: 6px;
+  }
+
+  .login-box p { color: var(--gray); font-size: 14px; margin-bottom: 28px; }
+
+  .login-box input {
+    width: 100%; padding: 14px 16px;
+    border: 2px solid var(--border); border-radius: 12px;
+    font-family: 'Outfit', sans-serif; font-size: 16px;
+    color: var(--navy); text-align: center; letter-spacing: 4px;
+    outline: none; margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+
+  .login-box input:focus { border-color: var(--accent); }
+
+  .login-btn {
+    width: 100%; padding: 14px;
+    border: none; border-radius: 12px;
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 15px; color: white;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(15,32,68,0.3);
+    transition: all 0.2s;
+  }
+
+  .login-btn:hover { transform: translateY(-1px); }
+  .login-error { color: var(--red); font-size: 13px; margin-top: 8px; display: none; }
+
+  /* ── DASHBOARD ── */
+  #dashboard { display: none; min-height: 100vh; }
+
+  .topbar {
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 16px rgba(15,32,68,0.2);
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+
+  .topbar-logo {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #f5c842);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: 14px; color: var(--navy);
+  }
+
+  .topbar-title { color: white; }
+  .topbar-title h1 { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 18px; }
+  .topbar-title p { font-size: 12px; color: rgba(255,255,255,0.6); }
+
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+  .btn-refresh {
+    padding: 8px 16px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.1);
+    color: white; font-family: 'Outfit', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-refresh:hover { background: rgba(255,255,255,0.2); }
+
+  .btn-logout {
+    padding: 8px 16px; border-radius: 8px;
+    border: none; background: rgba(239,68,68,0.2);
+    color: #fca5a5; font-family: 'Outfit', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+
+  /* CONTENT */
+  .content { padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+  /* STATS */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: white; border-radius: 16px;
+    padding: 20px; box-shadow: 0 2px 12px rgba(15,32,68,0.08);
+    border-left: 4px solid transparent;
+  }
+
+  .stat-card.blue { border-color: var(--accent); }
+  .stat-card.green { border-color: var(--green); }
+  .stat-card.orange { border-color: var(--orange); }
+  .stat-card.red { border-color: var(--red); }
+
+  .stat-label { font-size: 12px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .stat-value { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 32px; color: var(--navy); }
+  .stat-sub { font-size: 12px; color: var(--gray); margin-top: 4px; }
+
+  /* SHEPHERD STATUS */
+  .section-title {
+    font-family: 'Nunito', sans-serif; font-weight: 800;
+    font-size: 18px; color: var(--navy);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+
+  .section-title .pill {
+    padding: 2px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 700;
+    background: var(--light); color: var(--accent);
+  }
+
+  /* SHEPHERD GRID */
+  .shepherd-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px; margin-bottom: 28px;
+  }
+
+  .shepherd-card {
+    background: white; border-radius: 14px;
+    padding: 16px; box-shadow: 0 2px 12px rgba(15,32,68,0.06);
+    border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .shepherd-card.reported { border-color: #bbf7d0; }
+  .shepherd-card.not-reported { border-color: #fecaca; }
+
+  .shepherd-name {
+    font-family: 'Nunito', sans-serif; font-weight: 800;
+    font-size: 15px; color: var(--navy); margin-bottom: 4px;
+  }
+
+  .shepherd-meta { font-size: 12px; color: var(--gray); }
+
+  .shepherd-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; margin-top: 8px;
+  }
+
+  .shepherd-badge.yes { background: #dcfce7; color: #15803d; }
+  .shepherd-badge.no { background: #fee2e2; color: #b91c1c; }
+
+  /* REPORTS TABLE */
+  .table-wrap {
+    background: white; border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(15,32,68,0.06);
+    overflow: hidden; margin-bottom: 28px;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr { background: var(--navy); }
+  thead th {
+    padding: 14px 16px; text-align: left;
+    font-size: 12px; font-weight: 700;
+    color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 0.8px;
+  }
+
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:hover { background: var(--light); }
+  tbody tr:last-child { border-bottom: none; }
+
+  td { padding: 13px 16px; font-size: 14px; color: var(--navy); }
+
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 700;
+  }
+
+  .badge.yes { background: #dcfce7; color: #15803d; }
+  .badge.no { background: #fee2e2; color: #b91c1c; }
+  .badge.na { background: #f1f5f9; color: #64748b; }
+
+  .empty-state {
+    text-align: center; padding: 60px 20px;
+    color: var(--gray);
+  }
+
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 18px; margin-bottom: 8px; color: var(--navy); }
+  .empty-state p { font-size: 14px; }
+
+  /* EXPORT */
+  .btn-export {
+    padding: 10px 20px; border-radius: 10px;
+    border: 2px solid var(--accent);
+    background: transparent; color: var(--accent);
+    font-family: 'Nunito', sans-serif; font-weight: 700;
+    font-size: 14px; cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-export:hover { background: var(--accent); color: white; }
+
+  /* LIVE DOT */
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green); display: inline-block;
+    animation: pulse 1.5s infinite;
+    margin-right: 6px;
+  }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .last-updated { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex; gap: 10px; align-items: center;
+    margin-bottom: 16px; flex-wrap: wrap;
+  }
+
+  .filter-bar select, .filter-bar input {
+    padding: 8px 14px; border: 2px solid var(--border);
+    border-radius: 10px; font-family: 'Outfit', sans-serif;
+    font-size: 14px; color: var(--navy); background: white;
+    outline: none;
+  }
+
+  .filter-bar select:focus, .filter-bar input:focus { border-color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .content { padding: 16px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .shepherd-grid { grid-template-columns: 1fr; }
+    table { font-size: 12px; }
+    td, thead th { padding: 10px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">ONC</div>
+    <h2>Admin Dashboard</h2>
+    <p>SPS Management Portal<br>Overcomers Nation Church</p>
+    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6"
+           onkeydown="if(event.key==='Enter') checkPin()">
+    <button class="login-btn" onclick="checkPin()">🔐 Enter Dashboard</button>
+    <p class="login-error" id="loginError">❌ Incorrect PIN. Please try again.</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">ONC</div>
+      <div class="topbar-title">
+        <h1>SPS Admin Dashboard</h1>
+        <p>Overcomers Nation Church</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="last-updated" id="lastUpdated"></span>
+      <button class="btn-refresh" onclick="loadData()">🔄 Refresh</button>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-label">Total Reports</div>
+        <div class="stat-value" id="statTotal">—</div>
+        <div class="stat-sub">All time submissions</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Members Contacted</div>
+        <div class="stat-value" id="statContacted">—</div>
+        <div class="stat-sub">Confirmed this week</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-label">Prayer Sessions</div>
+        <div class="stat-value" id="statPrayer">—</div>
+        <div class="stat-sub">Prayers logged</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Not Contacted</div>
+        <div class="stat-value" id="statMissed">—</div>
+        <div class="stat-sub">Need follow-up</div>
+      </div>
+    </div>
+
+    <!-- SHEPHERD STATUS -->
+    <div class="section-title">
+      <span class="live-dot"></span> Shepherd Reporting Status
+      <span class="pill" id="reportedCount">Loading...</span>
+    </div>
+    <div class="shepherd-grid" id="shepherdGrid">
+      <div class="empty-state"><div class="icon">⏳</div><p>Loading shepherd data...</p></div>
+    </div>
+
+    <!-- REPORTS TABLE -->
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+      <div class="section-title" style="margin-bottom:0">📋 All Reports</div>
+      <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+
+    <div class="filter-bar">
+      <select id="filterShepherd" onchange="renderTable()">
+        <option value="">All Shepherds</option>
+      </select>
+      <select id="filterContacted" onchange="renderTable()">
+        <option value="">All Status</option>
+        <option value="yes">Contacted ✅</option>
+        <option value="no">Not Contacted ❌</option>
+      </select>
+      <input type="date" id="filterDate" onchange="renderTable()">
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Shepherd</th>
+            <th>Member</th>
+            <th>Contacted</th>
+            <th>How</th>
+            <th>Prayer</th>
+            <th>Bible</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="reportsTable">
+          <tr><td colspan="9"><div class="empty-state"><div class="icon">📭</div><h3>No reports yet</h3><p>Shepherd reports will appear here in real time.</p></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──
+const ADMIN_PIN = '2500';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+
+const ALL_SHEPHERDS = [
+  "Frank Armah", "Bright Mamene", "Christiana Konzondong", "Gloria Owusu Ansah",
+  "Linda Neequaye", "Abena Achia", "Gloria Lartey", "Priscilla Sedi Anatsui",
+  "Abigail Akakpo", "LP. Sophia Korkor", "Wisdom Akakpo", "Cyril Amevor",
+  "Mr. Ebenezer Okronipa", "Solomon Aziakah", "Deborah Otumfuor", "Christable Arhin",
+  "Patience Addo", "Benjamin Armah Agyeman", "Martha Asiamah", "Shine Asinyo",
+  "Patience Mensah", "Ruth Yeboah"
+];
+
+let allReports = [];
+
+// ── LOGIN ──
+function checkPin() {
+  const pin = document.getElementById('pinInput').value;
+  if (pin === ADMIN_PIN) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadData();
+    setInterval(loadData, 30000); // auto refresh every 30s
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+  }
+}
+
+function logout() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('pinInput').value = '';
+}
+
+// ── LOAD DATA ──
+async function loadData() {
+  document.getElementById('lastUpdated').textContent = 'Updating...';
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=get');
+    const data = await res.json();
+    allReports = data.reports || [];
+  } catch(e) {
+    // If no backend yet, use sample data for demo
+    allReports = getSampleData();
+  }
+
+  updateStats();
+  renderShepherdGrid();
+  renderTable();
+  populateFilters();
+
+  const now = new Date();
+  document.getElementById('lastUpdated').textContent =
+    `Updated ${now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'})}`;
+}
+
+// ── SAMPLE DATA (for demo before backend is connected) ──
+function getSampleData() {
+  return [
+    { date: new Date().toLocaleDateString('en-GB'), shepherd: 'Frank Armah', member: 'Amos Tornyi', contacted: 'yes', contactType: 'Call', prayer: 'yes', bibleStudy: 'yes', notes: '', timestamp: new Date().toISOString() },
+    { date: new Date().toLocaleDateString('en-GB'), shepherd: 'Bright Mamene', member: 'Janelle Kekeli Dartey', contacted: 'yes', contactType: 'WhatsApp', prayer: 'yes', bibleStudy: 'no', notes: 'She is travelling', timestamp: new Date().toISOString() },
+    { date: new Date().toLocaleDateString('en-GB'), shepherd: 'Gloria Owusu Ansah', member: 'Samuel Torto', contacted: 'no', contactType: 'N/A', prayer: 'no', bibleStudy: 'no', notes: 'Phone not going through', timestamp: new Date().toISOString() },
+  ];
+}
+
+// ── STATS ──
+function updateStats() {
+  const total = allReports.length;
+  const contacted = allReports.filter(r => r.contacted === 'yes').length;
+  const prayer = allReports.filter(r => r.prayer === 'yes').length;
+  const missed = allReports.filter(r => r.contacted === 'no').length;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statContacted').textContent = contacted;
+  document.getElementById('statPrayer').textContent = prayer;
+  document.getElementById('statMissed').textContent = missed;
+}
+
+// ── SHEPHERD GRID ──
+function renderShepherdGrid() {
+  const reportedShepherds = new Set(allReports.map(r => r.shepherd));
+  const reported = ALL_SHEPHERDS.filter(s => reportedShepherds.has(s));
+  const notReported = ALL_SHEPHERDS.filter(s => !reportedShepherds.has(s));
+
+  document.getElementById('reportedCount').textContent =
+    `${reported.length}/${ALL_SHEPHERDS.length} reported`;
+
+  const grid = document.getElementById('shepherdGrid');
+  if (ALL_SHEPHERDS.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>No shepherds loaded.</p></div>';
+    return;
+  }
+
+  grid.innerHTML = ALL_SHEPHERDS.map(s => {
+    const hasReported = reportedShepherds.has(s);
+    const count = allReports.filter(r => r.shepherd === s).length;
+    return `
+      <div class="shepherd-card ${hasReported ? 'reported' : 'not-reported'}">
+        <div class="shepherd-name">${s}</div>
+        <div class="shepherd-meta">${count} report${count !== 1 ? 's' : ''} submitted</div>
+        <span class="shepherd-badge ${hasReported ? 'yes' : 'no'}">
+          ${hasReported ? '✅ Reported' : '⚠ Not Yet Reported'}
+        </span>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── TABLE ──
+function populateFilters() {
+  const sel = document.getElementById('filterShepherd');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">All Shepherds</option>';
+  ALL_SHEPHERDS.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    if (s === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function renderTable() {
+  const fShepherd = document.getElementById('filterShepherd').value;
+  const fContacted = document.getElementById('filterContacted').value;
+  const fDate = document.getElementById('filterDate').value;
+
+  let filtered = allReports.filter(r => {
+    if (fShepherd && r.shepherd !== fShepherd) return false;
+    if (fContacted && r.contacted !== fContacted) return false;
+    if (fDate) {
+      const d = new Date(r.timestamp).toISOString().split('T')[0];
+      if (d !== fDate) return false;
+    }
+    return true;
+  });
+
+  const tbody = document.getElementById('reportsTable');
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">
+      <div class="icon">📭</div>
+      <h3>No reports found</h3>
+      <p>No reports match your current filters.</p>
+    </div></td></tr>`;
+    return;
+  }
+
+  // Sort newest first
+  filtered = filtered.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  tbody.innerHTML = filtered.map((r, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${r.date || '—'}</td>
+      <td><strong>${r.shepherd}</strong></td>
+      <td>${r.member}</td>
+      <td><span class="badge ${r.contacted}">${r.contacted?.toUpperCase()}</span></td>
+      <td>${r.contactType || '—'}</td>
+      <td><span class="badge ${r.prayer}">${r.prayer?.toUpperCase()}</span></td>
+      <td><span class="badge ${r.bibleStudy}">${r.bibleStudy?.toUpperCase()}</span></td>
+      <td style="color:#64748b;font-size:13px">${r.notes || '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ── EXPORT CSV ──
+function exportCSV() {
+  if (allReports.length === 0) { alert('No data to export.'); return; }
+
+  const headers = ['Date','Shepherd','Member','Contacted','How','Prayer','Bible Study','Notes'];
+  const rows = allReports.map(r => [
+    r.date, r.shepherd, r.member, r.contacted, r.contactType, r.prayer, r.bibleStudy, r.notes || ''
+  ]);
+
+  const csv = [headers, ...rows].map(row =>
+    row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `ONC-SPS-Reports-${new Date().toLocaleDateString('en-GB').replace(/\//g,'-')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

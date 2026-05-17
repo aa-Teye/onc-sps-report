@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ONC SPS — Shepherd Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f2044;
+    --blue: #1a3a6b;
+    --accent: #2e80e8;
+    --gold: #f0a500;
+    --green: #22c55e;
+    --red: #ef4444;
+    --light: #f0f5ff;
+    --white: #ffffff;
+    --gray: #64748b;
+    --border: #dce7f7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: linear-gradient(160deg, #0f2044 0%, #1a3a6b 50%, #0f2044 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px 16px 40px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 28px 0 24px;
+    animation: fadeDown 0.6s ease;
+  }
+
+  .logo-ring {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #f5c842);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+    box-shadow: 0 8px 24px rgba(240,165,0,0.35);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900; font-size: 22px;
+    color: var(--navy);
+    letter-spacing: -0.5px;
+  }
+
+  .header h1 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900; font-size: 22px;
+    color: var(--white);
+    letter-spacing: 0.5px;
+  }
+
+  .header p {
+    font-size: 13px; color: rgba(255,255,255,0.6);
+    margin-top: 4px;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 28px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+
+  .card-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 17px;
+    color: var(--navy);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .card-title .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: inline-block;
+  }
+
+  /* STEP INDICATOR */
+  .steps {
+    display: flex; gap: 6px;
+    margin-bottom: 24px;
+  }
+
+  .step-dot {
+    flex: 1; height: 4px;
+    border-radius: 4px;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+
+  .step-dot.active { background: var(--accent); }
+  .step-dot.done { background: var(--green); }
+
+  /* FORM SECTIONS */
+  .section { display: none; }
+  .section.active { display: block; animation: fadeUp 0.35s ease; }
+
+  .field { margin-bottom: 18px; }
+
+  .field label {
+    display: block;
+    font-size: 12px; font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase; letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+
+  .field select, .field textarea, .field input {
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    color: var(--navy);
+    background: var(--light);
+    appearance: none;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .field select:focus, .field textarea:focus, .field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(46,128,232,0.12);
+    background: white;
+  }
+
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent); pointer-events: none;
+    font-size: 16px;
+  }
+
+  /* YES/NO BUTTONS */
+  .yn-group { display: flex; gap: 10px; }
+
+  .yn-btn {
+    flex: 1; padding: 14px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--light);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 15px;
+    color: var(--gray);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .yn-btn.yes.selected { background: #dcfce7; border-color: var(--green); color: #15803d; }
+  .yn-btn.no.selected { background: #fee2e2; border-color: var(--red); color: #b91c1c; }
+  .yn-btn:not(.selected):hover { border-color: var(--accent); color: var(--accent); }
+
+  /* CONTACT TYPE */
+  .type-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .type-btn {
+    flex: 1; min-width: 80px;
+    padding: 12px 8px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--light);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600; font-size: 13px;
+    color: var(--gray);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .type-btn .icon { font-size: 20px; display: block; margin-bottom: 4px; }
+  .type-btn.selected { background: #eff6ff; border-color: var(--accent); color: var(--accent); }
+
+  /* NAVIGATION BUTTONS */
+  .nav-btns { display: flex; gap: 10px; margin-top: 24px; }
+
+  .btn-back {
+    padding: 14px 20px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: transparent;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700; font-size: 15px;
+    color: var(--gray);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-back:hover { border-color: var(--navy); color: var(--navy); }
+
+  .btn-next {
+    flex: 1; padding: 14px;
+    border: none; border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), #1a5fc4);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 15px;
+    color: white; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(46,128,232,0.35);
+    transition: all 0.2s;
+  }
+
+  .btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(46,128,232,0.45); }
+  .btn-next:active { transform: translateY(0); }
+  .btn-next:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-submit {
+    flex: 1; padding: 16px;
+    border: none; border-radius: 12px;
+    background: linear-gradient(135deg, var(--green), #16a34a);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 16px;
+    color: white; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(34,197,94,0.35);
+    transition: all 0.2s;
+  }
+
+  .btn-submit:hover { transform: translateY(-1px); }
+
+  /* REVIEW SECTION */
+  .review-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .review-item:last-child { border-bottom: none; }
+  .review-label { font-size: 13px; color: var(--gray); }
+  .review-value { font-weight: 700; font-size: 14px; color: var(--navy); text-align: right; max-width: 60%; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 700;
+  }
+
+  .badge.yes { background: #dcfce7; color: #15803d; }
+  .badge.no { background: #fee2e2; color: #b91c1c; }
+
+  /* SUCCESS SCREEN */
+  .success-screen {
+    text-align: center; padding: 20px 0;
+    animation: bounceIn 0.5s ease;
+  }
+
+  .success-icon {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--green), #16a34a);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 36px;
+    box-shadow: 0 8px 24px rgba(34,197,94,0.35);
+  }
+
+  .success-screen h2 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900; font-size: 22px;
+    color: var(--navy); margin-bottom: 8px;
+  }
+
+  .success-screen p { color: var(--gray); font-size: 14px; line-height: 1.6; }
+
+  .btn-new {
+    margin-top: 24px; width: 100%; padding: 14px;
+    border: 2px solid var(--accent); border-radius: 12px;
+    background: transparent;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 15px;
+    color: var(--accent); cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-new:hover { background: var(--accent); color: white; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: var(--navy); color: white;
+    padding: 12px 24px; border-radius: 12px;
+    font-size: 14px; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
+    z-index: 999; white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes bounceIn { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+
+  /* FOOTER */
+  .footer { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.35); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo-ring">ONC</div>
+    <h1>SPS Follow-Up Report</h1>
+    <p>Overcomers Nation Church</p>
+  </div>
+
+  <div class="card" id="mainCard">
+    <!-- STEP DOTS -->
+    <div class="steps">
+      <div class="step-dot active" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
+      <div class="step-dot" id="dot4"></div>
+    </div>
+
+    <!-- SECTION 1: SHEPHERD -->
+    <div class="section active" id="sec1">
+      <div class="card-title"><span class="dot"></span>Who are you?</div>
+      <div class="field">
+        <label>Select Your Name</label>
+        <div class="select-wrap">
+          <select id="shepherdSelect">
+            <option value="">— Choose your name —</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Select Member You Are Reporting</label>
+        <div class="select-wrap">
+          <select id="memberSelect" disabled>
+            <option value="">— Select shepherd first —</option>
+          </select>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn-next" onclick="goNext(1)" id="next1">Next →</button>
+      </div>
+    </div>
+
+    <!-- SECTION 2: CONTACT -->
+    <div class="section" id="sec2">
+      <div class="card-title"><span class="dot"></span>Contact Details</div>
+      <div class="field">
+        <label>Did you contact this member?</label>
+        <div class="yn-group">
+          <button class="yn-btn yes" onclick="selectYN('contacted','yes',this)">✅ Yes</button>
+          <button class="yn-btn no" onclick="selectYN('contacted','no',this)">❌ No</button>
+        </div>
+      </div>
+      <div class="field" id="howField" style="display:none">
+        <label>How did you contact them?</label>
+        <div class="type-group">
+          <button class="type-btn" onclick="selectType(this,'Call')"><span class="icon">📞</span>Call</button>
+          <button class="type-btn" onclick="selectType(this,'WhatsApp')"><span class="icon">💬</span>WhatsApp</button>
+          <button class="type-btn" onclick="selectType(this,'In Person')"><span class="icon">🤝</span>In Person</button>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goBack(2)">← Back</button>
+        <button class="btn-next" onclick="goNext(2)" id="next2">Next →</button>
+      </div>
+    </div>
+
+    <!-- SECTION 3: ACTIVITY -->
+    <div class="section" id="sec3">
+      <div class="card-title"><span class="dot"></span>Fellowship Activity</div>
+      <div class="field">
+        <label>Did you pray together?</label>
+        <div class="yn-group">
+          <button class="yn-btn yes" onclick="selectYN('prayer','yes',this)">✅ Yes</button>
+          <button class="yn-btn no" onclick="selectYN('prayer','no',this)">❌ No</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Did you do Bible Study?</label>
+        <div class="yn-group">
+          <button class="yn-btn yes" onclick="selectYN('bible','yes',this)">✅ Yes</button>
+          <button class="yn-btn no" onclick="selectYN('bible','no',this)">❌ No</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Any Concerns or Prayer Requests? <span style="font-weight:400;color:#94a3b8">(optional)</span></label>
+        <textarea id="notes" rows="3" placeholder="Type any notes here..."></textarea>
+      </div>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goBack(3)">← Back</button>
+        <button class="btn-next" onclick="goNext(3)" id="next3">Next →</button>
+      </div>
+    </div>
+
+    <!-- SECTION 4: REVIEW -->
+    <div class="section" id="sec4">
+      <div class="card-title"><span class="dot"></span>Review & Confirm</div>
+      <div id="reviewContent"></div>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goBack(4)">← Back</button>
+        <button class="btn-submit" onclick="submitReport()">✅ Confirm & Submit</button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="section" id="secSuccess">
+      <div class="success-screen">
+        <div class="success-icon">✅</div>
+        <h2>Report Submitted!</h2>
+        <p>Thank you for your faithfulness.<br>Your report has been saved successfully.</p>
+        <button class="btn-new" onclick="resetForm()">+ Submit Another Report</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">ONC SPS System — Overcomers Nation Church</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+const shepherdData = {
+  "Frank Armah": ["Amos Tornyi", "Gideon Daunor Tawiah", "Florence Ablordey", "Janet Oye"],
+  "Bright Mamene": ["Janelle Kekeli Dartey", "Patricia Mensah", "Hannah Akuffo France", "Titus Quaye"],
+  "Christiana Konzondong": ["Gyedu Samuel Amponsah", "Getrude Abena Owusu Achiaa", "Shirley Williams", "Abigail Asantewaa-Boadu"],
+  "Gloria Owusu Ansah": ["Samuel Torto", "Emmanuel Kwaku Amon", "Diana Ameyaw", "Mrs. Petrina Gyan"],
+  "Linda Neequaye": ["Isaac Yeboah", "Melchizedek Ofori", "Ruth Dadzie", "Lawrence Gbeku"],
+  "Abena Achia": ["Jedidiah Wiafe", "Williams Asomaning Ameyaw", "Pius Owusu Danquah", "Promise Bamflo"],
+  "Gloria Lartey": ["Agnes Amoako", "Gerald Opoku", "Maame Efua Owusu Boateng", "Lewis Nana Kojo"],
+  "Priscilla Sedi Anatsui": ["Selina Ofeibea", "Isaac Oblitey", "Princess Gyamfuaa", "Danis Agbormava"],
+  "Abigail Akakpo": ["Mary Seke", "Lucy Yaa B Agyemang", "Francis Kweku Opoku Ivan", "Micheal Kwabena Agyapong"],
+  "LP. Sophia Korkor": ["Kevin Nyarko", "Dorcas Janssen", "Abraham Can-Tamakloe", "Veronica Bemponmaa Boateng"],
+  "Wisdom Akakpo": ["Philip Boateng", "Justina Tetteh", "Anita Asamoah", "Rebecca Quaye"],
+  "Cyril Amevor": ["Bernice Can-Tamakloe", "Julianna Owusu Ansah", "Joseph Asmah", "Deborah Quaye"],
+  "Mr. Ebenezer Okronipa": ["Aaron Dela Mawuena", "Stanley Boateng", "Bernice Agyapong Quaye", "Majeed Saleem"],
+  "Solomon Aziakah": ["Abraham Delove", "Sylvester Effah", "Alberta Manu", "Bernice Mensah"],
+  "Deborah Otumfuor": ["Obed Adu-Mensah", "David Kudadze", "Dr. Derrick Korletey", "Christiana Adjei"],
+  "Christable Arhin": ["Laureta Cabu", "Victoria Amuzu", "George Sarfo Mensah", "Mrs. Elizabeth Agbedo"],
+  "Patience Addo": ["Peace Amoah", "Grace Sakyibea", "Sunday Amuzu", "Ruth Otoo"],
+  "Benjamin Armah Agyeman": ["Isabel Opoku", "Joseph Atsu", "Jeremiah Asante", "Eugene Ampadu"],
+  "Martha Asiamah": ["Samuel Boadu", "Rosemary Obeng Appiah", "Kingsley Kobina Aduful", "Emmanuel Nii-Lantei"],
+  "Shine Asinyo": ["Harriet Ampofo", "Sharon Tricia Amanu", "Dr. Mrs Abena Efua Korletey", "Loretta Owusu"],
+  "Patience Mensah": ["Madam Paulina Mansa Atiase", "Dr. Mrs Abena Efua Korletey", "Sandra Boateng", "Samuel Oteng"],
+  "Ruth Yeboah": ["Bernice Can-Tamakloe", "Princess Gyamfuaa", "Isaac Oblitey", "Bernice Can-Tamakloe"],
+};
+
+// ── STATE ──
+let state = {
+  shepherd: '', member: '', contacted: '', contactType: '', prayer: '', bible: '', notes: ''
+};
+let currentStep = 1;
+
+// ── INIT ──
+const shepherdSelect = document.getElementById('shepherdSelect');
+Object.keys(shepherdData).sort().forEach(s => {
+  const opt = document.createElement('option');
+  opt.value = s; opt.textContent = s;
+  shepherdSelect.appendChild(opt);
+});
+
+shepherdSelect.addEventListener('change', function() {
+  state.shepherd = this.value;
+  const memberSelect = document.getElementById('memberSelect');
+  memberSelect.innerHTML = '<option value="">— Choose member —</option>';
+  if (this.value && shepherdData[this.value]) {
+    memberSelect.disabled = false;
+    shepherdData[this.value].forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m; opt.textContent = m;
+      memberSelect.appendChild(opt);
+    });
+  } else {
+    memberSelect.disabled = true;
+  }
+  state.member = '';
+});
+
+document.getElementById('memberSelect').addEventListener('change', function() {
+  state.member = this.value;
+});
+
+// ── YN ──
+function selectYN(field, val, btn) {
+  state[field] = val;
+  const group = btn.closest('.yn-group');
+  group.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  if (field === 'contacted') {
+    document.getElementById('howField').style.display = val === 'yes' ? 'block' : 'none';
+    if (val === 'no') { state.contactType = 'N/A'; }
+  }
+}
+
+function selectType(btn, type) {
+  state.contactType = type;
+  btn.closest('.type-group').querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// ── NAVIGATION ──
+function goNext(step) {
+  if (step === 1) {
+    if (!state.shepherd) { showToast('Please select your name'); return; }
+    if (!state.member) { showToast('Please select a member'); return; }
+  }
+  if (step === 2) {
+    if (!state.contacted) { showToast('Please select Yes or No'); return; }
+    if (state.contacted === 'yes' && !state.contactType) { showToast('Please select how you contacted them'); return; }
+  }
+  if (step === 3) {
+    if (!state.prayer) { showToast('Please answer the prayer question'); return; }
+    if (!state.bible) { showToast('Please answer the Bible study question'); return; }
+    state.notes = document.getElementById('notes').value;
+    buildReview();
+  }
+  document.getElementById('sec' + step).classList.remove('active');
+  currentStep = step + 1;
+  document.getElementById('sec' + currentStep).classList.add('active');
+  updateDots();
+}
+
+function goBack(step) {
+  document.getElementById('sec' + step).classList.remove('active');
+  currentStep = step - 1;
+  document.getElementById('sec' + currentStep).classList.add('active');
+  updateDots();
+}
+
+function updateDots() {
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('dot' + i);
+    dot.className = 'step-dot';
+    if (i < currentStep) dot.classList.add('done');
+    else if (i === currentStep) dot.classList.add('active');
+  }
+}
+
+// ── REVIEW ──
+function buildReview() {
+  const items = [
+    { label: 'Shepherd', value: state.shepherd },
+    { label: 'Member', value: state.member },
+    { label: 'Contacted', value: state.contacted, badge: true },
+    { label: 'How', value: state.contactType || '—' },
+    { label: 'Prayed Together', value: state.prayer, badge: true },
+    { label: 'Bible Study', value: state.bible, badge: true },
+    { label: 'Notes', value: state.notes || 'None' },
+  ];
+
+  document.getElementById('reviewContent').innerHTML = items.map(item => `
+    <div class="review-item">
+      <span class="review-label">${item.label}</span>
+      <span class="review-value">
+        ${item.badge ? `<span class="badge ${item.value}">${item.value.toUpperCase()}</span>` : item.value}
+      </span>
+    </div>
+  `).join('');
+}
+
+// ── SUBMIT ──
+async function submitReport() {
+  const btn = document.querySelector('.btn-submit');
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+
+  const payload = {
+    shepherd: state.shepherd,
+    member: state.member,
+    contacted: state.contacted,
+    contactType: state.contactType,
+    prayer: state.prayer,
+    bibleStudy: state.bible,
+    notes: state.notes,
+    timestamp: new Date().toISOString(),
+    date: new Date().toLocaleDateString('en-GB')
+  };
+
+  // Send to Google Apps Script
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {
+    // no-cors won't throw but silently submits
+  }
+
+  // Show success
+  document.getElementById('sec4').classList.remove('active');
+  document.getElementById('secSuccess').classList.add('active');
+  // Hide step dots on success
+  document.querySelector('.steps').style.display = 'none';
+  btn.disabled = false;
+}
+
+// ── RESET ──
+function resetForm() {
+  state = { shepherd: '', member: '', contacted: '', contactType: '', prayer: '', bible: '', notes: '' };
+  currentStep = 1;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec1').classList.add('active');
+  document.querySelector('.steps').style.display = 'flex';
+  document.getElementById('shepherdSelect').value = '';
+  const ms = document.getElementById('memberSelect');
+  ms.innerHTML = '<option value="">— Select shepherd first —</option>';
+  ms.disabled = true;
+  document.getElementById('notes').value = '';
+  document.querySelectorAll('.yn-btn, .type-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('howField').style.display = 'none';
+  updateDots();
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// REPLACE THIS with your Google Apps Script URL
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+</script>
+</body>
+</html>
