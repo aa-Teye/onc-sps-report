@@ -1277,13 +1277,29 @@
     let refreshTimer = null;
 
     function fetchData(action, callback) {
-      var s = document.createElement('script');
-      var cb = '_cb_' + Date.now();
-      window[cb] = function (data) { callback(data); if (document.body.contains(s)) document.body.removeChild(s); delete window[cb]; };
-      s.src = SCRIPT_URL + '?action=' + action + '&callback=' + cb;
-      s.onerror = function () { callback({ status: 'error' }); };
-      document.body.appendChild(s);
-      setTimeout(function () { if (window[cb]) window[cb]({ status: 'timeout' }); }, 8000);
+      var script = document.createElement('script');
+      var cbName = '_cb_' + Date.now();
+      var called = false;
+
+      window[cbName] = function (data) {
+        if (called) return;
+        called = true;
+        callback(data);
+        if (document.body.contains(script)) {
+          document.body.removeChild(script);
+        }
+        delete window[cbName];
+      };
+
+      script.src = SCRIPT_URL + '?action=' + action + '&callback=' + cbName;
+      script.onerror = function () {
+        if (!called) window[cbName]({ status: 'error' });
+      };
+      document.body.appendChild(script);
+
+      setTimeout(function () {
+        if (!called) window[cbName]({ status: 'timeout' });
+      }, 8000);
     }
 
     function checkPin() {
