@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -578,6 +578,12 @@
               <button class="yn-btn yes" onclick="selectYN('topicCovered','yes',this)">✅ Yes</button>
               <button class="yn-btn no" onclick="selectYN('topicCovered','no',this)">❌ No</button>
             </div>
+            <div style="margin-top:12px;">
+              <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">What topic did you cover?</div>
+              <input type="text" id="actualTopicInput" placeholder="Enter topic covered..." oninput="state.actualTopic=this.value"
+                style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;transition:border-color .2s;"
+                onfocus="this.style.borderColor='#2e80e8'" onblur="this.style.borderColor='#dce7f7'">
+            </div>
           </div>
         </div>
         <div class="field">
@@ -651,7 +657,7 @@
 
     let state = {
       shepherd:'', sessionDate:'', sessionDay:'', sessionTime:'',
-      attendance:{}, topicCovered:'', bibleTopic:'', prayerDone:'', concerns:{}
+      attendance:{}, topicCovered:'', bibleTopic:'', actualTopic:'', prayerDone:'', concerns:{}
     };
     let currentStep = 1;
 
@@ -751,6 +757,13 @@
       state[field] = val;
       btn.closest('.yn-group').querySelectorAll('.yn-btn').forEach(function(b){ b.classList.remove('selected'); });
       btn.classList.add('selected');
+      if (field === 'topicCovered') {
+        var inp = document.getElementById('actualTopicInput');
+        if (inp) {
+          inp.value = (val === 'yes') ? state.bibleTopic : '';
+          state.actualTopic = inp.value;
+        }
+      }
     }
 
     function buildReview() {
@@ -766,6 +779,7 @@
         '<div class="review-item"><span class="review-label">Absent</span><span class="review-value" style="color:#b91c1c;">' + (absent.join(', ')||'None') + '</span></div>' +
         '<div class="review-item"><span class="review-label">Bible Topic</span><span class="review-value">' + (state.bibleTopic||'None') + '</span></div>' +
         '<div class="review-item"><span class="review-label">Topic Covered</span><span class="review-value"><span class="badge ' + (state.topicCovered||'no') + '">' + (state.topicCovered||'N/A').toUpperCase() + '</span></span></div>' +
+        '<div class="review-item"><span class="review-label">Actual Topic</span><span class="review-value">' + (state.actualTopic||'—') + '</span></div>' +
         '<div class="review-item"><span class="review-label">Prayer Done</span><span class="review-value"><span class="badge ' + (state.prayerDone||'no') + '">' + (state.prayerDone||'N/A').toUpperCase() + '</span></span></div>';
       present.forEach(function(m) {
         if (state.concerns[m]) {
@@ -827,6 +841,7 @@
         totalMembers: members.length,
         bibleTopic: state.bibleTopic,
         topicCovered: state.topicCovered,
+        actualTopic: state.actualTopic,
         prayerDone: state.prayerDone,
         concerns: state.concerns,
         notes: ''
@@ -844,7 +859,7 @@
     }
 
     function resetForm() {
-      state = { shepherd:'', sessionDate:'', sessionDay:'', sessionTime:'', attendance:{}, topicCovered:'', bibleTopic:'', prayerDone:'', concerns:{} };
+      state = { shepherd:'', sessionDate:'', sessionDay:'', sessionTime:'', attendance:{}, topicCovered:'', bibleTopic:'', actualTopic:'', prayerDone:'', concerns:{} };
       currentStep = 1;
       document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
       document.getElementById('sec1').classList.add('active');
