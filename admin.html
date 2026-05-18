@@ -1327,17 +1327,28 @@
     function loadAll() {
       document.getElementById('lastUpdated').textContent = 'Updating...';
       fetchData('getReports', function (data) {
+        console.log('Reports received:', data);
         allReports = (data && data.reports) ? data.reports : [];
         renderAll();
         var now = new Date();
         document.getElementById('lastUpdated').textContent = 'Updated ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
       });
     }
+    var loadAllData = loadAll; // alias — both names work
 
     function getWeekStart() {
       var d = new Date(); d.setHours(0, 0, 0, 0);
       var day = d.getDay(); var diff = d.getDate() - day + (day === 0 ? -6 : 1);
       d.setDate(diff); return d;
+    }
+
+    function formatTime(val) {
+      if (!val) return '—';
+      var s = val.toString();
+      if (s.includes('T')) {
+        return new Date(val).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      }
+      return s.length > 5 ? s.slice(0, 5) : s;
     }
 
     function isThisWeek(r) {
@@ -1395,7 +1406,7 @@
       var recent = allReports.slice().sort(function (a, b) { return new Date(b.timestamp) - new Date(a.timestamp); }).slice(0, 5);
       document.getElementById('activity-count').textContent = allReports.length + ' total';
       document.getElementById('activity-feed').innerHTML = recent.length ? recent.map(function (r) {
-        return '<div class="activity-item"><div><div class="activity-name">' + r.shepherd + '</div><div class="activity-meta">' + (r.sessionDate || r.date || '') + ' · ' + (r.sessionTime ? r.sessionTime.slice(0, 5) : '') + ' · ' + (r.membersPresent ? r.membersPresent.length : '?') + '/' + (r.totalMembers || 4) + ' members</div></div><div class="activity-rate">' + getRate(r) + '%</div></div>';
+        return '<div class="activity-item"><div><div class="activity-name">' + r.shepherd + '</div><div class="activity-meta">' + (r.sessionDate || r.date || '') + ' · ' + formatTime(r.sessionTime) + ' · ' + (r.membersPresent ? r.membersPresent.length : '?') + '/' + (r.totalMembers || 4) + ' members</div></div><div class="activity-rate">' + getRate(r) + '%</div></div>';
       }).join('') : '<div class="empty"><div class="icon">📭</div><p>No reports yet</p></div>';
     }
 
