@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -174,9 +174,9 @@ td{padding:12px 14px;color:var(--navy);}
 <button class="tab-btn" onclick="switchTab('shepherds',this)"><span class="icon">👥</span>Shepherds</button>
 <button class="tab-btn" onclick="switchTab('members',this)"><span class="icon">🙋</span>Members</button>
 <button class="tab-btn" onclick="switchTab('reports',this)"><span class="icon">📋</span>Reports</button>
-<button class="tab-btn" onclick="switchTab('topics',this)"><span class="icon">📖</span>Topics</button>
-<button class="tab-btn" onclick="switchTab('attendance',this)"><span class="icon">📈</span>Attendance</button>
-<button class="tab-btn" onclick="switchTab('export',this)"><span class="icon">⬇</span>Export</button>
+<button class="tab-btn" onclick="switchTab('bible-study',this)"><span class="icon">📖</span>Bible Study</button>
+<button class="tab-btn" onclick="switchTab('zones',this)"><span class="icon">🗂</span>Zones</button>
+<button class="tab-btn" onclick="switchTab('settings',this)"><span class="icon">⚙</span>Settings</button>
 </nav>
 <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Logout</button></div>
 </div>
@@ -248,28 +248,83 @@ td{padding:12px 14px;color:var(--navy);}
 </div>
 </div>
 
-<!-- TAB 5: TOPICS -->
-<div class="tab-panel" id="panel-topics">
-<div class="section-title">Bible Study Topics Covered</div>
+<!-- TAB 5: BIBLE STUDY -->
+<div class="tab-panel" id="panel-bible-study">
+<div class="export-section">
+<h3>📖 Set This Week's Bible Study Topic</h3>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+<input type="text" id="topic-input" placeholder="Enter this week's topic..." style="flex:1;min-width:200px;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;color:var(--navy);outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--border)'">
+<button onclick="saveTopic()" style="padding:12px 22px;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾 Save Topic</button>
+</div>
+<div id="current-topic-box" style="display:none;background:#eff6ff;border:2px solid #bfdbfe;border-radius:12px;padding:14px 18px;">
+<div style="font-size:12px;font-weight:700;color:#1e40af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Current Topic</div>
+<div id="current-topic-text" style="font-size:16px;font-weight:800;color:var(--navy);"></div>
+<div id="current-topic-date" style="font-size:12px;color:var(--gray);margin-top:4px;"></div>
+</div>
+<div id="topic-save-msg" style="display:none;color:#15803d;font-size:13px;font-weight:600;margin-top:8px;"></div>
+</div>
+<div class="export-section">
+<h3>📋 Topics History</h3>
 <div class="topic-list" id="topic-list"></div>
 </div>
-
-<!-- TAB 6: ATTENDANCE -->
-<div class="tab-panel" id="panel-attendance">
-<div class="section-title">Shepherd Attendance Rates</div>
-<div class="bar-chart" id="att-chart"></div>
 </div>
 
-<!-- TAB 7: EXPORT -->
-<div class="tab-panel" id="panel-export">
+<!-- TAB 6: ZONES -->
+<div class="tab-panel" id="panel-zones">
+<div class="export-section">
+<h3>🗂 Zone Management</h3>
+<p style="color:var(--gray);font-size:14px;margin-bottom:4px;">Assign each shepherd to a zone. Zones will be activated once Supershepherds are confirmed.</p>
+<div style="background:#fef9c3;border:2px solid #fde047;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#854d0e;font-weight:600;">⚠ Zone assignments are saved locally and will be activated once Supershepherds are confirmed.</div>
+<div id="zone-grid" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
+<button onclick="saveZones()" style="padding:12px 24px;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾 Save Zone Assignments</button>
+<div id="zone-save-msg" style="display:none;color:#15803d;font-size:13px;font-weight:600;margin-top:10px;"></div>
+</div>
+</div>
+
+<!-- TAB 7: SETTINGS -->
+<div class="tab-panel" id="panel-settings">
+<div class="export-section">
+<h3>🔐 Change Admin PIN</h3>
+<div style="display:flex;flex-direction:column;gap:10px;max-width:320px;">
+<input type="password" id="pin-current" placeholder="Current PIN" style="padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:15px;letter-spacing:4px;outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--border)'">
+<input type="password" id="pin-new" placeholder="New PIN" style="padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:15px;letter-spacing:4px;outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--border)'">
+<input type="password" id="pin-confirm" placeholder="Confirm New PIN" style="padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:15px;letter-spacing:4px;outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--border)'">
+<button onclick="changePin()" style="padding:12px;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">🔐 Save New PIN</button>
+<div id="pin-msg" style="font-size:13px;font-weight:600;"></div>
+</div>
+</div>
+<div class="export-section">
+<h3>📞 Shepherd WhatsApp Contacts</h3>
+<div id="contacts-grid" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+<button onclick="saveContacts()" style="padding:12px 24px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾 Save Contacts</button>
+<div id="contacts-msg" style="display:none;color:#15803d;font-size:13px;font-weight:600;margin-top:8px;"></div>
+</div>
+<div class="export-section">
+<h3>🔔 Reminder Settings</h3>
+<div style="display:flex;flex-direction:column;gap:14px;max-width:480px;">
+<label style="display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;color:var(--navy);"><input type="checkbox" id="rem-enabled" style="width:18px;height:18px;"> Enable Automatic Reminders</label>
+<div>
+<div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Send on days:</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;" id="rem-days">
+<label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox" value="Mon"> Mon</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox" value="Tue"> Tue</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox" value="Wed"> Wed</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox" value="Thu"> Thu</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox" value="Fri"> Fri</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox" value="Sat"> Sat</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox" value="Sun"> Sun</label>
+</div>
+</div>
+<div><div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Send at time:</div><input type="time" id="rem-time" value="08:00" style="padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;"></div>
+<div><div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Message template:</div><textarea id="rem-msg" rows="3" style="width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px;outline:none;resize:vertical;">Hi {name}! Please submit your SPS report. Link: {link}</textarea></div>
+<button onclick="saveReminder()" style="padding:12px 24px;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾 Save Reminder Settings</button>
+<div id="rem-msg-status" style="font-size:13px;font-weight:600;"></div>
+</div>
+</div>
 <div class="export-section">
 <h3>📤 Export Data</h3>
 <button class="btn-export" onclick="exportReports()">⬇ Export All Reports (CSV)</button>
 <button class="btn-export" onclick="exportMembers()">⬇ Export Members (CSV)</button>
-</div>
-<div class="export-section">
-<h3>📞 Shepherd Contact List</h3>
-<table class="contact-table" id="contact-table"></table>
 </div>
 </div>
 
@@ -280,13 +335,13 @@ td{padding:12px 14px;color:var(--navy);}
 <!-- MOBILE BOTTOM TAB -->
 <div class="bottom-tab">
 <div class="bottom-tab-inner">
-<button class="btab-btn active" onclick="switchTab('overview',this,true)"><span class="icon">📊</span>Overview</button>
+<button class="btab-btn active" onclick="switchTab('overview',this,true)"><span class="icon">📊</span>Home</button>
 <button class="btab-btn" onclick="switchTab('shepherds',this,true)"><span class="icon">👥</span>Shepherds</button>
 <button class="btab-btn" onclick="switchTab('members',this,true)"><span class="icon">🙋</span>Members</button>
 <button class="btab-btn" onclick="switchTab('reports',this,true)"><span class="icon">📋</span>Reports</button>
-<button class="btab-btn" onclick="switchTab('topics',this,true)"><span class="icon">📖</span>Topics</button>
-<button class="btab-btn" onclick="switchTab('attendance',this,true)"><span class="icon">📈</span>Att.</button>
-<button class="btab-btn" onclick="switchTab('export',this,true)"><span class="icon">⬇</span>Export</button>
+<button class="btab-btn" onclick="switchTab('bible-study',this,true)"><span class="icon">📖</span>Bible</button>
+<button class="btab-btn" onclick="switchTab('zones',this,true)"><span class="icon">🗂</span>Zones</button>
+<button class="btab-btn" onclick="switchTab('settings',this,true)"><span class="icon">⚙</span>Settings</button>
 </div>
 </div>
 
@@ -611,8 +666,140 @@ function downloadCSV(rows, name) {
   a.click();
 }
 
+var TAB_TITLES2 = {'bible-study':'Bible Study','zones':'Zone Management','settings':'Settings'};
+Object.assign(TAB_TITLES, TAB_TITLES2);
+
+// ── BIBLE STUDY TAB ──
+var savedTopicData = JSON.parse(localStorage.getItem('onc_topic') || 'null');
+function initTopicTab() {
+  if (savedTopicData) {
+    document.getElementById('topic-input').value = savedTopicData.topic || '';
+    document.getElementById('current-topic-text').textContent = savedTopicData.topic;
+    document.getElementById('current-topic-date').textContent = 'Last updated: ' + savedTopicData.date;
+    document.getElementById('current-topic-box').style.display = 'block';
+  }
+}
+function saveTopic() {
+  var t = document.getElementById('topic-input').value.trim();
+  if (!t) { alert('Please enter a topic first.'); return; }
+  var date = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  savedTopicData = {topic:t, date:date};
+  localStorage.setItem('onc_topic', JSON.stringify(savedTopicData));
+  document.getElementById('current-topic-text').textContent = t;
+  document.getElementById('current-topic-date').textContent = 'Last updated: ' + date;
+  document.getElementById('current-topic-box').style.display = 'block';
+  var msg = document.getElementById('topic-save-msg');
+  msg.textContent = '✅ Topic saved and will appear on the shepherd report form.';
+  msg.style.display = 'block';
+  fetchData('saveTopic', function(res) {});
+  var s2 = document.createElement('script');
+  window._saveTopicCb = function() {};
+  s2.src = SCRIPT_URL + '?action=saveTopic&topic=' + encodeURIComponent(t) + '&callback=_saveTopicCb';
+  document.body.appendChild(s2);
+  setTimeout(function(){msg.style.display='none';}, 4000);
+}
+
+// ── ZONES TAB ──
+var zoneData = JSON.parse(localStorage.getItem('onc_zones') || '{}');
+function initZones() {
+  var grid = document.getElementById('zone-grid');
+  grid.innerHTML = ALL_SHEPHERDS.map(function(s) {
+    var cur = zoneData[s.name] || '';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border-radius:10px;border:1px solid var(--border);"><span style="font-weight:600;font-size:14px;color:var(--navy);">' + s.name + '</span>' +
+      '<select id="zone_'+s.name.replace(/[^a-zA-Z]/g,'_')+'" style="padding:7px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--navy);outline:none;">' +
+      ['','Zone 1','Zone 2','Zone 3','Zone 4','Unassigned'].map(function(z){return '<option value="'+z+'"'+(z===cur?' selected':'')+'>'+（z||'-- Select Zone --')+'</option>';}).join('') +
+      '</select></div>';
+  }).join('');
+}
+function saveZones() {
+  ALL_SHEPHERDS.forEach(function(s) {
+    var el = document.getElementById('zone_'+s.name.replace(/[^a-zA-Z]/g,'_'));
+    if (el) zoneData[s.name] = el.value;
+  });
+  localStorage.setItem('onc_zones', JSON.stringify(zoneData));
+  var msg = document.getElementById('zone-save-msg');
+  msg.textContent = '✅ Zone assignments saved locally.';
+  msg.style.display = 'block';
+  setTimeout(function(){msg.style.display='none';},3000);
+}
+
+// ── SETTINGS TAB ──
+var currentPIN = localStorage.getItem('onc_pin') || ADMIN_PIN;
+var shepherdContacts = JSON.parse(localStorage.getItem('onc_contacts') || 'null');
+function initSettings() {
+  // Contacts grid
+  var cg = document.getElementById('contacts-grid');
+  cg.innerHTML = ALL_SHEPHERDS.map(function(s,i) {
+    var num = (shepherdContacts && shepherdContacts[s.name]) || s.contact || '';
+    return '<div style="display:flex;align-items:center;gap:10px;"><span style="width:180px;font-size:13px;font-weight:600;color:var(--navy);flex-shrink:0;">' + s.name + '</span>' +
+      '<input type="tel" id="ct_'+i+'" data-name="'+s.name+'" value="'+num+'" placeholder="Phone number" style="flex:1;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--navy);outline:none;"></div>';
+  }).join('');
+  // Reminder settings
+  var rem = JSON.parse(localStorage.getItem('onc_reminder') || 'null');
+  if (rem) {
+    document.getElementById('rem-enabled').checked = rem.enabled;
+    if (rem.time) document.getElementById('rem-time').value = rem.time;
+    if (rem.template) document.getElementById('rem-msg').value = rem.template;
+    if (rem.days) {
+      document.querySelectorAll('#rem-days input[type=checkbox]').forEach(function(cb){
+        cb.checked = rem.days.indexOf(cb.value) > -1;
+      });
+    }
+  }
+}
+function changePin() {
+  var cur = document.getElementById('pin-current').value;
+  var nw = document.getElementById('pin-new').value;
+  var conf = document.getElementById('pin-confirm').value;
+  var msg = document.getElementById('pin-msg');
+  if (cur !== currentPIN) { msg.textContent = '❌ Current PIN is incorrect.'; msg.style.color='#ef4444'; return; }
+  if (nw.length < 4) { msg.textContent = '❌ New PIN must be at least 4 digits.'; msg.style.color='#ef4444'; return; }
+  if (nw !== conf) { msg.textContent = '❌ New PINs do not match.'; msg.style.color='#ef4444'; return; }
+  currentPIN = nw;
+  localStorage.setItem('onc_pin', nw);
+  msg.textContent = '✅ PIN changed successfully.'; msg.style.color='#15803d';
+  document.getElementById('pin-current').value='';
+  document.getElementById('pin-new').value='';
+  document.getElementById('pin-confirm').value='';
+  setTimeout(function(){msg.textContent='';},4000);
+}
+function saveContacts() {
+  var map = {};
+  document.querySelectorAll('#contacts-grid input[type=tel]').forEach(function(el){
+    map[el.dataset.name] = el.value.trim();
+  });
+  shepherdContacts = map;
+  localStorage.setItem('onc_contacts', JSON.stringify(map));
+  var msg = document.getElementById('contacts-msg');
+  msg.textContent = '✅ Contacts saved locally.';
+  msg.style.display = 'block';
+  setTimeout(function(){msg.style.display='none';},3000);
+}
+function saveReminder() {
+  var days = [];
+  document.querySelectorAll('#rem-days input[type=checkbox]:checked').forEach(function(cb){days.push(cb.value);});
+  var rem = {
+    enabled: document.getElementById('rem-enabled').checked,
+    days: days,
+    time: document.getElementById('rem-time').value,
+    template: document.getElementById('rem-msg').value
+  };
+  localStorage.setItem('onc_reminder', JSON.stringify(rem));
+  fetchData('saveReminder', function(){});
+  var s3 = document.createElement('script');
+  window._remCb = function(){};
+  s3.src = SCRIPT_URL + '?action=saveReminder&data=' + encodeURIComponent(JSON.stringify(rem)) + '&callback=_remCb';
+  document.body.appendChild(s3);
+  var msg = document.getElementById('rem-msg-status');
+  msg.textContent = '✅ Reminder settings saved.'; msg.style.color='#15803d';
+  setTimeout(function(){msg.textContent='';},3000);
+}
+
 // Init
 populateFilters();
+initTopicTab();
+initZones();
+initSettings();
 </script>
 </body>
 </html>
