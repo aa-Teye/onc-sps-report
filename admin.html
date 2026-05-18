@@ -1351,14 +1351,21 @@
       return s.length > 5 ? s.slice(0, 5) : s;
     }
 
+    function toArray(val) {
+      if (!val || val === '') return [];
+      if (Array.isArray(val)) return val;
+      return val.toString().split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    }
+
     function isThisWeek(r) {
       if (!r.timestamp) return false;
       return new Date(r.timestamp) >= getWeekStart();
     }
 
     function getRate(r) {
-      if (!r.membersPresent || !r.totalMembers) return 0;
-      return Math.round((r.membersPresent.length / r.totalMembers) * 100);
+      var mp = toArray(r.membersPresent);
+      if (!mp.length || !r.totalMembers) return 0;
+      return Math.round((mp.length / r.totalMembers) * 100);
     }
 
     function countConcerns(r) {
@@ -1379,7 +1386,7 @@
     function renderOverview() {
       var weekly = allReports.filter(isThisWeek);
       var shepSet = new Set(weekly.map(function (r) { return r.shepherd; }));
-      var avgAtt = weekly.length ? Math.round(weekly.reduce(function (a, r) { return a + (r.membersPresent ? r.membersPresent.length : 0); }, 0) / weekly.length * 10) / 10 : 0;
+      var avgAtt = weekly.length ? Math.round(weekly.reduce(function (a, r) { return a + toArray(r.membersPresent).length; }, 0) / weekly.length * 10) / 10 : 0;
       var prayers = weekly.filter(function (r) { return r.prayerDone === 'yes'; }).length;
       var concerns = weekly.reduce(function (a, r) { return a + countConcerns(r); }, 0);
       var bibleYes = weekly.filter(function (r) { return r.topicCovered === 'yes'; }).length;
@@ -1396,7 +1403,7 @@
       alertSilent.innerHTML = silent.length ? silent.slice(0, 8).map(function (s) { return '<li>' + s.name + '</li>'; }).join('') + (silent.length > 8 ? '<li>+ ' + (silent.length - 8) + ' more</li>' : '') : '<li style="color:#15803d">All shepherds reported!</li>';
 
       var absentSet = {};
-      weekly.forEach(function (r) { if (r.membersAbsent) r.membersAbsent.forEach(function (m) { absentSet[m] = (absentSet[m] || 0) + 1; }); });
+      weekly.forEach(function (r) { toArray(r.membersAbsent).forEach(function (m) { absentSet[m] = (absentSet[m] || 0) + 1; }); });
       var topAbsent = Object.entries(absentSet).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 6);
       document.getElementById('alert-absent').innerHTML = topAbsent.length ? topAbsent.map(function (e) { return '<li>' + e[0] + ' (' + e[1] + 'x)</li>'; }).join('') : '<li style="color:#15803d">No absences recorded</li>';
 
@@ -1406,7 +1413,7 @@
       var recent = allReports.slice().sort(function (a, b) { return new Date(b.timestamp) - new Date(a.timestamp); }).slice(0, 5);
       document.getElementById('activity-count').textContent = allReports.length + ' total';
       document.getElementById('activity-feed').innerHTML = recent.length ? recent.map(function (r) {
-        return '<div class="activity-item"><div><div class="activity-name">' + r.shepherd + '</div><div class="activity-meta">' + (r.sessionDate || r.date || '') + ' · ' + formatTime(r.sessionTime) + ' · ' + (r.membersPresent ? r.membersPresent.length : '?') + '/' + (r.totalMembers || 4) + ' members</div></div><div class="activity-rate">' + getRate(r) + '%</div></div>';
+        return '<div class="activity-item"><div><div class="activity-name">' + r.shepherd + '</div><div class="activity-meta">' + (r.sessionDate || r.date || '') + ' · ' + formatTime(r.sessionTime) + ' · ' + toArray(r.membersPresent).length + '/' + (r.totalMembers || 4) + ' members</div></div><div class="activity-rate">' + getRate(r) + '%</div></div>';
       }).join('') : '<div class="empty"><div class="icon">📭</div><p>No reports yet</p></div>';
     }
 
@@ -1424,7 +1431,7 @@
         if (statusFilter && status !== statusFilter) return;
         var badge = status === 'active' ? '<span class="badge green">🟢 Active</span>' : status === 'overdue' ? '<span class="badge yellow">🟡 Overdue</span>' : '<span class="badge red">🔴 Silent</span>';
         var avgRate = weekReps.length ? Math.round(weekReps.reduce(function (a, r) { return a + getRate(r); }, 0) / weekReps.length) : 0;
-        var repsHtml = reps.length ? reps.slice(0, 5).map(function (r) { return '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f1f5f9;color:#475569;">' + (r.sessionDate || r.date || '') + ' — ' + (r.membersPresent ? r.membersPresent.length : 0) + '/' + (r.totalMembers || 4) + ' present · Prayer: ' + (r.prayerDone || '?') + '</div>'; }).join('') : '<div style="font-size:12px;color:#94a3b8;">No reports yet</div>';
+        var repsHtml = reps.length ? reps.slice(0, 5).map(function (r) { return '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f1f5f9;color:#475569;">' + (r.sessionDate || r.date || '') + ' — ' + toArray(r.membersPresent).length + '/' + (r.totalMembers || 4) + ' present · Prayer: ' + (r.prayerDone || '?') + '</div>'; }).join('') : '<div style="font-size:12px;color:#94a3b8;">No reports yet</div>';
         html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? (lastRep.sessionDate || lastRep.date || '') : 'Never') + '</div></div>' + badge + '</div><div class="shepherd-details">' + repsHtml + '</div></div>';
       });
       grid.innerHTML = html || '<div class="empty"><div class="icon">👥</div><p>No shepherds found</p></div>';
@@ -1447,15 +1454,15 @@
         var attended = 0, missed = 0, lastSeen = null, concern = '';
         allReports.forEach(function (r) {
           if (r.shepherd !== shep) return;
-          var present = r.membersPresent && r.membersPresent.includes(name);
-          var absent = r.membersAbsent && r.membersAbsent.includes(name);
+          var present = toArray(r.membersPresent).includes(name);
+          var absent = toArray(r.membersAbsent).includes(name);
           if (present) { attended++; if (!lastSeen || new Date(r.timestamp) > new Date(lastSeen)) lastSeen = r.sessionDate || r.date; }
           if (absent) missed++;
           if (r.concerns && r.concerns[name]) concern = r.concerns[name];
         });
         var total = attended + missed;
         var rate = total ? Math.round(attended / total * 100) : 0;
-        var recentAbsent = allReports.filter(function (r) { return r.membersAbsent && r.membersAbsent.includes(name); }).slice(-2).length;
+        var recentAbsent = allReports.filter(function (r) { return toArray(r.membersAbsent).includes(name); }).slice(-2).length;
         var mStatus = recentAbsent >= 2 ? 'atrisk' : rate < 60 ? 'irregular' : 'regular';
         if (statusFilter && mStatus !== statusFilter) return;
         var sBadge = mStatus === 'regular' ? '<span class="badge green">🟢 Regular</span>' : mStatus === 'irregular' ? '<span class="badge yellow">🟡 Irregular</span>' : '<span class="badge red">🔴 At Risk</span>';
@@ -1476,8 +1483,8 @@
       }).sort(function (a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
       var tbody = document.getElementById('reports-table');
       tbody.innerHTML = filtered.length ? filtered.map(function (r, i) {
-        var present = r.membersPresent ? r.membersPresent.join(', ') : '—';
-        var absent = r.membersAbsent ? r.membersAbsent.join(', ') : '—';
+        var present = toArray(r.membersPresent).join(', ') || '—';
+        var absent = toArray(r.membersAbsent).join(', ') || '—';
         var hasC = countConcerns(r);
         return '<tr><td>' + (i + 1) + '</td><td>' + (r.sessionDate || r.date || '') + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td></tr>';
       }).join('') : '<tr><td colspan="10" class="empty"><div class="icon">📭</div><p>No reports match filters</p></td></tr>';
@@ -1500,12 +1507,14 @@
     }
 
     function renderAttendance() {
+      var el = document.getElementById('att-chart') || document.getElementById('panel-attendance');
+      if (!el) return;
       var shepRates = ALL_SHEPHERDS.map(function (s) {
         var reps = allReports.filter(function (r) { return r.shepherd === s.name; });
         var avg = reps.length ? Math.round(reps.reduce(function (a, r) { return a + getRate(r); }, 0) / reps.length) : 0;
         return { name: s.name, avg: avg, count: reps.length };
       }).sort(function (a, b) { return b.avg - a.avg; });
-      document.getElementById('att-chart').innerHTML = shepRates.map(function (s) {
+      el.innerHTML = shepRates.map(function (s) {
         return '<div class="bar-row"><div class="bar-label" title="' + s.name + '">' + s.name + '</div><div class="bar-track"><div class="bar-fill" style="width:' + s.avg + '%"></div></div><div class="bar-pct">' + s.avg + '%</div></div>';
       }).join('');
     }
@@ -1536,7 +1545,7 @@
       var headers = ['Date', 'Day', 'Time', 'Shepherd', 'Present', 'Absent', 'Total', 'Rate%', 'Bible Topic', 'Actual Topic', 'Topic Covered', 'Prayer Done', 'Concerns'];
       var rows = allReports.map(function (r) {
         var concerns = r.concerns ? Object.entries(r.concerns).filter(function (e) { return e[1]; }).map(function (e) { return e[0] + ': ' + e[1]; }).join(' | ') : '';
-        return [r.sessionDate || r.date, r.sessionDay || '', r.sessionTime || '', r.shepherd, (r.membersPresent || []).join(';'), (r.membersAbsent || []).join(';'), r.totalMembers || 4, getRate(r), r.bibleTopic || '', r.actualTopic || '', r.topicCovered || '', r.prayerDone || '', concerns];
+        return [r.sessionDate || r.date, r.sessionDay || '', r.sessionTime || '', r.shepherd, toArray(r.membersPresent).join(';'), toArray(r.membersAbsent).join(';'), r.totalMembers || 4, getRate(r), r.bibleTopic || '', r.actualTopic || '', r.topicCovered || '', r.prayerDone || '', concerns];
       });
       downloadCSV([headers].concat(rows), 'ONC-SPS-Reports');
     }
@@ -1547,8 +1556,8 @@
         var name = e[0], shep = e[1], att = 0, miss = 0, last = '';
         allReports.forEach(function (r) {
           if (r.shepherd !== shep) return;
-          if (r.membersPresent && r.membersPresent.includes(name)) { att++; last = r.sessionDate || r.date || last; }
-          if (r.membersAbsent && r.membersAbsent.includes(name)) miss++;
+          if (toArray(r.membersPresent).includes(name)) { att++; last = r.sessionDate || r.date || last; }
+          if (toArray(r.membersAbsent).includes(name)) miss++;
         });
         var total = att + miss, rate = total ? Math.round(att / total * 100) : 0;
         rows.push([name, shep, att, miss, rate, last || '—']);
