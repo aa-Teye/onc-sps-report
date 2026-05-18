@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -521,9 +521,7 @@
       <h1>SPS Follow-Up Report</h1>
       <p>Overcomers Nation Church</p>
     </div>
-
     <div class="card" id="mainCard">
-      <!-- STEP DOTS -->
       <div class="steps">
         <div class="step-dot active" id="dot1"></div>
         <div class="step-dot" id="dot2"></div>
@@ -531,89 +529,81 @@
         <div class="step-dot" id="dot4"></div>
       </div>
 
-      <!-- SECTION 1: SHEPHERD -->
+      <!-- SEC 1: WHO ARE YOU -->
       <div class="section active" id="sec1">
         <div class="card-title"><span class="dot"></span>Who are you?</div>
         <div class="field">
           <label>Select Your Name</label>
           <div class="select-wrap">
-            <select id="shepherdSelect">
-              <option value="">— Choose your name —</option>
-            </select>
+            <select id="shepherdSelect"><option value="">— Choose your name —</option></select>
           </div>
         </div>
         <div class="field">
-          <label>Select Member You Are Reporting</label>
-          <div class="select-wrap">
-            <select id="memberSelect" disabled>
-              <option value="">— Select shepherd first —</option>
-            </select>
+          <label>Session Info</label>
+          <div id="sessionInfo" style="display:none;background:#f0f5ff;border-radius:12px;padding:14px 16px;font-size:14px;color:#0f2044;border:2px solid #dce7f7;line-height:2.2;">
+            <div>📅 <strong id="dispDate"></strong></div>
+            <div>📆 <strong id="dispDay"></strong></div>
+            <div>🕐 <strong id="dispTime"></strong></div>
+            <div>⏱ Duration: <strong>10 minutes</strong></div>
           </div>
+          <div id="sessionPlaceholder" style="color:#64748b;font-size:13px;padding:10px 0;">Select your name to see session details</div>
         </div>
         <div class="nav-btns">
-          <button class="btn-next" onclick="goNext(1)" id="next1">Next →</button>
+          <button class="btn-next" onclick="goNext(1)">Next →</button>
         </div>
       </div>
 
-      <!-- SECTION 2: CONTACT -->
+      <!-- SEC 2: ATTENDANCE -->
       <div class="section" id="sec2">
-        <div class="card-title"><span class="dot"></span>Contact Details</div>
-        <div class="field">
-          <label>Did you contact this member?</label>
-          <div class="yn-group">
-            <button class="yn-btn yes" onclick="selectYN('contacted','yes',this)">✅ Yes</button>
-            <button class="yn-btn no" onclick="selectYN('contacted','no',this)">❌ No</button>
-          </div>
-        </div>
-        <div class="field" id="howField" style="display:none">
-          <label>How did you contact them?</label>
-          <div class="type-group">
-            <button class="type-btn" onclick="selectType(this,'Call')"><span class="icon">📞</span>Call</button>
-            <button class="type-btn" onclick="selectType(this,'WhatsApp')"><span class="icon">💬</span>WhatsApp</button>
-            <button class="type-btn" onclick="selectType(this,'In Person')"><span class="icon">🤝</span>In
-              Person</button>
-          </div>
-        </div>
+        <div class="card-title"><span class="dot"></span>Who Attended?</div>
+        <div id="attendanceCount" style="font-size:13px;color:#2e80e8;font-weight:700;margin-bottom:14px;"></div>
+        <div id="memberCards" style="display:flex;flex-direction:column;gap:10px;"></div>
         <div class="nav-btns">
           <button class="btn-back" onclick="goBack(2)">← Back</button>
-          <button class="btn-next" onclick="goNext(2)" id="next2">Next →</button>
+          <button class="btn-next" onclick="goNext(2)">Next →</button>
         </div>
       </div>
 
-      <!-- SECTION 3: ACTIVITY -->
+      <!-- SEC 3: SESSION DETAILS -->
       <div class="section" id="sec3">
-        <div class="card-title"><span class="dot"></span>Fellowship Activity</div>
+        <div class="card-title"><span class="dot"></span>Session Details</div>
         <div class="field">
-          <label>Did you pray together?</label>
-          <div class="yn-group">
-            <button class="yn-btn yes" onclick="selectYN('prayer','yes',this)">✅ Yes</button>
-            <button class="yn-btn no" onclick="selectYN('prayer','no',this)">❌ No</button>
+          <label>Bible Study Topic</label>
+          <div id="topicBox" style="background:#f0f5ff;border-radius:12px;padding:14px 16px;border:2px solid #dce7f7;">
+            <div id="topicText" style="font-size:14px;color:#64748b;">⏳ Loading topic...</div>
+          </div>
+          <div id="topicButtons" style="display:none;margin-top:10px;">
+            <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Was this topic covered?</div>
+            <div class="yn-group">
+              <button class="yn-btn yes" onclick="selectYN('topicCovered','yes',this)">✅ Yes</button>
+              <button class="yn-btn no" onclick="selectYN('topicCovered','no',this)">❌ No</button>
+            </div>
           </div>
         </div>
         <div class="field">
-          <label>Did you do Bible Study?</label>
+          <label>Prayer Done?</label>
           <div class="yn-group">
-            <button class="yn-btn yes" onclick="selectYN('bible','yes',this)">✅ Yes</button>
-            <button class="yn-btn no" onclick="selectYN('bible','no',this)">❌ No</button>
+            <button class="yn-btn yes" onclick="selectYN('prayerDone','yes',this)">✅ Yes</button>
+            <button class="yn-btn no" onclick="selectYN('prayerDone','no',this)">❌ No</button>
           </div>
         </div>
         <div class="field">
-          <label>Any Concerns or Prayer Requests? <span style="font-weight:400;color:#94a3b8">(optional)</span></label>
-          <textarea id="notes" rows="3" placeholder="Type any notes here..."></textarea>
+          <label>Member Concerns <span style="font-weight:400;color:#94a3b8">(optional — attended only)</span></label>
+          <div id="concernFields" style="display:flex;flex-direction:column;gap:10px;"></div>
         </div>
         <div class="nav-btns">
           <button class="btn-back" onclick="goBack(3)">← Back</button>
-          <button class="btn-next" onclick="goNext(3)" id="next3">Next →</button>
+          <button class="btn-next" onclick="goNext(3)">Next →</button>
         </div>
       </div>
 
-      <!-- SECTION 4: REVIEW -->
+      <!-- SEC 4: REVIEW -->
       <div class="section" id="sec4">
-        <div class="card-title"><span class="dot"></span>Review & Confirm</div>
+        <div class="card-title"><span class="dot"></span>Review &amp; Confirm</div>
         <div id="reviewContent"></div>
         <div class="nav-btns">
           <button class="btn-back" onclick="goBack(4)">← Back</button>
-          <button class="btn-submit" onclick="submitReport()">✅ Confirm & Submit</button>
+          <button class="btn-submit" onclick="submitReport()">✅ Confirm &amp; Submit</button>
         </div>
       </div>
 
@@ -621,112 +611,181 @@
       <div class="section" id="secSuccess">
         <div class="success-screen">
           <div class="success-icon">✅</div>
-          <h2>Report Submitted!</h2>
-          <p>Thank you for your faithfulness.<br>Your report has been saved successfully.</p>
+          <h2 id="successTitle">Report Submitted!</h2>
+          <p id="successBody"></p>
           <button class="btn-new" onclick="resetForm()">+ Submit Another Report</button>
         </div>
       </div>
     </div>
-
     <div class="footer">ONC SPS System — Overcomers Nation Church</div>
   </div>
-
   <div class="toast" id="toast"></div>
 
   <script>
-    // ── DATA ──
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+
     const shepherdData = {
-      "Frank Armah": ["Amos Tornyi", "Gideon Daunor Tawiah", "Florence Ablordey", "Janet Oye"],
-      "Bright Mamene": ["Janelle Kekeli Dartey", "Patricia Mensah", "Hannah Akuffo France", "Titus Quaye"],
-      "Christiana Konzondong": ["Gyedu Samuel Amponsah", "Getrude Abena Owusu Achiaa", "Shirley Williams", "Abigail Asantewaa-Boadu"],
-      "Gloria Owusu Ansah": ["Samuel Torto", "Emmanuel Kwaku Amon", "Diana Ameyaw", "Mrs. Petrina Gyan"],
-      "Linda Neequaye": ["Isaac Yeboah", "Melchizedek Ofori", "Ruth Dadzie", "Lawrence Gbeku"],
-      "Abena Achia": ["Jedidiah Wiafe", "Williams Asomaning Ameyaw", "Pius Owusu Danquah", "Promise Bamflo"],
-      "Gloria Lartey": ["Agnes Amoako", "Gerald Opoku", "Maame Efua Owusu Boateng", "Lewis Nana Kojo"],
-      "Priscilla Sedi Anatsui": ["Selina Ofeibea", "Isaac Oblitey", "Princess Gyamfuaa", "Danis Agbormava"],
-      "Abigail Akakpo": ["Mary Seke", "Lucy Yaa B Agyemang", "Francis Kweku Opoku Ivan", "Micheal Kwabena Agyapong"],
-      "LP. Sophia Korkor": ["Kevin Nyarko", "Dorcas Janssen", "Abraham Can-Tamakloe", "Veronica Bemponmaa Boateng"],
-      "Wisdom Akakpo": ["Philip Boateng", "Justina Tetteh", "Anita Asamoah", "Rebecca Quaye"],
-      "Cyril Amevor": ["Bernice Can-Tamakloe", "Julianna Owusu Ansah", "Joseph Asmah", "Deborah Quaye"],
-      "Mr. Ebenezer Okronipa": ["Aaron Dela Mawuena", "Stanley Boateng", "Bernice Agyapong Quaye", "Majeed Saleem"],
-      "Solomon Aziakah": ["Abraham Delove", "Sylvester Effah", "Alberta Manu", "Bernice Mensah"],
-      "Deborah Otumfuor": ["Obed Adu-Mensah", "David Kudadze", "Dr. Derrick Korletey", "Christiana Adjei"],
-      "Christable Arhin": ["Laureta Cabu", "Victoria Amuzu", "George Sarfo Mensah", "Mrs. Elizabeth Agbedo"],
-      "Patience Addo": ["Peace Amoah", "Grace Sakyibea", "Sunday Amuzu", "Ruth Otoo"],
-      "Benjamin Armah Agyeman": ["Isabel Opoku", "Joseph Atsu", "Jeremiah Asante", "Eugene Ampadu"],
-      "Martha Asiamah": ["Samuel Boadu", "Rosemary Obeng Appiah", "Kingsley Kobina Aduful", "Emmanuel Nii-Lantei"],
-      "Shine Asinyo": ["Harriet Ampofo", "Sharon Tricia Amanu", "Dr. Mrs Abena Efua Korletey", "Loretta Owusu"],
-      "Patience Mensah": ["Madam Paulina Mansa Atiase", "Dr. Mrs Abena Efua Korletey", "Sandra Boateng", "Samuel Oteng"],
-      "Ruth Yeboah": ["Bernice Can-Tamakloe", "Princess Gyamfuaa", "Isaac Oblitey", "Bernice Can-Tamakloe"],
+      'Frank Armah': ['Amos Tornyi','Gideon Daunor Tawiah','Florence Ablordey','Janet Oye'],
+      'Bright Mamene': ['Janelle Kekeli Dartey','Patricia Mensah','Hannah Akuffo France','Titus Quaye'],
+      'Christiana Konzondong': ['Gyedu Samuel Amponsah','Getrude Abena Owusu Achiaa','Shirley Williams','Abigail Asantewaa-Boadu'],
+      'Gloria Owusu Ansah': ['Samuel Torto','Emmanuel Kwaku Amon','Diana Ameyaw','Mrs. Petrina Gyan'],
+      'Linda Neequaye': ['Isaac Yeboah','Melchizedek Ofori','Ruth Dadzie','Lawrence Gbeku'],
+      'Abena Achia': ['Jedidiah Wiafe','Williams Asomaning Ameyaw','Pius Owusu Danquah','Promise Bamflo'],
+      'Gloria Lartey': ['Agnes Amoako','Gerald Opoku','Maame Efua Owusu Boateng','Lewis Nana Kojo'],
+      'Priscilla Sedi Anatsui': ['Selina Ofeibea','Isaac Oblitey','Princess Gyamfuaa','Danis Agbormava'],
+      'Abigail Akakpo': ['Mary Seke','Lucy Yaa B Agyemang','Francis Kweku Opoku Ivan','Micheal Kwabena Agyapong'],
+      'LP. Sophia Korkor': ['Kevin Nyarko','Dorcas Janssen','Abraham Can-Tamakloe','Veronica Bemponmaa Boateng'],
+      'Wisdom Akakpo': ['Philip Boateng','Justina Tetteh','Anita Asamoah','Rebecca Quaye'],
+      'Cyril Amevor': ['Bernice Can-Tamakloe','Julianna Owusu Ansah','Joseph Asmah','Deborah Quaye'],
+      'Mr. Ebenezer Okronipa': ['Aaron Dela Mawuena','Stanley Boateng','Bernice Agyapong Quaye','Majeed Saleem'],
+      'Solomon Aziakah': ['Abraham Delove','Sylvester Effah','Alberta Manu','Bernice Mensah'],
+      'Deborah Otumfuor': ['Obed Adu-Mensah','David Kudadze','Dr. Derrick Korletey','Christiana Adjei'],
+      'Christable Arhin': ['Laureta Cabu','Victoria Amuzu','George Sarfo Mensah','Mrs. Elizabeth Agbedo'],
+      'Patience Addo': ['Peace Amoah','Grace Sakyibea','Sunday Amuzu','Ruth Otoo'],
+      'Benjamin Armah Agyeman': ['Isabel Opoku','Joseph Atsu','Jeremiah Asante','Eugene Ampadu'],
+      'Martha Asiamah': ['Samuel Boadu','Rosemary Obeng Appiah','Kingsley Kobina Aduful','Emmanuel Nii-Lantei'],
+      'Shine Asinyo': ['Harriet Ampofo','Sharon Tricia Amanu','Loretta Owusu','Madam Paulina Mansa Atiase'],
+      'Patience Mensah': ['Dr. Mrs Abena Efua Korletey','Sandra Boateng','Samuel Oteng','Bernice Agyapong Quaye'],
+      'Ruth Yeboah': ['Bernice Can-Tamakloe','Princess Gyamfuaa','Isaac Oblitey','Rebecca Quaye']
     };
 
-    // ── STATE ──
     let state = {
-      shepherd: '', member: '', contacted: '', contactType: '', prayer: '', bible: '', notes: ''
+      shepherd:'', sessionDate:'', sessionDay:'', sessionTime:'',
+      attendance:{}, topicCovered:'', bibleTopic:'', prayerDone:'', concerns:{}
     };
     let currentStep = 1;
 
-    // ── INIT ──
-    const shepherdSelect = document.getElementById('shepherdSelect');
+    // Init shepherd dropdown
+    const shepSel = document.getElementById('shepherdSelect');
     Object.keys(shepherdData).sort().forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s; opt.textContent = s;
-      shepherdSelect.appendChild(opt);
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s;
+      shepSel.appendChild(o);
     });
 
-    shepherdSelect.addEventListener('change', function () {
+    shepSel.addEventListener('change', function() {
       state.shepherd = this.value;
-      const memberSelect = document.getElementById('memberSelect');
-      memberSelect.innerHTML = '<option value="">— Choose member —</option>';
-      if (this.value && shepherdData[this.value]) {
-        memberSelect.disabled = false;
-        shepherdData[this.value].forEach(m => {
-          const opt = document.createElement('option');
-          opt.value = m; opt.textContent = m;
-          memberSelect.appendChild(opt);
-        });
-      } else {
-        memberSelect.disabled = true;
+      if (!this.value) {
+        document.getElementById('sessionInfo').style.display = 'none';
+        document.getElementById('sessionPlaceholder').style.display = 'block';
+        return;
       }
-      state.member = '';
+      const now = new Date();
+      state.sessionDate = now.toLocaleDateString('en-GB');
+      state.sessionDay  = now.toLocaleDateString('en-GB', {weekday:'long'});
+      state.sessionTime = now.toLocaleTimeString('en-GB');
+      document.getElementById('dispDate').textContent = state.sessionDate;
+      document.getElementById('dispDay').textContent  = state.sessionDay;
+      document.getElementById('dispTime').textContent = state.sessionTime;
+      document.getElementById('sessionInfo').style.display = 'block';
+      document.getElementById('sessionPlaceholder').style.display = 'none';
+      state.attendance = {};
+      (shepherdData[this.value] || []).forEach(m => state.attendance[m] = false);
     });
 
-    document.getElementById('memberSelect').addEventListener('change', function () {
-      state.member = this.value;
-    });
+    function buildMemberCards() {
+      const members = shepherdData[state.shepherd] || [];
+      const container = document.getElementById('memberCards');
+      container.innerHTML = '';
+      members.forEach(m => {
+        const present = state.attendance[m];
+        const card = document.createElement('div');
+        card.style.cssText = 'padding:14px 16px;border-radius:14px;border:2px solid ' +
+          (present ? '#22c55e' : '#dce7f7') + ';background:' +
+          (present ? '#dcfce7' : '#f0f5ff') +
+          ';display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s;';
+        card.innerHTML = '<span style="font-weight:700;color:#0f2044;font-size:15px;">' + m +
+          '</span><span style="font-size:20px;">' + (present ? '✅' : '⭕') + '</span>';
+        card.onclick = function() { state.attendance[m] = !state.attendance[m]; buildMemberCards(); };
+        container.appendChild(card);
+      });
+      const count = Object.values(state.attendance).filter(Boolean).length;
+      document.getElementById('attendanceCount').textContent = count + ' of ' + members.length + ' attended';
+    }
 
-    // ── YN ──
+    function buildConcernFields() {
+      const attended = Object.entries(state.attendance).filter(function(e){return e[1];}).map(function(e){return e[0];});
+      const cf = document.getElementById('concernFields');
+      cf.innerHTML = '';
+      if (!attended.length) {
+        cf.innerHTML = '<p style="color:#64748b;font-size:13px;">No members marked as attended.</p>';
+        return;
+      }
+      attended.forEach(function(m) {
+        const wrap = document.createElement('div');
+        const inputId = 'concern_' + m.replace(/[^a-zA-Z0-9]/g,'_');
+        wrap.innerHTML = '<label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px;">' + m + '</label>' +
+          '<input type="text" id="' + inputId + '" placeholder="Any concern or prayer request?" ' +
+          'style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;" ' +
+          'value="' + (state.concerns[m]||'').replace(/"/g,'&quot;') + '">';
+        wrap.querySelector('input').addEventListener('input', function() { state.concerns[m] = this.value; });
+        cf.appendChild(wrap);
+      });
+    }
+
+    function fetchTopic() {
+      document.getElementById('topicText').textContent = '⏳ Loading topic...';
+      document.getElementById('topicText').style.color = '#64748b';
+      document.getElementById('topicButtons').style.display = 'none';
+      var done = false;
+      var s = document.createElement('script');
+      window._topicCallback = function(data) {
+        if (done) return; done = true;
+        state.bibleTopic = (data && data.topic) ? data.topic : '';
+        if (state.bibleTopic) {
+          document.getElementById('topicText').innerHTML = '<strong>This week\'s topic:</strong> ' + state.bibleTopic;
+          document.getElementById('topicText').style.color = '#0f2044';
+          document.getElementById('topicButtons').style.display = 'block';
+        } else {
+          document.getElementById('topicText').textContent = 'No topic set this week.';
+        }
+        if (document.body.contains(s)) document.body.removeChild(s);
+      };
+      s.src = SCRIPT_URL + '?action=getTopic&callback=_topicCallback';
+      s.onerror = function() { window._topicCallback({}); };
+      document.body.appendChild(s);
+      setTimeout(function() { window._topicCallback({}); }, 6000);
+    }
+
     function selectYN(field, val, btn) {
       state[field] = val;
-      const group = btn.closest('.yn-group');
-      group.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      if (field === 'contacted') {
-        document.getElementById('howField').style.display = val === 'yes' ? 'block' : 'none';
-        if (val === 'no') { state.contactType = 'N/A'; }
-      }
-    }
-
-    function selectType(btn, type) {
-      state.contactType = type;
-      btn.closest('.type-group').querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+      btn.closest('.yn-group').querySelectorAll('.yn-btn').forEach(function(b){ b.classList.remove('selected'); });
       btn.classList.add('selected');
     }
 
-    // ── NAVIGATION ──
+    function buildReview() {
+      var members = shepherdData[state.shepherd] || [];
+      var present = members.filter(function(m){ return state.attendance[m]; });
+      var absent  = members.filter(function(m){ return !state.attendance[m]; });
+      var rate = members.length ? Math.round(present.length / members.length * 100) : 0;
+      var html = '' +
+        '<div class="review-item"><span class="review-label">Shepherd</span><span class="review-value">' + state.shepherd + '</span></div>' +
+        '<div class="review-item"><span class="review-label">Date</span><span class="review-value">' + state.sessionDate + ' (' + state.sessionDay + ')</span></div>' +
+        '<div class="review-item"><span class="review-label">Attendance</span><span class="review-value">' + present.length + '/' + members.length + ' — ' + rate + '%</span></div>' +
+        '<div class="review-item"><span class="review-label">Present</span><span class="review-value" style="color:#15803d;">' + (present.join(', ')||'None') + '</span></div>' +
+        '<div class="review-item"><span class="review-label">Absent</span><span class="review-value" style="color:#b91c1c;">' + (absent.join(', ')||'None') + '</span></div>' +
+        '<div class="review-item"><span class="review-label">Bible Topic</span><span class="review-value">' + (state.bibleTopic||'None') + '</span></div>' +
+        '<div class="review-item"><span class="review-label">Topic Covered</span><span class="review-value"><span class="badge ' + (state.topicCovered||'no') + '">' + (state.topicCovered||'N/A').toUpperCase() + '</span></span></div>' +
+        '<div class="review-item"><span class="review-label">Prayer Done</span><span class="review-value"><span class="badge ' + (state.prayerDone||'no') + '">' + (state.prayerDone||'N/A').toUpperCase() + '</span></span></div>';
+      present.forEach(function(m) {
+        if (state.concerns[m]) {
+          html += '<div class="review-item"><span class="review-label">' + m + '</span><span class="review-value" style="font-size:13px;">' + state.concerns[m] + '</span></div>';
+        }
+      });
+      document.getElementById('reviewContent').innerHTML = html;
+    }
+
     function goNext(step) {
       if (step === 1) {
         if (!state.shepherd) { showToast('Please select your name'); return; }
-        if (!state.member) { showToast('Please select a member'); return; }
+        buildMemberCards();
       }
       if (step === 2) {
-        if (!state.contacted) { showToast('Please select Yes or No'); return; }
-        if (state.contacted === 'yes' && !state.contactType) { showToast('Please select how you contacted them'); return; }
+        buildConcernFields();
+        fetchTopic();
       }
       if (step === 3) {
-        if (!state.prayer) { showToast('Please answer the prayer question'); return; }
-        if (!state.bible) { showToast('Please answer the Bible study question'); return; }
-        state.notes = document.getElementById('notes').value;
+        if (!state.prayerDone) { showToast('Please answer the prayer question'); return; }
         buildReview();
       }
       document.getElementById('sec' + step).classList.remove('active');
@@ -743,101 +802,65 @@
     }
 
     function updateDots() {
-      for (let i = 1; i <= 4; i++) {
-        const dot = document.getElementById('dot' + i);
-        dot.className = 'step-dot';
-        if (i < currentStep) dot.classList.add('done');
-        else if (i === currentStep) dot.classList.add('active');
+      for (var i = 1; i <= 4; i++) {
+        var d = document.getElementById('dot' + i);
+        d.className = 'step-dot';
+        if (i < currentStep) d.classList.add('done');
+        else if (i === currentStep) d.classList.add('active');
       }
     }
 
-    // ── REVIEW ──
-    function buildReview() {
-      const items = [
-        { label: 'Shepherd', value: state.shepherd },
-        { label: 'Member', value: state.member },
-        { label: 'Contacted', value: state.contacted, badge: true },
-        { label: 'How', value: state.contactType || '—' },
-        { label: 'Prayed Together', value: state.prayer, badge: true },
-        { label: 'Bible Study', value: state.bible, badge: true },
-        { label: 'Notes', value: state.notes || 'None' },
-      ];
-
-      document.getElementById('reviewContent').innerHTML = items.map(item => `
-    <div class="review-item">
-      <span class="review-label">${item.label}</span>
-      <span class="review-value">
-        ${item.badge ? `<span class="badge ${item.value}">${item.value.toUpperCase()}</span>` : item.value}
-      </span>
-    </div>
-  `).join('');
-    }
-
-    // ── SUBMIT ──
     async function submitReport() {
-      const btn = document.querySelector('.btn-submit');
-      btn.textContent = 'Submitting...';
-      btn.disabled = true;
-
-      const payload = {
+      var btn = document.querySelector('.btn-submit');
+      btn.textContent = 'Submitting...'; btn.disabled = true;
+      var members = shepherdData[state.shepherd] || [];
+      var present = members.filter(function(m){ return state.attendance[m]; });
+      var absent  = members.filter(function(m){ return !state.attendance[m]; });
+      var payload = {
+        action: 'submitReport',
         shepherd: state.shepherd,
-        member: state.member,
-        contacted: state.contacted,
-        contactType: state.contactType,
-        prayer: state.prayer,
-        bibleStudy: state.bible,
-        notes: state.notes,
-        timestamp: new Date().toISOString(),
-        date: new Date().toLocaleDateString('en-GB')
+        sessionDate: state.sessionDate,
+        sessionDay: state.sessionDay,
+        sessionTime: state.sessionTime,
+        membersPresent: present,
+        membersAbsent: absent,
+        totalMembers: members.length,
+        bibleTopic: state.bibleTopic,
+        topicCovered: state.topicCovered,
+        prayerDone: state.prayerDone,
+        concerns: state.concerns,
+        notes: ''
       };
-
-      // Send to Google Apps Script
       try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      } catch (e) {
-        // no-cors won't throw but silently submits
-      }
-
-      // Show success
+        await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      } catch(e) {}
+      var rate = members.length ? Math.round(present.length / members.length * 100) : 0;
+      document.getElementById('successTitle').textContent = 'Report Submitted! Thank you ' + state.shepherd.split(' ')[0] + '!';
+      document.getElementById('successBody').innerHTML = '📅 ' + state.sessionDate + '<br>👥 ' + present.length + ' of ' + members.length + ' members reported<br>📊 Attendance rate: ' + rate + '%';
       document.getElementById('sec4').classList.remove('active');
       document.getElementById('secSuccess').classList.add('active');
-      // Hide step dots on success
       document.querySelector('.steps').style.display = 'none';
       btn.disabled = false;
     }
 
-    // ── RESET ──
     function resetForm() {
-      state = { shepherd: '', member: '', contacted: '', contactType: '', prayer: '', bible: '', notes: '' };
+      state = { shepherd:'', sessionDate:'', sessionDay:'', sessionTime:'', attendance:{}, topicCovered:'', bibleTopic:'', prayerDone:'', concerns:{} };
       currentStep = 1;
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
       document.getElementById('sec1').classList.add('active');
       document.querySelector('.steps').style.display = 'flex';
       document.getElementById('shepherdSelect').value = '';
-      const ms = document.getElementById('memberSelect');
-      ms.innerHTML = '<option value="">— Select shepherd first —</option>';
-      ms.disabled = true;
-      document.getElementById('notes').value = '';
-      document.querySelectorAll('.yn-btn, .type-btn').forEach(b => b.classList.remove('selected'));
-      document.getElementById('howField').style.display = 'none';
+      document.getElementById('sessionInfo').style.display = 'none';
+      document.getElementById('sessionPlaceholder').style.display = 'block';
+      document.querySelectorAll('.yn-btn').forEach(function(b){ b.classList.remove('selected'); });
       updateDots();
     }
 
-    // ── TOAST ──
     function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2500);
+      var t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(function(){ t.classList.remove('show'); }, 2500);
     }
-
-
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';</script>
+  </script>
 </body>
-
 </html>
