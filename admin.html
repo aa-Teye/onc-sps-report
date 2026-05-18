@@ -148,7 +148,32 @@
       position: fixed;
       height: 100vh;
       z-index: 100;
+      transition: width .28s cubic-bezier(.4,0,.2,1);
+      overflow: hidden;
     }
+    .sidebar.collapsed { width: 60px; }
+    .sidebar.collapsed .sidebar-logo span,
+    .sidebar.collapsed .tab-btn-label,
+    .sidebar.collapsed .btn-logout { display: none; }
+    .sidebar.collapsed .sidebar-logo { padding: 0 10px 20px; justify-content: center; }
+    .sidebar.collapsed .tab-btn { justify-content: center; padding: 12px 0; }
+    .sidebar.collapsed .sidebar-footer { padding: 12px 8px; }
+    .sidebar.collapsed .sidebar-toggle { transform: rotate(180deg); }
+    .sidebar-toggle {
+      display: flex; align-items: center; justify-content: flex-end;
+      padding: 0 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      transition: transform .28s ease;
+    }
+    .sidebar-toggle button {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,.7); font-size: 18px; padding: 4px 6px;
+      border-radius: 6px; transition: background .2s, color .2s;
+      line-height: 1;
+    }
+    .sidebar-toggle button:hover { background: rgba(255,255,255,.1); color: #fff; }
+    .content-area { transition: margin-left .28s cubic-bezier(.4,0,.2,1); }
+    body.sidebar-collapsed .content-area { margin-left: 60px; }
 
     .sidebar-logo {
       display: flex;
@@ -896,20 +921,21 @@
   <div id="dashboard">
     <div class="dash-shell">
       <!-- SIDEBAR -->
-      <div class="sidebar">
+      <div class="sidebar" id="mainSidebar">
+        <div class="sidebar-toggle">
+          <button id="sidebarToggleBtn" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+        </div>
         <div class="sidebar-logo">
           <div class="logo">ONC</div><span>SPS Admin</span>
         </div>
         <nav>
-          <button class="tab-btn active" onclick="switchTab('overview',this)"><span
-              class="icon">📊</span>Overview</button>
-          <button class="tab-btn" onclick="switchTab('shepherds',this)"><span class="icon">👥</span>Shepherds</button>
-          <button class="tab-btn" onclick="switchTab('members',this)"><span class="icon">🙋</span>Members</button>
-          <button class="tab-btn" onclick="switchTab('reports',this)"><span class="icon">📋</span>Reports</button>
-          <button class="tab-btn" onclick="switchTab('bible-study',this)"><span class="icon">📖</span>Bible
-            Study</button>
-          <button class="tab-btn" onclick="switchTab('zones',this)"><span class="icon">🗂</span>Zones</button>
-          <button class="tab-btn" onclick="switchTab('settings',this)"><span class="icon">⚙</span>Settings</button>
+          <button class="tab-btn active" onclick="switchTab('overview',this)"><span class="icon">📊</span><span class="tab-btn-label">Overview</span></button>
+          <button class="tab-btn" onclick="switchTab('shepherds',this)"><span class="icon">👥</span><span class="tab-btn-label">Shepherds</span></button>
+          <button class="tab-btn" onclick="switchTab('members',this)"><span class="icon">🙋</span><span class="tab-btn-label">Members</span></button>
+          <button class="tab-btn" onclick="switchTab('reports',this)"><span class="icon">📋</span><span class="tab-btn-label">Reports</span></button>
+          <button class="tab-btn" onclick="switchTab('bible-study',this)"><span class="icon">📖</span><span class="tab-btn-label">Bible Study</span></button>
+          <button class="tab-btn" onclick="switchTab('zones',this)"><span class="icon">🗂</span><span class="tab-btn-label">Zones</span></button>
+          <button class="tab-btn" onclick="switchTab('settings',this)"><span class="icon">⚙</span><span class="tab-btn-label">Settings</span></button>
         </nav>
         <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Logout</button></div>
       </div>
@@ -1663,6 +1689,25 @@
     initTopicTab();
     initZones();
     initSettings();
+
+    // ── SIDEBAR COLLAPSE ──
+    function toggleSidebar() {
+      var sidebar = document.getElementById('mainSidebar');
+      var collapsed = sidebar.classList.toggle('collapsed');
+      document.body.classList.toggle('sidebar-collapsed', collapsed);
+      document.getElementById('sidebarToggleBtn').textContent = collapsed ? '→' : '☰';
+      localStorage.setItem('onc_sidebar_collapsed', collapsed ? '1' : '0');
+    }
+    function initSidebar() {
+      if (window.innerWidth <= 768) return;
+      if (localStorage.getItem('onc_sidebar_collapsed') === '1') {
+        var sidebar = document.getElementById('mainSidebar');
+        sidebar.classList.add('collapsed');
+        document.body.classList.add('sidebar-collapsed');
+        document.getElementById('sidebarToggleBtn').textContent = '→';
+      }
+    }
+    initSidebar();
   </script>
 </body>
 
