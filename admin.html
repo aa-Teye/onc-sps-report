@@ -1568,11 +1568,12 @@
         var cur = zoneData[s.name] || '';
         return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border-radius:10px;border:1px solid var(--border);"><span style="font-weight:600;font-size:14px;color:var(--navy);">' + s.name + '</span>' +
           '<select id="zone_' + s.name.replace(/[^a-zA-Z]/g, '_') + '" style="padding:7px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--navy);outline:none;">' +
-          ['', 'Zone 1', 'Zone 2', 'Zone 3', 'Zone 4', 'Unassigned'].map(function (z) { return '<option value="' + z + '"' + (z === cur ? ' selected' : '') + '>' +（z || '-- Select Zone --') + '</option>';
-      }).join('') +
-        '</select></div>';
-    }).join('');
-}
+          ['', 'Zone 1', 'Zone 2', 'Zone 3', 'Zone 4', 'Unassigned'].map(function (z) {
+            return '<option value="' + z + '"' + (z === cur ? ' selected' : '') + '>' + (z || '-- Select Zone --') + '</option>';
+          }).join('') +
+          '</select></div>';
+      }).join('');
+    }
     function saveZones() {
       ALL_SHEPHERDS.forEach(function (s) {
         var el = document.getElementById('zone_' + s.name.replace(/[^a-zA-Z]/g, '_'));
