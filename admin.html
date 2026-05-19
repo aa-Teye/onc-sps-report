@@ -1374,8 +1374,27 @@
     }
 
     function isThisWeek(r) {
-      if (!r.timestamp) return false;
-      return new Date(r.timestamp) >= getWeekStart();
+      var dateStr = r.submissionDate || r.sessionDate || r.date;
+      if (!dateStr) {
+        if (r.timestamp) {
+          var ts = new Date(r.timestamp);
+          var weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+          return ts >= weekAgo && ts <= new Date();
+        }
+        return false;
+      }
+      var s = dateStr.toString();
+      var parts = s.split('/');
+      var reportDate;
+      if (parts.length >= 3) {
+        reportDate = new Date(parts[2], parts[1] - 1, parts[0]);
+      } else {
+        reportDate = new Date(s);
+      }
+      if (isNaN(reportDate)) return false;
+      var now = new Date();
+      var weekAgo2 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      return reportDate >= weekAgo2 && reportDate <= now;
     }
 
     function getRate(r) {
@@ -1386,7 +1405,10 @@
 
     function countConcerns(r) {
       if (!r.concerns) return 0;
-      return Object.values(r.concerns).filter(function (v) { return v && v.trim(); }).length;
+      if (typeof r.concerns === 'string') {
+        return (r.concerns.trim() !== '' && r.concerns.toLowerCase() !== 'none') ? 1 : 0;
+      }
+      return Object.values(r.concerns).filter(function (v) { return v && v.trim() && v.toLowerCase() !== 'none'; }).length;
     }
 
     function renderAll() {
@@ -1401,15 +1423,29 @@
 
     function renderOverview() {
       var weekly = allReports.filter(isThisWeek);
+      console.log('This week reports:', weekly.length, 'of', allReports.length, 'total');
       var shepSet = new Set(weekly.map(function (r) { return r.shepherd; }));
-      var avgAtt = weekly.length ? Math.round(weekly.reduce(function (a, r) { return a + toArray(r.membersPresent).length; }, 0) / weekly.length * 10) / 10 : 0;
-      var prayers = weekly.filter(function (r) { return r.prayerDone === 'yes'; }).length;
-      var concerns = weekly.reduce(function (a, r) { return a + countConcerns(r); }, 0);
-      var bibleYes = weekly.filter(function (r) { return r.topicCovered === 'yes'; }).length;
+
+      // Avg attendance — use attendanceRate if available, else calculate from members
+      var avgAtt = 0;
+      if (weekly.length) {
+        var totalAtt = weekly.reduce(function (a, r) {
+          if (r.attendanceRate !== undefined && r.attendanceRate !== null && r.attendanceRate !== '') {
+            var rate = parseFloat(r.attendanceRate);
+            return a + (rate <= 1 ? Math.round(rate * 100) : Math.round(rate));
+          }
+          return a + getRate(r);
+        }, 0);
+        avgAtt = Math.round(totalAtt / weekly.length);
+      }
+
+      var prayers = weekly.filter(function (r) { return r.prayerDone === 'yes' || r.prayerDone === 'Yes'; }).length;
+      var concerns = weekly.filter(function (r) { return countConcerns(r) > 0; }).length;
+      var bibleYes = weekly.filter(function (r) { return r.topicCovered === 'yes' || r.topicCovered === 'Yes'; }).length;
 
       document.getElementById('s-sessions').textContent = weekly.length;
       document.getElementById('s-reported').textContent = shepSet.size + '/22';
-      document.getElementById('s-avgatt').textContent = avgAtt;
+      document.getElementById('s-avgatt').textContent = avgAtt + '%';
       document.getElementById('s-prayer').textContent = prayers;
       document.getElementById('s-concerns').textContent = concerns;
       document.getElementById('s-bible').textContent = bibleYes + '/' + weekly.length;
@@ -1423,7 +1459,7 @@
       var topAbsent = Object.entries(absentSet).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 6);
       document.getElementById('alert-absent').innerHTML = topAbsent.length ? topAbsent.map(function (e) { return '<li>' + e[0] + ' (' + e[1] + 'x)</li>'; }).join('') : '<li style="color:#15803d">No absences recorded</li>';
 
-      var highAct = ALL_SHEPHERDS.filter(function (s) { return allReports.filter(function (r) { return r.shepherd === s.name && isThisWeek(r); }).length >= 3; });
+      var highAct = ALL_SHEPHERDS.filter(function (s) { return weekly.filter(function (r) { return r.shepherd === s.name; }).length >= 3; });
       document.getElementById('alert-active').innerHTML = highAct.length ? highAct.map(function (s) { return '<li>' + s.name + '</li>'; }).join('') : '<li style="color:#64748b">None yet this week</li>';
 
       var recent = allReports.slice().sort(function (a, b) { return new Date(b.timestamp) - new Date(a.timestamp); }).slice(0, 5);
