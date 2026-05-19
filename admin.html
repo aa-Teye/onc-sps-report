@@ -1115,19 +1115,22 @@
 
         <!-- TAB 6: ZONES -->
         <div class="tab-panel" id="panel-zones">
+          <!-- SECTION 1: Zone Configuration -->
           <div class="export-section">
-            <h3>🗂 Zone Management</h3>
-            <p style="color:var(--gray);font-size:14px;margin-bottom:4px;">Assign each shepherd to a zone. Zones will be
-              activated once Supershepherds are confirmed.</p>
-            <div
-              style="background:#fef9c3;border:2px solid #fde047;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#854d0e;font-weight:600;">
-              ⚠ Zone assignments are saved locally and will be activated once Supershepherds are confirmed.</div>
-            <div id="zone-grid" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
-            <button onclick="saveZones()"
-              style="padding:12px 24px;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾
-              Save Zone Assignments</button>
-            <div id="zone-save-msg" style="display:none;color:#15803d;font-size:13px;font-weight:600;margin-top:10px;">
+            <h3>🗂 Zone Configuration</h3>
+            <p style="color:var(--gray);font-size:14px;margin-bottom:16px;">Configure up to 10 zones. Assign a Supershepherd and select shepherds for each zone.</p>
+            <div id="zone-config-grid" style="display:flex;flex-direction:column;gap:16px;"></div>
+            <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+              <button onclick="saveAllZones()" style="padding:12px 24px;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾 Save All Zones</button>
+              <button onclick="renderZoneHealth()" style="padding:12px 24px;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">📊 Refresh Health</button>
             </div>
+            <div id="zone-save-msg" style="display:none;color:#15803d;font-size:13px;font-weight:600;margin-top:10px;"></div>
+          </div>
+          <!-- SECTION 2: Zone Health Dashboard -->
+          <div class="export-section" style="margin-top:20px;">
+            <h3>📊 Zone Health Dashboard</h3>
+            <p style="color:var(--gray);font-size:14px;margin-bottom:16px;">Live status based on reports loaded in this session.</p>
+            <div id="zone-health-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
           </div>
         </div>
 
@@ -1680,29 +1683,111 @@
     }
 
     // ── ZONES TAB ──
-    var zoneData = JSON.parse(localStorage.getItem('onc_zones') || '{}');
-    function initZones() {
-      var grid = document.getElementById('zone-grid');
-      grid.innerHTML = ALL_SHEPHERDS.map(function (s) {
-        var cur = zoneData[s.name] || '';
-        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border-radius:10px;border:1px solid var(--border);"><span style="font-weight:600;font-size:14px;color:var(--navy);">' + s.name + '</span>' +
-          '<select id="zone_' + s.name.replace(/[^a-zA-Z]/g, '_') + '" style="padding:7px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--navy);outline:none;">' +
-          ['', 'Zone 1', 'Zone 2', 'Zone 3', 'Zone 4', 'Unassigned'].map(function (z) {
-            return '<option value="' + z + '"' + (z === cur ? ' selected' : '') + '>' + (z || '-- Select Zone --') + '</option>';
-          }).join('') +
-          '</select></div>';
-      }).join('');
+    var zoneConfig = JSON.parse(localStorage.getItem('onc_zones') || 'null');
+    if (!zoneConfig || !Array.isArray(zoneConfig)) {
+      zoneConfig = [];
+      for (var zi = 1; zi <= 10; zi++) {
+        zoneConfig.push({ name: 'Zone ' + zi, supershepherd: '', shepherds: [] });
+      }
     }
-    function saveZones() {
-      ALL_SHEPHERDS.forEach(function (s) {
-        var el = document.getElementById('zone_' + s.name.replace(/[^a-zA-Z]/g, '_'));
-        if (el) zoneData[s.name] = el.value;
+
+    function initZones() {
+      var grid = document.getElementById('zone-config-grid');
+      if (!grid) return;
+      var shepOpts = '<option value="">-- Select Supershepherd --</option>' +
+        ALL_SHEPHERDS.map(function (s) { return '<option value="' + s.name + '">' + s.name + '</option>'; }).join('');
+
+      grid.innerHTML = zoneConfig.map(function (zone, i) {
+        var checkedShepherds = zone.shepherds || [];
+        var checkboxes = ALL_SHEPHERDS.map(function (s) {
+          var checked = checkedShepherds.indexOf(s.name) > -1 ? ' checked' : '';
+          return '<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--navy);padding:2px 0;">' +
+            '<input type="checkbox" data-zone="' + i + '" data-shep="' + s.name + '" class="zone-shep-cb"' + checked + '> ' + s.name + '</label>';
+        }).join('');
+
+        var superOpts = shepOpts.replace('value="' + (zone.supershepherd || '') + '"', 'value="' + (zone.supershepherd || '') + '" selected');
+
+        return '<div style="background:#fff;border-radius:14px;border:2px solid var(--border);padding:16px;">' +
+          '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">' +
+          '<input type="text" id="zone_name_' + i + '" value="' + zone.name + '" style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;color:var(--navy);outline:none;width:140px;" onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'var(--border)\'">' +
+          '<select id="zone_super_' + i + '" style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--navy);outline:none;flex:1;min-width:180px;">' + superOpts + '</select>' +
+          '</div>' +
+          '<div style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Assigned Shepherds</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:2px;max-height:140px;overflow-y:auto;padding:8px;background:var(--light);border-radius:8px;">' + checkboxes + '</div>' +
+          '</div>';
+      }).join('');
+
+      renderZoneHealth();
+    }
+
+    function saveAllZones() {
+      for (var i = 0; i < 10; i++) {
+        var nameEl = document.getElementById('zone_name_' + i);
+        var superEl = document.getElementById('zone_super_' + i);
+        if (nameEl) zoneConfig[i].name = nameEl.value.trim() || 'Zone ' + (i + 1);
+        if (superEl) zoneConfig[i].supershepherd = superEl.value;
+        zoneConfig[i].shepherds = [];
+      }
+      document.querySelectorAll('.zone-shep-cb:checked').forEach(function (cb) {
+        var idx = parseInt(cb.dataset.zone);
+        zoneConfig[idx].shepherds.push(cb.dataset.shep);
       });
-      localStorage.setItem('onc_zones', JSON.stringify(zoneData));
+      localStorage.setItem('onc_zones', JSON.stringify(zoneConfig));
       var msg = document.getElementById('zone-save-msg');
-      msg.textContent = '✅ Zone assignments saved locally.';
+      msg.textContent = '✅ All zone configurations saved.';
       msg.style.display = 'block';
       setTimeout(function () { msg.style.display = 'none'; }, 3000);
+      renderZoneHealth();
+    }
+
+    function renderZoneHealth() {
+      var healthGrid = document.getElementById('zone-health-grid');
+      if (!healthGrid) return;
+      var weekly = allReports.filter(isThisWeek);
+      var reportedSheps = new Set(weekly.map(function (r) { return r.shepherd; }));
+
+      var cards = zoneConfig.map(function (zone) {
+        var shepherds = zone.shepherds || [];
+        if (!shepherds.length) return '';
+
+        var reported = shepherds.filter(function (s) { return reportedSheps.has(s); });
+        var notReported = shepherds.filter(function (s) { return !reportedSheps.has(s); });
+        var pct = shepherds.length ? Math.round(reported.length / shepherds.length * 100) : 0;
+
+        // Zone attendance rate
+        var zoneReps = weekly.filter(function (r) { return shepherds.indexOf(r.shepherd) > -1; });
+        var avgRate = zoneReps.length ? Math.round(zoneReps.reduce(function (a, r) { return a + getRate(r); }, 0) / zoneReps.length) : 0;
+
+        // Zone concerns
+        var zoneConcerns = zoneReps.filter(function (r) { return countConcerns(r) > 0; }).length;
+
+        // Health badge
+        var badge, badgeColor;
+        if (pct >= 80) { badge = '🟢 Healthy'; badgeColor = '#dcfce7;color:#15803d'; }
+        else if (pct >= 50) { badge = '🟡 At Risk'; badgeColor = '#fef9c3;color:#854d0e'; }
+        else { badge = '🔴 Critical'; badgeColor = '#fee2e2;color:#991b1b'; }
+
+        var shepList = reported.map(function (s) {
+          return '<div style="font-size:12px;padding:3px 0;color:#15803d;">✅ ' + s + '</div>';
+        }).join('') + notReported.map(function (s) {
+          return '<div style="font-size:12px;padding:3px 0;color:#991b1b;">🔴 ' + s + '</div>';
+        }).join('');
+
+        return '<div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);border-left:4px solid ' + (pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--gold)' : 'var(--red)') + ';">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+          '<div><div style="font-weight:800;font-size:15px;color:var(--navy);">' + zone.name + '</div>' +
+          '<div style="font-size:12px;color:var(--gray);">' + (zone.supershepherd ? '👑 ' + zone.supershepherd : 'No Supershepherd') + '</div></div>' +
+          '<span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:' + badgeColor + '">' + badge + '</span></div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">' +
+          '<div style="text-align:center;padding:8px;background:var(--light);border-radius:8px;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Reporting</div><div style="font-size:18px;font-weight:800;color:var(--navy);">' + reported.length + '/' + shepherds.length + '</div></div>' +
+          '<div style="text-align:center;padding:8px;background:var(--light);border-radius:8px;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Attendance</div><div style="font-size:18px;font-weight:800;color:var(--navy);">' + avgRate + '%</div></div>' +
+          '<div style="text-align:center;padding:8px;background:var(--light);border-radius:8px;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Concerns</div><div style="font-size:18px;font-weight:800;color:var(--navy);">' + zoneConcerns + '</div></div>' +
+          '</div>' +
+          '<div style="max-height:120px;overflow-y:auto;">' + shepList + '</div></div>';
+      }).filter(Boolean);
+
+      healthGrid.innerHTML = cards.length ? cards.join('') :
+        '<div class="empty" style="grid-column:1/-1;"><div class="icon">🗂</div><p>No zones configured yet. Assign shepherds above and save.</p></div>';
     }
 
     // ── SETTINGS TAB ──
