@@ -1177,6 +1177,11 @@
         <!-- TAB 8: SETTINGS -->
         <div class="tab-panel" id="panel-settings">
           <div class="export-section">
+            <h3>📱 WhatsApp Reminders</h3>
+            <button onclick="sendReminders()" id="btn-send-reminders" style="padding:12px 24px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:10px;">📱 Send WhatsApp Reminder to All</button>
+            <div id="reminder-progress" style="font-size:13px;font-weight:600;color:var(--navy);"></div>
+          </div>
+          <div class="export-section">
             <h3>🔐 Change Admin PIN</h3>
             <div style="display:flex;flex-direction:column;gap:10px;max-width:320px;">
               <input type="password" id="pin-current" placeholder="Current PIN"
@@ -1989,9 +1994,24 @@
       // Contacts grid
       var cg = document.getElementById('contacts-grid');
       cg.innerHTML = ALL_SHEPHERDS.map(function (s, i) {
-        var num = (shepherdContacts && shepherdContacts[s.name]) || s.contact || '';
-        return '<div style="display:flex;align-items:center;gap:10px;"><span style="width:180px;font-size:13px;font-weight:600;color:var(--navy);flex-shrink:0;">' + s.name + '</span>' +
-          '<input type="tel" id="ct_' + i + '" data-name="' + s.name + '" value="' + num + '" placeholder="Phone number" style="flex:1;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--navy);outline:none;"></div>';
+        var num = '';
+        var api = '';
+        if (shepherdContacts && shepherdContacts[s.name]) {
+          if (typeof shepherdContacts[s.name] === 'object') {
+             num = shepherdContacts[s.name].number || s.contact || '';
+             api = shepherdContacts[s.name].apiKey || '';
+          } else {
+             num = shepherdContacts[s.name] || s.contact || '';
+          }
+        } else {
+          num = s.contact || '';
+        }
+        var status = (num && api) ? '🟢 Ready' : (!num ? '🔴 No Number' : '🟡 No API Key');
+
+        return '<div style="display:flex;align-items:center;gap:10px;"><span style="width:160px;font-size:13px;font-weight:600;color:var(--navy);flex-shrink:0;">' + s.name + '</span>' +
+          '<input type="tel" id="ct_' + i + '" data-name="' + s.name + '" value="' + num + '" placeholder="Phone number" style="flex:1;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--navy);outline:none;">' +
+          '<input type="text" id="api_' + i + '" data-name="' + s.name + '" value="' + api + '" placeholder="CallMeBot API key" style="flex:1;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--navy);outline:none;">' +
+          '<span style="width:100px;font-size:12px;text-align:right;">' + status + '</span></div>';
       }).join('');
       // Reminder settings
       var rem = JSON.parse(localStorage.getItem('onc_reminder') || 'null');
@@ -2025,14 +2045,65 @@
     function saveContacts() {
       var map = {};
       document.querySelectorAll('#contacts-grid input[type=tel]').forEach(function (el) {
-        map[el.dataset.name] = el.value.trim();
+        var name = el.dataset.name;
+        var num = el.value.trim();
+        var apiEl = document.getElementById(el.id.replace('ct_', 'api_'));
+        var api = apiEl ? apiEl.value.trim() : '';
+        map[name] = { number: num, apiKey: api };
       });
       shepherdContacts = map;
       localStorage.setItem('onc_contacts', JSON.stringify(map));
       var msg = document.getElementById('contacts-msg');
       msg.textContent = '✅ Contacts saved locally.';
       msg.style.display = 'block';
+      initSettings();
       setTimeout(function () { msg.style.display = 'none'; }, 3000);
+    }
+
+    function sendReminders() {
+      var btn = document.getElementById('btn-send-reminders');
+      var prog = document.getElementById('reminder-progress');
+      btn.disabled = true;
+      btn.style.opacity = '0.7';
+      prog.textContent = 'Sending to shepherds...';
+
+      var contacts = JSON.parse(localStorage.getItem('onc_contacts') || '{}');
+      var message = localStorage.getItem('onc_reminder_message') || 
+        'Hi {name}! Please submit your SPS report today. Link: https://aa-teye.github.io/onc-sps-report/';
+      
+      var sent = 0;
+      var skipped = 0;
+      var promises = [];
+
+      ALL_SHEPHERDS.forEach(function(s) {
+        var contact = contacts[s.name] || {};
+        var number = contact.number || s.contact;
+        // Backward compatibility if it was saved as a string
+        if (typeof contact === 'string') number = contact;
+        var apiKey = contact.apiKey || '';
+        
+        if (!number || !apiKey) {
+          skipped++;
+          return;
+        }
+
+        var personalMessage = message.replace('{name}', s.name.split(' ')[0]);
+        var url = 'https://api.callmebot.com/whatsapp.php?phone=' + 
+                  number + '&text=' + encodeURIComponent(personalMessage) + 
+                  '&apikey=' + apiKey;
+
+        promises.push(
+          fetch(url, { mode: 'no-cors' })
+            .then(function() { sent++; })
+            .catch(function() { sent++; })
+        );
+      });
+
+      Promise.all(promises).then(function() {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        prog.textContent = '✅ Sent to ' + sent + ' | ⚠ Skipped ' + skipped + ' (no API key)';
+      });
     }
     function saveReminder() {
       var days = [];
