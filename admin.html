@@ -900,6 +900,9 @@
       font-size: 14px;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body>
@@ -935,6 +938,7 @@
           <button class="tab-btn" onclick="switchTab('reports',this)"><span class="icon">📋</span><span class="tab-btn-label">Reports</span></button>
           <button class="tab-btn" onclick="switchTab('bible-study',this)"><span class="icon">📖</span><span class="tab-btn-label">Bible Study</span></button>
           <button class="tab-btn" onclick="switchTab('zones',this)"><span class="icon">🗂</span><span class="tab-btn-label">Zones</span></button>
+          <button class="tab-btn" onclick="switchTab('export',this)"><span class="icon">📤</span><span class="tab-btn-label">Export</span></button>
           <button class="tab-btn" onclick="switchTab('settings',this)"><span class="icon">⚙</span><span class="tab-btn-label">Settings</span></button>
         </nav>
         <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Logout</button></div>
@@ -1134,7 +1138,40 @@
           </div>
         </div>
 
-        <!-- TAB 7: SETTINGS -->
+        <!-- TAB 7: EXPORT -->
+        <div class="tab-panel" id="panel-export">
+          <div class="export-section">
+            <h3>📊 Export Session Reports</h3>
+            <div class="filter-bar" style="margin-bottom:14px;">
+              <div style="display:flex;align-items:center;gap:6px;"><label style="font-size:12px;font-weight:700;color:var(--gray);">From</label><input type="date" id="exp-date-from"></div>
+              <div style="display:flex;align-items:center;gap:6px;"><label style="font-size:12px;font-weight:700;color:var(--gray);">To</label><input type="date" id="exp-date-to"></div>
+              <select id="exp-shep-filter"><option value="">All Shepherds</option></select>
+              <button onclick="clearExportFilters()" style="padding:8px 14px;border:2px solid var(--border);border-radius:10px;background:var(--white);color:var(--navy);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">Clear</button>
+            </div>
+            <div id="exp-report-count" style="font-size:13px;color:var(--gray);margin-bottom:12px;"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn-export" onclick="doExportReports('csv')">⬇ Download CSV</button>
+              <button class="btn-export" onclick="doExportReports('xlsx')">⬇ Download Excel</button>
+              <button class="btn-export" onclick="doExportReports('pdf')">⬇ Download PDF</button>
+            </div>
+          </div>
+          <div class="export-section">
+            <h3>👥 Export Members Directory</h3>
+            <p style="color:var(--gray);font-size:13px;margin-bottom:12px;">All 88 members with shepherd assignments and contact info.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn-export" onclick="doExportMembers('csv')">⬇ Members CSV</button>
+              <button class="btn-export" onclick="doExportMembers('xlsx')">⬇ Members Excel</button>
+              <button class="btn-export" onclick="doExportMembers('pdf')">⬇ Members PDF</button>
+            </div>
+          </div>
+          <div class="export-section">
+            <h3>📝 Weekly Summary Report</h3>
+            <div id="summary-preview" style="background:var(--light);border-radius:12px;padding:16px;margin-bottom:14px;font-size:13px;color:var(--navy);"></div>
+            <button class="btn-export" onclick="doExportSummaryPDF()">⬇ Download Summary PDF</button>
+          </div>
+        </div>
+
+        <!-- TAB 8: SETTINGS -->
         <div class="tab-panel" id="panel-settings">
           <div class="export-section">
             <h3>🔐 Change Admin PIN</h3>
@@ -1207,12 +1244,6 @@
                 Save Reminder Settings</button>
               <div id="rem-msg-status" style="font-size:13px;font-weight:600;"></div>
             </div>
-          </div>
-          <div class="export-section">
-            <h3>📤 Export Data</h3>
-            <button class="btn-export" onclick="exportReports()">⬇ Export All Reports (CSV)</button>
-            <button class="btn-export" onclick="exportMembers()">⬇ Export Members (CSV)</button>
-          </div>
         </div>
 
       </div><!-- end content-area -->
@@ -1229,6 +1260,7 @@
       <button class="btab-btn" onclick="switchTab('reports',this,true)"><span class="icon">📋</span>Reports</button>
       <button class="btab-btn" onclick="switchTab('bible-study',this,true)"><span class="icon">📖</span>Bible</button>
       <button class="btab-btn" onclick="switchTab('zones',this,true)"><span class="icon">🗂</span>Zones</button>
+      <button class="btab-btn" onclick="switchTab('export',this,true)"><span class="icon">📤</span>Export</button>
       <button class="btab-btn" onclick="switchTab('settings',this,true)"><span class="icon">⚙</span>Settings</button>
     </div>
   </div>
@@ -1595,40 +1627,197 @@
       });
     }
 
-    function exportReports() {
-      if (!allReports.length) { alert('No data to export.'); return; }
-      var headers = ['Date', 'Day', 'Time', 'Shepherd', 'Present', 'Absent', 'Total', 'Rate%', 'Bible Topic', 'Actual Topic', 'Topic Covered', 'Prayer Done', 'Concerns'];
-      var rows = allReports.map(function (r) {
-        var concerns = r.concerns ? Object.entries(r.concerns).filter(function (e) { return e[1]; }).map(function (e) { return e[0] + ': ' + e[1]; }).join(' | ') : '';
-        return [r.sessionDate || r.date, r.sessionDay || '', r.sessionTime || '', r.shepherd, toArray(r.membersPresent).join(';'), toArray(r.membersAbsent).join(';'), r.totalMembers || 4, getRate(r), r.bibleTopic || '', r.actualTopic || '', r.topicCovered || '', r.prayerDone || '', concerns];
+    // ── EXPORT HELPERS ──
+    function getFilteredReports() {
+      var from = document.getElementById('exp-date-from').value;
+      var to = document.getElementById('exp-date-to').value;
+      var shep = document.getElementById('exp-shep-filter').value;
+      return allReports.filter(function (r) {
+        if (shep && r.shepherd !== shep) return false;
+        var d = r.submissionDate || r.sessionDate || r.date || '';
+        if (from || to) {
+          var parts = d.split('/');
+          var rd = parts.length >= 3 ? new Date(parts[2], parts[1] - 1, parts[0]) : new Date(d);
+          if (isNaN(rd)) return true;
+          var iso = rd.toISOString().split('T')[0];
+          if (from && iso < from) return false;
+          if (to && iso > to) return false;
+        }
+        return true;
       });
-      downloadCSV([headers].concat(rows), 'ONC-SPS-Reports');
     }
 
-    function exportMembers() {
-      var rows = [['Member', 'Shepherd', 'Attended', 'Missed', 'Rate%', 'Last Seen']];
+    function clearExportFilters() {
+      document.getElementById('exp-date-from').value = '';
+      document.getElementById('exp-date-to').value = '';
+      document.getElementById('exp-shep-filter').value = '';
+      updateExportCount();
+    }
+
+    function updateExportCount() {
+      var f = getFilteredReports();
+      var el = document.getElementById('exp-report-count');
+      if (el) el.textContent = f.length + ' reports found';
+    }
+
+    function initExportTab() {
+      var sel = document.getElementById('exp-shep-filter');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">All Shepherds</option>';
+      ALL_SHEPHERDS.forEach(function (s) { var o = document.createElement('option'); o.value = s.name; o.textContent = s.name; sel.appendChild(o); });
+      ['exp-date-from', 'exp-date-to'].forEach(function (id) {
+        document.getElementById(id).addEventListener('change', updateExportCount);
+      });
+      sel.addEventListener('change', updateExportCount);
+      updateExportCount();
+      renderSummaryPreview();
+    }
+
+    function getReportHeaders() {
+      return ['#', 'Date', 'Day', 'Time', 'Shepherd', 'Present', 'Absent', 'Total', 'Rate%', 'Topic', 'Actual Topic', 'Covered', 'Prayer', 'Concerns'];
+    }
+    function getReportRows(filtered) {
+      return filtered.map(function (r, i) {
+        var c = r.concerns;
+        var cStr = '';
+        if (c && typeof c === 'string' && c.toLowerCase() !== 'none') cStr = c;
+        else if (c && typeof c === 'object') cStr = Object.entries(c).filter(function (e) { return e[1]; }).map(function (e) { return e[0] + ': ' + e[1]; }).join(' | ');
+        return [i + 1, r.submissionDate || r.sessionDate || r.date || '', r.submissionDay || r.sessionDay || '', formatTime(r.submissionTime || r.sessionTime), r.shepherd, toArray(r.membersPresent).join('; '), toArray(r.membersAbsent).join('; '), r.totalMembers || 4, getRate(r) + '%', r.bibleTopic || '', r.actualTopic || '', r.topicCovered || '', r.prayerDone || '', cStr];
+      });
+    }
+
+    function doExportReports(fmt) {
+      var filtered = getFilteredReports();
+      if (!filtered.length) { alert('No reports match the current filters.'); return; }
+      var headers = getReportHeaders();
+      var rows = getReportRows(filtered);
+      var name = 'ONC-SPS-Reports-' + new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+      if (fmt === 'csv') {
+        downloadCSV([headers].concat(rows), name);
+      } else if (fmt === 'xlsx') {
+        var ws = XLSX.utils.aoa_to_sheet([headers].concat(rows));
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Reports');
+        XLSX.writeFile(wb, name + '.xlsx');
+      } else if (fmt === 'pdf') {
+        var doc = new jspdf.jsPDF('l', 'mm', 'a4');
+        doc.setFontSize(16); doc.text('ONC SPS — Session Reports', 14, 15);
+        doc.setFontSize(10); doc.text('Generated: ' + new Date().toLocaleString('en-GB'), 14, 22);
+        doc.autoTable({ head: [headers], body: rows, startY: 28, styles: { fontSize: 7 }, headStyles: { fillColor: [10, 22, 40] } });
+        doc.save(name + '.pdf');
+      }
+    }
+
+    function getMemberRows() {
+      var rows = [];
       Object.entries(memberData).forEach(function (e) {
         var name = e[0], shep = e[1], att = 0, miss = 0, last = '';
+        var contact = '';
+        ALL_SHEPHERDS.forEach(function (s) { if (s.name === shep) contact = s.contact || ''; });
         allReports.forEach(function (r) {
           if (r.shepherd !== shep) return;
-          if (toArray(r.membersPresent).includes(name)) { att++; last = r.sessionDate || r.date || last; }
+          if (toArray(r.membersPresent).includes(name)) { att++; last = r.submissionDate || r.sessionDate || r.date || last; }
           if (toArray(r.membersAbsent).includes(name)) miss++;
         });
         var total = att + miss, rate = total ? Math.round(att / total * 100) : 0;
-        rows.push([name, shep, att, miss, rate, last || '—']);
+        rows.push([name, shep, contact, att, miss, rate + '%', last || '—']);
       });
-      downloadCSV(rows, 'ONC-SPS-Members');
+      return rows;
+    }
+
+    function doExportMembers(fmt) {
+      var headers = ['Member', 'Shepherd', 'Contact', 'Attended', 'Missed', 'Rate', 'Last Seen'];
+      var rows = getMemberRows();
+      var name = 'ONC-SPS-Members-' + new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+      if (fmt === 'csv') {
+        downloadCSV([headers].concat(rows), name);
+      } else if (fmt === 'xlsx') {
+        var ws = XLSX.utils.aoa_to_sheet([headers].concat(rows));
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Members');
+        XLSX.writeFile(wb, name + '.xlsx');
+      } else if (fmt === 'pdf') {
+        var doc = new jspdf.jsPDF('p', 'mm', 'a4');
+        doc.setFontSize(16); doc.text('ONC SPS — Members Directory', 14, 15);
+        doc.setFontSize(10); doc.text('Generated: ' + new Date().toLocaleString('en-GB'), 14, 22);
+        doc.autoTable({ head: [headers], body: rows, startY: 28, styles: { fontSize: 8 }, headStyles: { fillColor: [10, 22, 40] } });
+        doc.save(name + '.pdf');
+      }
+    }
+
+    function renderSummaryPreview() {
+      var el = document.getElementById('summary-preview');
+      if (!el) return;
+      var weekly = allReports.filter(isThisWeek);
+      var shepSet = new Set(weekly.map(function (r) { return r.shepherd; }));
+      var avgRate = weekly.length ? Math.round(weekly.reduce(function (a, r) { return a + getRate(r); }, 0) / weekly.length) : 0;
+      var prayers = weekly.filter(function (r) { return r.prayerDone === 'yes' || r.prayerDone === 'Yes'; }).length;
+      var concernList = weekly.filter(function (r) { return countConcerns(r) > 0; });
+      var topSheps = ALL_SHEPHERDS.map(function (s) {
+        var reps = weekly.filter(function (r) { return r.shepherd === s.name; });
+        return { name: s.name, count: reps.length, avg: reps.length ? Math.round(reps.reduce(function (a, r) { return a + getRate(r); }, 0) / reps.length) : 0 };
+      }).filter(function (s) { return s.count > 0; }).sort(function (a, b) { return b.avg - a.avg; }).slice(0, 5);
+
+      el.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px;">' +
+        '<div style="background:#fff;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Sessions</div><div style="font-size:22px;font-weight:800;color:var(--navy);">' + weekly.length + '</div></div>' +
+        '<div style="background:#fff;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Reported</div><div style="font-size:22px;font-weight:800;color:var(--navy);">' + shepSet.size + '/22</div></div>' +
+        '<div style="background:#fff;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Avg Rate</div><div style="font-size:22px;font-weight:800;color:var(--navy);">' + avgRate + '%</div></div>' +
+        '<div style="background:#fff;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Prayer</div><div style="font-size:22px;font-weight:800;color:var(--navy);">' + prayers + '</div></div>' +
+        '</div>' +
+        (topSheps.length ? '<div style="margin-bottom:8px;"><strong>Top Performers:</strong> ' + topSheps.map(function (s) { return s.name + ' (' + s.avg + '%)'; }).join(', ') + '</div>' : '') +
+        (concernList.length ? '<div><strong>Reports with Concerns:</strong> ' + concernList.length + '</div>' : '<div style="color:#15803d;">No concerns flagged this week ✅</div>');
+    }
+
+    function doExportSummaryPDF() {
+      var weekly = allReports.filter(isThisWeek);
+      var shepSet = new Set(weekly.map(function (r) { return r.shepherd; }));
+      var avgRate = weekly.length ? Math.round(weekly.reduce(function (a, r) { return a + getRate(r); }, 0) / weekly.length) : 0;
+      var prayers = weekly.filter(function (r) { return r.prayerDone === 'yes' || r.prayerDone === 'Yes'; }).length;
+      var silent = ALL_SHEPHERDS.filter(function (s) { return !shepSet.has(s.name); });
+
+      var doc = new jspdf.jsPDF('p', 'mm', 'a4');
+      doc.setFillColor(10, 22, 40); doc.rect(0, 0, 210, 35, 'F');
+      doc.setTextColor(255, 255, 255); doc.setFontSize(20); doc.text('ONC SPS — Weekly Summary', 14, 16);
+      doc.setFontSize(11); doc.text('Shepherd Pastoral System Report', 14, 24);
+      doc.setFontSize(9); doc.text('Generated: ' + new Date().toLocaleString('en-GB'), 14, 30);
+      doc.setTextColor(0, 0, 0);
+
+      var y = 45;
+      doc.setFontSize(13); doc.text('Key Metrics', 14, y); y += 8;
+      doc.setFontSize(10);
+      doc.text('Total Sessions This Week: ' + weekly.length, 14, y); y += 6;
+      doc.text('Shepherds Reported: ' + shepSet.size + ' / 22', 14, y); y += 6;
+      doc.text('Average Attendance Rate: ' + avgRate + '%', 14, y); y += 6;
+      doc.text('Prayer Sessions: ' + prayers, 14, y); y += 10;
+
+      if (silent.length) {
+        doc.setFontSize(13); doc.text('Not Reported (' + silent.length + ')', 14, y); y += 7;
+        doc.setFontSize(9);
+        silent.forEach(function (s) { doc.text('• ' + s.name, 18, y); y += 5; });
+        y += 5;
+      }
+
+      if (weekly.length) {
+        doc.setFontSize(13); doc.text('Session Details', 14, y); y += 4;
+        var headers = ['Shepherd', 'Date', 'Present', 'Absent', 'Rate', 'Prayer'];
+        var rows = weekly.map(function (r) {
+          return [r.shepherd, r.submissionDate || r.sessionDate || r.date || '', toArray(r.membersPresent).length, toArray(r.membersAbsent).length, getRate(r) + '%', r.prayerDone || ''];
+        });
+        doc.autoTable({ head: [headers], body: rows, startY: y, styles: { fontSize: 8 }, headStyles: { fillColor: [26, 58, 107] } });
+      }
+
+      doc.save('ONC-SPS-Summary-' + new Date().toLocaleDateString('en-GB').replace(/\//g, '-') + '.pdf');
     }
 
     function downloadCSV(rows, name) {
       var csv = rows.map(function (r) { return r.map(function (c) { return '"' + (String(c || '')).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
       var a = document.createElement('a');
       a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-      a.download = name + '-' + new Date().toLocaleDateString('en-GB').replace(/\//g, '-') + '.csv';
+      a.download = (name.indexOf('.') > -1 ? name : name + '.csv');
       a.click();
     }
 
-    var TAB_TITLES2 = { 'bible-study': 'Bible Study', 'zones': 'Zone Management', 'settings': 'Settings' };
+    var TAB_TITLES2 = { 'bible-study': 'Bible Study', 'zones': 'Zone Management', 'export': 'Export Data', 'settings': 'Settings' };
     Object.assign(TAB_TITLES, TAB_TITLES2);
 
     // ── BIBLE STUDY TAB ──
@@ -1867,6 +2056,7 @@
     initTopicTab();
     initZones();
     initSettings();
+    initExportTab();
 
     // ── SIDEBAR COLLAPSE ──
     function toggleSidebar() {
