@@ -525,15 +525,28 @@
       <p>Overcomers Nation Church</p>
     </div>
     <div class="card" id="mainCard">
-      <div class="steps">
-        <div class="step-dot active" id="dot1"></div>
-        <div class="step-dot" id="dot2"></div>
-        <div class="step-dot" id="dot3"></div>
-        <div class="step-dot" id="dot4"></div>
+      <div class="steps" id="progressSteps" style="display:none;"></div>
+
+      <!-- SEC LANDING: WELCOME -->
+      <div class="section active" id="secLanding">
+        <div class="card-title" style="margin-bottom: 24px; text-align: center; justify-content: center; font-size: 19px;">
+          Welcome to ONC SPS System
+        </div>
+        <p style="text-align: center; color: var(--gray); font-size: 14px; margin-bottom: 28px; line-height: 1.5;">
+          Who are you reporting as today?
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <button type="button" class="yn-btn yes" onclick="chooseFlow('sps')" style="padding: 20px; font-size: 16px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--light); color: var(--navy); border-color: var(--border); box-shadow: 0 4px 12px rgba(15, 32, 68, 0.05); transition: all 0.2s;">
+            <span>🙏</span> SPS Shepherd
+          </button>
+          <button type="button" class="yn-btn yes" onclick="chooseFlow('microchurch')" style="padding: 20px; font-size: 16px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--light); color: var(--navy); border-color: var(--border); box-shadow: 0 4px 12px rgba(15, 32, 68, 0.05); transition: all 0.2s;">
+            <span>⛪</span> Microchurch Shepherd
+          </button>
+        </div>
       </div>
 
       <!-- SEC 1: WHO ARE YOU -->
-      <div class="section active" id="sec1">
+      <div class="section" id="sec1">
         <div class="card-title"><span class="dot"></span>Who are you?</div>
         <div class="field">
           <label>Select Your Name</label>
@@ -552,6 +565,7 @@
           <div id="sessionPlaceholder" style="color:#64748b;font-size:13px;padding:10px 0;">Select your name to see session details</div>
         </div>
         <div class="nav-btns">
+          <button class="btn-back" onclick="goBack(1)">← Back</button>
           <button class="btn-next" onclick="goNext(1)">Next →</button>
         </div>
       </div>
@@ -597,6 +611,27 @@
           </div>
         </div>
         <div class="field">
+          <label>Did a new member join today?</label>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" id="newMemberYesBtn" onclick="selectNewMemberJoin('yes', this)">✅ Yes</button>
+            <button type="button" class="yn-btn no" id="newMemberNoBtn" onclick="selectNewMemberJoin('no', this)">❌ No</button>
+          </div>
+          <div id="newMemberFields" style="display:none;margin-top:12px;background:#f0f5ff;border-radius:12px;padding:14px 16px;border:2px solid #dce7f7;">
+            <div style="margin-bottom:10px;">
+              <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">New member name</div>
+              <input type="text" id="newMemberNameInput" placeholder="Enter full name..." 
+                oninput="state.newMember.name=this.value"
+                style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#fff;outline:none;">
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Contact number (optional)</div>
+              <input type="tel" id="newMemberContactInput" placeholder="Enter phone number..." 
+                oninput="state.newMember.contact=this.value"
+                style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#fff;outline:none;">
+            </div>
+          </div>
+        </div>
+        <div class="field">
           <label>Member Concerns <span style="font-weight:400;color:#94a3b8">(optional — attended only)</span></label>
           <div id="concernFields" style="display:flex;flex-direction:column;gap:10px;"></div>
         </div>
@@ -613,6 +648,149 @@
         <div class="nav-btns">
           <button class="btn-back" onclick="goBack(4)">← Back</button>
           <button class="btn-submit" onclick="submitReport()">✅ Confirm &amp; Submit</button>
+        </div>
+      </div>
+
+      <!-- MC SEC 1: WHO ARE YOU -->
+      <div class="section" id="secMC1">
+        <div class="card-title"><span class="dot"></span>Microchurch Shepherd</div>
+        <div class="field">
+          <label>Select Your Name</label>
+          <div class="select-wrap">
+            <select id="mcShepherdSelect" onchange="selectMCShepherd(this.value)">
+              <option value="">— Choose your name —</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Session Info</label>
+          <div id="mcSessionInfo" style="display:none;background:#f0f5ff;border-radius:12px;padding:14px 16px;font-size:14px;color:#0f2044;border:2px solid #dce7f7;line-height:2.2;">
+            <div>📅 <strong>Date:</strong> <span id="mcDispDate"></span></div>
+            <div>📆 <strong>Day:</strong> <span id="mcDispDay"></span></div>
+            <div>🕐 <strong>Time:</strong> <span id="mcDispTime"></span></div>
+            <div>⏱ Duration: <strong>1 hour</strong></div>
+          </div>
+          <div id="mcSessionPlaceholder" style="color:#64748b;font-size:13px;padding:10px 0;">Select your name to see session details</div>
+        </div>
+        <div class="nav-btns">
+          <button class="btn-back" onclick="goBackMC(1)">← Back</button>
+          <button class="btn-next" onclick="goNextMC(1)">Next →</button>
+        </div>
+      </div>
+
+      <!-- MC SEC 2: MEETING TYPE -->
+      <div class="section" id="secMC2">
+        <div class="card-title"><span class="dot"></span>How did you meet?</div>
+        <p style="color:#64748b;font-size:14px;margin-bottom:18px;">Select the meeting format for today's session:</p>
+        <div class="type-group" style="display:flex;gap:12px;">
+          <button type="button" class="yn-btn yes" id="btnMcOnline" onclick="selectMCMeetingType('Online', this)" style="padding:22px;font-size:16px;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;height:auto;">
+            <span style="font-size:28px;">📱</span> Online
+          </button>
+          <button type="button" class="yn-btn yes" id="btnMcInPerson" onclick="selectMCMeetingType('In Person', this)" style="padding:22px;font-size:16px;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;height:auto;">
+            <span style="font-size:28px;">🤝</span> In Person
+          </button>
+        </div>
+        <div class="nav-btns">
+          <button class="btn-back" onclick="goBackMC(2)">← Back</button>
+          <button class="btn-next" onclick="goNextMC(2)">Next →</button>
+        </div>
+      </div>
+
+      <!-- MC SEC 3: ATTENDANCE -->
+      <div class="section" id="secMC3">
+        <div class="card-title"><span class="dot"></span>Who Attended?</div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;">
+          <button type="button" class="yn-btn yes" onclick="toggleAllMC(true)" style="padding:8px 12px;font-size:12px;font-weight:700;">✅ SELECT ALL</button>
+          <button type="button" class="yn-btn no" onclick="toggleAllMC(false)" style="padding:8px 12px;font-size:12px;font-weight:700;">⭕ DESELECT ALL</button>
+        </div>
+        <div id="mcAttendanceCount" style="font-size:13px;color:#2e80e8;font-weight:700;margin-bottom:14px;"></div>
+        <div id="mcMemberCards" style="display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;padding-right:4px;"></div>
+        <div class="nav-btns">
+          <button class="btn-back" onclick="goBackMC(3)">← Back</button>
+          <button class="btn-next" onclick="goNextMC(3)">Next →</button>
+        </div>
+      </div>
+
+      <!-- MC SEC 4: SESSION DETAILS -->
+      <div class="section" id="secMC4">
+        <div class="card-title"><span class="dot"></span>Session Details</div>
+        
+        <!-- Bible Study Topic -->
+        <div class="field">
+          <label>Bible Study Topic</label>
+          <div id="mcTopicBox" style="background:#f0f5ff;border-radius:12px;padding:14px 16px;border:2px solid #dce7f7;margin-bottom:10px;">
+            <div id="mcTopicText" style="font-size:14px;color:#64748b;">⏳ Loading topic...</div>
+          </div>
+          <div id="mcTopicButtons" style="display:none;">
+            <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Did you cover this topic?</div>
+            <div class="yn-group">
+              <button type="button" class="yn-btn yes" id="mcTopicYes" onclick="selectMCTopicCovered('yes', this)">✅ Yes</button>
+              <button type="button" class="yn-btn no" id="mcTopicNo" onclick="selectMCTopicCovered('no', this)">❌ No</button>
+            </div>
+            <div style="margin-top:12px;">
+              <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">What topic did you cover?</div>
+              <input type="text" id="mcActualTopicInput" placeholder="Enter topic covered..." oninput="state.actualTopic=this.value"
+                style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Prayer Done -->
+        <div class="field">
+          <label>Prayer Done?</label>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" id="mcPrayerYes" onclick="selectMCPrayerDone('yes', this)">✅ Yes</button>
+            <button type="button" class="yn-btn no" id="mcPrayerNo" onclick="selectMCPrayerDone('no', this)">❌ No</button>
+          </div>
+        </div>
+
+        <!-- New Souls -->
+        <div class="field">
+          <label>New Souls Won Today?</label>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" id="mcNewSoulsYes" onclick="selectMCNewSouls('yes', this)">✅ Yes</button>
+            <button type="button" class="yn-btn no" id="mcNewSoulsNo" onclick="selectMCNewSouls('no', this)">❌ No</button>
+          </div>
+          <div id="mcNewSoulsFields" style="display:none;margin-top:12px;background:#f0f5ff;border-radius:12px;padding:14px 16px;border:2px solid #dce7f7;">
+            <div style="margin-bottom:10px;">
+              <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">How many joined?</div>
+              <input type="number" id="mcNewSoulsCount" min="1" value="1"
+                oninput="state.newSouls=parseInt(this.value)||0"
+                style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#fff;outline:none;">
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Names (optional)</div>
+              <input type="text" id="mcNewSoulsNames" placeholder="E.g. John Doe, Sarah Smith..."
+                oninput="state.newSoulNames=this.value"
+                style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#fff;outline:none;">
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-btns">
+          <button class="btn-back" onclick="goBackMC(4)">← Back</button>
+          <button class="btn-next" onclick="goNextMC(4)">Next →</button>
+        </div>
+      </div>
+
+      <!-- MC SEC 5: CONCERNS -->
+      <div class="section" id="secMC5">
+        <div class="card-title"><span class="dot"></span>Member Concerns</div>
+        <p style="color:#64748b;font-size:13px;margin-bottom:14px;">Any concern or prayer request? (optional — attended only)</p>
+        <div id="mcConcernFields" style="display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;padding-right:4px;"></div>
+        <div class="nav-btns">
+          <button class="btn-back" onclick="goBackMC(5)">← Back</button>
+          <button class="btn-next" onclick="goNextMC(5)">Next →</button>
+        </div>
+      </div>
+
+      <!-- MC SEC 6: REVIEW -->
+      <div class="section" id="secMC6">
+        <div class="card-title"><span class="dot"></span>Review &amp; Confirm</div>
+        <div id="mcReviewContent"></div>
+        <div class="nav-btns">
+          <button class="btn-back" onclick="goBackMC(6)">← Back</button>
+          <button class="btn-submit" id="mcBtnSubmit" onclick="submitMCReport()">✅ Confirm &amp; Submit</button>
         </div>
       </div>
 
@@ -658,13 +836,20 @@
       "Sharon Tricia Amanu": ["Joseph Atsu", "Bernice Can-Tamakloe"]
     };
 
+    const microchurchShepherdData = {
+      "Microchurch Shepherd 1": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"],
+      "Microchurch Shepherd 2": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"],
+      "Microchurch Shepherd 3": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"]
+    };
+
     let state = {
-      shepherd:'', sessionDate:'', sessionDay:'', sessionTime:'',
-      attendance:{}, topicCovered:'', bibleTopic:'', actualTopic:'', prayerDone:'', concerns:{}
+      shepherdType: '', shepherd: '', sessionDate: '', sessionDay: '', sessionTime: '',
+      attendance: {}, topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', concerns: {},
+      newMember: { name: '', contact: '' }, meetingType: '', newSouls: 0, newSoulNames: ''
     };
     let currentStep = 1;
 
-    // Init shepherd dropdown
+    // Init SPS shepherd dropdown
     const shepSel = document.getElementById('shepherdSelect');
     Object.keys(shepherdData).sort().forEach(s => {
       const o = document.createElement('option');
@@ -691,6 +876,291 @@
       state.attendance = {};
       (shepherdData[this.value] || []).forEach(m => state.attendance[m] = false);
     });
+
+    function chooseFlow(type) {
+      state.shepherdType = type;
+      currentStep = 1;
+      document.getElementById('secLanding').classList.remove('active');
+      
+      if (type === 'sps') {
+        document.getElementById('sec1').classList.add('active');
+      } else {
+        initMicrochurchShepherds();
+        document.getElementById('secMC1').classList.add('active');
+      }
+      updateDots();
+    }
+
+    function initMicrochurchShepherds() {
+      const select = document.getElementById('mcShepherdSelect');
+      select.innerHTML = '<option value="">— Choose your name —</option>';
+      Object.keys(microchurchShepherdData).sort().forEach(s => {
+        const o = document.createElement('option');
+        o.value = s; o.textContent = s;
+        select.appendChild(o);
+      });
+    }
+
+    function selectMCShepherd(val) {
+      state.shepherd = val;
+      if (!val) {
+        document.getElementById('mcSessionInfo').style.display = 'none';
+        document.getElementById('mcSessionPlaceholder').style.display = 'block';
+        return;
+      }
+      const now = new Date();
+      state.sessionDate = now.toLocaleDateString('en-GB');
+      state.sessionDay  = now.toLocaleDateString('en-GB', {weekday:'long'});
+      state.sessionTime = now.toLocaleTimeString('en-GB');
+      document.getElementById('mcDispDate').textContent = state.sessionDate;
+      document.getElementById('mcDispDay').textContent  = state.sessionDay;
+      document.getElementById('mcDispTime').textContent = state.sessionTime;
+      document.getElementById('mcSessionInfo').style.display = 'block';
+      document.getElementById('mcSessionPlaceholder').style.display = 'none';
+      
+      state.attendance = {};
+      (microchurchShepherdData[val] || []).forEach(m => state.attendance[m] = false);
+    }
+
+    function selectMCMeetingType(type, btn) {
+      state.meetingType = type;
+      btn.closest('.type-group').querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    function buildMCMemberCards() {
+      const members = microchurchShepherdData[state.shepherd] || [];
+      const container = document.getElementById('mcMemberCards');
+      container.innerHTML = '';
+      members.forEach(m => {
+        const present = state.attendance[m];
+        const card = document.createElement('div');
+        card.style.cssText = 'padding:14px 16px;border-radius:14px;border:2px solid ' +
+          (present ? '#22c55e' : '#dce7f7') + ';background:' +
+          (present ? '#dcfce7' : '#f0f5ff') +
+          ';display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s;';
+        card.innerHTML = '<span style="font-weight:700;color:#0f2044;font-size:15px;">' + m +
+          '</span><span style="font-size:20px;">' + (present ? '✅' : '⭕') + '</span>';
+        card.onclick = function() { 
+          state.attendance[m] = !state.attendance[m]; 
+          buildMCMemberCards(); 
+        };
+        container.appendChild(card);
+      });
+      const count = Object.values(state.attendance).filter(Boolean).length;
+      document.getElementById('mcAttendanceCount').textContent = count + ' of ' + members.length + ' attended';
+    }
+
+    function toggleAllMC(present) {
+      const members = microchurchShepherdData[state.shepherd] || [];
+      members.forEach(m => {
+        state.attendance[m] = present;
+      });
+      buildMCMemberCards();
+    }
+
+    function fetchMCTopic() {
+      document.getElementById('mcTopicText').textContent = '⏳ Loading topic...';
+      document.getElementById('mcTopicText').style.color = '#64748b';
+      document.getElementById('mcTopicButtons').style.display = 'none';
+      var done = false;
+      var s = document.createElement('script');
+      window._mcTopicCallback = function(data) {
+        if (done) return; done = true;
+        state.bibleTopic = (data && data.topic) ? data.topic : '';
+        if (state.bibleTopic) {
+          document.getElementById('mcTopicText').innerHTML = '<strong>This week\'s topic:</strong> ' + state.bibleTopic;
+          document.getElementById('mcTopicText').style.color = '#0f2044';
+          document.getElementById('mcTopicButtons').style.display = 'block';
+        } else {
+          document.getElementById('mcTopicText').textContent = 'No topic set this week.';
+        }
+        if (document.body.contains(s)) document.body.removeChild(s);
+      };
+      s.src = SCRIPT_URL + '?action=getTopic&callback=_mcTopicCallback';
+      s.onerror = function() { window._mcTopicCallback({}); };
+      document.body.appendChild(s);
+      setTimeout(function() { window._mcTopicCallback({}); }, 6000);
+    }
+
+    function selectMCTopicCovered(val, btn) {
+      state.topicCovered = val;
+      btn.closest('.yn-group').querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      var inp = document.getElementById('mcActualTopicInput');
+      if (inp) {
+        inp.value = (val === 'yes') ? state.bibleTopic : '';
+        state.actualTopic = inp.value;
+      }
+    }
+
+    function selectMCPrayerDone(val, btn) {
+      state.prayerDone = val;
+      btn.closest('.yn-group').querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    function selectMCNewSouls(val, btn) {
+      btn.closest('.yn-group').querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const fields = document.getElementById('mcNewSoulsFields');
+      if (val === 'yes') {
+        fields.style.display = 'block';
+        state.newSouls = parseInt(document.getElementById('mcNewSoulsCount').value) || 1;
+        state.newSoulNames = document.getElementById('mcNewSoulsNames').value;
+      } else {
+        fields.style.display = 'none';
+        state.newSouls = 0;
+        state.newSoulNames = '';
+      }
+    }
+
+    function buildMCConcernFields() {
+      const attended = Object.entries(state.attendance).filter(e => e[1]).map(e => e[0]);
+      const cf = document.getElementById('mcConcernFields');
+      cf.innerHTML = '';
+      if (!attended.length) {
+        cf.innerHTML = '<p style="color:#64748b;font-size:13px;">No members marked as attended.</p>';
+        return;
+      }
+      attended.forEach(m => {
+        const wrap = document.createElement('div');
+        const inputId = 'mc_concern_' + m.replace(/[^a-zA-Z0-9]/g,'_');
+        wrap.innerHTML = '<label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px;">' + m + '</label>' +
+          '<input type="text" id="' + inputId + '" placeholder="Any concern or prayer request?" ' +
+          'style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;" ' +
+          'value="' + (state.concerns[m]||'').replace(/"/g,'&quot;') + '">';
+        wrap.querySelector('input').addEventListener('input', function() { state.concerns[m] = this.value; });
+        cf.appendChild(wrap);
+      });
+    }
+
+    function buildMCReview() {
+      var members = microchurchShepherdData[state.shepherd] || [];
+      var present = members.filter(m => state.attendance[m]);
+      var absent  = members.filter(m => !state.attendance[m]);
+      var rate = members.length ? Math.round(present.length / members.length * 100) : 0;
+      var html = '' +
+        '<div class="review-item"><span class="review-label">Shepherd</span><span class="review-value">' + state.shepherd + '</span></div>' +
+        '<div class="review-item"><span class="review-label">Date</span><span class="review-value">' + state.sessionDate + ' (' + state.sessionDay + ')</span></div>' +
+        '<div class="review-item"><span class="review-label">Meeting Type</span><span class="review-value">' + (state.meetingType||'N/A') + '</span></div>' +
+        '<div class="review-item"><span class="review-label">Attendance</span><span class="review-value">' + present.length + '/' + members.length + ' — ' + rate + '%</span></div>' +
+        '<div class="review-item"><span class="review-label">Present</span><span class="review-value" style="color:#15803d;">' + (present.join(', ')||'None') + '</span></div>' +
+        '<div class="review-item"><span class="review-label">Absent</span><span class="review-value" style="color:#b91c1c;">' + (absent.join(', ')||'None') + '</span></div>' +
+        '<div class="review-item"><span class="review-label">Bible Topic</span><span class="review-value">' + (state.bibleTopic||'None') + '</span></div>' +
+        '<div class="review-item"><span class="review-label">Topic Covered</span><span class="review-value"><span class="badge ' + (state.topicCovered||'no') + '">' + (state.topicCovered||'N/A').toUpperCase() + '</span></span></div>' +
+        '<div class="review-item"><span class="review-label">Actual Topic</span><span class="review-value">' + (state.actualTopic||'—') + '</span></div>' +
+        '<div class="review-item"><span class="review-label">Prayer Done</span><span class="review-value"><span class="badge ' + (state.prayerDone||'no') + '">' + (state.prayerDone||'N/A').toUpperCase() + '</span></span></div>' +
+        '<div class="review-item"><span class="review-label">New Souls Won</span><span class="review-value">' + (state.newSouls ? state.newSouls + ' (' + (state.newSoulNames || 'No names') + ')' : 'No') + '</span></div>';
+      present.forEach(m => {
+        if (state.concerns[m]) {
+          html += '<div class="review-item"><span class="review-label">' + m + '</span><span class="review-value" style="font-size:13px;">' + state.concerns[m] + '</span></div>';
+        }
+      });
+      document.getElementById('mcReviewContent').innerHTML = html;
+    }
+
+    function goNextMC(step) {
+      if (step === 1) {
+        if (!state.shepherd) { showToast('Please select your name'); return; }
+      }
+      if (step === 2) {
+        if (!state.meetingType) { showToast('Please select meeting type'); return; }
+        buildMCMemberCards();
+      }
+      if (step === 3) {
+        buildMCConcernFields();
+        fetchMCTopic();
+      }
+      if (step === 4) {
+        if (!state.prayerDone) { showToast('Please answer the prayer question'); return; }
+        const soulsYesBtn = document.getElementById('mcNewSoulsYes');
+        if (soulsYesBtn && soulsYesBtn.classList.contains('selected')) {
+          if (!state.newSouls || state.newSouls < 1) {
+            showToast('Please enter the number of new souls');
+            return;
+          }
+        }
+      }
+      if (step === 5) {
+        buildMCReview();
+      }
+      document.getElementById('secMC' + step).classList.remove('active');
+      currentStep = step + 1;
+      document.getElementById('secMC' + currentStep).classList.add('active');
+      updateDots();
+    }
+
+    function goBackMC(step) {
+      if (step === 1) {
+        document.getElementById('secMC1').classList.remove('active');
+        document.getElementById('secLanding').classList.add('active');
+        document.getElementById('progressSteps').style.display = 'none';
+        return;
+      }
+      document.getElementById('secMC' + step).classList.remove('active');
+      currentStep = step - 1;
+      document.getElementById('secMC' + currentStep).classList.add('active');
+      updateDots();
+    }
+
+    async function submitMCReport() {
+      var btn = document.getElementById('mcBtnSubmit');
+      btn.textContent = 'Submitting...'; btn.disabled = true;
+      var members = microchurchShepherdData[state.shepherd] || [];
+      var present = members.filter(m => state.attendance[m]);
+      var absent  = members.filter(m => !state.attendance[m]);
+      var payload = {
+        action: 'submitMicrochurchReport',
+        shepherdType: 'microchurch',
+        shepherd: state.shepherd,
+        sessionDate: state.sessionDate,
+        sessionDay: state.sessionDay,
+        sessionTime: state.sessionTime,
+        meetingType: state.meetingType,
+        membersPresent: present,
+        membersAbsent: absent,
+        totalMembers: members.length,
+        bibleTopic: state.bibleTopic,
+        topicCovered: state.topicCovered,
+        actualTopic: state.actualTopic,
+        prayerDone: state.prayerDone,
+        newSouls: state.newSouls || 0,
+        newSoulNames: state.newSoulNames || '',
+        concerns: state.concerns,
+        notes: ''
+      };
+      try {
+        await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      } catch(e) {}
+      var rate = members.length ? Math.round(present.length / members.length * 100) : 0;
+      document.getElementById('successTitle').textContent = 'Report Submitted! Thank you ' + state.shepherd.split(' ')[0] + '!';
+      
+      let successHtml = '📅 ' + state.sessionDate + '<br>👥 ' + present.length + ' of ' + members.length + ' members reported<br>📊 Attendance rate: ' + rate + '%';
+      if (state.newSouls > 0) {
+        successHtml += '<br>🔥 New Souls Won: <strong>' + state.newSouls + '</strong>';
+      }
+      document.getElementById('successBody').innerHTML = successHtml;
+      
+      document.getElementById('secMC6').classList.remove('active');
+      document.getElementById('secSuccess').classList.add('active');
+      document.getElementById('progressSteps').style.display = 'none';
+      btn.disabled = false;
+    }
+
+    function selectNewMemberJoin(val, btn) {
+      btn.closest('.yn-group').querySelectorAll('.yn-btn').forEach(function(b){ b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      const fields = document.getElementById('newMemberFields');
+      if (val === 'yes') {
+        fields.style.display = 'block';
+      } else {
+        fields.style.display = 'none';
+        document.getElementById('newMemberNameInput').value = '';
+        document.getElementById('newMemberContactInput').value = '';
+        state.newMember = { name: '', contact: '' };
+      }
+    }
 
     function buildMemberCards() {
       const members = shepherdData[state.shepherd] || [];
@@ -803,6 +1273,13 @@
       }
       if (step === 3) {
         if (!state.prayerDone) { showToast('Please answer the prayer question'); return; }
+        const yesBtn = document.getElementById('newMemberYesBtn');
+        if (yesBtn && yesBtn.classList.contains('selected')) {
+          if (!state.newMember.name || !state.newMember.name.trim()) {
+            showToast('Please enter the new member name');
+            return;
+          }
+        }
         buildReview();
       }
       document.getElementById('sec' + step).classList.remove('active');
@@ -812,6 +1289,12 @@
     }
 
     function goBack(step) {
+      if (step === 1) {
+        document.getElementById('sec1').classList.remove('active');
+        document.getElementById('secLanding').classList.add('active');
+        document.getElementById('progressSteps').style.display = 'none';
+        return;
+      }
       document.getElementById('sec' + step).classList.remove('active');
       currentStep = step - 1;
       document.getElementById('sec' + currentStep).classList.add('active');
@@ -819,12 +1302,18 @@
     }
 
     function updateDots() {
-      for (var i = 1; i <= 4; i++) {
-        var d = document.getElementById('dot' + i);
+      const stepsContainer = document.getElementById('progressSteps');
+      stepsContainer.innerHTML = '';
+      const total = state.shepherdType === 'sps' ? 4 : 6;
+      for (var i = 1; i <= total; i++) {
+        var d = document.createElement('div');
         d.className = 'step-dot';
+        d.id = 'dot' + i;
         if (i < currentStep) d.classList.add('done');
         else if (i === currentStep) d.classList.add('active');
+        stepsContainer.appendChild(d);
       }
+      stepsContainer.style.display = 'flex';
     }
 
     async function submitReport() {
@@ -847,6 +1336,7 @@
         actualTopic: state.actualTopic,
         prayerDone: state.prayerDone,
         concerns: state.concerns,
+        newMember: state.newMember,
         notes: ''
       };
       try {
@@ -857,21 +1347,39 @@
       document.getElementById('successBody').innerHTML = '📅 ' + state.sessionDate + '<br>👥 ' + present.length + ' of ' + members.length + ' members reported<br>📊 Attendance rate: ' + rate + '%';
       document.getElementById('sec4').classList.remove('active');
       document.getElementById('secSuccess').classList.add('active');
-      document.querySelector('.steps').style.display = 'none';
+      document.getElementById('progressSteps').style.display = 'none';
       btn.disabled = false;
     }
 
     function resetForm() {
-      state = { shepherd:'', sessionDate:'', sessionDay:'', sessionTime:'', attendance:{}, topicCovered:'', bibleTopic:'', actualTopic:'', prayerDone:'', concerns:{} };
+      state = { 
+        shepherdType: '', shepherd: '', sessionDate: '', sessionDay: '', sessionTime: '', attendance: {}, 
+        topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', concerns: {},
+        newMember: { name: '', contact: '' }, meetingType: '', newSouls: 0, newSoulNames: ''
+      };
       currentStep = 1;
       document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
-      document.getElementById('sec1').classList.add('active');
-      document.querySelector('.steps').style.display = 'flex';
+      document.getElementById('secLanding').classList.add('active');
+      document.getElementById('progressSteps').style.display = 'none';
+      
+      // Reset input fields
       document.getElementById('shepherdSelect').value = '';
       document.getElementById('sessionInfo').style.display = 'none';
       document.getElementById('sessionPlaceholder').style.display = 'block';
+      
+      document.getElementById('mcShepherdSelect').value = '';
+      document.getElementById('mcSessionInfo').style.display = 'none';
+      document.getElementById('mcSessionPlaceholder').style.display = 'block';
+      
+      document.getElementById('newMemberFields').style.display = 'none';
+      document.getElementById('newMemberNameInput').value = '';
+      document.getElementById('newMemberContactInput').value = '';
+      
+      document.getElementById('mcNewSoulsFields').style.display = 'none';
+      document.getElementById('mcNewSoulsCount').value = '1';
+      document.getElementById('mcNewSoulsNames').value = '';
+      
       document.querySelectorAll('.yn-btn').forEach(function(b){ b.classList.remove('selected'); });
-      updateDots();
     }
 
     function showToast(msg) {

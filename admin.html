@@ -934,7 +934,8 @@
         <div class="sidebar-logo">
           <img src="logo.png" style="width:44px;height:44px;border-radius:50%;object-fit:cover;" alt="ONC Logo"><span>SPS Admin</span>
         </div>
-        <nav>
+        <nav style="overflow-y: auto; max-height: calc(100vh - 120px);">
+          <div style="padding: 10px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px;">SPS Flow</div>
           <button class="tab-btn active" onclick="switchTab('overview',this)"><span class="icon">📊</span><span class="tab-btn-label">Overview</span></button>
           <button class="tab-btn" onclick="switchTab('shepherds',this)"><span class="icon">👥</span><span class="tab-btn-label">Shepherds</span></button>
           <button class="tab-btn" onclick="switchTab('members',this)"><span class="icon">🙋</span><span class="tab-btn-label">Members</span></button>
@@ -942,6 +943,17 @@
           <button class="tab-btn" onclick="switchTab('bible-study',this)"><span class="icon">📖</span><span class="tab-btn-label">Bible Study</span></button>
           <button class="tab-btn" onclick="switchTab('zones',this)"><span class="icon">🗂</span><span class="tab-btn-label">Zones</span></button>
           <button class="tab-btn" onclick="switchTab('export',this)"><span class="icon">📤</span><span class="tab-btn-label">Export</span></button>
+
+          <div style="padding: 14px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;">Microchurch Flow</div>
+          <button class="tab-btn" onclick="switchTab('mc-overview',this)"><span class="icon">⛪</span><span class="tab-btn-label">MC Overview</span></button>
+          <button class="tab-btn" onclick="switchTab('mc-shepherds',this)"><span class="icon">👥</span><span class="tab-btn-label">MC Shepherds</span></button>
+          <button class="tab-btn" onclick="switchTab('mc-members',this)"><span class="icon">🙋</span><span class="tab-btn-label">MC Members</span></button>
+          <button class="tab-btn" onclick="switchTab('mc-reports',this)"><span class="icon">📋</span><span class="tab-btn-label">MC Reports Log</span></button>
+
+          <div style="padding: 14px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;">Analytics</div>
+          <button class="tab-btn" onclick="switchTab('leaderboard',this)"><span class="icon">🏆</span><span class="tab-btn-label">Leaderboard</span></button>
+
+          <div style="padding: 14px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;">System</div>
           <button class="tab-btn" onclick="switchTab('settings',this)"><span class="icon">⚙</span><span class="tab-btn-label">Settings</span></button>
         </nav>
         <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Logout</button></div>
@@ -1254,6 +1266,170 @@
             </div>
         </div>
 
+        <!-- TAB 9: MICROCHURCH OVERVIEW -->
+        <div class="tab-panel" id="panel-mc-overview">
+          <div class="stats-grid">
+            <div class="stat-card blue">
+              <div class="stat-label">Sessions This Week</div>
+              <div class="stat-value" id="mc-s-sessions">—</div>
+              <div class="stat-sub">Submissions this week</div>
+            </div>
+            <div class="stat-card green">
+              <div class="stat-label">Shepherds Reported</div>
+              <div class="stat-value" id="mc-s-reported">—</div>
+              <div class="stat-sub">of 3 shepherds</div>
+            </div>
+            <div class="stat-card blue">
+              <div class="stat-label">Avg Attendance</div>
+              <div class="stat-value" id="mc-s-attendance">—</div>
+              <div class="stat-sub">Attendance rate</div>
+            </div>
+            <div class="stat-card green">
+              <div class="stat-label">Prayer Sessions</div>
+              <div class="stat-value" id="mc-s-prayer">—</div>
+              <div class="stat-sub">Covered by prayer</div>
+            </div>
+            <div class="stat-card gold">
+              <div class="stat-label">New Souls This Week</div>
+              <div class="stat-value" id="mc-s-souls">—</div>
+              <div class="stat-sub">Souls won this week</div>
+            </div>
+            <div class="stat-card blue">
+              <div class="stat-label">Bible Coverage</div>
+              <div class="stat-value" id="mc-s-bible">—</div>
+              <div class="stat-sub">Covered topic</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:24px;margin-top:24px;">
+            <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
+              <div style="font-weight:800;font-size:16px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px;">⛪ Recent Microchurch Activity</div>
+              <div id="mcRecentActivity" style="max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:20px;">
+              <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
+                <div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:16px;">🟢 High Attendance Shepherds</div>
+                <div id="mcHighAttendanceList" style="display:flex;flex-direction:column;gap:10px;"></div>
+              </div>
+              <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
+                <div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:16px;">🔴 Shepherds Not Reported</div>
+                <div id="mcNotReportedList" style="display:flex;flex-direction:column;gap:10px;"></div>
+              </div>
+              <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
+                <div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:16px;">🟡 Member Absence Alerts</div>
+                <div id="mcAbsenceAlertList" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 10: MICROCHURCH SHEPHERDS -->
+        <div class="tab-panel" id="panel-mc-shepherds">
+          <div id="mcShepherdsGrid" class="cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;"></div>
+        </div>
+
+        <!-- TAB 11: MICROCHURCH MEMBERS -->
+        <div class="tab-panel" id="panel-mc-members">
+          <div class="search-bar" style="margin-bottom:20px;">
+            <input type="text" id="searchMCMember" placeholder="🔍 Search member or shepherd..." oninput="renderMCMembers()" style="padding:12px;border:2px solid var(--border);border-radius:10px;width:300px;font-family:inherit;font-size:14px;outline:none;">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Member Name</th>
+                  <th>Shepherd</th>
+                  <th style="text-align:center;">Attended</th>
+                  <th style="text-align:center;">Missed</th>
+                  <th style="text-align:center;">Attendance Rate</th>
+                  <th>Last Seen</th>
+                  <th style="text-align:center;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="mcMembersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 12: MICROCHURCH REPORTS -->
+        <div class="tab-panel" id="panel-mc-reports">
+          <div class="filter-bar" style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+            <div style="flex:1;min-width:150px;">
+              <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Shepherd</label>
+              <select id="filtMcShepherd" onchange="renderMCReports()" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-family:inherit;"><option value="">All Shepherds</option></select>
+            </div>
+            <div style="flex:1;min-width:150px;">
+              <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Meeting Type</label>
+              <select id="filtMcMeetingType" onchange="renderMCReports()" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-family:inherit;">
+                <option value="">All Formats</option>
+                <option value="Online">Online</option>
+                <option value="In Person">In Person</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:150px;">
+              <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Prayer</label>
+              <select id="filtMcPrayer" onchange="renderMCReports()" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-family:inherit;">
+                <option value="">All</option>
+                <option value="yes">Prayer Done</option>
+                <option value="no">Prayer Missed</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:150px;">
+              <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Date Range</label>
+              <select id="filtMcDate" onchange="renderMCReports()" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-family:inherit;">
+                <option value="">All Dates</option>
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:16px;">
+              <button onclick="exportMC_CSV()" style="padding:10px 16px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer;">📥 CSV</button>
+              <button onclick="exportMC_PDF()" style="padding:10px 16px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer;">📄 PDF</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Shepherd</th>
+                  <th>Format</th>
+                  <th style="text-align:center;">Present</th>
+                  <th style="text-align:center;">Absent</th>
+                  <th style="text-align:center;">Attendance Rate</th>
+                  <th>Covered Topic</th>
+                  <th>Prayer</th>
+                  <th style="text-align:center;">New Souls</th>
+                  <th>Concerns</th>
+                </tr>
+              </thead>
+              <tbody id="mcReportsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 13: PERFORMANCE LEADERBOARD -->
+        <div class="tab-panel" id="panel-leaderboard">
+          <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);margin-bottom:24px;text-align:center;">
+            <div id="leaderboardMonthName" style="font-size:24px;font-weight:900;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;"></div>
+            <p style="color:var(--gray);font-size:14px;margin:0;">Automatic monthly reset. Scores are dynamically calculated from sessions held during the current calendar month.</p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+            <!-- SPS Shepherds Stream -->
+            <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
+              <div style="font-size:18px;font-weight:900;color:var(--navy);margin-bottom:20px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--light);padding-bottom:12px;">🙏 SPS Shepherds Stream</div>
+              <div id="spsLeaderboardList" style="display:flex;flex-direction:column;gap:16px;"></div>
+            </div>
+
+            <!-- Microchurch Shepherds Stream -->
+            <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
+              <div style="font-size:18px;font-weight:900;color:var(--navy);margin-bottom:20px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--light);padding-bottom:12px;">⛪ Microchurch Shepherds Stream</div>
+              <div id="mcLeaderboardList" style="display:flex;flex-direction:column;gap:16px;"></div>
+            </div>
+          </div>
+        </div>
+
       </div><!-- end content-area -->
     </div><!-- end dash-shell -->
   </div><!-- end dashboard -->
@@ -1405,7 +1581,11 @@
       document.getElementById('loginError').style.display = 'none';
     }
 
-    var TAB_TITLES = { overview: 'Overview', shepherds: 'Shepherds', members: 'Members', reports: 'All Reports', topics: 'Bible Topics', attendance: 'Attendance', export: 'Export & Contacts' };
+    var TAB_TITLES = {
+      overview: 'Overview', shepherds: 'Shepherds', members: 'Members', reports: 'All Reports', topics: 'Bible Topics', attendance: 'Attendance', export: 'Export & Contacts',
+      'mc-overview': 'Microchurch Overview', 'mc-shepherds': 'Microchurch Shepherds', 'mc-members': 'Microchurch Members', 'mc-reports': 'Microchurch Reports Logs',
+      'leaderboard': 'Performance Leaderboard', settings: 'Settings'
+    };
 
     function switchTab(id, btn, isMobile) {
       document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
@@ -1423,11 +1603,15 @@
     function loadAll() {
       document.getElementById('lastUpdated').textContent = 'Updating...';
       fetchData('getReports', function (data) {
-        console.log('Reports received:', data);
+        console.log('SPS Reports received:', data);
         allReports = (data && data.reports) ? data.reports : [];
-        renderAll();
-        var now = new Date();
-        document.getElementById('lastUpdated').textContent = 'Updated ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        fetchData('getMicrochurchReports', function (mcData) {
+          console.log('MC Reports received:', mcData);
+          allMicrochurchReports = (mcData && mcData.reports) ? mcData.reports : [];
+          renderAll();
+          var now = new Date();
+          document.getElementById('lastUpdated').textContent = 'Updated ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        });
       });
     }
     var loadAllData = loadAll; // alias — both names work
@@ -1499,6 +1683,13 @@
       renderTopics();
       renderAttendance();
       renderExport();
+      
+      // Microchurch & Leaderboard renders
+      renderMCOverview();
+      renderMCShepherds();
+      renderMCMembers();
+      renderMCReports();
+      renderLeaderboard();
     }
 
     function renderOverview() {
@@ -2168,6 +2359,7 @@
     initZones();
     initSettings();
     initExportTab();
+    populateMcFilters();
 
     // ── SIDEBAR COLLAPSE ──
     function toggleSidebar() {
@@ -2187,6 +2379,594 @@
       }
     }
     initSidebar();
+
+    // ========================================================
+    // MICROCHURCH & PERFORMANCE LEADERBOARD CALCULATION ENGINE
+    // ========================================================
+    const ALL_MC_SHEPHERDS = [
+      { name: "Microchurch Shepherd 1", contact: "" },
+      { name: "Microchurch Shepherd 2", contact: "" },
+      { name: "Microchurch Shepherd 3", contact: "" }
+    ];
+
+    const mcMemberData = {
+      "Microchurch Shepherd 1": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"],
+      "Microchurch Shepherd 2": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"],
+      "Microchurch Shepherd 3": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"]
+    };
+
+    let allMicrochurchReports = [];
+
+    function isMcThisWeek(r) {
+      var dateStr = r.submissionDate || r.sessionDate || r.date;
+      if (!dateStr) return false;
+      var s = dateStr.toString();
+      var parts = s.split('/');
+      var reportDate;
+      if (parts.length >= 3) {
+        reportDate = new Date(parts[2], parts[1] - 1, parts[0]);
+      } else {
+        reportDate = new Date(s);
+      }
+      if (isNaN(reportDate)) return false;
+      var now = new Date();
+      var weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      return reportDate >= weekAgo && reportDate <= now;
+    }
+
+    function getMcRate(r) {
+      var mp = toArray(r.membersPresent);
+      var total = (toArray(r.membersPresent).length + toArray(r.membersAbsent).length) || r.totalMembers || 1;
+      return Math.round((mp.length / total) * 100);
+    }
+
+    function populateMcFilters() {
+      var sel = document.getElementById('filtMcShepherd');
+      if (sel) {
+        sel.innerHTML = '<option value="">All Shepherds</option>' + ALL_MC_SHEPHERDS.map(function(s){
+          return '<option value="' + s.name + '">' + s.name + '</option>';
+        }).join('');
+      }
+    }
+
+    function renderMCOverview() {
+      var mcWeekly = allMicrochurchReports.filter(isMcThisWeek);
+      var reportedSheps = new Set(mcWeekly.map(function(r){ return r.shepherd; }));
+      
+      var avgAtt = 0;
+      if (mcWeekly.length) {
+        var totalAtt = mcWeekly.reduce(function(a, r){ return a + getMcRate(r); }, 0);
+        avgAtt = Math.round(totalAtt / mcWeekly.length);
+      }
+      
+      var prayers = mcWeekly.filter(function(r){ return r.prayerDone === 'yes' || r.prayerDone === 'Yes'; }).length;
+      var newSouls = mcWeekly.reduce(function(a, r){ return a + parseInt(r.newSoulsCount || 0); }, 0);
+      var bibleCovered = mcWeekly.filter(function(r){ return r.topicCovered === 'yes' || r.topicCovered === 'Yes'; }).length;
+      
+      document.getElementById('mc-s-sessions').textContent = mcWeekly.length;
+      document.getElementById('mc-s-reported').textContent = reportedSheps.size + ' / 3';
+      document.getElementById('mc-s-attendance').textContent = avgAtt + '%';
+      document.getElementById('mc-s-prayer').textContent = prayers;
+      document.getElementById('mc-s-souls').textContent = newSouls;
+      document.getElementById('mc-s-bible').textContent = bibleCovered + ' / ' + mcWeekly.length;
+
+      // Recent Activity
+      var feed = document.getElementById('mcRecentActivity');
+      if (feed) {
+        if (!allMicrochurchReports.length) {
+          feed.innerHTML = '<div style="color:var(--gray);text-align:center;padding:20px;">No microchurch activity reported yet.</div>';
+        } else {
+          var sorted = allMicrochurchReports.slice().sort(function(a,b){
+            return new Date(b.timestamp || b.sessionDate) - new Date(a.timestamp || a.sessionDate);
+          });
+          feed.innerHTML = sorted.slice(0, 10).map(function(r){
+            var date = r.sessionDate || r.date || '—';
+            var rate = getMcRate(r);
+            var format = r.meetingType || 'In Person';
+            var souls = parseInt(r.newSoulsCount || 0);
+            var soulsText = souls > 0 ? '🏆 <span style="font-weight:700;color:var(--accent);">' + souls + ' won!</span>' : '';
+            return '<div style="padding:12px;background:var(--light);border-radius:10px;font-size:13px;display:flex;justify-content:space-between;align-items:center;">' +
+              '<div><div style="font-weight:800;color:var(--navy);">' + r.shepherd + '</div>' +
+              '<div style="font-size:11px;color:var(--gray);">' + date + ' • ' + format + '</div></div>' +
+              '<div style="text-align:right;"><div style="font-weight:700;color:var(--blue);">' + rate + '% Attended</div>' +
+              '<div style="font-size:11px;">' + soulsText + '</div></div></div>';
+          }).join('');
+        }
+      }
+
+      // High Attendance List
+      var highList = document.getElementById('mcHighAttendanceList');
+      if (highList) {
+        var highSheps = [];
+        ALL_MC_SHEPHERDS.forEach(function(s){
+          var shepReps = mcWeekly.filter(function(r){ return r.shepherd === s.name; });
+          if (shepReps.length) {
+            var avg = shepReps.reduce(function(a,r){ return a + getMcRate(r); }, 0) / shepReps.length;
+            if (avg >= 85) {
+              highSheps.push({ name: s.name, rate: Math.round(avg) });
+            }
+          }
+        });
+        highList.innerHTML = highSheps.length ? highSheps.map(function(s){
+          return '<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;margin-bottom:6px;">' +
+            '<span>⛪ ' + s.name + '</span><span style="color:#15803d;">' + s.rate + '%</span></div>';
+        }).join('') : '<div style="font-size:12px;color:var(--gray);">No shepherds with high attendance this week.</div>';
+      }
+
+      // Not Reported List
+      var notRepList = document.getElementById('mcNotReportedList');
+      if (notRepList) {
+        var silentSheps = ALL_MC_SHEPHERDS.filter(function(s){ return !reportedSheps.has(s.name); });
+        notRepList.innerHTML = silentSheps.length ? silentSheps.map(function(s){
+          return '<div style="font-size:13px;font-weight:600;color:#991b1b;margin-bottom:6px;">⚠️ ' + s.name + '</div>';
+        }).join('') : '<div style="font-size:12px;color:#15803d;font-weight:700;">🟢 All shepherds reported!</div>';
+      }
+
+      // Absence Alerts List
+      var absList = document.getElementById('mcAbsenceAlertList');
+      if (absList) {
+        var absences = [];
+        mcWeekly.forEach(function(r){
+          var abs = toArray(r.membersAbsent);
+          abs.forEach(function(name){
+            absences.push({ name: name, shepherd: r.shepherd, date: r.sessionDate });
+          });
+        });
+        absList.innerHTML = absences.length ? absences.map(function(a){
+          return '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f1f5f9;">' +
+            '<span style="font-weight:700;color:var(--navy);">' + a.name + '</span> missed session with ' + a.shepherd + ' (' + a.date + ')</div>';
+        }).join('') : '<div style="font-size:12px;color:var(--gray);">No absences recorded this week.</div>';
+      }
+    }
+
+    function renderMCShepherds() {
+      var grid = document.getElementById('mcShepherdsGrid');
+      if (!grid) return;
+      
+      var weekly = allMicrochurchReports.filter(isMcThisWeek);
+      
+      grid.innerHTML = ALL_MC_SHEPHERDS.map(function(s){
+        var shepReps = allMicrochurchReports.filter(function(r){ return r.shepherd === s.name; });
+        var weeklyReps = weekly.filter(function(r){ return r.shepherd === s.name; });
+        
+        // Find last report date
+        var lastDate = 'Never';
+        var statusBadge = '<span class="status-badge status-silent">🔴 Silent</span>';
+        var daysAgo = 999;
+        
+        if (shepReps.length) {
+          var sorted = shepReps.slice().sort(function(a,b){
+            return new Date(b.timestamp || b.sessionDate) - new Date(a.timestamp || a.sessionDate);
+          });
+          lastDate = sorted[0].sessionDate || sorted[0].date || '—';
+          
+          var parts = lastDate.split('/');
+          var lastReportDate;
+          if (parts.length >= 3) {
+            lastReportDate = new Date(parts[2], parts[1] - 1, parts[0]);
+          } else {
+            lastReportDate = new Date(lastDate);
+          }
+          if (!isNaN(lastReportDate)) {
+            daysAgo = Math.floor((Date.now() - lastReportDate.getTime()) / (1000 * 60 * 60 * 24));
+          }
+        }
+        
+        if (daysAgo <= 7) {
+          statusBadge = '<span class="status-badge status-active">🟢 Active</span>';
+        } else if (daysAgo <= 14) {
+          statusBadge = '<span class="status-badge status-overdue">🟡 Overdue</span>';
+        }
+        
+        var avgRate = 0;
+        if (shepReps.length) {
+          avgRate = Math.round(shepReps.reduce(function(a,r){ return a + getMcRate(r); }, 0) / shepReps.length);
+        }
+        
+        var souls = shepReps.reduce(function(a,r){ return a + parseInt(r.newSoulsCount || 0); }, 0);
+        
+        return '<div class="shepherd-card">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">' +
+          '<div><h3 style="margin:0;font-size:16px;color:var(--navy);">' + s.name + '</h3><div style="font-size:12px;color:var(--gray);">Microchurch Shepherd</div></div>' +
+          statusBadge + '</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">' +
+          '<div style="background:var(--light);border-radius:10px;padding:10px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Weekly Sessions</div><div style="font-size:18px;font-weight:800;color:var(--navy);">' + weeklyReps.length + '</div></div>' +
+          '<div style="background:var(--light);border-radius:10px;padding:10px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Attendance Rate</div><div style="font-size:18px;font-weight:800;color:var(--navy);">' + avgRate + '%</div></div>' +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--gray);margin-bottom:6px;">📅 Last Reported: <span style="font-weight:700;color:var(--navy);">' + lastDate + '</span></div>' +
+          '<div style="font-size:12px;color:var(--gray);">🏆 Total Souls Won: <span style="font-weight:700;color:var(--accent);">' + souls + '</span></div></div>';
+      }).join('');
+    }
+
+    function renderMCMembers() {
+      var tbody = document.getElementById('mcMembersTableBody');
+      if (!tbody) return;
+      
+      var searchVal = document.getElementById('searchMCMember').value.toLowerCase().trim();
+      var rows = [];
+      
+      Object.keys(mcMemberData).forEach(function(shepName) {
+        var members = mcMemberData[shepName];
+        members.forEach(function(mName) {
+          if (searchVal && mName.toLowerCase().indexOf(searchVal) === -1 && shepName.toLowerCase().indexOf(searchVal) === -1) {
+            return;
+          }
+          
+          var attended = 0;
+          var missed = 0;
+          var lastSeen = 'Never';
+          var lastSeenDate = null;
+          
+          allMicrochurchReports.forEach(function(r) {
+            if (r.shepherd !== shepName) return;
+            var presentList = toArray(r.membersPresent);
+            var absentList = toArray(r.membersAbsent);
+            
+            var isPresent = presentList.indexOf(mName) > -1;
+            var isAbsent = absentList.indexOf(mName) > -1;
+            
+            if (isPresent) {
+              attended++;
+              var dateStr = r.sessionDate || r.date;
+              var parts = dateStr.split('/');
+              var currentReportDate;
+              if (parts.length >= 3) {
+                currentReportDate = new Date(parts[2], parts[1] - 1, parts[0]);
+              } else {
+                currentReportDate = new Date(dateStr);
+              }
+              if (!lastSeenDate || currentReportDate > lastSeenDate) {
+                lastSeenDate = currentReportDate;
+                lastSeen = dateStr;
+              }
+            } else if (isAbsent) {
+              missed++;
+            }
+          });
+          
+          var total = attended + missed;
+          var rate = total > 0 ? Math.round((attended / total) * 100) : 0;
+          
+          var status = '<span class="status-badge status-silent">🔴 At Risk</span>';
+          if (total === 0) {
+            status = '<span class="status-badge" style="background:#e2e8f0;color:#64748b;">No Data</span>';
+          } else if (rate >= 70) {
+            status = '<span class="status-badge status-active">🟢 Regular</span>';
+          } else if (rate >= 40) {
+            status = '<span class="status-badge status-overdue">🟡 Irregular</span>';
+          }
+          
+          rows.push({
+            name: mName,
+            shepherd: shepName,
+            attended: attended,
+            missed: missed,
+            rate: rate,
+            lastSeen: lastSeen,
+            status: status
+          });
+        });
+      });
+      
+      tbody.innerHTML = rows.length ? rows.map(function(r){
+        return '<tr>' +
+          '<td style="font-weight:700;color:var(--navy);">' + r.name + '</td>' +
+          '<td>' + r.shepherd + '</td>' +
+          '<td style="text-align:center;font-weight:700;color:var(--green);">' + r.attended + '</td>' +
+          '<td style="text-align:center;font-weight:700;color:var(--red);">' + r.missed + '</td>' +
+          '<td style="text-align:center;font-weight:800;color:var(--blue);">' + (r.attended + r.missed > 0 ? r.rate + '%' : '—') + '</td>' +
+          '<td>' + r.lastSeen + '</td>' +
+          '<td style="text-align:center;">' + r.status + '</td>' +
+          '</tr>';
+      }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:20px;">No members found matching your search.</td></tr>';
+    }
+
+    function renderMCReports() {
+      var tbody = document.getElementById('mcReportsTableBody');
+      if (!tbody) return;
+      
+      var shepFilt = document.getElementById('filtMcShepherd').value;
+      var formatFilt = document.getElementById('filtMcMeetingType').value;
+      var prayerFilt = document.getElementById('filtMcPrayer').value;
+      var dateFilt = document.getElementById('filtMcDate').value;
+      
+      var filtered = allMicrochurchReports.filter(function(r){
+        if (shepFilt && r.shepherd !== shepFilt) return false;
+        if (formatFilt && (r.meetingType || 'In Person') !== formatFilt) return false;
+        if (prayerFilt && (r.prayerDone || 'no').toLowerCase() !== prayerFilt) return false;
+        
+        if (dateFilt) {
+          var dateStr = r.sessionDate || r.date;
+          if (!dateStr) return false;
+          var parts = dateStr.split('/');
+          var reportDate;
+          if (parts.length >= 3) {
+            reportDate = new Date(parts[2], parts[1] - 1, parts[0]);
+          } else {
+            reportDate = new Date(dateStr);
+          }
+          if (isNaN(reportDate)) return false;
+          var diffDays = (Date.now() - reportDate.getTime()) / (1000 * 60 * 60 * 24);
+          if (diffDays > parseInt(dateFilt)) return false;
+        }
+        return true;
+      });
+      
+      tbody.innerHTML = filtered.length ? filtered.map(function(r){
+        var date = r.sessionDate || r.date || '—';
+        var present = toArray(r.membersPresent).length;
+        var absent = toArray(r.membersAbsent).length;
+        var rate = getMcRate(r);
+        var format = r.meetingType || 'In Person';
+        var topic = r.actualTopicCovered || r.topicCovered || '—';
+        var prayer = (r.prayerDone === 'yes' || r.prayerDone === 'Yes') ? '✅ Yes' : '❌ No';
+        var souls = parseInt(r.newSoulsCount || 0);
+        
+        var concernsText = 'None';
+        if (r.concerns && typeof r.concerns === 'object') {
+          var list = Object.keys(r.concerns).map(function(k){
+            var text = r.concerns[k];
+            if (text && text.trim() && text.toLowerCase() !== 'none') {
+              return '<b>' + k + '</b>: ' + text;
+            }
+            return '';
+          }).filter(Boolean);
+          if (list.length) concernsText = list.join('<br>');
+        } else if (r.concerns && typeof r.concerns === 'string' && r.concerns.toLowerCase() !== 'none') {
+          concernsText = r.concerns;
+        }
+
+        return '<tr>' +
+          '<td>' + date + '</td>' +
+          '<td style="font-weight:700;color:var(--navy);">' + r.shepherd + '</td>' +
+          '<td>' + format + '</td>' +
+          '<td style="text-align:center;font-weight:700;color:var(--green);">' + present + '</td>' +
+          '<td style="text-align:center;font-weight:700;color:var(--red);">' + absent + '</td>' +
+          '<td style="text-align:center;font-weight:800;color:var(--blue);">' + rate + '%</td>' +
+          '<td>' + topic + '</td>' +
+          '<td>' + prayer + '</td>' +
+          '<td style="text-align:center;font-weight:800;color:var(--accent);">' + souls + '</td>' +
+          '<td style="font-size:12px;max-width:200px;overflow-x:auto;">' + concernsText + '</td>' +
+          '</tr>';
+      }).join('') : '<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:20px;">No matching reports found.</td></tr>';
+    }
+
+    function getCurrentMonthReports(reports) {
+      var currentMonth = new Date().getMonth();
+      var currentYear = new Date().getFullYear();
+      
+      return reports.filter(function(r) {
+        var dateStr = r.sessionDate || r.date;
+        if (!dateStr) return false;
+        var parts = dateStr.split('/');
+        var rDate;
+        if (parts.length >= 3) {
+          rDate = new Date(parts[2], parts[1] - 1, parts[0]);
+        } else {
+          rDate = new Date(dateStr);
+        }
+        if (isNaN(rDate)) return false;
+        return rDate.getMonth() === currentMonth && rDate.getFullYear() === currentYear;
+      });
+    }
+
+    function getGradeDetails(score) {
+      if (score >= 90) return { grade: 'A', stars: '⭐⭐⭐⭐⭐', color: '#15803d', bg: '#dcfce7' };
+      if (score >= 75) return { grade: 'B', stars: '⭐⭐⭐⭐', color: '#1d4ed8', bg: '#dbeafe' };
+      if (score >= 60) return { grade: 'C', stars: '⭐⭐⭐', color: '#b45309', bg: '#fef3c7' };
+      if (score >= 45) return { grade: 'D', stars: '⭐⭐', color: '#c2410c', bg: '#ffedd5' };
+      return { grade: 'F', stars: '⭐', color: '#b91c1c', bg: '#fee2e2' };
+    }
+
+    function renderLeaderboard() {
+      var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      var currentMonthName = monthNames[new Date().getMonth()] + ' ' + new Date().getFullYear();
+      var labelEl = document.getElementById('leaderboardMonthName');
+      if (labelEl) {
+        labelEl.innerHTML = '🏆 ' + currentMonthName + ' Performance Leaderboard';
+      }
+
+      // 1. SPS leaders
+      var spsMonthReps = getCurrentMonthReports(allReports);
+      var spsLeaders = ALL_SHEPHERDS.map(function(s){
+        var shepReps = spsMonthReps.filter(function(r){ return r.shepherd === s.name; });
+        var reportRate = Math.min(100, Math.round((shepReps.length / 4) * 100));
+        
+        var avgAtt = 0;
+        if (shepReps.length) {
+          var totalRate = shepReps.reduce(function(a, r){
+            if (r.attendanceRate !== undefined && r.attendanceRate !== null && r.attendanceRate !== '') {
+              var rate = parseFloat(r.attendanceRate);
+              return a + (rate <= 1 ? Math.round(rate * 100) : Math.round(rate));
+            }
+            return a + getRate(r);
+          }, 0);
+          avgAtt = Math.round(totalRate / shepReps.length);
+        }
+        
+        var finalScore = Math.round((reportRate + avgAtt) / 2);
+        var details = getGradeDetails(finalScore);
+        
+        return {
+          name: s.name,
+          score: finalScore,
+          repRate: reportRate,
+          attRate: avgAtt,
+          details: details
+        };
+      }).sort(function(a,b){ return b.score - a.score; });
+
+      var spsList = document.getElementById('spsLeaderboardList');
+      if (spsList) {
+        spsList.innerHTML = spsLeaders.map(function(s, idx){
+          var medal = '';
+          if (idx === 0) medal = '🥇 ';
+          else if (idx === 1) medal = '🥈 ';
+          else if (idx === 2) medal = '🥉 ';
+          
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--light);border-radius:12px;margin-bottom:10px;">' +
+            '<div style="display:flex;align-items:center;gap:12px;">' +
+            '<div style="font-size:16px;font-weight:900;color:var(--gray);width:30px;">' + (medal || ('#' + (idx + 1))) + '</div>' +
+            '<div><div style="font-weight:800;color:var(--navy);">' + s.name + '</div>' +
+            '<div style="font-size:11px;color:var(--gray);">Reporting: ' + s.repRate + '% | Attendance: ' + s.attRate + '%</div></div></div>' +
+            '<div style="text-align:right;display:flex;align-items:center;gap:10px;">' +
+            '<div><div style="font-size:16px;font-weight:900;color:' + s.details.color + ';">' + s.score + ' pts</div>' +
+            '<div style="font-size:10px;color:var(--gray);">' + s.details.stars + '</div></div>' +
+            '<div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;background:' + s.details.bg + ';color:' + s.details.color + ';font-size:16px;">' + s.details.grade + '</div>' +
+            '</div></div>';
+        }).join('');
+      }
+
+      // 2. Microchurch leaders
+      var mcMonthReps = getCurrentMonthReports(allMicrochurchReports);
+      var mcLeaders = ALL_MC_SHEPHERDS.map(function(s){
+        var shepReps = mcMonthReps.filter(function(r){ return r.shepherd === s.name; });
+        var reportRate = Math.min(100, Math.round((shepReps.length / 4) * 100));
+        
+        var avgAtt = 0;
+        if (shepReps.length) {
+          avgAtt = Math.round(shepReps.reduce(function(a, r){ return a + getMcRate(r); }, 0) / shepReps.length);
+        }
+        
+        var finalScore = Math.round((reportRate + avgAtt) / 2);
+        var details = getGradeDetails(finalScore);
+        
+        return {
+          name: s.name,
+          score: finalScore,
+          repRate: reportRate,
+          attRate: avgAtt,
+          details: details
+        };
+      }).sort(function(a,b){ return b.score - a.score; });
+
+      var mcList = document.getElementById('mcLeaderboardList');
+      if (mcList) {
+        mcList.innerHTML = mcLeaders.map(function(s, idx){
+          var medal = '';
+          if (idx === 0) medal = '🥇 ';
+          else if (idx === 1) medal = '🥈 ';
+          else if (idx === 2) medal = '🥉 ';
+          
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--light);border-radius:12px;margin-bottom:10px;">' +
+            '<div style="display:flex;align-items:center;gap:12px;">' +
+            '<div style="font-size:16px;font-weight:900;color:var(--gray);width:30px;">' + (medal || ('#' + (idx + 1))) + '</div>' +
+            '<div><div style="font-weight:800;color:var(--navy);">' + s.name + '</div>' +
+            '<div style="font-size:11px;color:var(--gray);">Reporting: ' + s.repRate + '% | Attendance: ' + s.attRate + '%</div></div></div>' +
+            '<div style="text-align:right;display:flex;align-items:center;gap:10px;">' +
+            '<div><div style="font-size:16px;font-weight:900;color:' + s.details.color + ';">' + s.score + ' pts</div>' +
+            '<div style="font-size:10px;color:var(--gray);">' + s.details.stars + '</div></div>' +
+            '<div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;background:' + s.details.bg + ';color:' + s.details.color + ';font-size:16px;">' + s.details.grade + '</div>' +
+            '</div></div>';
+        }).join('');
+      }
+    }
+
+    function exportMC_CSV() {
+      var csv = ['Date,Shepherd,Meeting Type,Present,Absent,Attendance Rate,Topic,Prayer,New Souls,Concerns'];
+      allMicrochurchReports.forEach(function(r){
+        var concernsText = 'None';
+        if (r.concerns && typeof r.concerns === 'object') {
+          var list = Object.keys(r.concerns).map(function(k){ return k + ': ' + r.concerns[k]; });
+          if (list.length) concernsText = list.join('; ');
+        } else if (r.concerns && typeof r.concerns === 'string') {
+          concernsText = r.concerns;
+        }
+        var row = [
+          r.sessionDate || r.date || '',
+          r.shepherd || '',
+          r.meetingType || 'In Person',
+          toArray(r.membersPresent).length,
+          toArray(r.membersAbsent).length,
+          getMcRate(r) + '%',
+          (r.actualTopicCovered || r.topicCovered || '').replace(/"/g, '""'),
+          r.prayerDone || 'no',
+          r.newSoulsCount || 0,
+          '"' + concernsText.replace(/"/g, '""') + '"'
+        ];
+        csv.push(row.join(','));
+      });
+      
+      var blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', 'ONC_Microchurch_Report_' + new Date().toISOString().split('T')[0] + '.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function exportMC_PDF() {
+      if (typeof window.jspdf === 'undefined' && typeof window.jsPDF === 'undefined') {
+        alert('PDF library not fully loaded. Please try again.');
+        return;
+      }
+      var doc = new (window.jspdf ? window.jspdf.jsPDF : window.jsPDF)();
+      
+      doc.setFontSize(18);
+      doc.setTextColor(30, 41, 59);
+      doc.text("Overcomers Nation Church", 14, 20);
+      doc.setFontSize(12);
+      doc.text("Microchurch Shepherds Weekly Logs Report", 14, 26);
+      doc.setFontSize(9);
+      doc.text("Generated: " + new Date().toLocaleString(), 14, 32);
+      
+      var y = 40;
+      doc.setDrawColor(226, 232, 240);
+      doc.line(14, y, 196, y);
+      y += 10;
+      
+      doc.setFont(undefined, 'bold');
+      doc.text("Date", 14, y);
+      doc.text("Shepherd", 32, y);
+      doc.text("Format", 80, y);
+      doc.text("Present", 102, y);
+      doc.text("Rate", 120, y);
+      doc.text("Souls Won", 136, y);
+      doc.text("Topic Covered", 158, y);
+      
+      doc.setFont(undefined, 'normal');
+      y += 6;
+      doc.line(14, y - 4, 196, y - 4);
+      
+      allMicrochurchReports.forEach(function(r) {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+          doc.setFont(undefined, 'bold');
+          doc.text("Date", 14, y);
+          doc.text("Shepherd", 32, y);
+          doc.text("Format", 80, y);
+          doc.text("Present", 102, y);
+          doc.text("Rate", 120, y);
+          doc.text("Souls Won", 136, y);
+          doc.text("Topic Covered", 158, y);
+          doc.setFont(undefined, 'normal');
+          y += 6;
+          doc.line(14, y - 4, 196, y - 4);
+        }
+        
+        var date = r.sessionDate || r.date || '—';
+        var name = r.shepherd || '';
+        var format = r.meetingType || 'In Person';
+        var pres = toArray(r.membersPresent).length.toString();
+        var rate = getMcRate(r).toString() + '%';
+        var souls = (r.newSoulsCount || 0).toString();
+        var topic = r.actualTopicCovered || r.topicCovered || '—';
+        
+        doc.text(date, 14, y);
+        doc.text(name.slice(0, 20), 32, y);
+        doc.text(format, 80, y);
+        doc.text(pres, 102, y, { align: 'center' });
+        doc.text(rate, 122, y, { align: 'center' });
+        doc.text(souls, 144, y, { align: 'center' });
+        doc.text(topic.slice(0, 18), 158, y);
+        
+        y += 8;
+      });
+      
+      doc.save('ONC_Microchurch_Report_' + new Date().toISOString().split('T')[0] + '.pdf');
+    }
   </script>
 </body>
 
