@@ -527,8 +527,45 @@
     <div class="card" id="mainCard">
       <div class="steps" id="progressSteps" style="display:none;"></div>
 
+      <!-- SEC INTRO: INTRO VIDEOS -->
+      <div class="section" id="secIntro" style="text-align: center; background: var(--navy); color: #fff; margin: -28px -24px; padding: 28px 24px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+        <div class="logo-ring" style="margin-bottom: 12px; background: linear-gradient(135deg, var(--gold), #f5c842); box-shadow: 0 8px 24px rgba(240, 165, 0, 0.35);">
+          <img src="logo.png" style="width:56px;height:56px;border-radius:50%;object-fit:cover;" alt="ONC Logo">
+        </div>
+        <h2 style="font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 20px; color: #fff; margin-bottom: 6px;">Welcome to ONC SPS System</h2>
+        <p style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 20px;">Please watch this short introduction</p>
+
+        <!-- Video 1 Container -->
+        <div id="videoDiv1">
+          <div style="position: relative; width: 100%; max-width: 480px; margin: 0 auto; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+            <iframe id="player1_iframe" class="intro-video" src="https://www.youtube.com/embed/YDEVH9aThSo?enablejsapi=1&autoplay=1" allow="autoplay; encrypted-media" style="width: 100%; height: 100%; border: none; aspect-ratio: 16/9; border-radius: 12px;" allowfullscreen></iframe>
+          </div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--gold); margin-top: 14px; margin-bottom: 20px;">Part 1: Shepherd Ministry Overview</div>
+          <div id="controls1" style="display: flex; justify-content: center; gap: 12px; min-height: 48px;">
+            <button type="button" id="btnNextVideo" onclick="goToVideo2()" style="display: none; background: linear-gradient(135deg, var(--accent), #1a5fc4); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(46, 128, 232, 0.35);">Next Video →</button>
+            <button type="button" id="btnSkipVideo1" onclick="goToVideo2()" style="display: none; background: rgba(255, 255, 255, 0.1); color: #fff; border: 2px solid rgba(255, 255, 255, 0.2); padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s;">Skip →</button>
+          </div>
+        </div>
+
+        <!-- Video 2 Container -->
+        <div id="videoDiv2" style="display: none;">
+          <div style="position: relative; width: 100%; max-width: 480px; margin: 0 auto; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+            <iframe id="player2_iframe" class="intro-video" src="" allow="autoplay; encrypted-media" style="width: 100%; height: 100%; border: none; aspect-ratio: 16/9; border-radius: 12px;" allowfullscreen></iframe>
+          </div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--gold); margin-top: 14px; margin-bottom: 20px;">Part 2: Reporting Guidelines</div>
+          <div id="controls2" style="display: flex; justify-content: center; gap: 12px; min-height: 48px;">
+            <button type="button" id="btnGetStarted" onclick="skipAllIntro()" style="display: none; background: linear-gradient(135deg, var(--green), #16a34a); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(34, 197, 94, 0.35);">Get Started →</button>
+            <button type="button" id="btnSkipVideo2" onclick="skipAllIntro()" style="display: none; background: rgba(255, 255, 255, 0.1); color: #fff; border: 2px solid rgba(255, 255, 255, 0.2); padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s;">Skip →</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+          <a href="javascript:void(0)" onclick="skipAllIntro()" style="color: rgba(255, 255, 255, 0.4); font-size: 12px; text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.7)'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">Skip Introduction</a>
+        </div>
+      </div>
+
       <!-- SEC LANDING: WELCOME -->
-      <div class="section active" id="secLanding">
+      <div class="section" id="secLanding">
         <div class="card-title" style="margin-bottom: 24px; text-align: center; justify-content: center; font-size: 19px;">
           Welcome to ONC SPS System
         </div>
@@ -881,6 +918,125 @@
       newMember: { name: '', contact: '' }, newMembersCount: 0, newMembers: [], meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: ''
     };
     let currentStep = 1;
+
+    // --- INTRO VIDEOS FLOW ---
+    var introTimer1, introTimer2;
+
+    function initIntroFlow() {
+      clearTimeout(introTimer1);
+      clearTimeout(introTimer2);
+
+      // Start 5 second timer for Video 1 controls
+      introTimer1 = setTimeout(function() {
+        showVideo1Controls();
+      }, 5000);
+
+      // Load YouTube API if not loaded
+      if (!window.YT) {
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      } else {
+        setupYoutubePlayers();
+      }
+    }
+
+    window.onYouTubeIframeAPIReady = function() {
+      setupYoutubePlayers();
+    };
+
+    function setupYoutubePlayers() {
+      try {
+        new YT.Player('player1_iframe', {
+          events: {
+            'onStateChange': function(event) {
+              if (event.data === 0) { // ended
+                showVideo1Controls();
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.log("YT API 1 failed to bind", e);
+      }
+    }
+
+    function showVideo1Controls() {
+      const btnNext = document.getElementById('btnNextVideo');
+      const btnSkip = document.getElementById('btnSkipVideo1');
+      if (btnNext) btnNext.style.display = 'inline-block';
+      if (btnSkip) btnSkip.style.display = 'inline-block';
+    }
+
+    function goToVideo2() {
+      clearTimeout(introTimer1);
+      
+      const iframe1 = document.getElementById('player1_iframe');
+      if (iframe1) iframe1.src = '';
+
+      document.getElementById('videoDiv1').style.display = 'none';
+      document.getElementById('videoDiv2').style.display = 'block';
+
+      const iframe2 = document.getElementById('player2_iframe');
+      if (iframe2) {
+        iframe2.src = "https://www.youtube.com/embed/cG50C-9xrZ0?enablejsapi=1&autoplay=1";
+      }
+
+      try {
+        if (window.YT && window.YT.Player) {
+          new YT.Player('player2_iframe', {
+            events: {
+              'onStateChange': function(event) {
+                if (event.data === 0) { // ended
+                  showVideo2Controls();
+                }
+              }
+            }
+          });
+        }
+      } catch (e) {
+        console.log("YT API 2 failed to bind", e);
+      }
+
+      introTimer2 = setTimeout(function() {
+        showVideo2Controls();
+      }, 5000);
+    }
+
+    function showVideo2Controls() {
+      const btnGetStarted = document.getElementById('btnGetStarted');
+      const btnSkip = document.getElementById('btnSkipVideo2');
+      if (btnGetStarted) btnGetStarted.style.display = 'inline-block';
+      if (btnSkip) btnSkip.style.display = 'inline-block';
+    }
+
+    function skipAllIntro() {
+      clearTimeout(introTimer1);
+      clearTimeout(introTimer2);
+
+      const iframe1 = document.getElementById('player1_iframe');
+      if (iframe1) iframe1.src = '';
+      const iframe2 = document.getElementById('player2_iframe');
+      if (iframe2) iframe2.src = '';
+
+      localStorage.setItem('onc_intro_watched', 'true');
+      
+      document.getElementById('secIntro').classList.remove('active');
+      document.getElementById('secLanding').classList.add('active');
+    }
+
+    // Auto-run checking on load
+    document.addEventListener("DOMContentLoaded", function() {
+      const watched = localStorage.getItem('onc_intro_watched');
+      if (watched === 'true') {
+        document.getElementById('secLanding').classList.add('active');
+      } else {
+        document.getElementById('secIntro').classList.add('active');
+        initIntroFlow();
+      }
+    });
+    // -------------------------
 
     // Init SPS shepherd dropdown
     const shepSel = document.getElementById('shepherdSelect');
