@@ -539,24 +539,18 @@
         <div id="videoDiv1">
           <div style="position: relative; width: 100%; max-width: 480px; margin: 0 auto; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
             <iframe id="player1_iframe" class="intro-video" src="https://www.youtube.com/embed/YDEVH9aThSo?enablejsapi=1&autoplay=1" allow="autoplay; encrypted-media" style="width: 100%; height: 100%; border: none; aspect-ratio: 16/9; border-radius: 12px;" allowfullscreen></iframe>
+            <button type="button" id="skipBtn1" onclick="goToVideo2()" style="display: none; position: absolute; top: 12px; right: 12px; z-index: 10; background: var(--gold); color: var(--navy); border: none; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(240, 165, 0, 0.4); transition: all 0.2s;">Skip →</button>
           </div>
-          <div style="font-size: 14px; font-weight: 700; color: var(--gold); margin-top: 14px; margin-bottom: 20px;">Part 1: Shepherd Ministry Overview</div>
-          <div id="controls1" style="display: flex; justify-content: center; gap: 12px; min-height: 48px;">
-            <button type="button" id="btnNextVideo" onclick="goToVideo2()" style="display: none; background: linear-gradient(135deg, var(--accent), #1a5fc4); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(46, 128, 232, 0.35);">Next Video →</button>
-            <button type="button" id="btnSkipVideo1" onclick="goToVideo2()" style="display: none; background: rgba(255, 255, 255, 0.1); color: #fff; border: 2px solid rgba(255, 255, 255, 0.2); padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s;">Skip →</button>
-          </div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--gold); margin-top: 14px; margin-bottom: 20px;">Introduction to ONC SPS System</div>
         </div>
 
         <!-- Video 2 Container -->
         <div id="videoDiv2" style="display: none;">
           <div style="position: relative; width: 100%; max-width: 480px; margin: 0 auto; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
             <iframe id="player2_iframe" class="intro-video" src="" allow="autoplay; encrypted-media" style="width: 100%; height: 100%; border: none; aspect-ratio: 16/9; border-radius: 12px;" allowfullscreen></iframe>
+            <button type="button" id="skipBtn2" onclick="skipAllIntro()" style="display: none; position: absolute; top: 12px; right: 12px; z-index: 10; background: var(--gold); color: var(--navy); border: none; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(240, 165, 0, 0.4); transition: all 0.2s;">Skip →</button>
           </div>
-          <div style="font-size: 14px; font-weight: 700; color: var(--gold); margin-top: 14px; margin-bottom: 20px;">Part 2: Reporting Guidelines</div>
-          <div id="controls2" style="display: flex; justify-content: center; gap: 12px; min-height: 48px;">
-            <button type="button" id="btnGetStarted" onclick="skipAllIntro()" style="display: none; background: linear-gradient(135deg, var(--green), #16a34a); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(34, 197, 94, 0.35);">Get Started →</button>
-            <button type="button" id="btnSkipVideo2" onclick="skipAllIntro()" style="display: none; background: rgba(255, 255, 255, 0.1); color: #fff; border: 2px solid rgba(255, 255, 255, 0.2); padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s;">Skip →</button>
-          </div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--gold); margin-top: 14px; margin-bottom: 20px;">How to Use the App</div>
         </div>
 
         <div style="margin-top: 24px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
@@ -868,8 +862,8 @@
 
     const microchurchShepherdData = {
       "Michael Ayisia": ["Addo Benedict", "Harriet Mensah", "Frank Armah", "Thomas Daitey", "Samuel Obeng", "Caleb Dzifa", "Joshua Anatsui"],
-      "Michael Ameyaw": ["Christiana Konzondong", "Esther Konzondong", "Felix Konzondong", "Daniel"],
-      "Priscilla Anatsui": ["Ashaley Badu", "Rebecca Ankrah"],
+      "Michael Ameyaw (Tesano 2)": ["Christiana Konzondong", "Esther Konzondong", "Felix Konzondong", "Daniel"],
+      "Michael Ameyaw (Tesano 3)": ["Ashaley Badu", "Rebecca Ankrah"],
       "Augustina Selinam Abbah": ["Joel Amfo", "Blessing Akoto", "Aseda Munach", "Elvis Abbey", "Steven Tetteh Antwi", "Regina Twum", "Nasara Naa Issaka", "Zakiatu Ibrahim", "Martin Amponsah", "Emmanuel Tetteh Akoto", "Prince France", "Princess France", "Ababibatu Ibrahim", "Rolanda France"],
       "Blessing Solomon": ["Solomon Aziakah", "Linda Solomon", "Altheaella Bruce", "Peniel Solomon", "Shine Asinyo", "Lucy Agbekornyi"],
       "Lp Esther Okronipa": ["Gifty Ametepey", "Ruth Yeboah"],
@@ -877,22 +871,21 @@
       "Emmanuel Mensah": ["Valerie Ofooley", "Jehoshaphat Mills", "Christian Koomson", "Aaron Ofori", "Reginald Ofori", "Prince Acquah", "Kelvin Aryeetey", "Bismark Duker", "Esther Opare", "George Otabil", "Kwaku Baah", "Theodora Mills", "Miriam Opare", "Hanson Dzebu", "Karen Bonsu"],
       "Eric Appiah": ["Louisa Ashong", "Robert Ansah", "Precious Mmeso", "Princess Izubge", "Annabelle Forson", "Alexander Mantey", "Ameyaw Mehra", "Arnold Doe", "Regina Kwardefio", "Jackline Odoi", "Lilian Amoh", "Raymond Agbosu", "Abena Owusu", "Michelin Gyampoh"],
       "Alex Teye Ametepey": ["Samuel Amon Kotey", "Jeffrey Kleku", "Millicent Kudawoo", "Destiny Akadu", "Mabel Sena Okyere"],
-      "Anatsui-Kemedo Akpene": ["Wilhelmina Komesour", "Aisha Mohammed", "Rev Dr Ebenezer Okronipa", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Alottey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Philip Ofosuhene", "Louisa Nutakor", "Boateng Jason", "Boateng Kobby", "Boateng Diamond", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah", "Nadia Okine", "Favour Okine"],
-      "Justina Ackon": ["Rashida Alhassan", "Abel Nego", "Gentle Sordji", "Christabel", "Winnifred Ndobo", "Latifa", "Bernice Amuzu", "Carol Nkansah", "Nhyira Antwi", "Abigail Antwi", "Gloria Antwi"],
+      "Rev Dr Ebenezer Okronipa (Afropa 2)": ["Wilhelmina Komesour", "Aisha Mohammed", "Anatsui-Kemedo Akpene", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Alottey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Philip Ofosuhene", "Louisa Nutakor", "Boateng Jason", "Boateng Kobby", "Boateng Diamond", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah", "Nadia Okine", "Favour Okine", "Harriet Ampofo", "Ruth Dadzie"],
+      "Rev Dr Ebenezer Okronipa (Manasseh)": ["Justina Ackon", "Rashida Alhassan", "Abel Nego", "Gentle Sordji", "Christabel", "Winnifred Ndobo", "Latifa", "Bernice Amuzu", "Carol Nkansah", "Nhyira Antwi", "Abigail Antwi", "Gloria Antwi"],
       "Rosemond Quaicoe": ["Lydia Odame Antwi", "Mrs Priscilla Effah", "Edna Asare"],
       "Henry Mensah": ["Patience Mensah", "Bryan Mensah", "Brielle Mensah", "Fredrick", "Cisse Quaye"],
       "Abigail Ankomah": ["Jackson Ankomah", "Vivian Mensah", "Frederick Ankomah"],
       "Alice Ametepey": ["Patience Addo", "Samuel Boadu", "Reginald Mensah", "Kelvin Twumasi", "Mikel Owusu", "Nana Opoku", "Cassandra Arthur", "Ruby Lartey", "Blessed Mensah", "Gloria Lartey"],
       "Samuel Opare": ["Janet Tetteh", "Jedidiah Wiafe", "Deborah Quaye", "Albert Ladi Mensah", "Daniella Ladi Mensah", "Nathaniel Ladi Mensah", "Johnathan Ladi Mensah", "Joel Wiafe", "Simon Wegah", "Francis Awuku", "Abigail Ayimbilah"],
-      "Michael Bortsie": ["John Mensah", "Ivan Sekye", "Kobby Wegah"],
-      "Esther Hammond": ["Mama Doris Otumfour", "Benjamin Justice Tandoh Arthur", "Nadia Awentemi", "Mr Ebenezer Okronipa Snr", "Alexis Nhyira Destiny", "Emmalyn Sackey", "Lawrencia Thompson"],
+      "Esther Doku": ["Mama Doris Otumfour", "Benjamin Justice Tandoh Arthur", "Nadia Awentemi", "Mr Ebenezer Okronipa Snr", "Alexis Nhyira Destiny", "Emmalyn Sackey", "Clifford Obeng", "Lawrencia Thompson"],
       "Samuel Oteng": ["Rebecca Quaye", "Mary Quaye", "Laudice Quaye", "Oscar Abane", "Oswell Abane", "Daniel Takan"]
     };
 
     const microchurchNames = {
       "Michael Ayisia": "Tesano 1",
-      "Michael Ameyaw": "Tesano 2",
-      "Priscilla Anatsui": "Tesano 3",
+      "Michael Ameyaw (Tesano 2)": "Tesano 2",
+      "Michael Ameyaw (Tesano 3)": "Tesano 3",
       "Augustina Selinam Abbah": "Tesano 4",
       "Blessing Solomon": "Flat Top",
       "Lp Esther Okronipa": "Official Town",
@@ -900,15 +893,14 @@
       "Emmanuel Mensah": "Bubiashie",
       "Eric Appiah": "North Kaneshie Online",
       "Alex Teye Ametepey": "UG Legon",
-      "Anatsui-Kemedo Akpene": "Afropa 2",
-      "Justina Ackon": "Manasseh",
+      "Rev Dr Ebenezer Okronipa (Afropa 2)": "Afropa 2",
+      "Rev Dr Ebenezer Okronipa (Manasseh)": "Manasseh",
       "Rosemond Quaicoe": "Nyamekye",
       "Henry Mensah": "Gbawe",
       "Abigail Ankomah": "Ablekuma-Agape",
       "Alice Ametepey": "Darkuman 3",
-      "Samuel Opare": "Fadama 1",
-      "Michael Bortsie": "Fadama 2",
-      "Esther Hammond": "New-Fadama 1",
+      "Samuel Opare": "New Fadama 2",
+      "Esther Doku": "New-Fadama 1",
       "Samuel Oteng": "Nsakina"
     };
 
@@ -926,10 +918,13 @@
       clearTimeout(introTimer1);
       clearTimeout(introTimer2);
 
-      // Start 5 second timer for Video 1 controls
+      const watched = localStorage.getItem('onc_intro_watched');
+      const duration = (watched === 'true') ? 30000 : 120000;
+
+      // Start skip button timer for Video 1
       introTimer1 = setTimeout(function() {
         showVideo1Controls();
-      }, 5000);
+      }, duration);
 
       // Load YouTube API if not loaded
       if (!window.YT) {
@@ -952,7 +947,7 @@
           events: {
             'onStateChange': function(event) {
               if (event.data === 0) { // ended
-                showVideo1Controls();
+                goToVideo2();
               }
             }
           }
@@ -963,10 +958,8 @@
     }
 
     function showVideo1Controls() {
-      const btnNext = document.getElementById('btnNextVideo');
-      const btnSkip = document.getElementById('btnSkipVideo1');
-      if (btnNext) btnNext.style.display = 'inline-block';
-      if (btnSkip) btnSkip.style.display = 'inline-block';
+      const skipBtn = document.getElementById('skipBtn1');
+      if (skipBtn) skipBtn.style.display = 'block';
     }
 
     function goToVideo2() {
@@ -989,7 +982,7 @@
             events: {
               'onStateChange': function(event) {
                 if (event.data === 0) { // ended
-                  showVideo2Controls();
+                  skipAllIntro();
                 }
               }
             }
@@ -999,16 +992,17 @@
         console.log("YT API 2 failed to bind", e);
       }
 
+      const watched = localStorage.getItem('onc_intro_watched');
+      const duration = (watched === 'true') ? 30000 : 120000;
+
       introTimer2 = setTimeout(function() {
         showVideo2Controls();
-      }, 5000);
+      }, duration);
     }
 
     function showVideo2Controls() {
-      const btnGetStarted = document.getElementById('btnGetStarted');
-      const btnSkip = document.getElementById('btnSkipVideo2');
-      if (btnGetStarted) btnGetStarted.style.display = 'inline-block';
-      if (btnSkip) btnSkip.style.display = 'inline-block';
+      const skipBtn = document.getElementById('skipBtn2');
+      if (skipBtn) skipBtn.style.display = 'block';
     }
 
     function skipAllIntro() {
@@ -1026,15 +1020,10 @@
       document.getElementById('secLanding').classList.add('active');
     }
 
-    // Auto-run checking on load
+    // Auto-run: Video is ALWAYS shown — never hidden
     document.addEventListener("DOMContentLoaded", function() {
-      const watched = localStorage.getItem('onc_intro_watched');
-      if (watched === 'true') {
-        document.getElementById('secLanding').classList.add('active');
-      } else {
-        document.getElementById('secIntro').classList.add('active');
-        initIntroFlow();
-      }
+      document.getElementById('secIntro').classList.add('active');
+      initIntroFlow();
     });
     // -------------------------
 
