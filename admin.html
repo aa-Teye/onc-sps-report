@@ -1567,7 +1567,7 @@
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
         loadAll();
-        refreshTimer = setInterval(loadAll, 60000);
+        refreshTimer = setInterval(loadAll, 30000); // refresh every 30s
       } else {
         document.getElementById('loginError').style.display = 'block';
         document.getElementById('pinInput').value = '';
@@ -1600,19 +1600,47 @@
         document.querySelectorAll('.btab-btn').forEach(function (b) { b.classList.remove('active'); });
       }
       btn.classList.add('active');
+      // Re-render on every tab switch so data always shows immediately
+      if (allReports.length || allMicrochurchReports.length) {
+        renderAll();
+      }
     }
 
     function loadAll() {
-      document.getElementById('lastUpdated').textContent = 'Updating...';
+      var el = document.getElementById('lastUpdated');
+      if (el) el.textContent = '⏳ Loading...';
+
       fetchData('getReports', function (data) {
         console.log('SPS Reports received:', data);
-        allReports = (data && data.reports) ? data.reports : [];
+        var spsOk = data && data.reports && data.reports.length > 0;
+        allReports = spsOk ? data.reports : allReports; // keep old data if fetch failed
+
         fetchData('getMicrochurchReports', function (mcData) {
           console.log('MC Reports received:', mcData);
-          allMicrochurchReports = (mcData && mcData.reports) ? mcData.reports : [];
+          var mcOk = mcData && mcData.reports && mcData.reports.length > 0;
+          allMicrochurchReports = mcOk ? mcData.reports : allMicrochurchReports;
+
           renderAll();
           var now = new Date();
-          document.getElementById('lastUpdated').textContent = 'Updated ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+          if (!spsOk && !mcOk) {
+            // Both fetches returned nothing — retry once after 4s
+            if (el) el.textContent = '⚠️ No data yet — retrying...';
+            setTimeout(function () {
+              if (el) el.textContent = '⏳ Retrying...';
+              fetchData('getReports', function (d2) {
+                if (d2 && d2.reports && d2.reports.length) allReports = d2.reports;
+                fetchData('getMicrochurchReports', function (m2) {
+                  if (m2 && m2.reports && m2.reports.length) allMicrochurchReports = m2.reports;
+                  renderAll();
+                  if (el) el.textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                });
+              });
+            }, 4000);
+          } else {
+            if (el) el.textContent = 'Updated ' + timeStr;
+          }
         });
       });
     }
