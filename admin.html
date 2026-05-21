@@ -1031,6 +1031,8 @@
           <div
             style="padding: 14px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;">
             System</div>
+          <button class="tab-btn" onclick="switchTab('resources',this)"><span class="icon">📚</span><span
+              class="tab-btn-label">Resources</span></button>
           <button class="tab-btn" onclick="switchTab('settings',this)"><span class="icon">⚙</span><span
               class="tab-btn-label">Settings</span></button>
         </nav>
@@ -1279,6 +1281,101 @@
               style="background:var(--light);border-radius:12px;padding:16px;margin-bottom:14px;font-size:13px;color:var(--navy);">
             </div>
             <button class="btn-export" onclick="doExportSummaryPDF()">⬇ Download Summary PDF</button>
+          </div>
+        </div>
+
+        <!-- TAB 14: RESOURCES -->
+        <div class="tab-panel" id="panel-resources">
+          <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;align-items:start;">
+            
+            <!-- Left Column: Add Resource Form -->
+            <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
+              <div style="font-weight:900;font-size:18px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--light);padding-bottom:12px;">
+                📚 Publish New Resource
+              </div>
+              <div style="display:flex;flex-direction:column;gap:14px;">
+                <div>
+                  <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Resource Title *</label>
+                  <input type="text" id="resTitle" placeholder="e.g. Shepherd Training Manual" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                
+                <div>
+                  <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Category *</label>
+                  <select id="resCategory" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;background:#fff;">
+                    <option value="Manual">📘 Manual</option>
+                    <option value="Syllabus">📖 Syllabus</option>
+                    <option value="Guide">🧭 Guide</option>
+                    <option value="Media">🎥 Media</option>
+                    <option value="Other">✨ Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Target Audience *</label>
+                  <select id="resAudience" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;background:#fff;">
+                    <option value="All Shepherds">👥 All Shepherds</option>
+                    <option value="SPS Shepherds">🙏 SPS Shepherds</option>
+                    <option value="Microchurch Shepherds">⛪ Microchurch Shepherds</option>
+                    <option value="Members">🙋 Members</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Google Drive Link *</label>
+                  <input type="url" id="resUrl" placeholder="https://drive.google.com/..." style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+
+                <div>
+                  <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Description (optional)</label>
+                  <textarea id="resDesc" rows="3" placeholder="Brief description of the document contents..." style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+                </div>
+
+                <button onclick="addResource()" style="padding:12px;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform 0.2s;">
+                  ➕ Add to Library
+                </button>
+                <div id="resFormStatus" style="font-size:12px;font-weight:600;text-align:center;min-height:16px;"></div>
+              </div>
+            </div>
+
+            <!-- Right Column: Document Library -->
+            <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
+              <div style="font-weight:900;font-size:18px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--light);padding-bottom:12px;">
+                <span>📂 Document Library</span>
+                <span id="resCountTag" style="font-size:12px;font-weight:700;background:var(--light);color:var(--navy);padding:4px 8px;border-radius:12px;">0 Documents</span>
+              </div>
+
+              <!-- Filters & Search -->
+              <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+                <div style="flex:1;min-width:180px;">
+                  <input type="text" id="resSearch" oninput="renderResources()" placeholder="🔍 Search resources..." style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+                </div>
+                <div style="min-width:130px;">
+                  <select id="filtResCategory" onchange="renderResources()" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;">
+                    <option value="">All Categories</option>
+                    <option value="Manual">Manual</option>
+                    <option value="Syllabus">Syllabus</option>
+                    <option value="Guide">Guide</option>
+                    <option value="Media">Media</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div style="min-width:130px;">
+                  <select id="filtResAudience" onchange="renderResources()" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;">
+                    <option value="">All Audiences</option>
+                    <option value="All Shepherds">All Shepherds</option>
+                    <option value="SPS Shepherds">SPS Shepherds</option>
+                    <option value="Microchurch Shepherds">MC Shepherds</option>
+                    <option value="Members">Members</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Resource List -->
+              <div id="resourcesList" style="max-height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-right:4px;">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -1579,6 +1676,7 @@
         <button class="btab-btn" onclick="switchTab('bible-study',this,true)"><span class="icon">📖</span>Bible</button>
         <button class="btab-btn" onclick="switchTab('zones',this,true)"><span class="icon">🗂</span>Zones</button>
         <button class="btab-btn" onclick="switchTab('export',this,true)"><span class="icon">📤</span>Export</button>
+        <button class="btab-btn" onclick="switchTab('resources',this,true)"><span class="icon">📚</span>Resources</button>
         <button class="btab-btn" onclick="switchTab('settings',this,true)"><span class="icon">⚙</span>Settings</button>
       </div>
     </div>
@@ -1617,6 +1715,7 @@
         "Christiana Adjei": "Frank Armah",
         "Majeed Saleem": "Bright Mamene",
         "Samuel Torto": "Bright Mamene",
+        "Mrs. Petrina Gyan": "Bright Mamene",
         "Bernice Mensah": "Christiana Konzondong",
         "Lewis Nana Kojo": "Christiana Konzondong",
         "David Kudadze": "Gloria Owusu Ansah",
@@ -1636,7 +1735,8 @@
         "Janelle Kekeli Dartey": "LP. Sophia Korkor",
         "Emmanuel Kwaku Amon": "LP. Sophia Korkor",
         "Francis Kweku Opoku Ivan": "LP. Sophia Korkor",
-        "Ruth Dadzie": "Wisdom Akakpo",
+        "Dorcas Janssen": "Wisdom Akakpo",
+        "Lawrence Gbeku": "Wisdom Akakpo",
         "Victoria Amuzu": "Wisdom Akakpo",
         "Abraham Delove": "Cyril Amevor",
         "Julianna Owusu Ansah": "Cyril Amevor",
@@ -1659,8 +1759,10 @@
         "Lucy Yaa B Agyemang": "Patience Mensah",
         "Selina Ofeibea": "Ruth Yeboah",
         "Isaac Oblitey": "Ruth Yeboah",
+        "Justina Tetteh": "Ruth Yeboah",
         "Joseph Atsu": "Sharon Tricia Amanu",
-        "Bernice Can-Tamakloe": "Sharon Tricia Amanu"
+        "Bernice Can-Tamakloe": "Sharon Tricia Amanu",
+        "Michael Kwabena Agyapong Effah": "Sharon Tricia Amanu"
       };
 
       var allReports = [];
@@ -1721,7 +1823,7 @@
       var TAB_TITLES = {
         overview: 'Overview', shepherds: 'Shepherds', members: 'Members', reports: 'All Reports', topics: 'Bible Topics', attendance: 'Attendance', export: 'Export & Contacts',
         'mc-overview': 'Microchurch Overview', 'mc-shepherds': 'Microchurch Shepherds', 'mc-members': 'Microchurch Members', 'mc-reports': 'Microchurch Reports Logs',
-        'leaderboard': 'Performance Leaderboard', settings: 'Settings'
+        'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings'
       };
 
       function switchTab(id, btn, isMobile) {
@@ -1739,6 +1841,156 @@
         if (allReports.length || allMicrochurchReports.length) {
           renderAll();
         }
+      }
+
+      // ========================================================
+      // RESOURCE LIBRARY MANAGEMENT SYSTEM
+      // ========================================================
+      var allResources = [];
+
+      function initResources() {
+        var cached = localStorage.getItem('onc_resources');
+        if (cached) {
+          try {
+            allResources = JSON.parse(cached);
+          } catch (e) {
+            allResources = [];
+          }
+        } else {
+          // Default initial handbook so it's not blank
+          allResources = [
+            {
+              title: "ONC Shepherd General Handbook",
+              category: "Manual",
+              audience: "All Shepherds",
+              url: "https://drive.google.com",
+              desc: "Official handbook detailing administrative procedures, spiritual guidelines, and reporting schedules.",
+              dateAdded: new Date().toISOString()
+            }
+          ];
+          localStorage.setItem('onc_resources', JSON.stringify(allResources));
+        }
+        renderResources();
+      }
+
+      function addResource() {
+        var title = document.getElementById('resTitle').value.trim();
+        var cat = document.getElementById('resCategory').value;
+        var aud = document.getElementById('resAudience').value;
+        var url = document.getElementById('resUrl').value.trim();
+        var desc = document.getElementById('resDesc').value.trim();
+        var status = document.getElementById('resFormStatus');
+
+        if (!title || !url) {
+          status.textContent = '❌ Please fill in Title and URL.';
+          status.style.color = '#ef4444';
+          return;
+        }
+
+        var res = {
+          title: title,
+          category: cat,
+          audience: aud,
+          url: url,
+          desc: desc,
+          dateAdded: new Date().toISOString()
+        };
+
+        allResources.push(res);
+        localStorage.setItem('onc_resources', JSON.stringify(allResources));
+        
+        // Reset inputs
+        document.getElementById('resTitle').value = '';
+        document.getElementById('resUrl').value = '';
+        document.getElementById('resDesc').value = '';
+        
+        status.textContent = '✅ Resource published!';
+        status.style.color = '#16a34a';
+        setTimeout(function() { status.textContent = ''; }, 3000);
+
+        renderResources();
+      }
+
+      function deleteResource(idx) {
+        if (confirm('Are you sure you want to delete this resource?')) {
+          allResources.splice(idx, 1);
+          localStorage.setItem('onc_resources', JSON.stringify(allResources));
+          renderResources();
+        }
+      }
+
+      // Filter colors mapping
+      var catColors = {
+        Manual: { bg: '#e0f2fe', text: '#0369a1' },
+        Syllabus: { bg: '#f3e8ff', text: '#6b21a8' },
+        Guide: { bg: '#ecfdf5', text: '#047857' },
+        Media: { bg: '#fff1f2', text: '#be123c' },
+        Other: { bg: '#f1f5f9', text: '#475569' }
+      };
+
+      function renderResources() {
+        var list = document.getElementById('resourcesList');
+        if (!list) return;
+
+        var q = document.getElementById('resSearch').value.toLowerCase().trim();
+        var fCat = document.getElementById('filtResCategory').value;
+        var fAud = document.getElementById('filtResAudience').value;
+
+        var filtered = allResources.map(function(r, i) { return { r: r, idx: i }; }).filter(function(item) {
+          var r = item.r;
+          if (fCat && r.category !== fCat) return false;
+          if (fAud && r.audience !== fAud) return false;
+          if (q) {
+            var matchTitle = r.title.toLowerCase().indexOf(q) > -1;
+            var matchDesc = r.desc.toLowerCase().indexOf(q) > -1;
+            if (!matchTitle && !matchDesc) return false;
+          }
+          return true;
+        });
+
+        var countTag = document.getElementById('resCountTag');
+        if (countTag) {
+          countTag.textContent = filtered.length + ' Document' + (filtered.length === 1 ? '' : 's');
+        }
+
+        list.innerHTML = '';
+        if (filtered.length === 0) {
+          list.innerHTML = '<div style="text-align:center;color:var(--gray);padding:40px 20px;font-size:14px;">No resources found.</div>';
+          return;
+        }
+
+        filtered.forEach(function(item) {
+          var r = item.r;
+          var idx = item.idx;
+          var badge = catColors[r.category] || catColors.Other;
+          var card = document.createElement('div');
+          
+          card.style.cssText = 'background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border);transition:all 0.2s;display:flex;flex-direction:column;gap:8px;';
+          
+          card.onmouseenter = function() { card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; card.style.borderColor = 'rgba(0,0,0,0.15)'; };
+          card.onmouseleave = function() { card.style.boxShadow = 'none'; card.style.borderColor = 'var(--border)'; };
+
+          var formattedDate = new Date(r.dateAdded).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+          card.innerHTML = 
+            '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">' +
+              '<div style="font-weight:800;font-size:14px;color:var(--navy);line-height:1.4;">' + r.title + '</div>' +
+              '<button onclick="deleteResource(' + idx + ')" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:2px;display:flex;align-items:center;" title="Delete Resource">🗑️</button>' +
+            '</div>' +
+            (r.desc ? '<div style="font-size:12px;color:var(--gray);line-height:1.5;">' + r.desc + '</div>' : '') +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;flex-wrap:wrap;gap:8px;">' +
+              '<div style="display:flex;gap:6px;align-items:center;">' +
+                '<span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:4px 8px;border-radius:6px;background:' + badge.bg + ';color:' + badge.text + ';">' + r.category + '</span>' +
+                '<span style="font-size:10px;font-weight:700;color:#475569;background:#e2e8f0;padding:4px 8px;border-radius:6px;">' + r.audience + '</span>' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:12px;">' +
+                '<span style="font-size:11px;color:var(--gray);">' + formattedDate + '</span>' +
+                '<a href="' + r.url + '" target="_blank" style="text-decoration:none;font-weight:700;font-size:12px;color:#fff;background:var(--accent);padding:6px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;transition:background 0.2s;">Open ↗</a>' +
+              '</div>' +
+            '</div>';
+
+          list.appendChild(card);
+        });
       }
 
       // ── SHIMMER HELPERS ──
@@ -2595,6 +2847,7 @@
       initSettings();
       initExportTab();
       populateMcFilters();
+      initResources();
 
       // ── SIDEBAR COLLAPSE ──
       function toggleSidebar() {
@@ -2619,15 +2872,49 @@
       // MICROCHURCH & PERFORMANCE LEADERBOARD CALCULATION ENGINE
       // ========================================================
       ALL_MC_SHEPHERDS = [
-        { name: "Microchurch Shepherd 1", contact: "" },
-        { name: "Microchurch Shepherd 2", contact: "" },
-        { name: "Microchurch Shepherd 3", contact: "" }
+        { name: "Michael Ayisia",           microchurch: "Tesano 1",             contact: "" },
+        { name: "Michael Ameyaw",           microchurch: "Tesano 2",             contact: "" },
+        { name: "Priscilla Anatsui",        microchurch: "Tesano 3",             contact: "" },
+        { name: "Augustina Selinam Abbah",  microchurch: "Tesano 4",             contact: "" },
+        { name: "Blessing Solomon",         microchurch: "Flat Top",             contact: "" },
+        { name: "Lp Esther Okronipa",       microchurch: "Official Town",        contact: "" },
+        { name: "Benjamin Senyasu",         microchurch: "Police Depot",         contact: "" },
+        { name: "Emmanuel Mensah",          microchurch: "Bubiashie",            contact: "" },
+        { name: "Eric Appiah",              microchurch: "North Kaneshie Online", contact: "" },
+        { name: "Alex Teye Ametepey",       microchurch: "UG Legon",             contact: "" },
+        { name: "Anatsui-Kemedo Akpene",    microchurch: "Afropa 2",             contact: "" },
+        { name: "Justina Ackon",            microchurch: "Manasseh",             contact: "" },
+        { name: "Rosemond Quaicoe",         microchurch: "Nyamekye",             contact: "" },
+        { name: "Henry Mensah",             microchurch: "Gbawe",                contact: "" },
+        { name: "Abigail Ankomah",          microchurch: "Ablekuma-Agape",       contact: "" },
+        { name: "Alice Ametepey",           microchurch: "Darkuman 3",           contact: "" },
+        { name: "Samuel Opare",             microchurch: "Fadama 1",             contact: "" },
+        { name: "Michael Bortsie",          microchurch: "Fadama 2",             contact: "" },
+        { name: "Esther Hammond",           microchurch: "New-Fadama 1",         contact: "" },
+        { name: "Samuel Oteng",             microchurch: "Nsakina",              contact: "" }
       ];
 
       var mcMemberData = {
-        "Microchurch Shepherd 1": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"],
-        "Microchurch Shepherd 2": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"],
-        "Microchurch Shepherd 3": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"]
+        "Michael Ayisia": ["Addo Benedict","Harriet Mensah","Frank Armah","Thomas Daitey","Samuel Obeng","Caleb Dzifa","Joshua Anatsui"],
+        "Michael Ameyaw": ["Christiana Konzondong","Esther Konzondong","Felix Konzondong","Daniel"],
+        "Priscilla Anatsui": ["Ashaley Badu","Rebecca Ankrah"],
+        "Augustina Selinam Abbah": ["Joel Amfo","Blessing Akoto","Aseda Munach","Elvis Abbey","Steven Tetteh Antwi","Regina Twum","Nasara Naa Issaka","Zakiatu Ibrahim","Martin Amponsah","Emmanuel Tetteh Akoto","Prince France","Princess France","Ababibatu Ibrahim","Rolanda France"],
+        "Blessing Solomon": ["Solomon Aziakah","Linda Solomon","Altheaella Bruce","Peniel Solomon","Shine Asinyo","Lucy Agbekornyi"],
+        "Lp Esther Okronipa": ["Gifty Ametepey","Ruth Yeboah"],
+        "Benjamin Senyasu": ["Mafred Normesinu Danquah","Mitchell Normesinu Danquah","Nina Asinyo","Adelaide Lamptey","Asinyo Martha","Lordina Amoah","Antony Boateng","Susan Selorm Budu"],
+        "Emmanuel Mensah": ["Valerie Ofooley","Jehoshaphat Mills","Christian Koomson","Aaron Ofori","Reginald Ofori","Prince Acquah","Kelvin Aryeetey","Bismark Duker","Esther Opare","George Otabil","Kwaku Baah","Theodora Mills","Miriam Opare","Hanson Dzebu","Karen Bonsu"],
+        "Eric Appiah": ["Louisa Ashong","Robert Ansah","Precious Mmeso","Princess Izubge","Annabelle Forson","Alexander Mantey","Ameyaw Mehra","Arnold Doe","Regina Kwardefio","Jackline Odoi","Lilian Amoh","Raymond Agbosu","Abena Owusu","Michelin Gyampoh"],
+        "Alex Teye Ametepey": ["Samuel Amon Kotey","Jeffrey Kleku","Millicent Kudawoo","Destiny Akadu","Mabel Sena Okyere"],
+        "Anatsui-Kemedo Akpene": ["Wilhelmina Komesour","Aisha Mohammed","Rev Dr Ebenezer Okronipa","Christiana Akosua Latibea","Celestine Baatu","Kukua McKay","Vivian Alottey","Georgina Gyane","Monica Aboagyewaa","Roselyn Okine","Frederica Okine","Freda Okine","Freeman Okine","Steven Okine","Francis Okine","Philip Ofosuhene","Louisa Nutakor","Boateng Jason","Boateng Kobby","Boateng Diamond","Kezia Ofosuhene","Kingsford Philip Quaicoo","Adom Ackah","Nadia Okine","Favour Okine"],
+        "Justina Ackon": ["Rashida Alhassan","Abel Nego","Gentle Sordji","Christabel","Winnifred Ndobo","Latifa","Bernice Amuzu","Carol Nkansah","Nhyira Antwi","Abigail Antwi","Gloria Antwi"],
+        "Rosemond Quaicoe": ["Lydia Odame Antwi","Mrs Priscilla Effah","Edna Asare"],
+        "Henry Mensah": ["Patience Mensah","Bryan Mensah","Brielle Mensah","Fredrick","Cisse Quaye"],
+        "Abigail Ankomah": ["Jackson Ankomah","Vivian Mensah","Frederick Ankomah"],
+        "Alice Ametepey": ["Patience Addo","Samuel Boadu","Reginald Mensah","Kelvin Twumasi","Mikel Owusu","Nana Opoku","Cassandra Arthur","Ruby Lartey","Blessed Mensah","Gloria Lartey"],
+        "Samuel Opare": ["Janet Tetteh","Jedidiah Wiafe","Deborah Quaye","Albert Ladi Mensah","Daniella Ladi Mensah","Nathaniel Ladi Mensah","Johnathan Ladi Mensah","Joel Wiafe","Simon Wegah","Francis Awuku","Abigail Ayimbilah"],
+        "Michael Bortsie": ["John Mensah","Ivan Sekye","Kobby Wegah"],
+        "Esther Hammond": ["Mama Doris Otumfour","Benjamin Justice Tandoh Arthur","Nadia Awentemi","Mr Ebenezer Okronipa Snr","Alexis Nhyira Destiny","Emmalyn Sackey","Lawrencia Thompson"],
+        "Samuel Oteng": ["Rebecca Quaye","Mary Quaye","Laudice Quaye","Oscar Abane","Oswell Abane","Daniel Takan"]
       };
 
       function isMcThisWeek(r) {
