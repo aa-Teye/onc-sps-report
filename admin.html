@@ -1532,6 +1532,7 @@
           <div class="tab-panel" id="panel-mc-shepherds">
             <div id="mcShepherdsGrid" class="cards-grid"
               style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;"></div>
+            <div id="mc-shepherds-grid" class="shepherd-grid"></div>
           </div>
 
           <!-- TAB 11: MICROCHURCH MEMBERS -->
@@ -2291,6 +2292,8 @@
       }
 
       function renderExport() {
+        var panel = document.getElementById('panel-export');
+        if (!panel) return;
         var ct = document.getElementById('contact-table');
         ct.innerHTML = '<tr><th>#</th><th>Shepherd</th><th>Contact</th><th>Sessions (All Time)</th><th>This Week</th></tr>' +
           ALL_SHEPHERDS.map(function (s, i) {
@@ -2987,6 +2990,8 @@
       }
 
       function renderMcShepherds() {
+        console.log('MC Shepherds:', ALL_MC_SHEPHERDS.length);
+        console.log('MC Reports:', allMicrochurchReports.length);
         var mc = allMicrochurchReports || [];
         var container = document.getElementById('mc-shepherds-grid');
         if (!container) return;
