@@ -616,19 +616,14 @@
             <button type="button" class="yn-btn yes" id="newMemberYesBtn" onclick="selectNewMemberJoin('yes', this)">✅ Yes</button>
             <button type="button" class="yn-btn no" id="newMemberNoBtn" onclick="selectNewMemberJoin('no', this)">❌ No</button>
           </div>
-          <div id="newMemberFields" style="display:none;margin-top:12px;background:#f0f5ff;border-radius:12px;padding:14px 16px;border:2px solid #dce7f7;">
-            <div style="margin-bottom:10px;">
-              <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">New member name</div>
-              <input type="text" id="newMemberNameInput" placeholder="Enter full name..." 
-                oninput="state.newMember.name=this.value"
+          <div id="newMemberFields" style="display:none;margin-top:14px;">
+            <div style="margin-bottom:12px;background:#f0f5ff;border-radius:12px;padding:14px 16px;border:2px solid #dce7f7;">
+              <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">How many new members joined?</div>
+              <input type="number" id="newMembersCountInput" min="1" value="1"
+                oninput="buildNewMemberCards()"
                 style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#fff;outline:none;">
             </div>
-            <div>
-              <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Contact number (optional)</div>
-              <input type="tel" id="newMemberContactInput" placeholder="Enter phone number..." 
-                oninput="state.newMember.contact=this.value"
-                style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#fff;outline:none;">
-            </div>
+            <div id="newMemberCardsContainer" style="display:flex;flex-direction:column;gap:14px;margin-top:12px;"></div>
           </div>
         </div>
         <div class="field">
@@ -883,7 +878,7 @@
     let state = {
       shepherdType: '', shepherd: '', sessionDate: '', sessionDay: '', sessionTime: '',
       attendance: {}, topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', concerns: {},
-      newMember: { name: '', contact: '' }, meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: ''
+      newMember: { name: '', contact: '' }, newMembersCount: 0, newMembers: [], meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: ''
     };
     let currentStep = 1;
 
@@ -1238,12 +1233,55 @@
       const fields = document.getElementById('newMemberFields');
       if (val === 'yes') {
         fields.style.display = 'block';
+        buildNewMemberCards();
       } else {
         fields.style.display = 'none';
-        document.getElementById('newMemberNameInput').value = '';
-        document.getElementById('newMemberContactInput').value = '';
-        state.newMember = { name: '', contact: '' };
+        state.newMembersCount = 0;
+        state.newMembers = [];
       }
+    }
+
+    function buildNewMemberCards() {
+      const n = parseInt(document.getElementById('newMembersCountInput').value) || 1;
+      state.newMembersCount = n;
+      if (!Array.isArray(state.newMembers)) state.newMembers = [];
+      while (state.newMembers.length < n) state.newMembers.push({ name:'', phone:'', dob:'', bornAgain:'', inChurch:'', occupation:'' });
+      state.newMembers = state.newMembers.slice(0, n);
+      const container = document.getElementById('newMemberCardsContainer');
+      container.innerHTML = '';
+      const occupations = ['Student','Employed','Self-Employed','Unemployed','Retired','Other'];
+      for (let i = 0; i < n; i++) {
+        const member = state.newMembers[i];
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#fff;border:2px solid #dce7f7;border-radius:14px;padding:16px;box-shadow:0 4px 12px rgba(15,32,68,0.02);';
+        const baYes = member.bornAgain === 'yes' ? ' selected' : '';
+        const baNo  = member.bornAgain === 'no'  ? ' selected' : '';
+        const icYes = member.inChurch  === 'yes' ? ' selected' : '';
+        const icNo  = member.inChurch  === 'no'  ? ' selected' : '';
+        const occOpts = occupations.map(o => '<option value="' + o + '"' + (member.occupation === o ? ' selected' : '') + '>' + o + '</option>').join('');
+        card.innerHTML =
+          '<div style="font-size:13px;font-weight:800;color:#0f2044;margin-bottom:12px;border-bottom:1px solid #dce7f7;padding-bottom:8px;">New Member #' + (i+1) + '</div>' +
+          '<div style="display:flex;flex-direction:column;gap:10px;">' +
+            '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Full Name *</div><input type="text" placeholder="Full name" value="' + member.name + '" data-member="' + i + '" data-field="name" style="width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;"></div>' +
+            '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Phone Number *</div><input type="tel" placeholder="Phone number" value="' + member.phone + '" data-member="' + i + '" data-field="phone" style="width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;"></div>' +
+            '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Date of Birth *</div><input type="date" value="' + member.dob + '" data-member="' + i + '" data-field="dob" style="width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;"></div>' +
+            '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Born Again? *</div><div style="display:flex;gap:8px;"><button type="button" class="yn-btn yes member-yn' + baYes + '" data-member="' + i + '" data-field="bornAgain" data-val="yes" onclick="setNewMemberYN(this)">✅ Yes</button><button type="button" class="yn-btn no member-yn' + baNo + '" data-member="' + i + '" data-field="bornAgain" data-val="no" onclick="setNewMemberYN(this)">❌ No</button></div></div>' +
+            '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Are you in the church? *</div><div style="display:flex;gap:8px;"><button type="button" class="yn-btn yes member-yn' + icYes + '" data-member="' + i + '" data-field="inChurch" data-val="yes" onclick="setNewMemberYN(this)">✅ Yes</button><button type="button" class="yn-btn no member-yn' + icNo + '" data-member="' + i + '" data-field="inChurch" data-val="no" onclick="setNewMemberYN(this)">❌ No</button></div></div>' +
+            '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Occupation <span style="font-weight:400;">(optional)</span></div><select data-member="' + i + '" data-field="occupation" style="width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;appearance:none;"><option value="">-- Select --</option>' + occOpts + '</select></div>' +
+          '</div>';
+        card.querySelectorAll('input[data-field], select[data-field]').forEach(function(el) {
+          el.addEventListener('change', function() { state.newMembers[+this.dataset.member][this.dataset.field] = this.value; });
+          el.addEventListener('input',  function() { state.newMembers[+this.dataset.member][this.dataset.field] = this.value; });
+        });
+        container.appendChild(card);
+      }
+    }
+
+    function setNewMemberYN(btn) {
+      const idx = +btn.dataset.member;
+      state.newMembers[idx][btn.dataset.field] = btn.dataset.val;
+      btn.parentElement.querySelectorAll('.member-yn').forEach(function(b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
     }
 
     function buildMemberCards() {
@@ -1338,6 +1376,12 @@
         '<div class="review-item"><span class="review-label">Topic Covered</span><span class="review-value"><span class="badge ' + (state.topicCovered||'no') + '">' + (state.topicCovered||'N/A').toUpperCase() + '</span></span></div>' +
         '<div class="review-item"><span class="review-label">Actual Topic</span><span class="review-value">' + (state.actualTopic||'—') + '</span></div>' +
         '<div class="review-item"><span class="review-label">Prayer Done</span><span class="review-value"><span class="badge ' + (state.prayerDone||'no') + '">' + (state.prayerDone||'N/A').toUpperCase() + '</span></span></div>';
+      var newMembersLabel = 'No';
+      if (state.newMembersCount > 0) {
+        var names = state.newMembers.map(m => m.name).join(', ');
+        newMembersLabel = state.newMembersCount + ' (' + (names || 'No names') + ')';
+      }
+      html += '<div class="review-item"><span class="review-label">New Members Joined</span><span class="review-value">' + newMembersLabel + '</span></div>';
       present.forEach(function(m) {
         if (state.concerns[m]) {
           html += '<div class="review-item"><span class="review-label">' + m + '</span><span class="review-value" style="font-size:13px;">' + state.concerns[m] + '</span></div>';
@@ -1359,9 +1403,18 @@
         if (!state.prayerDone) { showToast('Please answer the prayer question'); return; }
         const yesBtn = document.getElementById('newMemberYesBtn');
         if (yesBtn && yesBtn.classList.contains('selected')) {
-          if (!state.newMember.name || !state.newMember.name.trim()) {
-            showToast('Please enter the new member name');
+          const n = parseInt(document.getElementById('newMembersCountInput').value) || 0;
+          if (n < 1) {
+            showToast('Please enter the number of new members');
             return;
+          }
+          for (let i = 0; i < state.newMembers.length; i++) {
+            const member = state.newMembers[i];
+            if (!member.name || !member.name.trim()) { showToast('Please enter Name for Member #' + (i + 1)); return; }
+            if (!member.phone || !member.phone.trim()) { showToast('Please enter Phone for Member #' + (i + 1)); return; }
+            if (!member.dob) { showToast('Please select Date of Birth for Member #' + (i + 1)); return; }
+            if (!member.bornAgain) { showToast('Please answer "Born Again" for Member #' + (i + 1)); return; }
+            if (!member.inChurch) { showToast('Please answer "In Church" for Member #' + (i + 1)); return; }
           }
         }
         buildReview();
@@ -1420,7 +1473,12 @@
         actualTopic: state.actualTopic,
         prayerDone: state.prayerDone,
         concerns: state.concerns,
-        newMember: state.newMember,
+        newMembersCount: state.newMembersCount || 0,
+        newMembers: Array.isArray(state.newMembers) ? state.newMembers : [],
+        newMember: (state.newMembers && state.newMembers.length > 0) ? {
+          name: state.newMembers[0].name,
+          contact: state.newMembers[0].phone
+        } : { name: '', contact: '' },
         notes: ''
       };
       try {
@@ -1439,7 +1497,7 @@
       state = { 
         shepherdType: '', shepherd: '', sessionDate: '', sessionDay: '', sessionTime: '', attendance: {}, 
         topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', concerns: {},
-        newMember: { name: '', contact: '' }, meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: ''
+        newMember: { name: '', contact: '' }, newMembersCount: 0, newMembers: [], meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: ''
       };
       currentStep = 1;
       document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
@@ -1456,8 +1514,9 @@
       document.getElementById('mcSessionPlaceholder').style.display = 'block';
       
       document.getElementById('newMemberFields').style.display = 'none';
-      document.getElementById('newMemberNameInput').value = '';
-      document.getElementById('newMemberContactInput').value = '';
+      document.getElementById('newMembersCountInput').value = '1';
+      const nmcc = document.getElementById('newMemberCardsContainer');
+      if (nmcc) nmcc.innerHTML = '';
       
       document.getElementById('mcNewSoulsFields').style.display = 'none';
       document.getElementById('mcNewSoulsCount').value = '1';
