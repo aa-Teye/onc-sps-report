@@ -514,6 +514,49 @@
       color: rgba(255, 255, 255, 0.35);
       font-size: 12px;
     }
+
+    .skip-ring {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: conic-gradient(#22c55e var(--progress), 
+        rgba(255,255,255,0.2) var(--progress));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: not-allowed;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+
+    .skip-ring.ready {
+      cursor: pointer;
+      animation: pulse 1.5s infinite;
+      box-shadow: 0 0 12px rgba(34,197,94,0.5);
+    }
+
+    .skip-ring .skip-inner {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.5);
+      font-family: 'Nunito', sans-serif;
+    }
+
+    .skip-ring.ready .skip-inner {
+      color: #22c55e;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
   </style>
 </head>
 
@@ -539,18 +582,26 @@
         <div id="videoDiv1">
           <div style="position: relative; width: 100%; max-width: 480px; margin: 0 auto; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
             <iframe id="player1_iframe" class="intro-video" src="https://www.youtube.com/embed/YDEVH9aThSo?enablejsapi=1&autoplay=1" allow="autoplay; encrypted-media" style="width: 100%; height: 100%; border: none; aspect-ratio: 16/9; border-radius: 12px;" allowfullscreen></iframe>
-            <button type="button" id="skipBtn1" onclick="goToVideo2()" style="display: none; position: absolute; top: 12px; right: 12px; z-index: 10; background: var(--gold); color: var(--navy); border: none; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(240, 165, 0, 0.4); transition: all 0.2s;">Skip →</button>
           </div>
-          <div style="font-size: 14px; font-weight: 700; color: var(--gold); margin-top: 14px; margin-bottom: 20px;">Introduction to ONC SPS System</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; margin-bottom: 20px;">
+            <div style="font-size:14px;font-weight:700;color:var(--gold);">Introduction to ONC SPS System</div>
+            <div class="skip-ring" id="skipRing1" onclick="handleSkipClick(1)">
+              <div class="skip-inner" id="skipInner1">120</div>
+            </div>
+          </div>
         </div>
 
         <!-- Video 2 Container -->
         <div id="videoDiv2" style="display: none;">
           <div style="position: relative; width: 100%; max-width: 480px; margin: 0 auto; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
             <iframe id="player2_iframe" class="intro-video" src="" allow="autoplay; encrypted-media" style="width: 100%; height: 100%; border: none; aspect-ratio: 16/9; border-radius: 12px;" allowfullscreen></iframe>
-            <button type="button" id="skipBtn2" onclick="skipAllIntro()" style="display: none; position: absolute; top: 12px; right: 12px; z-index: 10; background: var(--gold); color: var(--navy); border: none; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(240, 165, 0, 0.4); transition: all 0.2s;">Skip →</button>
           </div>
-          <div style="font-size: 14px; font-weight: 700; color: var(--gold); margin-top: 14px; margin-bottom: 20px;">How to Use the App</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; margin-bottom: 20px;">
+            <div style="font-size:14px;font-weight:700;color:var(--gold);">How to Use the App</div>
+            <div class="skip-ring" id="skipRing2" onclick="handleSkipClick(2)">
+              <div class="skip-inner" id="skipInner2">120</div>
+            </div>
+          </div>
         </div>
 
         <div style="margin-top: 24px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
@@ -912,19 +963,11 @@
     let currentStep = 1;
 
     // --- INTRO VIDEOS FLOW ---
-    var introTimer1, introTimer2;
+    var countdownInterval = null;
 
     function initIntroFlow() {
-      clearTimeout(introTimer1);
-      clearTimeout(introTimer2);
-
-      const watched = localStorage.getItem('onc_intro_watched');
-      const duration = (watched === 'true') ? 30000 : 120000;
-
-      // Start skip button timer for Video 1
-      introTimer1 = setTimeout(function() {
-        showVideo1Controls();
-      }, duration);
+      // Start Video 1 circular countdown
+      startCountdown(1);
 
       // Load YouTube API if not loaded
       if (!window.YT) {
@@ -957,13 +1000,61 @@
       }
     }
 
-    function showVideo1Controls() {
-      const skipBtn = document.getElementById('skipBtn1');
-      if (skipBtn) skipBtn.style.display = 'block';
+    function startCountdown(videoNum) {
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      const watched = localStorage.getItem('onc_intro_watched');
+      const duration = (watched === 'true') ? 30 : 120;
+
+      let elapsed = 0;
+      const ring = document.getElementById('skipRing' + videoNum);
+      const inner = document.getElementById('skipInner' + videoNum);
+
+      // Reset style to 0 progress
+      if (ring) {
+        ring.classList.remove('ready');
+        ring.style.setProperty('--progress', '0deg');
+      }
+      if (inner) {
+        inner.textContent = duration;
+      }
+
+      countdownInterval = setInterval(function() {
+        elapsed++;
+        if (elapsed >= duration) {
+          clearInterval(countdownInterval);
+          if (ring) {
+            ring.classList.add('ready');
+            ring.style.setProperty('--progress', '360deg');
+          }
+          if (inner) {
+            inner.textContent = "Skip";
+          }
+        } else {
+          const progress = ((elapsed / duration) * 360) + 'deg';
+          if (ring) {
+            ring.style.setProperty('--progress', progress);
+          }
+          if (inner) {
+            inner.textContent = duration - elapsed;
+          }
+        }
+      }, 1000);
+    }
+
+    function handleSkipClick(videoNum) {
+      const ring = document.getElementById('skipRing' + videoNum);
+      if (ring && ring.classList.contains('ready')) {
+        if (videoNum === 1) {
+          goToVideo2();
+        } else {
+          skipAllIntro();
+        }
+      }
     }
 
     function goToVideo2() {
-      clearTimeout(introTimer1);
+      if (countdownInterval) clearInterval(countdownInterval);
       
       const iframe1 = document.getElementById('player1_iframe');
       if (iframe1) iframe1.src = '';
@@ -992,22 +1083,12 @@
         console.log("YT API 2 failed to bind", e);
       }
 
-      const watched = localStorage.getItem('onc_intro_watched');
-      const duration = (watched === 'true') ? 30000 : 120000;
-
-      introTimer2 = setTimeout(function() {
-        showVideo2Controls();
-      }, duration);
-    }
-
-    function showVideo2Controls() {
-      const skipBtn = document.getElementById('skipBtn2');
-      if (skipBtn) skipBtn.style.display = 'block';
+      // Start countdown for Video 2
+      startCountdown(2);
     }
 
     function skipAllIntro() {
-      clearTimeout(introTimer1);
-      clearTimeout(introTimer2);
+      if (countdownInterval) clearInterval(countdownInterval);
 
       const iframe1 = document.getElementById('player1_iframe');
       if (iframe1) iframe1.src = '';
