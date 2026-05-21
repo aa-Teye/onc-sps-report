@@ -1529,8 +1529,10 @@
       "Bernice Can-Tamakloe": "Sharon Tricia Amanu"
     };
 
-    let allReports = [];
-    let refreshTimer = null;
+    var allReports = [];
+    var allMicrochurchReports = [];
+    var ALL_MC_SHEPHERDS = [];
+    var refreshTimer = null;
 
     function fetchData(action, callback) {
       var script = document.createElement('script');
@@ -2383,19 +2385,17 @@
     // ========================================================
     // MICROCHURCH & PERFORMANCE LEADERBOARD CALCULATION ENGINE
     // ========================================================
-    const ALL_MC_SHEPHERDS = [
+    ALL_MC_SHEPHERDS = [
       { name: "Microchurch Shepherd 1", contact: "" },
       { name: "Microchurch Shepherd 2", contact: "" },
       { name: "Microchurch Shepherd 3", contact: "" }
     ];
 
-    const mcMemberData = {
+    var mcMemberData = {
       "Microchurch Shepherd 1": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"],
       "Microchurch Shepherd 2": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"],
       "Microchurch Shepherd 3": ["Member 1", "Member 2", "Member 3", "Member 4", "Member 5", "Member 6", "Member 7", "Member 8", "Member 9", "Member 10", "Member 11", "Member 12", "Member 13", "Member 14", "Member 15"]
     };
-
-    let allMicrochurchReports = [];
 
     function isMcThisWeek(r) {
       var dateStr = r.submissionDate || r.sessionDate || r.date;
