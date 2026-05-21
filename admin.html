@@ -944,17 +944,20 @@
 
     /* SHIMMER */
     .shimmer {
-      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background: linear-gradient(90deg, 
+        #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
       border-radius: 8px;
       color: transparent !important;
-      min-width: 40px;
+      min-width: 60px;
       display: inline-block;
     }
 
     @keyframes shimmer {
-      0%   { background-position: 200% 0; }
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
       100% { background-position: -200% 0; }
     }
   </style>
@@ -1803,9 +1806,22 @@
         if (pin === storedPin) {
           document.getElementById('loginScreen').style.display = 'none';
           document.getElementById('dashboard').style.display = 'block';
-          keepWarm(); // warm up Apps Script immediately on login
+          
+          // Load cached data instantly
+          var cachedReports = localStorage.getItem('onc_cached_reports');
+          var cachedMc = localStorage.getItem('onc_cached_mc_reports');
+          if (cachedReports) {
+            allReports = JSON.parse(cachedReports);
+            allMicrochurchReports = cachedMc ? JSON.parse(cachedMc) : [];
+            renderAll();
+          }
+          
+          // Then fetch fresh data
           loadAll();
-          refreshTimer = setInterval(loadAll, 60000);
+          keepWarm();
+          setInterval(loadAll, 120000);
+          setInterval(keepWarm, 4 * 60 * 1000);
+          
         } else {
           document.getElementById('loginError').style.display = 'block';
           document.getElementById('pinInput').value = '';
