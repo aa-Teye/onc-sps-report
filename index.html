@@ -1611,7 +1611,7 @@
         '<div class="review-item"><span class="review-label">Topic Covered</span><span class="review-value"><span class="badge ' + (state.topicCovered||'no') + '">' + (state.topicCovered||'N/A').toUpperCase() + '</span></span></div>' +
         '<div class="review-item"><span class="review-label">Actual Topic</span><span class="review-value">' + (state.actualTopic||'—') + '</span></div>' +
         '<div class="review-item"><span class="review-label">Prayer Done</span><span class="review-value"><span class="badge ' + (state.prayerDone||'no') + '">' + (state.prayerDone||'N/A').toUpperCase() + '</span></span></div>' +
-        '<div class="review-item"><span class="review-label">New Souls Won</span><span class="review-value">' + (state.newSouls ? state.newSouls + ' (' + (state.newSoulNames || 'No names') + ')' : 'No') + '</span></div>';
+        '<div class="review-item"><span class="review-label">New Souls Won</span><span class="review-value">' + (state.newSoulsCount > 0 ? state.newSoulsCount + ' (' + (state.newSouls.map(s => s.name).filter(Boolean).join(', ') || 'No names yet') + ')' : 'No') + '</span></div>';
       present.forEach(m => {
         if (state.concerns[m]) {
           html += '<div class="review-item"><span class="review-label">' + m + '</span><span class="review-value" style="font-size:13px;">' + state.concerns[m] + '</span></div>';
@@ -1696,8 +1696,8 @@
       document.getElementById('successTitle').textContent = 'Report Submitted! Thank you ' + state.shepherd.split(' ')[0] + '!';
       
       let successHtml = '📅 ' + state.sessionDate + '<br>👥 ' + present.length + ' of ' + members.length + ' members reported<br>📊 Attendance rate: ' + rate + '%';
-      if (state.newSouls > 0) {
-        successHtml += '<br>🔥 New Souls Won: <strong>' + state.newSouls + '</strong>';
+      if (state.newSoulsCount > 0) {
+        successHtml += '<br>🔥 New Souls Won: <strong>' + state.newSoulsCount + '</strong>';
       }
       document.getElementById('successBody').innerHTML = successHtml;
       
