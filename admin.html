@@ -1054,6 +1054,11 @@
 
         <!-- TAB 1: OVERVIEW -->
         <div class="tab-panel active" id="panel-overview">
+          <!-- New Souls Awaiting Approval notification banner -->
+          <div id="newSoulsAlertBanner" style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:12px 16px;margin-bottom:20px;font-weight:700;color:#b45309;cursor:pointer;animation:pulse 2s infinite;" onclick="var btn=document.querySelector('.tab-btn[onclick*=\'members\']')||document.querySelector('.btab-btn[onclick*=\'members\']'); if(btn) switchTab('members', btn);">
+            🔔 <span id="newSoulsAlertCount">0</span> New Souls Awaiting Approval! Click here to review them in the Members tab.
+          </div>
+
           <div class="stats-grid">
             <div class="stat-card blue">
               <div class="stat-label">Sessions This Week</div>
@@ -1119,6 +1124,19 @@
 
         <!-- TAB 3: MEMBERS -->
         <div class="tab-panel" id="panel-members">
+          <!-- New Souls Pending Approval section -->
+          <div id="pendingSoulsSection" style="margin-bottom:24px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:16px;padding:20px;display:none;">
+            <h3 style="margin-top:0;color:#0f2044;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;">
+              🔥 New Souls Pending Approval <span class="badge yellow" id="pendingSoulsCountBadge" style="font-size:12px;">0</span>
+            </h3>
+            <p style="color:#64748b;font-size:13px;margin-bottom:16px;">
+              These new souls were submitted in shepherd reports. Approve them to add them to the official member database, or Reject to dismiss.
+            </p>
+            <div id="pendingSoulsList" style="display:flex;flex-direction:column;gap:12px;max-height:400px;overflow-y:auto;padding-right:4px;">
+              <!-- Items will be populated here -->
+            </div>
+          </div>
+
           <div class="filter-bar">
             <input type="text" id="filter-member-search" placeholder="Search member..." oninput="renderMembers()">
             <select id="filter-member-shep" onchange="renderMembers()">
@@ -1812,6 +1830,38 @@
         "Michael Kwabena Agyapong Effah": "Sharon Tricia Amanu"
       };
 
+      // Merge custom approved members from localStorage
+      try {
+        var customSps = JSON.parse(localStorage.getItem('onc_custom_sps_members') || '{}');
+        Object.assign(memberData, customSps);
+      } catch(e) {}
+
+      try {
+        var customMc = JSON.parse(localStorage.getItem('onc_custom_mc_members') || '{}');
+        Object.entries(customMc).forEach(function(entry) {
+          var shep = entry[0], members = entry[1];
+          if (!window.mcMemberData[shep]) window.mcMemberData[shep] = [];
+          members.forEach(function(m) {
+            if (!window.mcMemberData[shep].includes(m)) {
+              window.mcMemberData[shep].push(m);
+            }
+          });
+        });
+      } catch(e) {}
+
+      function formatWhatsApp(phone) {
+        var clean = phone.toString().replace(/\s/g,'');
+        if (clean.startsWith('0')) 
+          clean = '233' + clean.substring(1);
+        return 'https://wa.me/' + clean;
+      }
+
+      function formatCall(phone) {
+        var clean = phone.toString().replace(/\s/g,'');
+        if (!clean.startsWith('0')) clean = '0' + clean;
+        return 'tel:' + clean;
+      }
+
       var refreshTimer = null;
 
       function fetchData(action, callback) {
@@ -2169,11 +2219,212 @@
         return Object.values(r.concerns).filter(function (v) { return v && v.trim() && v.toLowerCase() !== 'none'; }).length;
       }
 
+      // ========================================================
+      // NEW SOULS PENDING APPROVAL SYSTEM
+      // ========================================================
+      function extractPendingSouls() {
+        var pending = [];
+        
+        var approvedNames = {};
+        try {
+          var approved = JSON.parse(localStorage.getItem('onc_approved_souls') || '[]');
+          approved.forEach(function(name) { approvedNames[name] = true; });
+        } catch(e) {}
+        
+        var rejectedIds = {};
+        try {
+          var rejected = JSON.parse(localStorage.getItem('onc_rejected_souls') || '[]');
+          rejected.forEach(function(id) { rejectedIds[id] = true; });
+        } catch(e) {}
+
+        function processSoul(soul, shepherd, date, type, reportId) {
+          if (!soul || !soul.name) return;
+          var name = soul.name.trim();
+          if (!name || approvedNames[name]) return;
+          
+          var id = type + '_' + reportId + '_' + name.replace(/[^a-zA-Z0-9]/g,'_');
+          if (rejectedIds[id]) return;
+          
+          pending.push({
+            id: id,
+            name: name,
+            phone: soul.phone || 'N/A',
+            dob: soul.dob || 'N/A',
+            bornAgain: soul.bornAgain || 'N/A',
+            inChurch: soul.inChurch || 'N/A',
+            occupation: soul.occupation || 'N/A',
+            shepherd: shepherd,
+            date: date,
+            type: type
+          });
+        }
+
+        // Process SPS reports
+        (allReports || []).forEach(function(r, idx) {
+          if (r.newMembers) {
+            var arr = [];
+            if (Array.isArray(r.newMembers)) {
+              arr = r.newMembers;
+            } else {
+              try {
+                arr = JSON.parse(r.newMembers);
+              } catch(e) {
+                if (typeof r.newMembers === 'string' && r.newMembers.trim()) {
+                  arr = r.newMembers.split(',').map(function(n) { return { name: n.trim() }; });
+                }
+              }
+            }
+            if (Array.isArray(arr)) {
+              arr.forEach(function(soul) {
+                processSoul(soul, r.shepherd, r.sessionDate || r.date || 'N/A', 'sps', r.id || idx);
+              });
+            }
+          }
+        });
+
+        // Process MC reports
+        (allMicrochurchReports || []).forEach(function(r, idx) {
+          if (r.newSouls) {
+            var arr = [];
+            if (Array.isArray(r.newSouls)) {
+              arr = r.newSouls;
+            } else {
+              try {
+                arr = JSON.parse(r.newSouls);
+              } catch(e) {
+                if (typeof r.newSouls === 'string' && r.newSouls.trim()) {
+                  arr = r.newSouls.split(',').map(function(n) { return { name: n.trim() }; });
+                }
+              }
+            }
+            if (Array.isArray(arr)) {
+              arr.forEach(function(soul) {
+                processSoul(soul, r.shepherd, r.submissionDate || r.date || 'N/A', 'mc', r.id || idx);
+              });
+            }
+          }
+        });
+
+        return pending;
+      }
+
+      function renderPendingSouls() {
+        var pending = extractPendingSouls();
+        
+        // 1. Update Overview Tab Banner
+        var banner = document.getElementById('newSoulsAlertBanner');
+        var countSpan = document.getElementById('newSoulsAlertCount');
+        if (banner && countSpan) {
+          if (pending.length > 0) {
+            countSpan.textContent = pending.length;
+            banner.style.display = 'block';
+          } else {
+            banner.style.display = 'none';
+          }
+        }
+
+        // 2. Update Members Tab Section
+        var sec = document.getElementById('pendingSoulsSection');
+        var badge = document.getElementById('pendingSoulsCountBadge');
+        var listContainer = document.getElementById('pendingSoulsList');
+        
+        if (sec && badge && listContainer) {
+          if (pending.length > 0) {
+            badge.textContent = pending.length;
+            sec.style.display = 'block';
+            
+            listContainer.innerHTML = pending.map(function(soul) {
+              return '<div class="pending-soul-card" style="background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:14px 16px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;box-shadow:0 2px 4px rgba(15,32,68,0.02);">' +
+                '<div>' +
+                  '<div style="font-weight:800;font-size:15px;color:#0f2044;">' + soul.name + '</div>' +
+                  '<div style="font-size:12px;color:#64748b;margin-top:4px;">' +
+                    '📞 ' + soul.phone + ' &middot; 📅 DOB: ' + soul.dob + ' &middot; Born Again: <strong>' + soul.bornAgain + '</strong> &middot; In Church: <strong>' + soul.inChurch + '</strong> &middot; Occupation: ' + soul.occupation +
+                  '</div>' +
+                  '<div style="font-size:11px;color:#3b82f6;margin-top:4px;font-weight:600;">' +
+                    'Submitted by Shepherd: ' + soul.shepherd + ' on ' + soul.date + ' (' + (soul.type === 'sps' ? 'SPS' : 'Microchurch') + ')' +
+                  '</div>' +
+                '</div>' +
+                '<div style="display:flex;gap:8px;">' +
+                  '<button onclick="approveSoul(\'' + soul.name.replace(/'/g, "\\'") + '\', \'' + soul.shepherd.replace(/'/g, "\\'") + '\', \'' + soul.id + '\', \'' + soul.type + '\')" style="padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Approve</button>' +
+                  '<button onclick="rejectSoul(\'' + soul.id + '\')" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Reject</button>' +
+                '</div>' +
+              '</div>';
+            }).join('');
+          } else {
+            sec.style.display = 'none';
+          }
+        }
+      }
+
+      window.approveSoul = function(name, shepherd, id, type) {
+        var approved = [];
+        try {
+          approved = JSON.parse(localStorage.getItem('onc_approved_souls') || '[]');
+        } catch(e) {}
+        if (!approved.includes(name)) approved.push(name);
+        localStorage.setItem('onc_approved_souls', JSON.stringify(approved));
+
+        if (type === 'sps') {
+          memberData[name] = shepherd;
+          var customSps = {};
+          try {
+            customSps = JSON.parse(localStorage.getItem('onc_custom_sps_members') || '{}');
+          } catch(e) {}
+          customSps[name] = shepherd;
+          localStorage.setItem('onc_custom_sps_members', JSON.stringify(customSps));
+        } else {
+          if (!window.mcMemberData[shepherd]) window.mcMemberData[shepherd] = [];
+          if (!window.mcMemberData[shepherd].includes(name)) {
+            window.mcMemberData[shepherd].push(name);
+          }
+          var customMc = {};
+          try {
+            customMc = JSON.parse(localStorage.getItem('onc_custom_mc_members') || '{}');
+          } catch(e) {}
+          if (!customMc[shepherd]) customMc[shepherd] = [];
+          if (!customMc[shepherd].includes(name)) {
+            customMc[shepherd].push(name);
+          }
+          localStorage.setItem('onc_custom_mc_members', JSON.stringify(customMc));
+        }
+
+        alert('Approved! ' + name + ' has been added to ' + (type === 'sps' ? 'SPS' : 'Microchurch') + ' Member Database under Shepherd ' + shepherd + '.');
+        
+        // Re-populate shepherds filter dropdown to include new shepherds if any, or refresh members tab
+        var select = document.getElementById('filter-member-shep');
+        if (select) {
+          var currentVal = select.value;
+          var sheps = new Set(Object.values(memberData));
+          select.innerHTML = '<option value="">All Shepherds</option>';
+          Array.from(sheps).sort().forEach(function (s) {
+            var o = document.createElement('option');
+            o.value = s; o.textContent = s;
+            select.appendChild(o);
+          });
+          select.value = currentVal;
+        }
+
+        renderAll();
+      };
+
+      window.rejectSoul = function(id) {
+        if (confirm('Are you sure you want to reject this soul?')) {
+          var rejected = [];
+          try {
+            rejected = JSON.parse(localStorage.getItem('onc_rejected_souls') || '[]');
+          } catch(e) {}
+          if (!rejected.includes(id)) rejected.push(id);
+          localStorage.setItem('onc_rejected_souls', JSON.stringify(rejected));
+          renderAll();
+        }
+      };
+
       function renderAll() {
         console.log('renderAll called');
         console.log('allReports:', allReports.length);
         console.log('allMicrochurchReports:', allMicrochurchReports.length);
         console.log('ALL_MC_SHEPHERDS:', ALL_MC_SHEPHERDS.length);
+        renderPendingSouls();
         renderOverview();
         renderShepherds();
         renderMembers();
@@ -2251,7 +2502,25 @@
           var badge = status === 'active' ? '<span class="badge green">🟢 Active</span>' : status === 'overdue' ? '<span class="badge yellow">🟡 Overdue</span>' : '<span class="badge red">🔴 Silent</span>';
           var avgRate = weekReps.length ? Math.round(weekReps.reduce(function (a, r) { return a + getRate(r); }, 0) / weekReps.length) : 0;
           var repsHtml = reps.length ? reps.slice(0, 5).map(function (r) { return '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f1f5f9;color:#475569;">' + (r.sessionDate || r.date || '') + ' — ' + toArray(r.membersPresent).length + '/' + (r.totalMembers || 4) + ' present · Prayer: ' + (r.prayerDone || '?') + '</div>'; }).join('') : '<div style="font-size:12px;color:#94a3b8;">No reports yet</div>';
-          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? (lastRep.sessionDate || lastRep.date || '') : 'Never') + '</div></div>' + badge + '</div><div class="shepherd-details">' + repsHtml + '</div></div>';
+          
+          var phone = s.contact || '';
+          var contactBtns = phone ? 
+            '<div style="display:flex;gap:8px;margin-top:8px;" onclick="event.stopPropagation()">' +
+            '<a href="' + formatCall(phone) + '" style="' +
+            'flex:1;padding:6px;background:#22c55e;color:white;' +
+            'border-radius:8px;text-align:center;' +
+            'text-decoration:none;font-size:12px;font-weight:700;">'+
+            '📞 Call</a>' +
+            '<a href="' + formatWhatsApp(phone) + '" ' +
+            'target="_blank" style="' +
+            'flex:1;padding:6px;background:#25D366;color:white;' +
+            'border-radius:8px;text-align:center;' +
+            'text-decoration:none;font-size:12px;font-weight:700;">'+
+            '💬 WhatsApp</a></div>' 
+            : '<div style="color:#94a3b8;font-size:12px;' +
+            'margin-top:8px;">No contact number</div>';
+
+          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? (lastRep.sessionDate || lastRep.date || '') : 'Never') + '</div></div>' + badge + '</div>' + contactBtns + '<div class="shepherd-details">' + repsHtml + '</div></div>';
         });
         grid.innerHTML = html || '<div class="empty"><div class="icon">👥</div><p>No shepherds found</p></div>';
       }
@@ -3036,6 +3305,23 @@
           else if (sReports.length > 0) { status = '🟡 Overdue'; statusColor = '#f59e0b'; }
           else { status = '🔴 Silent'; statusColor = '#ef4444'; }
 
+          var phone = s.contact || '';
+          var contactBtns = phone ? 
+            '<div style="display:flex;gap:8px;margin-top:8px;" onclick="event.stopPropagation()">' +
+            '<a href="' + formatCall(phone) + '" style="' +
+            'flex:1;padding:6px;background:#22c55e;color:white;' +
+            'border-radius:8px;text-align:center;' +
+            'text-decoration:none;font-size:12px;font-weight:700;">'+
+            '📞 Call</a>' +
+            '<a href="' + formatWhatsApp(phone) + '" ' +
+            'target="_blank" style="' +
+            'flex:1;padding:6px;background:#25D366;color:white;' +
+            'border-radius:8px;text-align:center;' +
+            'text-decoration:none;font-size:12px;font-weight:700;">'+
+            '💬 WhatsApp</a></div>' 
+            : '<div style="color:#94a3b8;font-size:12px;' +
+            'margin-top:8px;">No contact number</div>';
+
           return '<div class="shepherd-card" style="border-left:4px solid ' + statusColor + '">' +
             '<div class="shepherd-name">' + s.name + '</div>' +
             '<div style="font-size:12px;color:#3b82f6;margin-bottom:8px">' + s.microchurch + '</div>' +
@@ -3044,6 +3330,7 @@
             '<div class="shepherd-meta">New souls: ' + totalSouls + '</div>' +
             '<div class="shepherd-meta">Last report: ' + (lastReport ? (lastReport.submissionDate || 'Never') : 'No reports yet') + '</div>' +
             '<span style="display:inline-block;margin-top:8px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:' + statusColor + '20;color:' + statusColor + '">' + status + '</span>' +
+            contactBtns +
             '</div>';
         }).join('') || '<div class="empty"><div class="icon">👥</div><p>No shepherds configured</p></div>';
       }

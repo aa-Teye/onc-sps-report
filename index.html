@@ -621,6 +621,9 @@
           <button type="button" class="yn-btn yes" onclick="chooseFlow('microchurch')" style="padding: 20px; font-size: 16px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--light); color: var(--navy); border-color: var(--border); box-shadow: 0 4px 12px rgba(15, 32, 68, 0.05); transition: all 0.2s;">
             <span>⛪</span> Microchurch Shepherd
           </button>
+          <button type="button" onclick="openStartGuide()" style="margin-top: 10px; padding: 14px; font-size: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; background: transparent; color: var(--accent); border: 2px dashed var(--accent); cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif; font-weight: 700;">
+            📖 Get Started Guide
+          </button>
         </div>
       </div>
 
@@ -963,9 +966,6 @@
     var countdownInterval = null;
 
     function initIntroFlow() {
-      // Start Video 1 circular countdown
-      startCountdown(1);
-
       // Load YouTube API if not loaded
       if (!window.YT) {
         var tag = document.createElement('script');
@@ -975,6 +975,42 @@
       } else {
         setupYoutubePlayers();
       }
+
+      var watched = localStorage.getItem('onc_intro_watched');
+      var duration = (watched === 'true') ? 5000 : 30000;
+      var elapsed = 0;
+      
+      var ring = document.getElementById('skipRing1');
+      var inner = document.getElementById('skipInner1');
+      
+      if (ring) {
+        ring.classList.remove('ready');
+        ring.style.background = 'conic-gradient(#22c55e 0deg, rgba(255,255,255,0.2) 0deg)';
+      }
+      if (inner) {
+        inner.textContent = Math.ceil(duration / 1000);
+      }
+
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      countdownInterval = setInterval(function() {
+        elapsed += 1000;
+        var progress = Math.min((elapsed / duration) * 360, 360);
+        var remaining = Math.ceil((duration - elapsed) / 1000);
+        
+        if (ring) {
+          ring.style.background = 'conic-gradient(#22c55e ' + 
+            progress + 'deg, rgba(255,255,255,0.2) ' + 
+            progress + 'deg)';
+        }
+        if (inner) {
+          inner.textContent = remaining > 0 ? remaining : 'Skip';
+        }
+        if (elapsed >= duration) {
+          clearInterval(countdownInterval);
+          if (ring) ring.classList.add('ready');
+        }
+      }, 1000);
     }
 
     window.onYouTubeIframeAPIReady = function() {
@@ -995,48 +1031,6 @@
       } catch (e) {
         console.log("YT API 1 failed to bind", e);
       }
-    }
-
-    function startCountdown(videoNum) {
-      if (countdownInterval) clearInterval(countdownInterval);
-
-      const watched = localStorage.getItem('onc_intro_watched');
-      const duration = (watched === 'true') ? 30 : 120;
-
-      let elapsed = 0;
-      const ring = document.getElementById('skipRing' + videoNum);
-      const inner = document.getElementById('skipInner' + videoNum);
-
-      // Reset style to 0 progress
-      if (ring) {
-        ring.classList.remove('ready');
-        ring.style.setProperty('--progress', '0deg');
-      }
-      if (inner) {
-        inner.textContent = duration;
-      }
-
-      countdownInterval = setInterval(function() {
-        elapsed++;
-        if (elapsed >= duration) {
-          clearInterval(countdownInterval);
-          if (ring) {
-            ring.classList.add('ready');
-            ring.style.setProperty('--progress', '360deg');
-          }
-          if (inner) {
-            inner.textContent = "Skip";
-          }
-        } else {
-          const progress = ((elapsed / duration) * 360) + 'deg';
-          if (ring) {
-            ring.style.setProperty('--progress', progress);
-          }
-          if (inner) {
-            inner.textContent = duration - elapsed;
-          }
-        }
-      }, 1000);
     }
 
     function handleSkipClick(videoNum) {
@@ -1080,8 +1074,16 @@
         console.log("YT API 2 failed to bind", e);
       }
 
-      // Start countdown for Video 2
-      startCountdown(2);
+      // Video 2 Skip is always skippable immediately (no countdown)
+      var ring2 = document.getElementById('skipRing2');
+      var inner2 = document.getElementById('skipInner2');
+      if (ring2) {
+        ring2.classList.add('ready');
+        ring2.style.background = 'conic-gradient(#22c55e 360deg, rgba(255,255,255,0.2) 360deg)';
+      }
+      if (inner2) {
+        inner2.textContent = 'Skip';
+      }
     }
 
     function skipAllIntro() {
@@ -1097,6 +1099,7 @@
       document.getElementById('secIntro').classList.remove('active');
       document.getElementById('secLanding').classList.add('active');
     }
+
 
     // Auto-run: Video is ALWAYS shown — never hidden
     document.addEventListener("DOMContentLoaded", function() {
@@ -1754,6 +1757,90 @@
       t.textContent = msg; t.classList.add('show');
       setTimeout(function(){ t.classList.remove('show'); }, 2500);
     }
+
+    function openStartGuide() {
+      var modal = document.getElementById('guideModal');
+      if (modal) {
+        modal.style.display = 'flex';
+      }
+    }
+
+    function closeStartGuide() {
+      var modal = document.getElementById('guideModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
   </script>
+
+  <!-- GET STARTED GUIDE MODAL -->
+  <div id="guideModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.7);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px;">
+    <div style="background:#0f2044;border:2px solid #f0a500;border-radius:24px;width:100%;max-width:540px;padding:24px 28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#fff;font-family:'Outfit',sans-serif;max-height:90vh;overflow-y:auto;position:relative;">
+      
+      <!-- Close button -->
+      <button onclick="closeStartGuide()" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;">✕</button>
+
+      <!-- Logo and Header -->
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg, #f0a500, #f5c842);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;box-shadow:0 8px 24px rgba(240, 165, 0, 0.3);">
+          <img src="logo.png" style="width:52px;height:52px;border-radius:50%;object-fit:cover;" alt="ONC Logo">
+        </div>
+        <h2 style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:#fff;margin-bottom:4px;">📖 Get Started Guide</h2>
+        <p style="font-size:13px;color:rgba(255,255,255,0.6);">Quick helper guidelines for ONC Shepherds</p>
+      </div>
+
+      <!-- Guidelines Content -->
+      <div style="display:flex;flex-direction:column;gap:20px;line-height:1.5;font-size:14px;color:rgba(255,255,255,0.85);">
+        
+        <!-- Section: SPS Shepherds -->
+        <div>
+          <h4 style="color:#f0a500;font-size:15px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+            <span>🙏</span> SPS Shepherd Guidelines
+          </h4>
+          <ul style="margin:0;padding-left:20px;">
+            <li>Conduct a brief 10-minute follow-up phone call with your assigned members weekly.</li>
+            <li>Ask about their well-being, share a quick spiritual encouragement, and pray with them.</li>
+            <li>Mark attendance (whether they were called or not) and submit report weekly.</li>
+          </ul>
+        </div>
+
+        <!-- Section: Microchurch Shepherds -->
+        <div>
+          <h4 style="color:#f0a500;font-size:15px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+            <span>⛪</span> Microchurch Shepherd Guidelines
+          </h4>
+          <ul style="margin:0;padding-left:20px;">
+            <li>Record attendance for physical microchurch meetings or online fellowship sessions.</li>
+            <li>Track topic coverage: indicate if the weekly Bible outline was fully covered.</li>
+            <li>Ensure all new souls won during meetings are captured with full contact and spiritual details.</li>
+          </ul>
+        </div>
+
+        <!-- Section: Submitting reports -->
+        <div>
+          <h4 style="color:#f0a500;font-size:15px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+            <span>📝</span> How to Submit a Report
+          </h4>
+          <ul style="margin:0;padding-left:20px;">
+            <li>Select your name, complete attendance checklist, log prayer requests/concerns, add any new souls won, review summary, and click <strong>Submit</strong>.</li>
+            <li>Reports are instantly saved and synced to the central administrative database.</li>
+          </ul>
+        </div>
+
+        <!-- Section: Support -->
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;text-align:center;margin-top:8px;">
+          <div style="font-weight:700;color:#f0a500;font-size:13px;margin-bottom:4px;">📞 Need Administrative Support?</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);">Contact ONC Admin Office: <a href="tel:+233246038534" style="color:#2e80e8;text-decoration:none;font-weight:700;">+233 24 603 8534</a></div>
+        </div>
+
+      </div>
+
+      <!-- Action Button -->
+      <button onclick="closeStartGuide()" style="width:100%;margin-top:24px;padding:14px;background:#f0a500;color:#0f2044;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;cursor:pointer;transition:transform 0.1s, background 0.2s;text-align:center;">
+        Got it, let's report!
+      </button>
+
+    </div>
+  </div>
 </body>
 </html>
