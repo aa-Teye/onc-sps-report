@@ -907,6 +907,7 @@
 
     /* MOBILE DRAWER & OVERLAY */
     .mobile-drawer {
+      display: none; /* hidden by default */
       position: fixed;
       bottom: 60px;
       left: 0;
@@ -928,11 +929,11 @@
     }
 
     .drawer-overlay {
+      display: none; /* hidden by default */
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.5);
       z-index: 999;
-      display: none;
       backdrop-filter: blur(2px);
     }
 
@@ -965,9 +966,9 @@
     }
 
     /* RESPONSIVE */
-    @media(max-width:768px) {
+    @media (max-width: 768px) {
       .sidebar {
-        display: none;
+        display: none; /* hide sidebar on mobile */
       }
 
       .content-area {
@@ -977,7 +978,15 @@
       }
 
       .bottom-tab {
-        display: block;
+        display: flex; /* only show on mobile */
+      }
+
+      .mobile-drawer {
+        display: block; /* only show on mobile */
+      }
+
+      .drawer-overlay.open {
+        display: block; /* only show on mobile */
       }
 
       .stats-grid {
@@ -1571,7 +1580,7 @@
               <div class="stat-card green">
                 <div class="stat-label">Shepherds Reported</div>
                 <div class="stat-value" id="mc-s-reported">—</div>
-                <div class="stat-sub">of 3 shepherds</div>
+                <div class="stat-sub">of 19 shepherds</div>
               </div>
               <div class="stat-card blue">
                 <div class="stat-label">Avg Attendance</div>
@@ -1806,7 +1815,7 @@
     <script>
       var allReports = [];
       var allMicrochurchReports = [];
-      var ALL_MC_SHEPHERDS = [
+      const ALL_MC_SHEPHERDS = [
         { name: "Michael Ayisia",                      microchurch: "Tesano 1",              contact: "" },
         { name: "Michael Ameyaw (Tesano 2)",           microchurch: "Tesano 2",              contact: "" },
         { name: "Michael Ameyaw (Tesano 3)",           microchurch: "Tesano 3",              contact: "" },
