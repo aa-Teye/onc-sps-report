@@ -1813,6 +1813,7 @@
     </div>
 
     <script>
+      var _loadAllRunning = false;
       var allReports = [];
       var allMicrochurchReports = [];
       const ALL_MC_SHEPHERDS = [
@@ -2371,6 +2372,8 @@
       setInterval(keepWarm, 4 * 60 * 1000);
 
       function loadAll() {
+        if (_loadAllRunning) return;
+        _loadAllRunning = true;
         showShimmer();
         document.getElementById('lastUpdated').textContent = 'Loading...';
         fetchData('getReports', function(spsData) {
@@ -2384,6 +2387,7 @@
               mcData.reports : [];
             localStorage.setItem('onc_cached_mc_reports', 
               JSON.stringify(allMicrochurchReports));
+            _loadAllRunning = false;
             hideShimmer();
             renderAll();
             var now = new Date();
@@ -3460,6 +3464,11 @@
 
       function renderMcOverview() {
         try {
+          console.log('renderMcOverview called');
+          console.log('mc data count:', allMicrochurchReports.length);
+          var testEl = document.getElementById('mc-s-sessions');
+          console.log('mc-s-sessions exists:', testEl);
+
           var panel = document.getElementById('panel-mc-overview');
           if (!panel) return;
           var mc = allMicrochurchReports || [];
