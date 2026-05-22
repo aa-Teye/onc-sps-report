@@ -3450,267 +3450,291 @@
         }
       }
 
-            function renderMcOverview() {
-        var panel = document.getElementById('panel-mc-overview');
-        if (!panel) return;
-        var mc = allMicrochurchReports || [];
+      function parseSouls(val) {
+        if (!val) return 0;
+        if (typeof val === 'number') return val;
+        var str = val.toString();
+        if (str.startsWith('[L') || str.startsWith('[')) return 0;
+        return parseInt(str) || 0;
+      }
 
-        var weekly = mc.filter(function(r) { return isThisWeek(r); });
-        var reportedShepherds = [];
-        weekly.forEach(function(r) {
-          if (reportedShepherds.indexOf(r.shepherd) === -1) reportedShepherds.push(r.shepherd);
-        });
-        var totalSouls = weekly.reduce(function(sum, r) {
-          return sum + (parseInt(r.newSouls) || 0);
-        }, 0);
-        var avgAttendance = weekly.length ?
-          Math.round(weekly.reduce(function(sum, r) {
-            var rate = parseFloat(r.attendanceRate) || 0;
-            return sum + (rate > 1 ? rate : rate * 100);
-          }, 0) / weekly.length) : 0;
-        var prayerCount = weekly.filter(function(r) {
-          return r.prayerDone === 'yes' || r.prayerDone === 'Yes';
-        }).length;
-        var bibleCount = weekly.filter(function(r) {
-          return r.topicCovered === 'yes' || r.topicCovered === 'Yes';
-        }).length;
+      function renderMcOverview() {
+        try {
+          var panel = document.getElementById('panel-mc-overview');
+          if (!panel) return;
+          var mc = allMicrochurchReports || [];
 
-        // Update stat cards — use the IDs that actually exist in the HTML
-        var statMap = {
-          'mc-s-sessions': weekly.length,
-          'mc-s-reported': reportedShepherds.length + '/' + ALL_MC_SHEPHERDS.length,
-          'mc-s-attendance': avgAttendance + '%',
-          'mc-s-prayer': prayerCount,
-          'mc-s-souls': totalSouls,
-          'mc-s-bible': bibleCount + '/' + weekly.length
-        };
-        Object.keys(statMap).forEach(function(id) {
-          var el = document.getElementById(id);
-          if (el) { el.textContent = statMap[id]; el.classList.remove('shimmer'); }
-        });
-
-        // Not-reported list
-        var reportedNames = {};
-        weekly.forEach(function(r) { reportedNames[r.shepherd] = true; });
-        var notReported = ALL_MC_SHEPHERDS.filter(function(s) { return !reportedNames[s.name]; });
-        var notReportedEl = document.getElementById('mcNotReportedList');
-        if (notReportedEl) {
-          notReportedEl.innerHTML = notReported.length === 0 ?
-            '<p style="color:#22c55e">All shepherds reported this week! 🎉</p>' :
-            notReported.map(function(s) {
-              return '<div style="padding:6px 0;font-size:13px;border-bottom:1px solid #f1f5f9;color:#475569">' +
-                s.name + ' <span style="color:#94a3b8;font-size:11px">(' + s.microchurch + ')</span></div>';
-            }).join('');
-        }
-
-        // High attendance
-        var highEl = document.getElementById('mcHighAttendanceList');
-        if (highEl) {
-          var high = ALL_MC_SHEPHERDS.filter(function(s) {
-            return weekly.filter(function(r) { return r.shepherd === s.name; }).length > 0;
-          }).slice(0, 5);
-          highEl.innerHTML = high.length ?
-            high.map(function(s) {
-              return '<div style="padding:6px 0;font-size:13px;border-bottom:1px solid #f1f5f9;color:#15803d">✅ ' + s.name + '</div>';
-            }).join('') :
-            '<p style="color:#94a3b8;font-size:13px">No reports yet</p>';
-        }
-
-        // Recent activity
-        var activityEl = document.getElementById('mcRecentActivity');
-        if (activityEl) {
-          var recent = mc.slice().sort(function(a,b) {
-            return new Date(b.timestamp || b.submissionDate || 0) - new Date(a.timestamp || a.submissionDate || 0);
-          }).slice(0, 5);
-          activityEl.innerHTML = recent.length === 0 ?
-            '<p style="color:#94a3b8">No reports yet</p>' :
-            recent.map(function(r) {
+          var weekly = mc.filter(function(r) { return isThisWeek(r); });
+          var reportedShepherds = [];
+          weekly.forEach(function(r) {
+            if (reportedShepherds.indexOf(r.shepherd) === -1) reportedShepherds.push(r.shepherd);
+          });
+          var totalSouls = weekly.reduce(function(sum, r) {
+            return sum + parseSouls(r.newSouls);
+          }, 0);
+          var avgAttendance = weekly.length ?
+            Math.round(weekly.reduce(function(sum, r) {
               var rate = parseFloat(r.attendanceRate) || 0;
-              var pct = rate > 1 ? Math.round(rate) : Math.round(rate * 100);
-              return '<div class="activity-item"><div>' +
-                '<div class="activity-name">' + r.shepherd + '</div>' +
-                '<div class="activity-meta">' + (r.submissionDate || '') + ' · ' +
-                (parseInt(r.newSouls) || 0) + ' new souls</div></div>' +
-                '<span class="activity-rate">' + pct + '%</span></div>';
-            }).join('');
+              return sum + (rate > 1 ? rate : rate * 100);
+            }, 0) / weekly.length) : 0;
+          var prayerCount = weekly.filter(function(r) {
+            return r.prayerDone === 'yes' || r.prayerDone === 'Yes';
+          }).length;
+          var bibleCount = weekly.filter(function(r) {
+            return r.topicCovered === 'yes' || r.topicCovered === 'Yes';
+          }).length;
+
+          // Update stat cards — use the IDs that actually exist in the HTML
+          var statMap = {
+            'mc-s-sessions': weekly.length,
+            'mc-s-reported': reportedShepherds.length + '/' + ALL_MC_SHEPHERDS.length,
+            'mc-s-attendance': avgAttendance + '%',
+            'mc-s-prayer': prayerCount,
+            'mc-s-souls': totalSouls,
+            'mc-s-bible': bibleCount + '/' + weekly.length
+          };
+          Object.keys(statMap).forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) { el.textContent = statMap[id]; el.classList.remove('shimmer'); }
+          });
+
+          // Not-reported list
+          var reportedNames = {};
+          weekly.forEach(function(r) { reportedNames[r.shepherd] = true; });
+          var notReported = ALL_MC_SHEPHERDS.filter(function(s) { return !reportedNames[s.name]; });
+          var notReportedEl = document.getElementById('mcNotReportedList');
+          if (notReportedEl) {
+            notReportedEl.innerHTML = notReported.length === 0 ?
+              '<p style="color:#22c55e">All shepherds reported this week! 🎉</p>' :
+              notReported.map(function(s) {
+                return '<div style="padding:6px 0;font-size:13px;border-bottom:1px solid #f1f5f9;color:#475569">' +
+                  s.name + ' <span style="color:#94a3b8;font-size:11px">(' + s.microchurch + ')</span></div>';
+              }).join('');
+          }
+
+          // High attendance
+          var highEl = document.getElementById('mcHighAttendanceList');
+          if (highEl) {
+            var high = ALL_MC_SHEPHERDS.filter(function(s) {
+              return weekly.filter(function(r) { return r.shepherd === s.name; }).length > 0;
+            }).slice(0, 5);
+            highEl.innerHTML = high.length ?
+              high.map(function(s) {
+                return '<div style="padding:6px 0;font-size:13px;border-bottom:1px solid #f1f5f9;color:#15803d">✅ ' + s.name + '</div>';
+              }).join('') :
+              '<p style="color:#94a3b8;font-size:13px">No reports yet</p>';
+          }
+
+          // Recent activity
+          var activityEl = document.getElementById('mcRecentActivity');
+          if (activityEl) {
+            var recent = mc.slice().sort(function(a,b) {
+              return new Date(b.timestamp || b.submissionDate || 0) - new Date(a.timestamp || a.submissionDate || 0);
+            }).slice(0, 5);
+            activityEl.innerHTML = recent.length === 0 ?
+              '<p style="color:#94a3b8">No reports yet</p>' :
+              recent.map(function(r) {
+                var rate = parseFloat(r.attendanceRate) || 0;
+                var pct = rate > 1 ? Math.round(rate) : Math.round(rate * 100);
+                return '<div class="activity-item"><div>' +
+                  '<div class="activity-name">' + r.shepherd + '</div>' +
+                  '<div class="activity-meta">' + (r.submissionDate || '') + ' · ' +
+                  parseSouls(r.newSouls) + ' new souls</div></div>' +
+                  '<span class="activity-rate">' + pct + '%</span></div>';
+              }).join('');
+          }
+        } catch(e) {
+          console.warn('renderMcOverview error:', e.message);
         }
       }
 
       function renderMcShepherds() {
-        console.log('renderMcShepherds called');
-        console.log('MC shepherds count:', ALL_MC_SHEPHERDS.length);
-        var panel = document.getElementById('panel-mc-shepherds');
-        if (!panel) return;
-        var mc = allMicrochurchReports || [];
-        var container = document.getElementById('mc-shepherds-grid');
-        if (!container) return;
+        try {
+          console.log('renderMcShepherds called');
+          console.log('MC shepherds count:', ALL_MC_SHEPHERDS.length);
+          var panel = document.getElementById('panel-mc-shepherds');
+          if (!panel) return;
+          var mc = allMicrochurchReports || [];
+          var container = document.getElementById('mc-shepherds-grid');
+          if (!container) return;
 
-        var weekly = mc.filter(function(r) { return isThisWeek(r); });
+          var weekly = mc.filter(function(r) { return isThisWeek(r); });
 
-        container.innerHTML = ALL_MC_SHEPHERDS.map(function(s) {
-          var sReports = mc.filter(function(r) { return r.shepherd === s.name; });
-          var sWeekly = weekly.filter(function(r) { return r.shepherd === s.name; });
-          var lastReport = sReports[sReports.length - 1];
-          var avgRate = sWeekly.length ? Math.round(
-            sWeekly.reduce(function(sum, r) {
-              var rate = parseFloat(r.attendanceRate) || 0;
-              return sum + (rate > 1 ? rate : rate * 100);
-            }, 0) / sWeekly.length
-          ) : 0;
-          var totalSouls = sWeekly.reduce(function(sum, r) {
-            return sum + (parseInt(r.newSouls) || 0);
-          }, 0);
-          var status, statusColor;
-          if (sWeekly.length > 0) { status = '🟢 Active'; statusColor = '#22c55e'; }
-          else if (sReports.length > 0) { status = '🟡 Overdue'; statusColor = '#f59e0b'; }
-          else { status = '🔴 Silent'; statusColor = '#ef4444'; }
+          container.innerHTML = ALL_MC_SHEPHERDS.map(function(s) {
+            var sReports = mc.filter(function(r) { return r.shepherd === s.name; });
+            var sWeekly = weekly.filter(function(r) { return r.shepherd === s.name; });
+            var lastReport = sReports[sReports.length - 1];
+            var avgRate = sWeekly.length ? Math.round(
+              sWeekly.reduce(function(sum, r) {
+                var rate = parseFloat(r.attendanceRate) || 0;
+                return sum + (rate > 1 ? rate : rate * 100);
+              }, 0) / sWeekly.length
+            ) : 0;
+            var totalSouls = sWeekly.reduce(function(sum, r) {
+              return sum + parseSouls(r.newSouls);
+            }, 0);
+            var status, statusColor;
+            if (sWeekly.length > 0) { status = '🟢 Active'; statusColor = '#22c55e'; }
+            else if (sReports.length > 0) { status = '🟡 Overdue'; statusColor = '#f59e0b'; }
+            else { status = '🔴 Silent'; statusColor = '#ef4444'; }
 
-          var phone = s.contact || '';
-          var contactBtns = phone ? 
-            '<div style="display:flex;gap:8px;margin-top:8px;" onclick="event.stopPropagation()">' +
-            '<a href="' + formatCall(phone) + '" style="' +
-            'flex:1;padding:6px;background:#22c55e;color:white;' +
-            'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-size:12px;font-weight:700;">'+
-            '📞 Call</a>' +
-            '<a href="' + formatWhatsApp(phone) + '" ' +
-            'target="_blank" style="' +
-            'flex:1;padding:6px;background:#25D366;color:white;' +
-            'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-size:12px;font-weight:700;">'+
-            '💬 WhatsApp</a></div>' 
-            : '<div style="color:#94a3b8;font-size:12px;' +
-            'margin-top:8px;">No contact number</div>';
+            var phone = s.contact || '';
+            var contactBtns = phone ? 
+              '<div style="display:flex;gap:8px;margin-top:8px;" onclick="event.stopPropagation()">' +
+              '<a href="' + formatCall(phone) + '" style="' +
+              'flex:1;padding:6px;background:#22c55e;color:white;' +
+              'border-radius:8px;text-align:center;' +
+              'text-decoration:none;font-size:12px;font-weight:700;">'+
+              '📞 Call</a>' +
+              '<a href="' + formatWhatsApp(phone) + '" ' +
+              'target="_blank" style="' +
+              'flex:1;padding:6px;background:#25D366;color:white;' +
+              'border-radius:8px;text-align:center;' +
+              'text-decoration:none;font-size:12px;font-weight:700;">'+
+              '💬 WhatsApp</a></div>' 
+              : '<div style="color:#94a3b8;font-size:12px;' +
+              'margin-top:8px;">No contact number</div>';
 
-          return '<div class="shepherd-card" style="border-left:4px solid ' + statusColor + '">' +
-            '<div class="shepherd-name">' + s.name + '</div>' +
-            '<div style="font-size:12px;color:#3b82f6;margin-bottom:8px">' + s.microchurch + '</div>' +
-            '<div class="shepherd-meta">Sessions this week: ' + sWeekly.length + '</div>' +
-            '<div class="shepherd-meta">Avg attendance: ' + avgRate + '%</div>' +
-            '<div class="shepherd-meta">New souls: ' + totalSouls + '</div>' +
-            '<div class="shepherd-meta">Last report: ' + (lastReport ? (lastReport.submissionDate || 'Never') : 'No reports yet') + '</div>' +
-            '<span style="display:inline-block;margin-top:8px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:' + statusColor + '20;color:' + statusColor + '">' + status + '</span>' +
-            contactBtns +
-            '</div>';
-        }).join('') || '<div class="empty"><div class="icon">👥</div><p>No shepherds configured</p></div>';
+            return '<div class="shepherd-card" style="border-left:4px solid ' + statusColor + '">' +
+              '<div class="shepherd-name">' + s.name + '</div>' +
+              '<div style="font-size:12px;color:#3b82f6;margin-bottom:8px">' + s.microchurch + '</div>' +
+              '<div class="shepherd-meta">Sessions this week: ' + sWeekly.length + '</div>' +
+              '<div class="shepherd-meta">Avg attendance: ' + avgRate + '%</div>' +
+              '<div class="shepherd-meta">New souls: ' + totalSouls + '</div>' +
+              '<div class="shepherd-meta">Last report: ' + (lastReport ? (lastReport.submissionDate || 'Never') : 'No reports yet') + '</div>' +
+              '<span style="display:inline-block;margin-top:8px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:' + statusColor + '20;color:' + statusColor + '">' + status + '</span>' +
+              contactBtns +
+              '</div>';
+          }).join('') || '<div class="empty"><div class="icon">👥</div><p>No shepherds configured</p></div>';
+        } catch(e) {
+          console.warn('renderMcShepherds error:', e.message);
+        }
       }
 
       function renderMcMembers() {
-        var panel = document.getElementById('panel-mc-members');
-        if (!panel) return;
-        var mc = allMicrochurchReports || [];
-        var tbody = document.getElementById('mcMembersTableBody');
-        if (!tbody) return;
+        try {
+          var panel = document.getElementById('panel-mc-members');
+          if (!panel) return;
+          var mc = allMicrochurchReports || [];
+          var tbody = document.getElementById('mcMembersTableBody');
+          if (!tbody) return;
 
-        var memberStats = {};
+          var memberStats = {};
 
-        ALL_MC_SHEPHERDS.forEach(function(s) {
-          var members = (window.mcMemberData && window.mcMemberData[s.name]) || [];
-          members.forEach(function(m) {
-            memberStats[m] = { shepherd: s.name, microchurch: s.microchurch, 
-              attended: 0, missed: 0, lastSeen: null, concerns: '' };
+          ALL_MC_SHEPHERDS.forEach(function(s) {
+            var members = (window.mcMemberData && window.mcMemberData[s.name]) || [];
+            members.forEach(function(m) {
+              memberStats[m] = { shepherd: s.name, microchurch: s.microchurch, 
+                attended: 0, missed: 0, lastSeen: null, concerns: '' };
+            });
           });
-        });
 
-        mc.forEach(function(r) {
-          var present = toArray(r.membersPresent);
-          var absent = toArray(r.membersAbsent);
-          present.forEach(function(m) {
-            if (memberStats[m]) {
-              memberStats[m].attended++;
-              memberStats[m].lastSeen = r.submissionDate;
-            }
+          mc.forEach(function(r) {
+            var present = toArray(r.membersPresent);
+            var absent = toArray(r.membersAbsent);
+            present.forEach(function(m) {
+              if (memberStats[m]) {
+                memberStats[m].attended++;
+                memberStats[m].lastSeen = r.submissionDate;
+              }
+            });
+            absent.forEach(function(m) {
+              if (memberStats[m]) memberStats[m].missed++;
+            });
           });
-          absent.forEach(function(m) {
-            if (memberStats[m]) memberStats[m].missed++;
-          });
-        });
 
-        var rows = Object.entries(memberStats);
-        if (rows.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#94a3b8">No members found</td></tr>';
-          return;
+          var rows = Object.entries(memberStats);
+          if (rows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#94a3b8">No members found</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = rows.map(function(entry, i) {
+            var name = entry[0]; var s = entry[1];
+            var total = s.attended + s.missed;
+            var rate = total > 0 ? Math.round(s.attended / total * 100) : 0;
+            var status = rate >= 80 ? '🟢 Regular' : rate >= 50 ? '🟡 Irregular' : '🔴 At Risk';
+            return '<tr>' +
+              '<td>' + (i+1) + '</td>' +
+              '<td><strong>' + name + '</strong></td>' +
+              '<td>' + s.shepherd + '</td>' +
+              '<td>' + s.microchurch + '</td>' +
+              '<td>' + s.attended + '</td>' +
+              '<td>' + s.missed + '</td>' +
+              '<td>' + rate + '%</td>' +
+              '<td>' + (s.lastSeen || '—') + '</td>' +
+              '<td>' + status + '</td>' +
+              '</tr>';
+          }).join('');
+        } catch(e) {
+          console.warn('renderMcMembers error:', e.message);
         }
-
-        tbody.innerHTML = rows.map(function(entry, i) {
-          var name = entry[0]; var s = entry[1];
-          var total = s.attended + s.missed;
-          var rate = total > 0 ? Math.round(s.attended / total * 100) : 0;
-          var status = rate >= 80 ? '🟢 Regular' : rate >= 50 ? '🟡 Irregular' : '🔴 At Risk';
-          return '<tr>' +
-            '<td>' + (i+1) + '</td>' +
-            '<td><strong>' + name + '</strong></td>' +
-            '<td>' + s.shepherd + '</td>' +
-            '<td>' + s.microchurch + '</td>' +
-            '<td>' + s.attended + '</td>' +
-            '<td>' + s.missed + '</td>' +
-            '<td>' + rate + '%</td>' +
-            '<td>' + (s.lastSeen || '—') + '</td>' +
-            '<td>' + status + '</td>' +
-            '</tr>';
-        }).join('');
       }
 
       function renderMcReports() {
-        var panel = document.getElementById('panel-mc-reports');
-        if (!panel) return;
-        var mc = allMicrochurchReports || [];
-        var tbody = document.getElementById('mcReportsTableBody');
-        if (!tbody) return;
+        try {
+          var panel = document.getElementById('panel-mc-reports');
+          if (!panel) return;
+          var mc = allMicrochurchReports || [];
+          var tbody = document.getElementById('mcReportsTableBody');
+          if (!tbody) return;
 
-        if (mc.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#94a3b8">No Microchurch reports yet</td></tr>';
-          return;
-        }
-
-        var sorted = mc.slice().sort(function(a, b) {
-          return new Date(b.submissionDate) - new Date(a.submissionDate);
-        });
-
-        tbody.innerHTML = sorted.map(function(r, i) {
-          var rate = parseFloat(r.attendanceRate) || 0;
-          var pct = rate > 1 ? Math.round(rate) : Math.round(rate * 100);
-
-          // 14 days auto-purge date validation for meeting proof photo
-          var showProofImg = false;
-          if (r.proofPhoto) {
-            var dateStr = r.submissionDate || r.sessionDate || r.date || '';
-            var reportDate = null;
-            if (dateStr.includes('/')) {
-              var parts = dateStr.split('/');
-              if (parts.length === 3) {
-                reportDate = new Date(parts[2], parts[1] - 1, parts[0]);
-              }
-            } else if (dateStr) {
-              reportDate = new Date(dateStr);
-            }
-            if (!reportDate && r.timestamp) {
-              reportDate = new Date(r.timestamp);
-            }
-            
-            var twoWeeksAgo = new Date();
-            twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-            if (reportDate && reportDate > twoWeeksAgo) {
-              showProofImg = true;
-            }
+          if (mc.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#94a3b8">No Microchurch reports yet</td></tr>';
+            return;
           }
-          var proofHtml = showProofImg ? ' <span onclick="showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
 
-          return '<tr>' +
-            '<td>' + (i+1) + '</td>' +
-            '<td>' + (r.submissionDate || '—') + proofHtml + '</td>' +
-            '<td>' + (r.submissionDay || '—') + '</td>' +
-            '<td>' + (formatTime(r.submissionTime) || '—') + '</td>' +
-            '<td><strong>' + (r.shepherd || '—') + '</strong></td>' +
-            '<td>' + (r.meetingType || '—') + '</td>' +
-            '<td>' + pct + '%</td>' +
-            '<td><span class="badge ' + (r.topicCovered === 'yes' ? 'yes' : 'no') + '">' + 
-            (r.topicCovered || '—').toUpperCase() + '</span></td>' +
-            '<td><span class="badge ' + (r.prayerDone === 'yes' ? 'yes' : 'no') + '">' + 
-            (r.prayerDone || '—').toUpperCase() + '</span></td>' +
-            '<td>' + (parseInt(r.newSouls) || 0) + '</td>' +
-            '</tr>';
-        }).join('');
+          var sorted = mc.slice().sort(function(a, b) {
+            return new Date(b.submissionDate) - new Date(a.submissionDate);
+          });
+
+          tbody.innerHTML = sorted.map(function(r, i) {
+            var rate = parseFloat(r.attendanceRate) || 0;
+            var pct = rate > 1 ? Math.round(rate) : Math.round(rate * 100);
+
+            // 14 days auto-purge date validation for meeting proof photo
+            var showProofImg = false;
+            if (r.proofPhoto) {
+              var dateStr = r.submissionDate || r.sessionDate || r.date || '';
+              var reportDate = null;
+              if (dateStr.includes('/')) {
+                var parts = dateStr.split('/');
+                if (parts.length === 3) {
+                  reportDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+              } else if (dateStr) {
+                reportDate = new Date(dateStr);
+              }
+              if (!reportDate && r.timestamp) {
+                reportDate = new Date(r.timestamp);
+              }
+              
+              var twoWeeksAgo = new Date();
+              twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+              if (reportDate && reportDate > twoWeeksAgo) {
+                showProofImg = true;
+              }
+            }
+            var proofHtml = showProofImg ? ' <span onclick="showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
+
+            return '<tr>' +
+              '<td>' + (i+1) + '</td>' +
+              '<td>' + (r.submissionDate || '—') + proofHtml + '</td>' +
+              '<td>' + (r.submissionDay || '—') + '</td>' +
+              '<td>' + (formatTime(r.submissionTime) || '—') + '</td>' +
+              '<td><strong>' + (r.shepherd || '—') + '</strong></td>' +
+              '<td>' + (r.meetingType || '—') + '</td>' +
+              '<td>' + pct + '%</td>' +
+              '<td><span class="badge ' + (r.topicCovered === 'yes' ? 'yes' : 'no') + '">' + 
+              (r.topicCovered || '—').toUpperCase() + '</span></td>' +
+              '<td><span class="badge ' + (r.prayerDone === 'yes' ? 'yes' : 'no') + '">' + 
+              (r.prayerDone || '—').toUpperCase() + '</span></td>' +
+              '<td>' + parseSouls(r.newSouls) + '</td>' +
+              '</tr>';
+          }).join('');
+        } catch(e) {
+          console.warn('renderMcReports error:', e.message);
+        }
       }
 
 
