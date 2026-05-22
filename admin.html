@@ -871,7 +871,8 @@
       right: 0;
       background: var(--navy);
       border-top: 1px solid rgba(255, 255, 255, .1);
-      z-index: 1010; /* high z-index above drawer overlay */
+      z-index: 1010;
+      /* high z-index above drawer overlay */
       padding: 6px 0 env(safe-area-inset-bottom);
     }
 
@@ -902,12 +903,14 @@
     }
 
     .btab-btn.active {
-      color: #f0a500; /* gold highlight active item */
+      color: #f0a500;
+      /* gold highlight active item */
     }
 
     /* MOBILE DRAWER & OVERLAY */
     .mobile-drawer {
-      display: none; /* hidden by default */
+      display: none;
+      /* hidden by default */
       position: fixed;
       bottom: 60px;
       left: 0;
@@ -920,8 +923,9 @@
       transition: transform 0.3s ease;
       max-height: 70vh;
       overflow-y: auto;
-      box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
-      border-top: 2px solid #f0a500; /* Gold top border */
+      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
+      border-top: 2px solid #f0a500;
+      /* Gold top border */
     }
 
     .mobile-drawer.open {
@@ -929,10 +933,11 @@
     }
 
     .drawer-overlay {
-      display: none; /* hidden by default */
+      display: none;
+      /* hidden by default */
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       z-index: 999;
       backdrop-filter: blur(2px);
     }
@@ -947,7 +952,7 @@
       gap: 12px;
       padding: 14px 16px;
       border-radius: 12px;
-      color: rgba(255,255,255,0.8);
+      color: rgba(255, 255, 255, 0.8);
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
@@ -956,19 +961,20 @@
     }
 
     .drawer-item:hover {
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
       color: #f0a500;
     }
 
     .drawer-item.active {
-      background: rgba(240,165,0,0.15);
+      background: rgba(240, 165, 0, 0.15);
       color: #f0a500;
     }
 
     /* RESPONSIVE */
     @media (max-width: 768px) {
       .sidebar {
-        display: none; /* hide sidebar on mobile */
+        display: none;
+        /* hide sidebar on mobile */
       }
 
       .content-area {
@@ -978,15 +984,18 @@
       }
 
       .bottom-tab {
-        display: flex; /* only show on mobile */
+        display: flex;
+        /* only show on mobile */
       }
 
       .mobile-drawer {
-        display: block; /* only show on mobile */
+        display: block;
+        /* only show on mobile */
       }
 
       .drawer-overlay.open {
-        display: block; /* only show on mobile */
+        display: block;
+        /* only show on mobile */
       }
 
       .stats-grid {
@@ -1012,8 +1021,8 @@
 
     /* SHIMMER */
     .shimmer {
-      background: linear-gradient(90deg, 
-        #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background: linear-gradient(90deg,
+          #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
       border-radius: 8px;
@@ -1023,8 +1032,13 @@
     }
 
     @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1123,8 +1137,11 @@
         <!-- TAB 1: OVERVIEW -->
         <div class="tab-panel active" id="panel-overview">
           <!-- New Souls Awaiting Approval notification banner -->
-          <div id="newSoulsAlertBanner" style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:12px 16px;margin-bottom:20px;font-weight:700;color:#b45309;cursor:pointer;animation:pulse 2s infinite;" onclick="var btn=document.querySelector('.tab-btn[onclick*=\'members\']')||document.querySelector('.btab-btn[onclick*=\'members\']'); if(btn) switchTab('members', btn);">
-            🔔 <span id="newSoulsAlertCount">0</span> New Souls Awaiting Approval! Click here to review them in the Members tab.
+          <div id="newSoulsAlertBanner"
+            style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:12px 16px;margin-bottom:20px;font-weight:700;color:#b45309;cursor:pointer;animation:pulse 2s infinite;"
+            onclick="var btn=document.querySelector('.tab-btn[onclick*=\'members\']')||document.querySelector('.btab-btn[onclick*=\'members\']'); if(btn) switchTab('members', btn);">
+            🔔 <span id="newSoulsAlertCount">0</span> New Souls Awaiting Approval! Click here to review them in the
+            Members tab.
           </div>
 
           <div class="stats-grid">
@@ -1193,14 +1210,19 @@
         <!-- TAB 3: MEMBERS -->
         <div class="tab-panel" id="panel-members">
           <!-- New Souls Pending Approval section -->
-          <div id="pendingSoulsSection" style="margin-bottom:24px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:16px;padding:20px;display:none;">
-            <h3 style="margin-top:0;color:#0f2044;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;">
-              🔥 New Souls Pending Approval <span class="badge yellow" id="pendingSoulsCountBadge" style="font-size:12px;">0</span>
+          <div id="pendingSoulsSection"
+            style="margin-bottom:24px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:16px;padding:20px;display:none;">
+            <h3
+              style="margin-top:0;color:#0f2044;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;">
+              🔥 New Souls Pending Approval <span class="badge yellow" id="pendingSoulsCountBadge"
+                style="font-size:12px;">0</span>
             </h3>
             <p style="color:#64748b;font-size:13px;margin-bottom:16px;">
-              These new souls were submitted in shepherd reports. Approve them to add them to the official member database, or Reject to dismiss.
+              These new souls were submitted in shepherd reports. Approve them to add them to the official member
+              database, or Reject to dismiss.
             </p>
-            <div id="pendingSoulsList" style="display:flex;flex-direction:column;gap:12px;max-height:400px;overflow-y:auto;padding-right:4px;">
+            <div id="pendingSoulsList"
+              style="display:flex;flex-direction:column;gap:12px;max-height:400px;overflow-y:auto;padding-right:4px;">
               <!-- Items will be populated here -->
             </div>
           </div>
@@ -1374,21 +1396,29 @@
         <!-- TAB 14: RESOURCES -->
         <div class="tab-panel" id="panel-resources">
           <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;align-items:start;">
-            
+
             <!-- Left Column: Add Resource Form -->
             <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
-              <div style="font-weight:900;font-size:18px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--light);padding-bottom:12px;">
+              <div
+                style="font-weight:900;font-size:18px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--light);padding-bottom:12px;">
                 📚 Publish New Resource
               </div>
               <div style="display:flex;flex-direction:column;gap:14px;">
                 <div>
-                  <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Resource Title *</label>
-                  <input type="text" id="resTitle" placeholder="e.g. Shepherd Training Manual" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                  <label
+                    style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Resource
+                    Title *</label>
+                  <input type="text" id="resTitle" placeholder="e.g. Shepherd Training Manual"
+                    style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;"
+                    onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
                 </div>
-                
+
                 <div>
-                  <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Category *</label>
-                  <select id="resCategory" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;background:#fff;">
+                  <label
+                    style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Category
+                    *</label>
+                  <select id="resCategory"
+                    style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;background:#fff;">
                     <option value="Manual">📘 Manual</option>
                     <option value="Syllabus">📖 Syllabus</option>
                     <option value="Guide">🧭 Guide</option>
@@ -1398,8 +1428,11 @@
                 </div>
 
                 <div>
-                  <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Target Audience *</label>
-                  <select id="resAudience" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;background:#fff;">
+                  <label
+                    style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Target
+                    Audience *</label>
+                  <select id="resAudience"
+                    style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;background:#fff;">
                     <option value="All Shepherds">👥 All Shepherds</option>
                     <option value="SPS Shepherds">🙏 SPS Shepherds</option>
                     <option value="Microchurch Shepherds">⛪ Microchurch Shepherds</option>
@@ -1408,16 +1441,26 @@
                 </div>
 
                 <div>
-                  <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Google Drive Link *</label>
-                  <input type="url" id="resUrl" placeholder="https://drive.google.com/..." style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                  <label
+                    style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Google
+                    Drive Link *</label>
+                  <input type="url" id="resUrl" placeholder="https://drive.google.com/..."
+                    style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;"
+                    onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
                 </div>
 
                 <div>
-                  <label style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Description (optional)</label>
-                  <textarea id="resDesc" rows="3" placeholder="Brief description of the document contents..." style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+                  <label
+                    style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px;display:block;">Description
+                    (optional)</label>
+                  <textarea id="resDesc" rows="3" placeholder="Brief description of the document contents..."
+                    style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical;"
+                    onfocus="this.style.borderColor='var(--accent)'"
+                    onblur="this.style.borderColor='var(--border)'"></textarea>
                 </div>
 
-                <button onclick="addResource()" style="padding:12px;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform 0.2s;">
+                <button onclick="addResource()"
+                  style="padding:12px;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform 0.2s;">
                   ➕ Add to Library
                 </button>
                 <div id="resFormStatus" style="font-size:12px;font-weight:600;text-align:center;min-height:16px;"></div>
@@ -1426,18 +1469,23 @@
 
             <!-- Right Column: Document Library -->
             <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
-              <div style="font-weight:900;font-size:18px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--light);padding-bottom:12px;">
+              <div
+                style="font-weight:900;font-size:18px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--light);padding-bottom:12px;">
                 <span>📂 Document Library</span>
-                <span id="resCountTag" style="font-size:12px;font-weight:700;background:var(--light);color:var(--navy);padding:4px 8px;border-radius:12px;">0 Documents</span>
+                <span id="resCountTag"
+                  style="font-size:12px;font-weight:700;background:var(--light);color:var(--navy);padding:4px 8px;border-radius:12px;">0
+                  Documents</span>
               </div>
 
               <!-- Filters & Search -->
               <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
                 <div style="flex:1;min-width:180px;">
-                  <input type="text" id="resSearch" oninput="renderResources()" placeholder="🔍 Search resources..." style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+                  <input type="text" id="resSearch" oninput="renderResources()" placeholder="🔍 Search resources..."
+                    style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
                 </div>
                 <div style="min-width:130px;">
-                  <select id="filtResCategory" onchange="renderResources()" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;">
+                  <select id="filtResCategory" onchange="renderResources()"
+                    style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;">
                     <option value="">All Categories</option>
                     <option value="Manual">Manual</option>
                     <option value="Syllabus">Syllabus</option>
@@ -1447,7 +1495,8 @@
                   </select>
                 </div>
                 <div style="min-width:130px;">
-                  <select id="filtResAudience" onchange="renderResources()" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;">
+                  <select id="filtResAudience" onchange="renderResources()"
+                    style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;">
                     <option value="">All Audiences</option>
                     <option value="All Shepherds">All Shepherds</option>
                     <option value="SPS Shepherds">SPS Shepherds</option>
@@ -1458,7 +1507,8 @@
               </div>
 
               <!-- Resource List -->
-              <div id="resourcesList" style="max-height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-right:4px;">
+              <div id="resourcesList"
+                style="max-height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-right:4px;">
                 <!-- Dynamically populated -->
               </div>
             </div>
@@ -1492,85 +1542,87 @@
                 Save New PIN</button>
               <div id="pin-msg" style="font-size:13px;font-weight:600;"></div>
             </div>
-          <div class="export-section">
-            <h3>🔑 Shepherd PIN Management</h3>
-            <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">Reset any shepherd's custom PIN back to the default <span style="font-weight:700;">0000</span>.</p>
-            <div style="display:flex;gap:10px;margin-bottom:14px;max-width:480px;align-items:center;">
-              <input type="text" id="shepherdPinSearch" placeholder="🔍 Search shepherd..." oninput="renderShepherdPinsTable()"
-                style="padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;flex:1;">
+            <div class="export-section">
+              <h3>🔑 Shepherd PIN Management</h3>
+              <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">Reset any shepherd's custom PIN back to
+                the default <span style="font-weight:700;">0000</span>.</p>
+              <div style="display:flex;gap:10px;margin-bottom:14px;max-width:480px;align-items:center;">
+                <input type="text" id="shepherdPinSearch" placeholder="🔍 Search shepherd..."
+                  oninput="renderShepherdPinsTable()"
+                  style="padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;flex:1;">
+              </div>
+              <div class="table-wrap" style="max-height: 350px; overflow-y: auto;">
+                <table style="width:100%;">
+                  <thead>
+                    <tr>
+                      <th>Shepherd Name</th>
+                      <th>Stream</th>
+                      <th style="text-align:center;">Current PIN Status</th>
+                      <th style="text-align:center;width:120px;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="shepherdPinsTableBody"></tbody>
+                </table>
+              </div>
             </div>
-            <div class="table-wrap" style="max-height: 350px; overflow-y: auto;">
-              <table style="width:100%;">
-                <thead>
-                  <tr>
-                    <th>Shepherd Name</th>
-                    <th>Stream</th>
-                    <th style="text-align:center;">Current PIN Status</th>
-                    <th style="text-align:center;width:120px;">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="shepherdPinsTableBody"></tbody>
-              </table>
+            <div class="export-section">
+              <h3>📞 Shepherd WhatsApp Contacts</h3>
+              <div id="contacts-grid" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+              <button onclick="saveContacts()"
+                style="padding:12px 24px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾
+                Save Contacts</button>
+              <div id="contacts-msg" style="display:none;color:#15803d;font-size:13px;font-weight:600;margin-top:8px;">
+              </div>
             </div>
-          </div>
-          <div class="export-section">
-            <h3>📞 Shepherd WhatsApp Contacts</h3>
-            <div id="contacts-grid" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
-            <button onclick="saveContacts()"
-              style="padding:12px 24px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾
-              Save Contacts</button>
-            <div id="contacts-msg" style="display:none;color:#15803d;font-size:13px;font-weight:600;margin-top:8px;">
-            </div>
-          </div>
-          <div class="export-section">
-            <h3>🔔 Reminder Settings</h3>
-            <div style="display:flex;flex-direction:column;gap:14px;max-width:480px;">
-              <label
-                style="display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;color:var(--navy);"><input
-                  type="checkbox" id="rem-enabled" style="width:18px;height:18px;"> Enable Automatic Reminders</label>
-              <div>
-                <div
-                  style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
-                  Send on days:</div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;" id="rem-days">
-                  <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
-                      value="Mon"> Mon</label>
-                  <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
-                      value="Tue"> Tue</label>
-                  <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
-                      value="Wed"> Wed</label>
-                  <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
-                      value="Thu"> Thu</label>
-                  <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
-                      value="Fri"> Fri</label>
-                  <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
-                      value="Sat"> Sat</label>
-                  <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
-                      value="Sun"> Sun</label>
+            <div class="export-section">
+              <h3>🔔 Reminder Settings</h3>
+              <div style="display:flex;flex-direction:column;gap:14px;max-width:480px;">
+                <label
+                  style="display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;color:var(--navy);"><input
+                    type="checkbox" id="rem-enabled" style="width:18px;height:18px;"> Enable Automatic Reminders</label>
+                <div>
+                  <div
+                    style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
+                    Send on days:</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;" id="rem-days">
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
+                        value="Mon"> Mon</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
+                        value="Tue"> Tue</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
+                        value="Wed"> Wed</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
+                        value="Thu"> Thu</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
+                        value="Fri"> Fri</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
+                        value="Sat"> Sat</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox"
+                        value="Sun"> Sun</label>
+                  </div>
                 </div>
+                <div>
+                  <div
+                    style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
+                    Send at time:</div><input type="time" id="rem-time" value="08:00"
+                    style="padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;">
+                </div>
+                <div>
+                  <div
+                    style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
+                    Message template:</div><textarea id="rem-msg" rows="3"
+                    style="width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px;outline:none;resize:vertical;">Hi {name}! Please submit your SPS report. Link: {link}</textarea>
+                </div>
+                <button onclick="saveReminder()"
+                  style="padding:12px 24px;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾
+                  Save Reminder Settings</button>
+                <div id="rem-msg-status" style="font-size:13px;font-weight:600;"></div>
               </div>
-              <div>
-                <div
-                  style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
-                  Send at time:</div><input type="time" id="rem-time" value="08:00"
-                  style="padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;">
-              </div>
-              <div>
-                <div
-                  style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
-                  Message template:</div><textarea id="rem-msg" rows="3"
-                  style="width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px;outline:none;resize:vertical;">Hi {name}! Please submit your SPS report. Link: {link}</textarea>
-              </div>
-              <button onclick="saveReminder()"
-                style="padding:12px 24px;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾
-                Save Reminder Settings</button>
-              <div id="rem-msg-status" style="font-size:13px;font-weight:600;"></div>
             </div>
-          </div>
-        </div><!-- end panel-settings -->
+          </div><!-- end panel-settings -->
 
-        <!-- TAB 9: MICROCHURCH OVERVIEW -->
-        <div class="tab-panel" id="panel-mc-overview">
+          <!-- TAB 9: MICROCHURCH OVERVIEW -->
+          <div class="tab-panel" id="panel-mc-overview">
             <div class="stats-grid">
               <div class="stat-card blue">
                 <div class="stat-label">Sessions This Week</div>
@@ -1614,27 +1666,31 @@
               </div>
               <div style="display:flex;flex-direction:column;gap:20px;">
                 <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
-                  <div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:16px;">🟢 High Attendance Shepherds</div>
+                  <div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:16px;">🟢 High Attendance
+                    Shepherds</div>
                   <div id="mcHighAttendanceList" style="display:flex;flex-direction:column;gap:10px;"></div>
                 </div>
                 <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
-                  <div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:16px;">🔴 Shepherds Not Reported</div>
+                  <div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:16px;">🔴 Shepherds Not
+                    Reported</div>
                   <div id="mcNotReportedList" style="display:flex;flex-direction:column;gap:10px;"></div>
                 </div>
                 <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
-                  <div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:16px;">🟡 Member Absence Alerts</div>
-                  <div id="mcAbsenceAlertList" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;"></div>
+                  <div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:16px;">🟡 Member Absence
+                    Alerts</div>
+                  <div id="mcAbsenceAlertList"
+                    style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;"></div>
                 </div>
               </div>
             </div>
-        </div><!-- end panel-mc-overview -->
+          </div><!-- end panel-mc-overview -->
 
-        <!-- TAB 10: MICROCHURCH SHEPHERDS -->
-        <div class="tab-panel" id="panel-mc-shepherds">
+          <!-- TAB 10: MICROCHURCH SHEPHERDS -->
+          <div class="tab-panel" id="panel-mc-shepherds">
             <div id="mcShepherdsGrid" class="cards-grid"
               style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;"></div>
             <div id="mc-shepherds-grid" class="shepherd-grid"></div>
-        </div>
+          </div>
 
 
           <!-- TAB 11: MICROCHURCH MEMBERS -->
@@ -1657,7 +1713,7 @@
                     <th style="text-align:center;">Status</th>
                   </tr>
                 </thead>
-        <tbody id="mcMembersTableBody"></tbody>
+                <tbody id="mcMembersTableBody"></tbody>
               </table>
             </div>
           </div>
@@ -1731,7 +1787,7 @@
                     <th>Concerns</th>
                   </tr>
                 </thead>
-        <tbody id="mcReportsTableBody"></tbody>
+                <tbody id="mcReportsTableBody"></tbody>
               </table>
             </div>
           </div>
@@ -1773,7 +1829,8 @@
     <!-- MOBILE BOTTOM TAB -->
     <div class="bottom-tab">
       <div class="bottom-tab-inner">
-        <button class="btab-btn active" onclick="switchTab('overview',this,true)"><span class="icon">🏠</span>Home</button>
+        <button class="btab-btn active" onclick="switchTab('overview',this,true)"><span
+            class="icon">🏠</span>Home</button>
         <button class="btab-btn" onclick="switchTab('shepherds',this,true)"><span class="icon">👥</span>SPS</button>
         <button class="btab-btn" onclick="switchTab('mc-overview',this,true)"><span class="icon">⛪</span>MC</button>
         <button class="btab-btn" id="btab-more" onclick="openDrawer()"><span class="icon">☰</span>More</button>
@@ -1785,7 +1842,8 @@
 
     <!-- MOBILE DRAWER -->
     <div class="mobile-drawer" id="mobileDrawer">
-      <div style="font-weight: 800; color: #fff; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; opacity: 0.6; padding-left: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+      <div
+        style="font-weight: 800; color: #fff; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; opacity: 0.6; padding-left: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
         📂 Navigation Menu
       </div>
       <div class="drawer-item" onclick="drawerTab('members', this)"><span class="icon">🙋</span>Members</div>
@@ -1796,17 +1854,24 @@
       <div class="drawer-item" onclick="drawerTab('leaderboard', this)"><span class="icon">🏆</span>Leaderboard</div>
       <div class="drawer-item" onclick="drawerTab('resources', this)"><span class="icon">📚</span>Resources</div>
       <div class="drawer-item" onclick="drawerTab('settings', this)"><span class="icon">⚙</span>Settings</div>
-      <div class="drawer-item" onclick="closeDrawer(); logout()" style="color: #ef4444; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 12px; padding-top: 16px;"><span class="icon">🚪</span>Logout</div>
+      <div class="drawer-item" onclick="closeDrawer(); logout()"
+        style="color: #ef4444; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 12px; padding-top: 16px;"><span
+          class="icon">🚪</span>Logout</div>
     </div>
 
     <!-- PROOF VIEWER MODAL OVERLAY -->
-    <div id="proofViewerModal" onclick="closeProofViewer()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.85);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px;">
-      <div onclick="event.stopPropagation()" style="background:#fff;border-radius:24px;border:3px solid #f0a500;padding:16px;max-width:600px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.5);text-align:center;position:relative;">
-        <button onclick="closeProofViewer()" style="position:absolute;top:-15px;right:-15px;background:#ef4444;border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,0.3);z-index:10;">✕</button>
-        <div style="font-weight:800;color:#0f2044;margin-bottom:12px;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;">
+    <div id="proofViewerModal" onclick="closeProofViewer()"
+      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.85);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px;">
+      <div onclick="event.stopPropagation()"
+        style="background:#fff;border-radius:24px;border:3px solid #f0a500;padding:16px;max-width:600px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.5);text-align:center;position:relative;">
+        <button onclick="closeProofViewer()"
+          style="position:absolute;top:-15px;right:-15px;background:#ef4444;border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,0.3);z-index:10;">✕</button>
+        <div
+          style="font-weight:800;color:#0f2044;margin-bottom:12px;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;">
           📸 Proof of Meeting Image
         </div>
-        <div style="max-height:70vh;overflow:hidden;border-radius:12px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;">
+        <div
+          style="max-height:70vh;overflow:hidden;border-radius:12px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;">
           <img id="proofViewerImg" src="" style="max-width:100%;max-height:65vh;object-fit:contain;display:block;">
         </div>
       </div>
@@ -1817,47 +1882,47 @@
       var allReports = [];
       var allMicrochurchReports = [];
       const ALL_MC_SHEPHERDS = [
-        { name: "Michael Ayisia",                      microchurch: "Tesano 1",              contact: "" },
-        { name: "Michael Ameyaw (Tesano 2)",           microchurch: "Tesano 2",              contact: "" },
-        { name: "Michael Ameyaw (Tesano 3)",           microchurch: "Tesano 3",              contact: "" },
-        { name: "Augustina Selinam Abbah",             microchurch: "Tesano 4",              contact: "" },
-        { name: "Blessing Solomon",                    microchurch: "Flat Top",              contact: "" },
-        { name: "Lp Esther Okronipa",                  microchurch: "Official Town",         contact: "" },
-        { name: "Benjamin Senyasu",                    microchurch: "Police Depot",          contact: "" },
-        { name: "Emmanuel Mensah",                     microchurch: "Bubiashie",             contact: "" },
-        { name: "Eric Appiah",                         microchurch: "North Kaneshie Online", contact: "" },
-        { name: "Alex Teye Ametepey",                  microchurch: "UG Legon",              contact: "" },
-        { name: "Rev Dr Ebenezer Okronipa (Afropa 2)",  microchurch: "Afropa 2",              contact: "" },
-        { name: "Rev Dr Ebenezer Okronipa (Manasseh)",  microchurch: "Manasseh",              contact: "" },
-        { name: "Rosemond Quaicoe",                    microchurch: "Nyamekye",              contact: "" },
-        { name: "Henry Mensah",                        microchurch: "Gbawe",                 contact: "" },
-        { name: "Abigail Ankomah",                     microchurch: "Ablekuma-Agape",        contact: "" },
-        { name: "Alice Ametepey",                      microchurch: "Darkuman 3",            contact: "" },
-        { name: "Samuel Opare",                        microchurch: "New Fadama 2",          contact: "" },
-        { name: "Esther Doku",                         microchurch: "New-Fadama 1",          contact: "" },
-        { name: "Samuel Oteng",                        microchurch: "Nsakina",               contact: "" }
+        { name: "Michael Ayisia", microchurch: "Tesano 1", contact: "" },
+        { name: "Michael Ameyaw (Tesano 2)", microchurch: "Tesano 2", contact: "" },
+        { name: "Michael Ameyaw (Tesano 3)", microchurch: "Tesano 3", contact: "" },
+        { name: "Augustina Selinam Abbah", microchurch: "Tesano 4", contact: "" },
+        { name: "Blessing Solomon", microchurch: "Flat Top", contact: "" },
+        { name: "Lp Esther Okronipa", microchurch: "Official Town", contact: "" },
+        { name: "Benjamin Senyasu", microchurch: "Police Depot", contact: "" },
+        { name: "Emmanuel Mensah", microchurch: "Bubiashie", contact: "" },
+        { name: "Eric Appiah", microchurch: "North Kaneshie Online", contact: "" },
+        { name: "Alex Teye Ametepey", microchurch: "UG Legon", contact: "" },
+        { name: "Rev Dr Ebenezer Okronipa (Afropa 2)", microchurch: "Afropa 2", contact: "" },
+        { name: "Rev Dr Ebenezer Okronipa (Manasseh)", microchurch: "Manasseh", contact: "" },
+        { name: "Rosemond Quaicoe", microchurch: "Nyamekye", contact: "" },
+        { name: "Henry Mensah", microchurch: "Gbawe", contact: "" },
+        { name: "Abigail Ankomah", microchurch: "Ablekuma-Agape", contact: "" },
+        { name: "Alice Ametepey", microchurch: "Darkuman 3", contact: "" },
+        { name: "Samuel Opare", microchurch: "New Fadama 2", contact: "" },
+        { name: "Esther Doku", microchurch: "New-Fadama 1", contact: "" },
+        { name: "Samuel Oteng", microchurch: "Nsakina", contact: "" }
       ];
 
       window.mcMemberData = {
-        "Michael Ayisia": ["Addo Benedict","Harriet Mensah","Frank Armah","Thomas Daitey","Samuel Obeng","Caleb Dzifa","Joshua Anatsui"],
-        "Michael Ameyaw (Tesano 2)": ["Christiana Konzondong","Esther Konzondong","Felix Konzondong","Daniel"],
-        "Michael Ameyaw (Tesano 3)": ["Ashaley Badu","Rebecca Ankrah"],
-        "Augustina Selinam Abbah": ["Joel Amfo","Blessing Akoto","Aseda Munach","Elvis Abbey","Steven Tetteh Antwi","Regina Twum","Nasara Naa Issaka","Zakiatu Ibrahim","Martin Amponsah","Emmanuel Tetteh Akoto","Prince France","Princess France","Ababibatu Ibrahim","Rolanda France"],
-        "Blessing Solomon": ["Solomon Aziakah","Linda Solomon","Altheaella Bruce","Peniel Solomon","Shine Asinyo","Lucy Agbekornyi"],
-        "Lp Esther Okronipa": ["Gifty Ametepey","Ruth Yeboah"],
-        "Benjamin Senyasu": ["Mafred Normesinu Danquah","Mitchell Normesinu Danquah","Nina Asinyo","Adelaide Lamptey","Asinyo Martha","Lordina Amoah","Antony Boateng","Susan Selorm Budu"],
-        "Emmanuel Mensah": ["Valerie Ofooley","Jehoshaphat Mills","Christian Koomson","Aaron Ofori","Reginald Ofori","Prince Acquah","Kelvin Aryeetey","Bismark Duker","Esther Opare","George Otabil","Kwaku Baah","Theodora Mills","Miriam Opare","Hanson Dzebu","Karen Bonsu"],
-        "Eric Appiah": ["Louisa Ashong","Robert Ansah","Precious Mmeso","Princess Izubge","Annabelle Forson","Alexander Mantey","Ameyaw Mehra","Arnold Doe","Regina Kwardefio","Jackline Odoi","Lilian Amoh","Raymond Agbosu","Abena Owusu","Michelin Gyampoh"],
-        "Alex Teye Ametepey": ["Samuel Amon Kotey","Jeffrey Kleku","Millicent Kudawoo","Destiny Akadu","Mabel Sena Okyere"],
-        "Rev Dr Ebenezer Okronipa (Afropa 2)": ["Wilhelmina Komesour","Aisha Mohammed","Anatsui-Kemedo Akpene","Christiana Akosua Latibea","Celestine Baatu","Kukua McKay","Vivian Alottey","Georgina Gyane","Monica Aboagyewaa","Roselyn Okine","Frederica Okine","Freda Okine","Freeman Okine","Steven Okine","Francis Okine","Philip Ofosuhene","Louisa Nutakor","Boateng Jason","Boateng Kobby","Boateng Diamond","Kezia Ofosuhene","Kingsford Philip Quaicoo","Adom Ackah","Nadia Okine","Favour Okine","Harriet Ampofo","Ruth Dadzie"],
-        "Rev Dr Ebenezer Okronipa (Manasseh)": ["Justina Ackon","Rashida Alhassan","Abel Nego","Gentle Sordji","Christabel","Winnifred Ndobo","Latifa","Bernice Amuzu","Carol Nkansah","Nhyira Antwi","Abigail Antwi","Gloria Antwi"],
-        "Rosemond Quaicoe": ["Lydia Odame Antwi","Mrs Priscilla Effah","Edna Asare"],
-        "Henry Mensah": ["Patience Mensah","Bryan Mensah","Brielle Mensah","Fredrick","Cisse Quaye"],
-        "Abigail Ankomah": ["Jackson Ankomah","Vivian Mensah","Frederick Ankomah"],
-        "Alice Ametepey": ["Patience Addo","Samuel Boadu","Reginald Mensah","Kelvin Twumasi","Mikel Owusu","Nana Opoku","Cassandra Arthur","Ruby Lartey","Blessed Mensah","Gloria Lartey"],
-        "Samuel Opare": ["Janet Tetteh","Jedidiah Wiafe","Deborah Quaye","Albert Ladi Mensah","Daniella Ladi Mensah","Nathaniel Ladi Mensah","Johnathan Ladi Mensah","Joel Wiafe","Simon Wegah","Francis Awuku","Abigail Ayimbilah"],
-        "Esther Doku": ["Mama Doris Otumfour","Benjamin Justice Tandoh Arthur","Nadia Awentemi","Mr Ebenezer Okronipa Snr","Alexis Nhyira Destiny","Emmalyn Sackey","Clifford Obeng","Lawrencia Thompson"],
-        "Samuel Oteng": ["Rebecca Quaye","Mary Quaye","Laudice Quaye","Oscar Abane","Oswell Abane","Daniel Takan"]
+        "Michael Ayisia": ["Addo Benedict", "Harriet Mensah", "Frank Armah", "Thomas Daitey", "Samuel Obeng", "Caleb Dzifa", "Joshua Anatsui"],
+        "Michael Ameyaw (Tesano 2)": ["Christiana Konzondong", "Esther Konzondong", "Felix Konzondong", "Daniel"],
+        "Michael Ameyaw (Tesano 3)": ["Ashaley Badu", "Rebecca Ankrah"],
+        "Augustina Selinam Abbah": ["Joel Amfo", "Blessing Akoto", "Aseda Munach", "Elvis Abbey", "Steven Tetteh Antwi", "Regina Twum", "Nasara Naa Issaka", "Zakiatu Ibrahim", "Martin Amponsah", "Emmanuel Tetteh Akoto", "Prince France", "Princess France", "Ababibatu Ibrahim", "Rolanda France"],
+        "Blessing Solomon": ["Solomon Aziakah", "Linda Solomon", "Altheaella Bruce", "Peniel Solomon", "Shine Asinyo", "Lucy Agbekornyi"],
+        "Lp Esther Okronipa": ["Gifty Ametepey", "Ruth Yeboah"],
+        "Benjamin Senyasu": ["Mafred Normesinu Danquah", "Mitchell Normesinu Danquah", "Nina Asinyo", "Adelaide Lamptey", "Asinyo Martha", "Lordina Amoah", "Antony Boateng", "Susan Selorm Budu"],
+        "Emmanuel Mensah": ["Valerie Ofooley", "Jehoshaphat Mills", "Christian Koomson", "Aaron Ofori", "Reginald Ofori", "Prince Acquah", "Kelvin Aryeetey", "Bismark Duker", "Esther Opare", "George Otabil", "Kwaku Baah", "Theodora Mills", "Miriam Opare", "Hanson Dzebu", "Karen Bonsu"],
+        "Eric Appiah": ["Louisa Ashong", "Robert Ansah", "Precious Mmeso", "Princess Izubge", "Annabelle Forson", "Alexander Mantey", "Ameyaw Mehra", "Arnold Doe", "Regina Kwardefio", "Jackline Odoi", "Lilian Amoh", "Raymond Agbosu", "Abena Owusu", "Michelin Gyampoh"],
+        "Alex Teye Ametepey": ["Samuel Amon Kotey", "Jeffrey Kleku", "Millicent Kudawoo", "Destiny Akadu", "Mabel Sena Okyere"],
+        "Rev Dr Ebenezer Okronipa (Afropa 2)": ["Wilhelmina Komesour", "Aisha Mohammed", "Anatsui-Kemedo Akpene", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Alottey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Philip Ofosuhene", "Louisa Nutakor", "Boateng Jason", "Boateng Kobby", "Boateng Diamond", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah", "Nadia Okine", "Favour Okine", "Harriet Ampofo", "Ruth Dadzie"],
+        "Rev Dr Ebenezer Okronipa (Manasseh)": ["Justina Ackon", "Rashida Alhassan", "Abel Nego", "Gentle Sordji", "Christabel", "Winnifred Ndobo", "Latifa", "Bernice Amuzu", "Carol Nkansah", "Nhyira Antwi", "Abigail Antwi", "Gloria Antwi"],
+        "Rosemond Quaicoe": ["Lydia Odame Antwi", "Mrs Priscilla Effah", "Edna Asare"],
+        "Henry Mensah": ["Patience Mensah", "Bryan Mensah", "Brielle Mensah", "Fredrick", "Cisse Quaye"],
+        "Abigail Ankomah": ["Jackson Ankomah", "Vivian Mensah", "Frederick Ankomah"],
+        "Alice Ametepey": ["Patience Addo", "Samuel Boadu", "Reginald Mensah", "Kelvin Twumasi", "Mikel Owusu", "Nana Opoku", "Cassandra Arthur", "Ruby Lartey", "Blessed Mensah", "Gloria Lartey"],
+        "Samuel Opare": ["Janet Tetteh", "Jedidiah Wiafe", "Deborah Quaye", "Albert Ladi Mensah", "Daniella Ladi Mensah", "Nathaniel Ladi Mensah", "Johnathan Ladi Mensah", "Joel Wiafe", "Simon Wegah", "Francis Awuku", "Abigail Ayimbilah"],
+        "Esther Doku": ["Mama Doris Otumfour", "Benjamin Justice Tandoh Arthur", "Nadia Awentemi", "Mr Ebenezer Okronipa Snr", "Alexis Nhyira Destiny", "Emmalyn Sackey", "Clifford Obeng", "Lawrencia Thompson"],
+        "Samuel Oteng": ["Rebecca Quaye", "Mary Quaye", "Laudice Quaye", "Oscar Abane", "Oswell Abane", "Daniel Takan"]
       };
 
 
@@ -1948,30 +2013,30 @@
       try {
         var customSps = JSON.parse(localStorage.getItem('onc_custom_sps_members') || '{}');
         Object.assign(memberData, customSps);
-      } catch(e) {}
+      } catch (e) { }
 
       try {
         var customMc = JSON.parse(localStorage.getItem('onc_custom_mc_members') || '{}');
-        Object.entries(customMc).forEach(function(entry) {
+        Object.entries(customMc).forEach(function (entry) {
           var shep = entry[0], members = entry[1];
           if (!window.mcMemberData[shep]) window.mcMemberData[shep] = [];
-          members.forEach(function(m) {
+          members.forEach(function (m) {
             if (!window.mcMemberData[shep].includes(m)) {
               window.mcMemberData[shep].push(m);
             }
           });
         });
-      } catch(e) {}
+      } catch (e) { }
 
       function formatWhatsApp(phone) {
-        var clean = phone.toString().replace(/\s/g,'');
-        if (clean.startsWith('0')) 
+        var clean = phone.toString().replace(/\s/g, '');
+        if (clean.startsWith('0'))
           clean = '233' + clean.substring(1);
         return 'https://wa.me/' + clean;
       }
 
       function formatCall(phone) {
-        var clean = phone.toString().replace(/\s/g,'');
+        var clean = phone.toString().replace(/\s/g, '');
         if (!clean.startsWith('0')) clean = '0' + clean;
         return 'tel:' + clean;
       }
@@ -2010,7 +2075,7 @@
         if (pin === storedPin) {
           document.getElementById('loginScreen').style.display = 'none';
           document.getElementById('dashboard').style.display = 'block';
-          
+
           // Load cached data instantly
           var cachedReports = localStorage.getItem('onc_cached_reports');
           var cachedMc = localStorage.getItem('onc_cached_mc_reports');
@@ -2019,13 +2084,13 @@
             allMicrochurchReports = cachedMc ? JSON.parse(cachedMc) : [];
             renderAll();
           }
-          
+
           // Then fetch fresh data
           loadAll();
           keepWarm();
           setInterval(loadAll, 120000);
           setInterval(keepWarm, 4 * 60 * 1000);
-          
+
         } else {
           document.getElementById('loginError').style.display = 'block';
           document.getElementById('pinInput').value = '';
@@ -2054,14 +2119,14 @@
             var activePanel = document.querySelector('.tab-panel.active');
             window.prevSettingsTabId = activePanel ? activePanel.id.replace('panel-', '') : 'overview';
             window.prevSettingsTabBtn = btn || document.querySelector('.tab-btn.active, .btab-btn.active');
-            
+
             // Show unlock modal
             var err = document.getElementById('unlockErrorMsg');
             if (err) err.style.display = 'none';
             var inp = document.getElementById('settingsUnlockPinInput');
             if (inp) {
               inp.value = '';
-              setTimeout(function(){ inp.focus(); }, 150);
+              setTimeout(function () { inp.focus(); }, 150);
             }
             var modal = document.getElementById('settingsUnlockModal');
             if (modal) modal.style.display = 'flex';
@@ -2079,28 +2144,34 @@
           document.querySelectorAll('.btab-btn').forEach(function (b) { b.classList.remove('active'); });
         }
         if (btn) btn.classList.add('active');
-        
+
         // Clear active drawer item highlight if we switch to a main bottom tab
         if (id === 'overview' || id === 'shepherds' || id === 'mc-overview') {
-          document.querySelectorAll('.drawer-item').forEach(function(item) {
+          document.querySelectorAll('.drawer-item').forEach(function (item) {
             item.classList.remove('active');
           });
         }
-
-
-
+        if (id === 'mc-overview' || id === 'mc-shepherds' || 
+            id === 'mc-members' || id === 'mc-reports') {
+          setTimeout(function() {
+            renderMcOverview();
+            renderMcShepherds();
+            renderMcMembers();
+            renderMcReports();
+          }, 150);
+        }
         if (id === 'settings') {
           renderShepherdPinsTable();
         }
       }
 
-      window.verifySettingsUnlock = function() {
+      window.verifySettingsUnlock = function () {
         var inputPin = document.getElementById('settingsUnlockPinInput').value;
         var storedPin = localStorage.getItem('onc_pin') || '2500';
         if (inputPin === storedPin) {
           sessionStorage.setItem('onc_admin_settings_unlocked', 'true');
           document.getElementById('settingsUnlockModal').style.display = 'none';
-          
+
           // Switch to settings panel
           switchTab('settings', window.prevSettingsTabBtn, false);
         } else {
@@ -2117,7 +2188,7 @@
         }
       };
 
-      window.cancelUnlockSettings = function() {
+      window.cancelUnlockSettings = function () {
         document.getElementById('settingsUnlockModal').style.display = 'none';
         // Go back to previous panel
         if (window.prevSettingsTabId) {
@@ -2129,10 +2200,10 @@
         }
       };
 
-      document.addEventListener("DOMContentLoaded", function() {
+      document.addEventListener("DOMContentLoaded", function () {
         var pinInp = document.getElementById('settingsUnlockPinInput');
         if (pinInp) {
-          pinInp.addEventListener('keydown', function(event) {
+          pinInp.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
               verifySettingsUnlock();
             }
@@ -2152,15 +2223,15 @@
 
       function drawerTab(tabId, el) {
         closeDrawer();
-        
+
         // Remove active class from drawer items
-        document.querySelectorAll('.drawer-item').forEach(function(item) {
+        document.querySelectorAll('.drawer-item').forEach(function (item) {
           item.classList.remove('active');
         });
-        
+
         // Highlight selected drawer item
         if (el) el.classList.add('active');
-        
+
         // Switch tab and pass More button as the active bottom bar item
         var moreBtn = document.getElementById('btab-more');
         switchTab(tabId, moreBtn, true);
@@ -2237,15 +2308,15 @@
 
         allResources.push(res);
         localStorage.setItem('onc_resources', JSON.stringify(allResources));
-        
+
         // Reset inputs
         document.getElementById('resTitle').value = '';
         document.getElementById('resUrl').value = '';
         document.getElementById('resDesc').value = '';
-        
+
         status.textContent = '✅ Resource published!';
         status.style.color = '#16a34a';
-        setTimeout(function() { status.textContent = ''; }, 3000);
+        setTimeout(function () { status.textContent = ''; }, 3000);
 
         renderResources();
       }
@@ -2275,7 +2346,7 @@
         var fCat = document.getElementById('filtResCategory').value;
         var fAud = document.getElementById('filtResAudience').value;
 
-        var filtered = allResources.map(function(r, i) { return { r: r, idx: i }; }).filter(function(item) {
+        var filtered = allResources.map(function (r, i) { return { r: r, idx: i }; }).filter(function (item) {
           var r = item.r;
           if (fCat && r.category !== fCat) return false;
           if (fAud && r.audience !== fAud) return false;
@@ -2298,34 +2369,34 @@
           return;
         }
 
-        filtered.forEach(function(item) {
+        filtered.forEach(function (item) {
           var r = item.r;
           var idx = item.idx;
           var badge = catColors[r.category] || catColors.Other;
           var card = document.createElement('div');
-          
+
           card.style.cssText = 'background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border);transition:all 0.2s;display:flex;flex-direction:column;gap:8px;';
-          
-          card.onmouseenter = function() { card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; card.style.borderColor = 'rgba(0,0,0,0.15)'; };
-          card.onmouseleave = function() { card.style.boxShadow = 'none'; card.style.borderColor = 'var(--border)'; };
+
+          card.onmouseenter = function () { card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; card.style.borderColor = 'rgba(0,0,0,0.15)'; };
+          card.onmouseleave = function () { card.style.boxShadow = 'none'; card.style.borderColor = 'var(--border)'; };
 
           var formattedDate = new Date(r.dateAdded).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-          card.innerHTML = 
+          card.innerHTML =
             '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">' +
-              '<div style="font-weight:800;font-size:14px;color:var(--navy);line-height:1.4;">' + r.title + '</div>' +
-              '<button onclick="deleteResource(' + idx + ')" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:2px;display:flex;align-items:center;" title="Delete Resource">🗑️</button>' +
+            '<div style="font-weight:800;font-size:14px;color:var(--navy);line-height:1.4;">' + r.title + '</div>' +
+            '<button onclick="deleteResource(' + idx + ')" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:2px;display:flex;align-items:center;" title="Delete Resource">🗑️</button>' +
             '</div>' +
             (r.desc ? '<div style="font-size:12px;color:var(--gray);line-height:1.5;">' + r.desc + '</div>' : '') +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;flex-wrap:wrap;gap:8px;">' +
-              '<div style="display:flex;gap:6px;align-items:center;">' +
-                '<span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:4px 8px;border-radius:6px;background:' + badge.bg + ';color:' + badge.text + ';">' + r.category + '</span>' +
-                '<span style="font-size:10px;font-weight:700;color:#475569;background:#e2e8f0;padding:4px 8px;border-radius:6px;">' + r.audience + '</span>' +
-              '</div>' +
-              '<div style="display:flex;align-items:center;gap:12px;">' +
-                '<span style="font-size:11px;color:var(--gray);">' + formattedDate + '</span>' +
-                '<a href="' + r.url + '" target="_blank" style="text-decoration:none;font-weight:700;font-size:12px;color:#fff;background:var(--accent);padding:6px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;transition:background 0.2s;">Open ↗</a>' +
-              '</div>' +
+            '<div style="display:flex;gap:6px;align-items:center;">' +
+            '<span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:4px 8px;border-radius:6px;background:' + badge.bg + ';color:' + badge.text + ';">' + r.category + '</span>' +
+            '<span style="font-size:10px;font-weight:700;color:#475569;background:#e2e8f0;padding:4px 8px;border-radius:6px;">' + r.audience + '</span>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:12px;">' +
+            '<span style="font-size:11px;color:var(--gray);">' + formattedDate + '</span>' +
+            '<a href="' + r.url + '" target="_blank" style="text-decoration:none;font-weight:700;font-size:12px;color:#fff;background:var(--accent);padding:6px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;transition:background 0.2s;">Open ↗</a>' +
+            '</div>' +
             '</div>';
 
           list.appendChild(card);
@@ -2334,17 +2405,17 @@
 
       // ── SHIMMER HELPERS ──
       var STAT_IDS = [
-        's-sessions','s-reported','s-avgatt','s-prayer','s-concerns','s-bible',
-        'mc-s-sessions','mc-s-reported','mc-s-attendance','mc-s-prayer','mc-s-souls','mc-s-bible'
+        's-sessions', 's-reported', 's-avgatt', 's-prayer', 's-concerns', 's-bible',
+        'mc-s-sessions', 'mc-s-reported', 'mc-s-attendance', 'mc-s-prayer', 'mc-s-souls', 'mc-s-bible'
       ];
       function showShimmer() {
-        STAT_IDS.forEach(function(id) {
+        STAT_IDS.forEach(function (id) {
           var el = document.getElementById(id);
           if (el) { el.dataset.origText = el.textContent; el.textContent = '——'; el.classList.add('shimmer'); }
         });
       }
       function hideShimmer() {
-        STAT_IDS.forEach(function(id) {
+        STAT_IDS.forEach(function (id) {
           var el = document.getElementById(id);
           if (el) el.classList.remove('shimmer');
         });
@@ -2354,11 +2425,11 @@
       function keepWarm() {
         var script = document.createElement('script');
         var cbName = '_warm_' + Date.now();
-        window[cbName] = function() {
+        window[cbName] = function () {
           delete window[cbName];
           if (document.body.contains(script)) document.body.removeChild(script);
         };
-        script.onerror = function() {
+        script.onerror = function () {
           delete window[cbName];
           if (document.body.contains(script)) document.body.removeChild(script);
         };
@@ -2373,22 +2444,22 @@
         _loadAllRunning = true;
         showShimmer();
         document.getElementById('lastUpdated').textContent = 'Loading...';
-        fetchData('getReports', function(spsData) {
-          allReports = (spsData && spsData.reports) ? 
+        fetchData('getReports', function (spsData) {
+          allReports = (spsData && spsData.reports) ?
             spsData.reports : [];
-          localStorage.setItem('onc_cached_reports', 
+          localStorage.setItem('onc_cached_reports',
             JSON.stringify(allReports));
-          
-          fetchData('getMicrochurchReports', function(mcData) {
-            allMicrochurchReports = (mcData && mcData.reports) ? 
+
+          fetchData('getMicrochurchReports', function (mcData) {
+            allMicrochurchReports = (mcData && mcData.reports) ?
               mcData.reports : [];
-            localStorage.setItem('onc_cached_mc_reports', 
+            localStorage.setItem('onc_cached_mc_reports',
               JSON.stringify(allMicrochurchReports));
             _loadAllRunning = false;
             hideShimmer();
             renderAll();
             var now = new Date();
-            var timeStr = now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+            var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
             document.getElementById('lastUpdated').textContent = 'Updated ' + timeStr;
           });
         });
@@ -2420,28 +2491,28 @@
         if (!r) return false;
         var dateStr = r.submissionDate || r.sessionDate || r.date || '';
         var reportDate = null;
-        
+
         if (dateStr) {
           var parts = dateStr.toString().split('/');
           if (parts.length === 3) {
             // DD/MM/YYYY format
             reportDate = new Date(
-              parseInt(parts[2]), 
-              parseInt(parts[1]) - 1, 
+              parseInt(parts[2]),
+              parseInt(parts[1]) - 1,
               parseInt(parts[0])
             );
           } else {
             reportDate = new Date(dateStr);
           }
         }
-        
+
         if (!reportDate || isNaN(reportDate.getTime())) {
           if (r.timestamp) reportDate = new Date(r.timestamp);
         }
-        
-        if (!reportDate || isNaN(reportDate.getTime())) 
+
+        if (!reportDate || isNaN(reportDate.getTime()))
           return false;
-        
+
         var now = new Date();
         var weekAgo = new Date(
           now.getTime() - 7 * 24 * 60 * 60 * 1000
@@ -2468,27 +2539,27 @@
       // ========================================================
       function extractPendingSouls() {
         var pending = [];
-        
+
         var approvedNames = {};
         try {
           var approved = JSON.parse(localStorage.getItem('onc_approved_souls') || '[]');
-          approved.forEach(function(name) { approvedNames[name] = true; });
-        } catch(e) {}
-        
+          approved.forEach(function (name) { approvedNames[name] = true; });
+        } catch (e) { }
+
         var rejectedIds = {};
         try {
           var rejected = JSON.parse(localStorage.getItem('onc_rejected_souls') || '[]');
-          rejected.forEach(function(id) { rejectedIds[id] = true; });
-        } catch(e) {}
+          rejected.forEach(function (id) { rejectedIds[id] = true; });
+        } catch (e) { }
 
         function processSoul(soul, shepherd, date, type, reportId) {
           if (!soul || !soul.name) return;
           var name = soul.name.trim();
           if (!name || approvedNames[name]) return;
-          
-          var id = type + '_' + reportId + '_' + name.replace(/[^a-zA-Z0-9]/g,'_');
+
+          var id = type + '_' + reportId + '_' + name.replace(/[^a-zA-Z0-9]/g, '_');
           if (rejectedIds[id]) return;
-          
+
           pending.push({
             id: id,
             name: name,
@@ -2504,7 +2575,7 @@
         }
 
         // Process SPS reports
-        (allReports || []).forEach(function(r, idx) {
+        (allReports || []).forEach(function (r, idx) {
           if (r.newMembers) {
             var arr = [];
             if (Array.isArray(r.newMembers)) {
@@ -2512,14 +2583,14 @@
             } else {
               try {
                 arr = JSON.parse(r.newMembers);
-              } catch(e) {
+              } catch (e) {
                 if (typeof r.newMembers === 'string' && r.newMembers.trim()) {
-                  arr = r.newMembers.split(',').map(function(n) { return { name: n.trim() }; });
+                  arr = r.newMembers.split(',').map(function (n) { return { name: n.trim() }; });
                 }
               }
             }
             if (Array.isArray(arr)) {
-              arr.forEach(function(soul) {
+              arr.forEach(function (soul) {
                 processSoul(soul, r.shepherd, r.sessionDate || r.date || 'N/A', 'sps', r.id || idx);
               });
             }
@@ -2527,7 +2598,7 @@
         });
 
         // Process MC reports
-        (allMicrochurchReports || []).forEach(function(r, idx) {
+        (allMicrochurchReports || []).forEach(function (r, idx) {
           if (r.newSouls) {
             var arr = [];
             if (Array.isArray(r.newSouls)) {
@@ -2535,14 +2606,14 @@
             } else {
               try {
                 arr = JSON.parse(r.newSouls);
-              } catch(e) {
+              } catch (e) {
                 if (typeof r.newSouls === 'string' && r.newSouls.trim()) {
-                  arr = r.newSouls.split(',').map(function(n) { return { name: n.trim() }; });
+                  arr = r.newSouls.split(',').map(function (n) { return { name: n.trim() }; });
                 }
               }
             }
             if (Array.isArray(arr)) {
-              arr.forEach(function(soul) {
+              arr.forEach(function (soul) {
                 processSoul(soul, r.shepherd, r.submissionDate || r.date || 'N/A', 'mc', r.id || idx);
               });
             }
@@ -2554,7 +2625,7 @@
 
       function renderPendingSouls() {
         var pending = extractPendingSouls();
-        
+
         // 1. Update Overview Tab Banner
         var banner = document.getElementById('newSoulsAlertBanner');
         var countSpan = document.getElementById('newSoulsAlertCount');
@@ -2571,28 +2642,28 @@
         var sec = document.getElementById('pendingSoulsSection');
         var badge = document.getElementById('pendingSoulsCountBadge');
         var listContainer = document.getElementById('pendingSoulsList');
-        
+
         if (sec && badge && listContainer) {
           if (pending.length > 0) {
             badge.textContent = pending.length;
             sec.style.display = 'block';
-            
-            listContainer.innerHTML = pending.map(function(soul) {
+
+            listContainer.innerHTML = pending.map(function (soul) {
               return '<div class="pending-soul-card" style="background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:14px 16px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;box-shadow:0 2px 4px rgba(15,32,68,0.02);">' +
                 '<div>' +
-                  '<div style="font-weight:800;font-size:15px;color:#0f2044;">' + soul.name + '</div>' +
-                  '<div style="font-size:12px;color:#64748b;margin-top:4px;">' +
-                    '📞 ' + soul.phone + ' &middot; 📅 DOB: ' + soul.dob + ' &middot; Born Again: <strong>' + soul.bornAgain + '</strong> &middot; In Church: <strong>' + soul.inChurch + '</strong> &middot; Occupation: ' + soul.occupation +
-                  '</div>' +
-                  '<div style="font-size:11px;color:#3b82f6;margin-top:4px;font-weight:600;">' +
-                    'Submitted by Shepherd: ' + soul.shepherd + ' on ' + soul.date + ' (' + (soul.type === 'sps' ? 'SPS' : 'Microchurch') + ')' +
-                  '</div>' +
+                '<div style="font-weight:800;font-size:15px;color:#0f2044;">' + soul.name + '</div>' +
+                '<div style="font-size:12px;color:#64748b;margin-top:4px;">' +
+                '📞 ' + soul.phone + ' &middot; 📅 DOB: ' + soul.dob + ' &middot; Born Again: <strong>' + soul.bornAgain + '</strong> &middot; In Church: <strong>' + soul.inChurch + '</strong> &middot; Occupation: ' + soul.occupation +
+                '</div>' +
+                '<div style="font-size:11px;color:#3b82f6;margin-top:4px;font-weight:600;">' +
+                'Submitted by Shepherd: ' + soul.shepherd + ' on ' + soul.date + ' (' + (soul.type === 'sps' ? 'SPS' : 'Microchurch') + ')' +
+                '</div>' +
                 '</div>' +
                 '<div style="display:flex;gap:8px;">' +
-                  '<button onclick="approveSoul(\'' + soul.name.replace(/'/g, "\\'") + '\', \'' + soul.shepherd.replace(/'/g, "\\'") + '\', \'' + soul.id + '\', \'' + soul.type + '\')" style="padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Approve</button>' +
-                  '<button onclick="rejectSoul(\'' + soul.id + '\')" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Reject</button>' +
+                '<button onclick="approveSoul(\'' + soul.name.replace(/'/g, "\\'") + '\', \'' + soul.shepherd.replace(/'/g, "\\'") + '\', \'' + soul.id + '\', \'' + soul.type + '\')" style="padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Approve</button>' +
+                '<button onclick="rejectSoul(\'' + soul.id + '\')" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Reject</button>' +
                 '</div>' +
-              '</div>';
+                '</div>';
             }).join('');
           } else {
             sec.style.display = 'none';
@@ -2600,11 +2671,11 @@
         }
       }
 
-      window.approveSoul = function(name, shepherd, id, type) {
+      window.approveSoul = function (name, shepherd, id, type) {
         var approved = [];
         try {
           approved = JSON.parse(localStorage.getItem('onc_approved_souls') || '[]');
-        } catch(e) {}
+        } catch (e) { }
         if (!approved.includes(name)) approved.push(name);
         localStorage.setItem('onc_approved_souls', JSON.stringify(approved));
 
@@ -2613,7 +2684,7 @@
           var customSps = {};
           try {
             customSps = JSON.parse(localStorage.getItem('onc_custom_sps_members') || '{}');
-          } catch(e) {}
+          } catch (e) { }
           customSps[name] = shepherd;
           localStorage.setItem('onc_custom_sps_members', JSON.stringify(customSps));
         } else {
@@ -2624,7 +2695,7 @@
           var customMc = {};
           try {
             customMc = JSON.parse(localStorage.getItem('onc_custom_mc_members') || '{}');
-          } catch(e) {}
+          } catch (e) { }
           if (!customMc[shepherd]) customMc[shepherd] = [];
           if (!customMc[shepherd].includes(name)) {
             customMc[shepherd].push(name);
@@ -2633,7 +2704,7 @@
         }
 
         alert('Approved! ' + name + ' has been added to ' + (type === 'sps' ? 'SPS' : 'Microchurch') + ' Member Database under Shepherd ' + shepherd + '.');
-        
+
         // Re-populate shepherds filter dropdown to include new shepherds if any, or refresh members tab
         var select = document.getElementById('filter-member-shep');
         if (select) {
@@ -2651,12 +2722,12 @@
         renderAll();
       };
 
-      window.rejectSoul = function(id) {
+      window.rejectSoul = function (id) {
         if (confirm('Are you sure you want to reject this soul?')) {
           var rejected = [];
           try {
             rejected = JSON.parse(localStorage.getItem('onc_rejected_souls') || '[]');
-          } catch(e) {}
+          } catch (e) { }
           if (!rejected.includes(id)) rejected.push(id);
           localStorage.setItem('onc_rejected_souls', JSON.stringify(rejected));
           renderAll();
@@ -2746,21 +2817,21 @@
           var badge = status === 'active' ? '<span class="badge green">🟢 Active</span>' : status === 'overdue' ? '<span class="badge yellow">🟡 Overdue</span>' : '<span class="badge red">🔴 Silent</span>';
           var avgRate = weekReps.length ? Math.round(weekReps.reduce(function (a, r) { return a + getRate(r); }, 0) / weekReps.length) : 0;
           var repsHtml = reps.length ? reps.slice(0, 5).map(function (r) { return '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f1f5f9;color:#475569;">' + (r.sessionDate || r.date || '') + ' — ' + toArray(r.membersPresent).length + '/' + (r.totalMembers || 4) + ' present · Prayer: ' + (r.prayerDone || '?') + '</div>'; }).join('') : '<div style="font-size:12px;color:#94a3b8;">No reports yet</div>';
-          
+
           var phone = s.contact || '';
-          var contactBtns = phone ? 
+          var contactBtns = phone ?
             '<div style="display:flex;gap:8px;margin-top:8px;" onclick="event.stopPropagation()">' +
             '<a href="' + formatCall(phone) + '" style="' +
             'flex:1;padding:6px;background:#22c55e;color:white;' +
             'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-size:12px;font-weight:700;">'+
+            'text-decoration:none;font-size:12px;font-weight:700;">' +
             '📞 Call</a>' +
             '<a href="' + formatWhatsApp(phone) + '" ' +
             'target="_blank" style="' +
             'flex:1;padding:6px;background:#25D366;color:white;' +
             'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-size:12px;font-weight:700;">'+
-            '💬 WhatsApp</a></div>' 
+            'text-decoration:none;font-size:12px;font-weight:700;">' +
+            '💬 WhatsApp</a></div>'
             : '<div style="color:#94a3b8;font-size:12px;' +
             'margin-top:8px;">No contact number</div>';
 
@@ -2835,7 +2906,7 @@
             if (!reportDate && r.timestamp) {
               reportDate = new Date(r.timestamp);
             }
-            
+
             var twoWeeksAgo = new Date();
             twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
             if (reportDate && reportDate > twoWeeksAgo) {
@@ -3470,38 +3541,27 @@
 
       function renderMcOverview() {
         try {
-          console.log('renderMcOverview called');
-          console.log('mc data count:', allMicrochurchReports.length);
-          var testEl = document.getElementById('mc-s-sessions');
-          console.log('mc-s-sessions exists:', testEl);
-
           var panel = document.getElementById('panel-mc-overview');
           if (!panel) return;
           var mc = allMicrochurchReports || [];
 
-          var weekly = mc.filter(function(r) { return isThisWeek(r); });
-          console.log('Weekly MC reports:', weekly.length);
-          console.log('All MC dates:', mc.map(function(r) { 
-            return r.submissionDate; 
-          }));
-          console.log('Today:', new Date().toLocaleDateString('en-GB'));
-          console.log('isThisWeek test:', isThisWeek(mc[0]));
+          var weekly = mc.filter(function (r) { return isThisWeek(r); });
           var reportedShepherds = [];
-          weekly.forEach(function(r) {
+          weekly.forEach(function (r) {
             if (reportedShepherds.indexOf(r.shepherd) === -1) reportedShepherds.push(r.shepherd);
           });
-          var totalSouls = weekly.reduce(function(sum, r) {
+          var totalSouls = weekly.reduce(function (sum, r) {
             return sum + parseSouls(r.newSouls);
           }, 0);
           var avgAttendance = weekly.length ?
-            Math.round(weekly.reduce(function(sum, r) {
+            Math.round(weekly.reduce(function (sum, r) {
               var rate = parseFloat(r.attendanceRate) || 0;
               return sum + (rate > 1 ? rate : rate * 100);
             }, 0) / weekly.length) : 0;
-          var prayerCount = weekly.filter(function(r) {
+          var prayerCount = weekly.filter(function (r) {
             return r.prayerDone === 'yes' || r.prayerDone === 'Yes';
           }).length;
-          var bibleCount = weekly.filter(function(r) {
+          var bibleCount = weekly.filter(function (r) {
             return r.topicCovered === 'yes' || r.topicCovered === 'Yes';
           }).length;
 
@@ -3514,18 +3574,18 @@
             'mc-s-souls': totalSouls,
             'mc-s-bible': bibleCount + '/' + weekly.length
           };
-          Object.keys(statMap).forEach(function(id) {
+          Object.keys(statMap).forEach(function (id) {
             var el = document.getElementById(id);
             if (el) { el.textContent = statMap[id]; el.classList.remove('shimmer'); }
           });
 
           var statIds = [
-            'mc-s-sessions', 'mc-s-reported', 
+            'mc-s-sessions', 'mc-s-reported',
             'mc-s-attendance', 'mc-s-prayer',
             'mc-s-souls', 'mc-s-bible'
           ];
 
-          statIds.forEach(function(id) {
+          statIds.forEach(function (id) {
             var el = document.getElementById(id);
             if (el) {
               el.classList.remove('shimmer');
@@ -3535,13 +3595,13 @@
 
           // Not-reported list
           var reportedNames = {};
-          weekly.forEach(function(r) { reportedNames[r.shepherd] = true; });
-          var notReported = ALL_MC_SHEPHERDS.filter(function(s) { return !reportedNames[s.name]; });
+          weekly.forEach(function (r) { reportedNames[r.shepherd] = true; });
+          var notReported = ALL_MC_SHEPHERDS.filter(function (s) { return !reportedNames[s.name]; });
           var notReportedEl = document.getElementById('mcNotReportedList');
           if (notReportedEl) {
             notReportedEl.innerHTML = notReported.length === 0 ?
               '<p style="color:#22c55e">All shepherds reported this week! 🎉</p>' :
-              notReported.map(function(s) {
+              notReported.map(function (s) {
                 return '<div style="padding:6px 0;font-size:13px;border-bottom:1px solid #f1f5f9;color:#475569">' +
                   s.name + ' <span style="color:#94a3b8;font-size:11px">(' + s.microchurch + ')</span></div>';
               }).join('');
@@ -3550,11 +3610,11 @@
           // High attendance
           var highEl = document.getElementById('mcHighAttendanceList');
           if (highEl) {
-            var high = ALL_MC_SHEPHERDS.filter(function(s) {
-              return weekly.filter(function(r) { return r.shepherd === s.name; }).length > 0;
+            var high = ALL_MC_SHEPHERDS.filter(function (s) {
+              return weekly.filter(function (r) { return r.shepherd === s.name; }).length > 0;
             }).slice(0, 5);
             highEl.innerHTML = high.length ?
-              high.map(function(s) {
+              high.map(function (s) {
                 return '<div style="padding:6px 0;font-size:13px;border-bottom:1px solid #f1f5f9;color:#15803d">✅ ' + s.name + '</div>';
               }).join('') :
               '<p style="color:#94a3b8;font-size:13px">No reports yet</p>';
@@ -3563,12 +3623,12 @@
           // Recent activity
           var activityEl = document.getElementById('mcRecentActivity');
           if (activityEl) {
-            var recent = mc.slice().sort(function(a,b) {
+            var recent = mc.slice().sort(function (a, b) {
               return new Date(b.timestamp || b.submissionDate || 0) - new Date(a.timestamp || a.submissionDate || 0);
             }).slice(0, 5);
             activityEl.innerHTML = recent.length === 0 ?
               '<p style="color:#94a3b8">No reports yet</p>' :
-              recent.map(function(r) {
+              recent.map(function (r) {
                 var rate = parseFloat(r.attendanceRate) || 0;
                 var pct = rate > 1 ? Math.round(rate) : Math.round(rate * 100);
                 return '<div class="activity-item"><div>' +
@@ -3578,34 +3638,32 @@
                   '<span class="activity-rate">' + pct + '%</span></div>';
               }).join('');
           }
-        } catch(e) {
+        } catch (e) {
           console.warn('renderMcOverview error:', e.message);
         }
       }
 
       function renderMcShepherds() {
         try {
-          console.log('renderMcShepherds called');
-          console.log('MC shepherds count:', ALL_MC_SHEPHERDS.length);
           var panel = document.getElementById('panel-mc-shepherds');
           if (!panel) return;
           var mc = allMicrochurchReports || [];
           var container = document.getElementById('mc-shepherds-grid');
           if (!container) return;
 
-          var weekly = mc.filter(function(r) { return isThisWeek(r); });
+          var weekly = mc.filter(function (r) { return isThisWeek(r); });
 
-          container.innerHTML = ALL_MC_SHEPHERDS.map(function(s) {
-            var sReports = mc.filter(function(r) { return r.shepherd === s.name; });
-            var sWeekly = weekly.filter(function(r) { return r.shepherd === s.name; });
+          container.innerHTML = ALL_MC_SHEPHERDS.map(function (s) {
+            var sReports = mc.filter(function (r) { return r.shepherd === s.name; });
+            var sWeekly = weekly.filter(function (r) { return r.shepherd === s.name; });
             var lastReport = sReports[sReports.length - 1];
             var avgRate = sWeekly.length ? Math.round(
-              sWeekly.reduce(function(sum, r) {
+              sWeekly.reduce(function (sum, r) {
                 var rate = parseFloat(r.attendanceRate) || 0;
                 return sum + (rate > 1 ? rate : rate * 100);
               }, 0) / sWeekly.length
             ) : 0;
-            var totalSouls = sWeekly.reduce(function(sum, r) {
+            var totalSouls = sWeekly.reduce(function (sum, r) {
               return sum + parseSouls(r.newSouls);
             }, 0);
             var status, statusColor;
@@ -3614,19 +3672,19 @@
             else { status = '🔴 Silent'; statusColor = '#ef4444'; }
 
             var phone = s.contact || '';
-            var contactBtns = phone ? 
+            var contactBtns = phone ?
               '<div style="display:flex;gap:8px;margin-top:8px;" onclick="event.stopPropagation()">' +
               '<a href="' + formatCall(phone) + '" style="' +
               'flex:1;padding:6px;background:#22c55e;color:white;' +
               'border-radius:8px;text-align:center;' +
-              'text-decoration:none;font-size:12px;font-weight:700;">'+
+              'text-decoration:none;font-size:12px;font-weight:700;">' +
               '📞 Call</a>' +
               '<a href="' + formatWhatsApp(phone) + '" ' +
               'target="_blank" style="' +
               'flex:1;padding:6px;background:#25D366;color:white;' +
               'border-radius:8px;text-align:center;' +
-              'text-decoration:none;font-size:12px;font-weight:700;">'+
-              '💬 WhatsApp</a></div>' 
+              'text-decoration:none;font-size:12px;font-weight:700;">' +
+              '💬 WhatsApp</a></div>'
               : '<div style="color:#94a3b8;font-size:12px;' +
               'margin-top:8px;">No contact number</div>';
 
@@ -3641,7 +3699,7 @@
               contactBtns +
               '</div>';
           }).join('') || '<div class="empty"><div class="icon">👥</div><p>No shepherds configured</p></div>';
-        } catch(e) {
+        } catch (e) {
           console.warn('renderMcShepherds error:', e.message);
         }
       }
@@ -3656,24 +3714,26 @@
 
           var memberStats = {};
 
-          ALL_MC_SHEPHERDS.forEach(function(s) {
+          ALL_MC_SHEPHERDS.forEach(function (s) {
             var members = (window.mcMemberData && window.mcMemberData[s.name]) || [];
-            members.forEach(function(m) {
-              memberStats[m] = { shepherd: s.name, microchurch: s.microchurch, 
-                attended: 0, missed: 0, lastSeen: null, concerns: '' };
+            members.forEach(function (m) {
+              memberStats[m] = {
+                shepherd: s.name, microchurch: s.microchurch,
+                attended: 0, missed: 0, lastSeen: null, concerns: ''
+              };
             });
           });
 
-          mc.forEach(function(r) {
+          mc.forEach(function (r) {
             var present = toArray(r.membersPresent);
             var absent = toArray(r.membersAbsent);
-            present.forEach(function(m) {
+            present.forEach(function (m) {
               if (memberStats[m]) {
                 memberStats[m].attended++;
                 memberStats[m].lastSeen = r.submissionDate;
               }
             });
-            absent.forEach(function(m) {
+            absent.forEach(function (m) {
               if (memberStats[m]) memberStats[m].missed++;
             });
           });
@@ -3684,13 +3744,13 @@
             return;
           }
 
-          tbody.innerHTML = rows.map(function(entry, i) {
+          tbody.innerHTML = rows.map(function (entry, i) {
             var name = entry[0]; var s = entry[1];
             var total = s.attended + s.missed;
             var rate = total > 0 ? Math.round(s.attended / total * 100) : 0;
             var status = rate >= 80 ? '🟢 Regular' : rate >= 50 ? '🟡 Irregular' : '🔴 At Risk';
             return '<tr>' +
-              '<td>' + (i+1) + '</td>' +
+              '<td>' + (i + 1) + '</td>' +
               '<td><strong>' + name + '</strong></td>' +
               '<td>' + s.shepherd + '</td>' +
               '<td>' + s.microchurch + '</td>' +
@@ -3701,7 +3761,7 @@
               '<td>' + status + '</td>' +
               '</tr>';
           }).join('');
-        } catch(e) {
+        } catch (e) {
           console.warn('renderMcMembers error:', e.message);
         }
       }
@@ -3719,11 +3779,11 @@
             return;
           }
 
-          var sorted = mc.slice().sort(function(a, b) {
+          var sorted = mc.slice().sort(function (a, b) {
             return new Date(b.submissionDate) - new Date(a.submissionDate);
           });
 
-          tbody.innerHTML = sorted.map(function(r, i) {
+          tbody.innerHTML = sorted.map(function (r, i) {
             var rate = parseFloat(r.attendanceRate) || 0;
             var pct = rate > 1 ? Math.round(rate) : Math.round(rate * 100);
 
@@ -3743,7 +3803,7 @@
               if (!reportDate && r.timestamp) {
                 reportDate = new Date(r.timestamp);
               }
-              
+
               var twoWeeksAgo = new Date();
               twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
               if (reportDate && reportDate > twoWeeksAgo) {
@@ -3753,21 +3813,21 @@
             var proofHtml = showProofImg ? ' <span onclick="showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
 
             return '<tr>' +
-              '<td>' + (i+1) + '</td>' +
+              '<td>' + (i + 1) + '</td>' +
               '<td>' + (r.submissionDate || '—') + proofHtml + '</td>' +
               '<td>' + (r.submissionDay || '—') + '</td>' +
               '<td>' + (formatTime(r.submissionTime) || '—') + '</td>' +
               '<td><strong>' + (r.shepherd || '—') + '</strong></td>' +
               '<td>' + (r.meetingType || '—') + '</td>' +
               '<td>' + pct + '%</td>' +
-              '<td><span class="badge ' + (r.topicCovered === 'yes' ? 'yes' : 'no') + '">' + 
+              '<td><span class="badge ' + (r.topicCovered === 'yes' ? 'yes' : 'no') + '">' +
               (r.topicCovered || '—').toUpperCase() + '</span></td>' +
-              '<td><span class="badge ' + (r.prayerDone === 'yes' ? 'yes' : 'no') + '">' + 
+              '<td><span class="badge ' + (r.prayerDone === 'yes' ? 'yes' : 'no') + '">' +
               (r.prayerDone || '—').toUpperCase() + '</span></td>' +
               '<td>' + parseSouls(r.newSouls) + '</td>' +
               '</tr>';
           }).join('');
-        } catch(e) {
+        } catch (e) {
           console.warn('renderMcReports error:', e.message);
         }
       }
@@ -4010,16 +4070,16 @@
         doc.save('ONC_Microchurch_Report_' + new Date().toISOString().split('T')[0] + '.pdf');
       }
 
-      window.renderShepherdPinsTable = function() {
+      window.renderShepherdPinsTable = function () {
         var tbody = document.getElementById('shepherdPinsTableBody');
         if (!tbody) return;
 
         var searchQuery = (document.getElementById('shepherdPinSearch')?.value || '').toLowerCase().trim();
 
         // Combine all shepherds alphabetically
-        var spsNames = ALL_SHEPHERDS.map(function(s) { return { name: s.name, type: 'SPS Shepherd' }; });
-        var mcNames = ALL_MC_SHEPHERDS.map(function(s) { return { name: s.name, type: 'Microchurch' }; });
-        var allCombined = spsNames.concat(mcNames).sort(function(a, b) {
+        var spsNames = ALL_SHEPHERDS.map(function (s) { return { name: s.name, type: 'SPS Shepherd' }; });
+        var mcNames = ALL_MC_SHEPHERDS.map(function (s) { return { name: s.name, type: 'Microchurch' }; });
+        var allCombined = spsNames.concat(mcNames).sort(function (a, b) {
           return a.name.localeCompare(b.name);
         });
 
@@ -4027,20 +4087,20 @@
         var customPins = {};
         try {
           customPins = JSON.parse(localStorage.getItem('onc_shepherd_pins') || '{}');
-        } catch (e) {}
+        } catch (e) { }
 
         var rowsHtml = '';
-        allCombined.forEach(function(shep) {
+        allCombined.forEach(function (shep) {
           if (searchQuery && !shep.name.toLowerCase().includes(searchQuery)) {
             return;
           }
 
           var hasCustomPin = customPins[shep.name] !== undefined && customPins[shep.name] !== '0000';
-          var statusBadge = hasCustomPin 
-            ? '<span class="badge" style="background:#dbeafe;color:#2563eb;font-weight:700;padding:4px 8px;border-radius:6px;font-size:11px;">Custom Set</span>' 
+          var statusBadge = hasCustomPin
+            ? '<span class="badge" style="background:#dbeafe;color:#2563eb;font-weight:700;padding:4px 8px;border-radius:6px;font-size:11px;">Custom Set</span>'
             : '<span class="badge" style="background:#f1f5f9;color:#64748b;font-weight:700;padding:4px 8px;border-radius:6px;font-size:11px;">Default (0000)</span>';
-          
-          var actionBtn = hasCustomPin 
+
+          var actionBtn = hasCustomPin
             ? '<button onclick="resetShepherdPin(\'' + shep.name.replace(/'/g, "\\'") + '\')" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;width:100%;transition:background .2s;">Reset to 0000</button>'
             : '<button disabled style="padding:6px 12px;background:#cbd5e1;color:#94a3b8;border:none;border-radius:8px;font-size:12px;font-weight:700;width:100%;cursor:not-allowed;">Reset</button>';
 
@@ -4059,12 +4119,12 @@
         tbody.innerHTML = rowsHtml;
       };
 
-      window.resetShepherdPin = function(name) {
+      window.resetShepherdPin = function (name) {
         if (confirm('Are you sure you want to reset ' + name + '\'s PIN back to the default "0000"?')) {
           var customPins = {};
           try {
             customPins = JSON.parse(localStorage.getItem('onc_shepherd_pins') || '{}');
-          } catch (e) {}
+          } catch (e) { }
 
           delete customPins[name];
           localStorage.setItem('onc_shepherd_pins', JSON.stringify(customPins));
@@ -4074,28 +4134,36 @@
       };
     </script>
     <!-- SETTINGS UNLOCK MODAL -->
-  <div id="settingsUnlockModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px;">
-    <div style="background:#fff;border-radius:24px;border:3px solid #f0a500;width:100%;max-width:400px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#0f2044;font-family:'Outfit',sans-serif;position:relative;text-align:center;">
-      
-      <!-- Close button -->
-      <button onclick="cancelUnlockSettings()" style="position:absolute;top:20px;right:20px;background:rgba(15,32,68,0.08);border:none;color:#0f2044;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;font-weight:bold;">✕</button>
+    <div id="settingsUnlockModal"
+      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px;">
+      <div
+        style="background:#fff;border-radius:24px;border:3px solid #f0a500;width:100%;max-width:400px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#0f2044;font-family:'Outfit',sans-serif;position:relative;text-align:center;">
 
-      <div style="font-size:36px;margin-bottom:8px;">🔒</div>
-      <h2 style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:#0f2044;margin:0 0 6px;">Settings Tab Locked</h2>
-      <p style="font-size:13px;color:#64748b;margin:0 0 24px;">Please enter your Admin PIN to proceed</p>
+        <!-- Close button -->
+        <button onclick="cancelUnlockSettings()"
+          style="position:absolute;top:20px;right:20px;background:rgba(15,32,68,0.08);border:none;color:#0f2044;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;font-weight:bold;">✕</button>
 
-      <div class="field" style="text-align:left;margin-bottom:20px;">
-        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:1px;">Enter Admin PIN</label>
-        <input type="password" id="settingsUnlockPinInput" placeholder="••••" maxlength="6"
-          style="width:100%;padding:14px;border:2px solid #dce7f7;border-radius:12px;font-family:Outfit,sans-serif;font-size:24px;letter-spacing:8px;text-align:center;color:#0f2044;background:#f0f5ff;outline:none;margin-top:8px;">
+        <div style="font-size:36px;margin-bottom:8px;">🔒</div>
+        <h2 style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:#0f2044;margin:0 0 6px;">
+          Settings Tab Locked</h2>
+        <p style="font-size:13px;color:#64748b;margin:0 0 24px;">Please enter your Admin PIN to proceed</p>
+
+        <div class="field" style="text-align:left;margin-bottom:20px;">
+          <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:1px;">Enter
+            Admin PIN</label>
+          <input type="password" id="settingsUnlockPinInput" placeholder="••••" maxlength="6"
+            style="width:100%;padding:14px;border:2px solid #dce7f7;border-radius:12px;font-family:Outfit,sans-serif;font-size:24px;letter-spacing:8px;text-align:center;color:#0f2044;background:#f0f5ff;outline:none;margin-top:8px;">
+        </div>
+
+        <p id="unlockErrorMsg" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-bottom:16px;">
+        </p>
+
+        <button type="button" onclick="verifySettingsUnlock()"
+          style="width: 100%; padding: 16px; background: #0f2044; color: #fff; border: none; border-radius: 12px; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 15px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(15, 32, 68, 0.15);">
+          🔓 Access Settings
+        </button>
       </div>
-
-      <p id="unlockErrorMsg" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-bottom:16px;"></p>
-
-      <button type="button" onclick="verifySettingsUnlock()" style="width: 100%; padding: 16px; background: #0f2044; color: #fff; border: none; border-radius: 12px; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 15px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(15, 32, 68, 0.15);">
-        🔓 Access Settings
-      </button>
     </div>
-  </div>
 </body>
+
 </html>
