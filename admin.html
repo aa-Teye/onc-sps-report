@@ -1684,7 +1684,50 @@
     <script>
       var allReports = [];
       var allMicrochurchReports = [];
-      var ALL_MC_SHEPHERDS = [];
+      var ALL_MC_SHEPHERDS = [
+        { name: "Michael Ayisia",                      microchurch: "Tesano 1",              contact: "" },
+        { name: "Michael Ameyaw (Tesano 2)",           microchurch: "Tesano 2",              contact: "" },
+        { name: "Michael Ameyaw (Tesano 3)",           microchurch: "Tesano 3",              contact: "" },
+        { name: "Augustina Selinam Abbah",             microchurch: "Tesano 4",              contact: "" },
+        { name: "Blessing Solomon",                    microchurch: "Flat Top",              contact: "" },
+        { name: "Lp Esther Okronipa",                  microchurch: "Official Town",         contact: "" },
+        { name: "Benjamin Senyasu",                    microchurch: "Police Depot",          contact: "" },
+        { name: "Emmanuel Mensah",                     microchurch: "Bubiashie",             contact: "" },
+        { name: "Eric Appiah",                         microchurch: "North Kaneshie Online", contact: "" },
+        { name: "Alex Teye Ametepey",                  microchurch: "UG Legon",              contact: "" },
+        { name: "Rev Dr Ebenezer Okronipa (Afropa 2)",  microchurch: "Afropa 2",              contact: "" },
+        { name: "Rev Dr Ebenezer Okronipa (Manasseh)",  microchurch: "Manasseh",              contact: "" },
+        { name: "Rosemond Quaicoe",                    microchurch: "Nyamekye",              contact: "" },
+        { name: "Henry Mensah",                        microchurch: "Gbawe",                 contact: "" },
+        { name: "Abigail Ankomah",                     microchurch: "Ablekuma-Agape",        contact: "" },
+        { name: "Alice Ametepey",                      microchurch: "Darkuman 3",            contact: "" },
+        { name: "Samuel Opare",                        microchurch: "New Fadama 2",          contact: "" },
+        { name: "Esther Doku",                         microchurch: "New-Fadama 1",          contact: "" },
+        { name: "Samuel Oteng",                        microchurch: "Nsakina",               contact: "" }
+      ];
+
+      window.mcMemberData = {
+        "Michael Ayisia": ["Addo Benedict","Harriet Mensah","Frank Armah","Thomas Daitey","Samuel Obeng","Caleb Dzifa","Joshua Anatsui"],
+        "Michael Ameyaw (Tesano 2)": ["Christiana Konzondong","Esther Konzondong","Felix Konzondong","Daniel"],
+        "Michael Ameyaw (Tesano 3)": ["Ashaley Badu","Rebecca Ankrah"],
+        "Augustina Selinam Abbah": ["Joel Amfo","Blessing Akoto","Aseda Munach","Elvis Abbey","Steven Tetteh Antwi","Regina Twum","Nasara Naa Issaka","Zakiatu Ibrahim","Martin Amponsah","Emmanuel Tetteh Akoto","Prince France","Princess France","Ababibatu Ibrahim","Rolanda France"],
+        "Blessing Solomon": ["Solomon Aziakah","Linda Solomon","Altheaella Bruce","Peniel Solomon","Shine Asinyo","Lucy Agbekornyi"],
+        "Lp Esther Okronipa": ["Gifty Ametepey","Ruth Yeboah"],
+        "Benjamin Senyasu": ["Mafred Normesinu Danquah","Mitchell Normesinu Danquah","Nina Asinyo","Adelaide Lamptey","Asinyo Martha","Lordina Amoah","Antony Boateng","Susan Selorm Budu"],
+        "Emmanuel Mensah": ["Valerie Ofooley","Jehoshaphat Mills","Christian Koomson","Aaron Ofori","Reginald Ofori","Prince Acquah","Kelvin Aryeetey","Bismark Duker","Esther Opare","George Otabil","Kwaku Baah","Theodora Mills","Miriam Opare","Hanson Dzebu","Karen Bonsu"],
+        "Eric Appiah": ["Louisa Ashong","Robert Ansah","Precious Mmeso","Princess Izubge","Annabelle Forson","Alexander Mantey","Ameyaw Mehra","Arnold Doe","Regina Kwardefio","Jackline Odoi","Lilian Amoh","Raymond Agbosu","Abena Owusu","Michelin Gyampoh"],
+        "Alex Teye Ametepey": ["Samuel Amon Kotey","Jeffrey Kleku","Millicent Kudawoo","Destiny Akadu","Mabel Sena Okyere"],
+        "Rev Dr Ebenezer Okronipa (Afropa 2)": ["Wilhelmina Komesour","Aisha Mohammed","Anatsui-Kemedo Akpene","Christiana Akosua Latibea","Celestine Baatu","Kukua McKay","Vivian Alottey","Georgina Gyane","Monica Aboagyewaa","Roselyn Okine","Frederica Okine","Freda Okine","Freeman Okine","Steven Okine","Francis Okine","Philip Ofosuhene","Louisa Nutakor","Boateng Jason","Boateng Kobby","Boateng Diamond","Kezia Ofosuhene","Kingsford Philip Quaicoo","Adom Ackah","Nadia Okine","Favour Okine","Harriet Ampofo","Ruth Dadzie"],
+        "Rev Dr Ebenezer Okronipa (Manasseh)": ["Justina Ackon","Rashida Alhassan","Abel Nego","Gentle Sordji","Christabel","Winnifred Ndobo","Latifa","Bernice Amuzu","Carol Nkansah","Nhyira Antwi","Abigail Antwi","Gloria Antwi"],
+        "Rosemond Quaicoe": ["Lydia Odame Antwi","Mrs Priscilla Effah","Edna Asare"],
+        "Henry Mensah": ["Patience Mensah","Bryan Mensah","Brielle Mensah","Fredrick","Cisse Quaye"],
+        "Abigail Ankomah": ["Jackson Ankomah","Vivian Mensah","Frederick Ankomah"],
+        "Alice Ametepey": ["Patience Addo","Samuel Boadu","Reginald Mensah","Kelvin Twumasi","Mikel Owusu","Nana Opoku","Cassandra Arthur","Ruby Lartey","Blessed Mensah","Gloria Lartey"],
+        "Samuel Opare": ["Janet Tetteh","Jedidiah Wiafe","Deborah Quaye","Albert Ladi Mensah","Daniella Ladi Mensah","Nathaniel Ladi Mensah","Johnathan Ladi Mensah","Joel Wiafe","Simon Wegah","Francis Awuku","Abigail Ayimbilah"],
+        "Esther Doku": ["Mama Doris Otumfour","Benjamin Justice Tandoh Arthur","Nadia Awentemi","Mr Ebenezer Okronipa Snr","Alexis Nhyira Destiny","Emmalyn Sackey","Clifford Obeng","Lawrencia Thompson"],
+        "Samuel Oteng": ["Rebecca Quaye","Mary Quaye","Laudice Quaye","Oscar Abane","Oswell Abane","Daniel Takan"]
+      };
+
 
       const ADMIN_PIN = '2500';
       const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
@@ -2842,50 +2885,8 @@
 
       // ========================================================
       // MICROCHURCH & PERFORMANCE LEADERBOARD CALCULATION ENGINE
+      // (ALL_MC_SHEPHERDS and mcMemberData defined at top of script)
       // ========================================================
-      ALL_MC_SHEPHERDS = [
-        { name: "Michael Ayisia",                      microchurch: "Tesano 1",             contact: "" },
-        { name: "Michael Ameyaw (Tesano 2)",           microchurch: "Tesano 2",             contact: "" },
-        { name: "Michael Ameyaw (Tesano 3)",           microchurch: "Tesano 3",             contact: "" },
-        { name: "Augustina Selinam Abbah",            microchurch: "Tesano 4",             contact: "" },
-        { name: "Blessing Solomon",                   microchurch: "Flat Top",             contact: "" },
-        { name: "Lp Esther Okronipa",                 microchurch: "Official Town",        contact: "" },
-        { name: "Benjamin Senyasu",                   microchurch: "Police Depot",         contact: "" },
-        { name: "Emmanuel Mensah",                    microchurch: "Bubiashie",            contact: "" },
-        { name: "Eric Appiah",                        microchurch: "North Kaneshie Online", contact: "" },
-        { name: "Alex Teye Ametepey",                 microchurch: "UG Legon",             contact: "" },
-        { name: "Rev Dr Ebenezer Okronipa (Afropa 2)", microchurch: "Afropa 2",             contact: "" },
-        { name: "Rev Dr Ebenezer Okronipa (Manasseh)", microchurch: "Manasseh",             contact: "" },
-        { name: "Rosemond Quaicoe",                   microchurch: "Nyamekye",             contact: "" },
-        { name: "Henry Mensah",                       microchurch: "Gbawe",                contact: "" },
-        { name: "Abigail Ankomah",                    microchurch: "Ablekuma-Agape",       contact: "" },
-        { name: "Alice Ametepey",                     microchurch: "Darkuman 3",           contact: "" },
-        { name: "Samuel Opare",                       microchurch: "New Fadama 2",         contact: "" },
-        { name: "Esther Doku",                        microchurch: "New-Fadama 1",         contact: "" },
-        { name: "Samuel Oteng",                       microchurch: "Nsakina",              contact: "" }
-      ];
-
-      window.mcMemberData = {
-        "Michael Ayisia": ["Addo Benedict","Harriet Mensah","Frank Armah","Thomas Daitey","Samuel Obeng","Caleb Dzifa","Joshua Anatsui"],
-        "Michael Ameyaw (Tesano 2)": ["Christiana Konzondong","Esther Konzondong","Felix Konzondong","Daniel"],
-        "Michael Ameyaw (Tesano 3)": ["Ashaley Badu","Rebecca Ankrah"],
-        "Augustina Selinam Abbah": ["Joel Amfo","Blessing Akoto","Aseda Munach","Elvis Abbey","Steven Tetteh Antwi","Regina Twum","Nasara Naa Issaka","Zakiatu Ibrahim","Martin Amponsah","Emmanuel Tetteh Akoto","Prince France","Princess France","Ababibatu Ibrahim","Rolanda France"],
-        "Blessing Solomon": ["Solomon Aziakah","Linda Solomon","Altheaella Bruce","Peniel Solomon","Shine Asinyo","Lucy Agbekornyi"],
-        "Lp Esther Okronipa": ["Gifty Ametepey","Ruth Yeboah"],
-        "Benjamin Senyasu": ["Mafred Normesinu Danquah","Mitchell Normesinu Danquah","Nina Asinyo","Adelaide Lamptey","Asinyo Martha","Lordina Amoah","Antony Boateng","Susan Selorm Budu"],
-        "Emmanuel Mensah": ["Valerie Ofooley","Jehoshaphat Mills","Christian Koomson","Aaron Ofori","Reginald Ofori","Prince Acquah","Kelvin Aryeetey","Bismark Duker","Esther Opare","George Otabil","Kwaku Baah","Theodora Mills","Miriam Opare","Hanson Dzebu","Karen Bonsu"],
-        "Eric Appiah": ["Louisa Ashong","Robert Ansah","Precious Mmeso","Princess Izubge","Annabelle Forson","Alexander Mantey","Ameyaw Mehra","Arnold Doe","Regina Kwardefio","Jackline Odoi","Lilian Amoh","Raymond Agbosu","Abena Owusu","Michelin Gyampoh"],
-        "Alex Teye Ametepey": ["Samuel Amon Kotey","Jeffrey Kleku","Millicent Kudawoo","Destiny Akadu","Mabel Sena Okyere"],
-        "Rev Dr Ebenezer Okronipa (Afropa 2)": ["Wilhelmina Komesour","Aisha Mohammed","Anatsui-Kemedo Akpene","Christiana Akosua Latibea","Celestine Baatu","Kukua McKay","Vivian Alottey","Georgina Gyane","Monica Aboagyewaa","Roselyn Okine","Frederica Okine","Freda Okine","Freeman Okine","Steven Okine","Francis Okine","Philip Ofosuhene","Louisa Nutakor","Boateng Jason","Boateng Kobby","Boateng Diamond","Kezia Ofosuhene","Kingsford Philip Quaicoo","Adom Ackah","Nadia Okine","Favour Okine","Harriet Ampofo","Ruth Dadzie"],
-        "Rev Dr Ebenezer Okronipa (Manasseh)": ["Justina Ackon","Rashida Alhassan","Abel Nego","Gentle Sordji","Christabel","Winnifred Ndobo","Latifa","Bernice Amuzu","Carol Nkansah","Nhyira Antwi","Abigail Antwi","Gloria Antwi"],
-        "Rosemond Quaicoe": ["Lydia Odame Antwi","Mrs Priscilla Effah","Edna Asare"],
-        "Henry Mensah": ["Patience Mensah","Bryan Mensah","Brielle Mensah","Fredrick","Cisse Quaye"],
-        "Abigail Ankomah": ["Jackson Ankomah","Vivian Mensah","Frederick Ankomah"],
-        "Alice Ametepey": ["Patience Addo","Samuel Boadu","Reginald Mensah","Kelvin Twumasi","Mikel Owusu","Nana Opoku","Cassandra Arthur","Ruby Lartey","Blessed Mensah","Gloria Lartey"],
-        "Samuel Opare": ["Janet Tetteh","Jedidiah Wiafe","Deborah Quaye","Albert Ladi Mensah","Daniella Ladi Mensah","Nathaniel Ladi Mensah","Johnathan Ladi Mensah","Joel Wiafe","Simon Wegah","Francis Awuku","Abigail Ayimbilah"],
-        "Esther Doku": ["Mama Doris Otumfour","Benjamin Justice Tandoh Arthur","Nadia Awentemi","Mr Ebenezer Okronipa Snr","Alexis Nhyira Destiny","Emmalyn Sackey","Clifford Obeng","Lawrencia Thompson"],
-        "Samuel Oteng": ["Rebecca Quaye","Mary Quaye","Laudice Quaye","Oscar Abane","Oswell Abane","Daniel Takan"]
-      };
 
       function isMcThisWeek(r) {
         var dateStr = r.submissionDate || r.sessionDate || r.date;
