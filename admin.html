@@ -2342,6 +2342,7 @@
         var panel = document.getElementById('panel-export');
         if (!panel) return;
         var ct = document.getElementById('contact-table');
+        if (!ct) return; // contact-table may not exist — skip safely
         ct.innerHTML = '<tr><th>#</th><th>Shepherd</th><th>Contact</th><th>Sessions (All Time)</th><th>This Week</th></tr>' +
           ALL_SHEPHERDS.map(function (s, i) {
             var total = allReports.filter(function (r) { return r.shepherd === s.name; }).length;
