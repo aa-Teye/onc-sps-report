@@ -2087,10 +2087,7 @@
           });
         }
 
-        // Re-render on every tab switch so data always shows immediately
-        if (allReports.length || allMicrochurchReports.length) {
-          renderAll();
-        }
+
 
         if (id === 'settings') {
           renderShepherdPinsTable();
@@ -3505,6 +3502,20 @@
           Object.keys(statMap).forEach(function(id) {
             var el = document.getElementById(id);
             if (el) { el.textContent = statMap[id]; el.classList.remove('shimmer'); }
+          });
+
+          var statIds = [
+            'mc-s-sessions', 'mc-s-reported', 
+            'mc-s-attendance', 'mc-s-prayer',
+            'mc-s-souls', 'mc-s-bible'
+          ];
+
+          statIds.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) {
+              el.classList.remove('shimmer');
+              el.style.color = '';
+            }
           });
 
           // Not-reported list
