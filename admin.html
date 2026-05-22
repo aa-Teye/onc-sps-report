@@ -2417,27 +2417,36 @@
       }
 
       function isThisWeek(r) {
-        var dateStr = r.submissionDate || r.sessionDate || r.date;
-        if (!dateStr) {
-          if (r.timestamp) {
-            var ts = new Date(r.timestamp);
-            var weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-            return ts >= weekAgo && ts <= new Date();
+        if (!r) return false;
+        var dateStr = r.submissionDate || r.sessionDate || r.date || '';
+        var reportDate = null;
+        
+        if (dateStr) {
+          var parts = dateStr.toString().split('/');
+          if (parts.length === 3) {
+            // DD/MM/YYYY format
+            reportDate = new Date(
+              parseInt(parts[2]), 
+              parseInt(parts[1]) - 1, 
+              parseInt(parts[0])
+            );
+          } else {
+            reportDate = new Date(dateStr);
           }
+        }
+        
+        if (!reportDate || isNaN(reportDate.getTime())) {
+          if (r.timestamp) reportDate = new Date(r.timestamp);
+        }
+        
+        if (!reportDate || isNaN(reportDate.getTime())) 
           return false;
-        }
-        var s = dateStr.toString();
-        var parts = s.split('/');
-        var reportDate;
-        if (parts.length >= 3) {
-          reportDate = new Date(parts[2], parts[1] - 1, parts[0]);
-        } else {
-          reportDate = new Date(s);
-        }
-        if (isNaN(reportDate)) return false;
+        
         var now = new Date();
-        var weekAgo2 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        return reportDate >= weekAgo2 && reportDate <= now;
+        var weekAgo = new Date(
+          now.getTime() - 7 * 24 * 60 * 60 * 1000
+        );
+        return reportDate >= weekAgo && reportDate <= now;
       }
 
       function getRate(r) {
@@ -3471,6 +3480,12 @@
           var mc = allMicrochurchReports || [];
 
           var weekly = mc.filter(function(r) { return isThisWeek(r); });
+          console.log('Weekly MC reports:', weekly.length);
+          console.log('All MC dates:', mc.map(function(r) { 
+            return r.submissionDate; 
+          }));
+          console.log('Today:', new Date().toLocaleDateString('en-GB'));
+          console.log('isThisWeek test:', isThisWeek(mc[0]));
           var reportedShepherds = [];
           weekly.forEach(function(r) {
             if (reportedShepherds.indexOf(r.shepherd) === -1) reportedShepherds.push(r.shepherd);
