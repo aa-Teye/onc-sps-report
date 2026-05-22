@@ -871,7 +871,7 @@
       right: 0;
       background: var(--navy);
       border-top: 1px solid rgba(255, 255, 255, .1);
-      z-index: 200;
+      z-index: 1010; /* high z-index above drawer overlay */
       padding: 6px 0 env(safe-area-inset-bottom);
     }
 
@@ -902,7 +902,66 @@
     }
 
     .btab-btn.active {
-      color: var(--accent);
+      color: #f0a500; /* gold highlight active item */
+    }
+
+    /* MOBILE DRAWER & OVERLAY */
+    .mobile-drawer {
+      position: fixed;
+      bottom: 60px;
+      left: 0;
+      right: 0;
+      background: #0f2044;
+      border-radius: 20px 20px 0 0;
+      padding: 20px;
+      z-index: 1000;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      max-height: 70vh;
+      overflow-y: auto;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
+      border-top: 2px solid #f0a500; /* Gold top border */
+    }
+
+    .mobile-drawer.open {
+      transform: translateY(0);
+    }
+
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      display: none;
+      backdrop-filter: blur(2px);
+    }
+
+    .drawer-overlay.open {
+      display: block;
+    }
+
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      color: rgba(255,255,255,0.8);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+    }
+
+    .drawer-item:hover {
+      background: rgba(255,255,255,0.08);
+      color: #f0a500;
+    }
+
+    .drawer-item.active {
+      background: rgba(240,165,0,0.15);
+      color: #f0a500;
     }
 
     /* RESPONSIVE */
@@ -1424,6 +1483,26 @@
                 Save New PIN</button>
               <div id="pin-msg" style="font-size:13px;font-weight:600;"></div>
             </div>
+          <div class="export-section">
+            <h3>🔑 Shepherd PIN Management</h3>
+            <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">Reset any shepherd's custom PIN back to the default <span style="font-weight:700;">0000</span>.</p>
+            <div style="display:flex;gap:10px;margin-bottom:14px;max-width:480px;align-items:center;">
+              <input type="text" id="shepherdPinSearch" placeholder="🔍 Search shepherd..." oninput="renderShepherdPinsTable()"
+                style="padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;flex:1;">
+            </div>
+            <div class="table-wrap" style="max-height: 350px; overflow-y: auto;">
+              <table style="width:100%;">
+                <thead>
+                  <tr>
+                    <th>Shepherd Name</th>
+                    <th>Stream</th>
+                    <th style="text-align:center;">Current PIN Status</th>
+                    <th style="text-align:center;width:120px;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="shepherdPinsTableBody"></tbody>
+              </table>
+            </div>
           </div>
           <div class="export-section">
             <h3>📞 Shepherd WhatsApp Contacts</h3>
@@ -1685,17 +1764,42 @@
     <!-- MOBILE BOTTOM TAB -->
     <div class="bottom-tab">
       <div class="bottom-tab-inner">
-        <button class="btab-btn active" onclick="switchTab('overview',this,true)"><span
-            class="icon">📊</span>Home</button>
-        <button class="btab-btn" onclick="switchTab('shepherds',this,true)"><span
-            class="icon">👥</span>Shepherds</button>
-        <button class="btab-btn" onclick="switchTab('members',this,true)"><span class="icon">🙋</span>Members</button>
-        <button class="btab-btn" onclick="switchTab('reports',this,true)"><span class="icon">📋</span>Reports</button>
-        <button class="btab-btn" onclick="switchTab('bible-study',this,true)"><span class="icon">📖</span>Bible</button>
-        <button class="btab-btn" onclick="switchTab('zones',this,true)"><span class="icon">🗂</span>Zones</button>
-        <button class="btab-btn" onclick="switchTab('export',this,true)"><span class="icon">📤</span>Export</button>
-        <button class="btab-btn" onclick="switchTab('resources',this,true)"><span class="icon">📚</span>Resources</button>
-        <button class="btab-btn" onclick="switchTab('settings',this,true)"><span class="icon">⚙</span>Settings</button>
+        <button class="btab-btn active" onclick="switchTab('overview',this,true)"><span class="icon">🏠</span>Home</button>
+        <button class="btab-btn" onclick="switchTab('shepherds',this,true)"><span class="icon">👥</span>SPS</button>
+        <button class="btab-btn" onclick="switchTab('mc-overview',this,true)"><span class="icon">⛪</span>MC</button>
+        <button class="btab-btn" id="btab-more" onclick="openDrawer()"><span class="icon">☰</span>More</button>
+      </div>
+    </div>
+
+    <!-- DRAWER OVERLAY -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+    <!-- MOBILE DRAWER -->
+    <div class="mobile-drawer" id="mobileDrawer">
+      <div style="font-weight: 800; color: #fff; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; opacity: 0.6; padding-left: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+        📂 Navigation Menu
+      </div>
+      <div class="drawer-item" onclick="drawerTab('members', this)"><span class="icon">🙋</span>Members</div>
+      <div class="drawer-item" onclick="drawerTab('reports', this)"><span class="icon">📋</span>Reports</div>
+      <div class="drawer-item" onclick="drawerTab('bible-study', this)"><span class="icon">📖</span>Bible Study</div>
+      <div class="drawer-item" onclick="drawerTab('zones', this)"><span class="icon">🗂</span>Zones</div>
+      <div class="drawer-item" onclick="drawerTab('export', this)"><span class="icon">📤</span>Export</div>
+      <div class="drawer-item" onclick="drawerTab('leaderboard', this)"><span class="icon">🏆</span>Leaderboard</div>
+      <div class="drawer-item" onclick="drawerTab('resources', this)"><span class="icon">📚</span>Resources</div>
+      <div class="drawer-item" onclick="drawerTab('settings', this)"><span class="icon">⚙</span>Settings</div>
+      <div class="drawer-item" onclick="closeDrawer(); logout()" style="color: #ef4444; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 12px; padding-top: 16px;"><span class="icon">🚪</span>Logout</div>
+    </div>
+
+    <!-- PROOF VIEWER MODAL OVERLAY -->
+    <div id="proofViewerModal" onclick="closeProofViewer()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.85);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px;">
+      <div onclick="event.stopPropagation()" style="background:#fff;border-radius:24px;border:3px solid #f0a500;padding:16px;max-width:600px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.5);text-align:center;position:relative;">
+        <button onclick="closeProofViewer()" style="position:absolute;top:-15px;right:-15px;background:#ef4444;border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,0.3);z-index:10;">✕</button>
+        <div style="font-weight:800;color:#0f2044;margin-bottom:12px;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;">
+          📸 Proof of Meeting Image
+        </div>
+        <div style="max-height:70vh;overflow:hidden;border-radius:12px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;">
+          <img id="proofViewerImg" src="" style="max-width:100%;max-height:65vh;object-fit:contain;display:block;">
+        </div>
       </div>
     </div>
 
@@ -1934,6 +2038,27 @@
       };
 
       function switchTab(id, btn, isMobile) {
+        if (id === 'settings') {
+          var unlocked = sessionStorage.getItem('onc_admin_settings_unlocked') === 'true';
+          if (!unlocked) {
+            var activePanel = document.querySelector('.tab-panel.active');
+            window.prevSettingsTabId = activePanel ? activePanel.id.replace('panel-', '') : 'overview';
+            window.prevSettingsTabBtn = btn || document.querySelector('.tab-btn.active, .btab-btn.active');
+            
+            // Show unlock modal
+            var err = document.getElementById('unlockErrorMsg');
+            if (err) err.style.display = 'none';
+            var inp = document.getElementById('settingsUnlockPinInput');
+            if (inp) {
+              inp.value = '';
+              setTimeout(function(){ inp.focus(); }, 150);
+            }
+            var modal = document.getElementById('settingsUnlockModal');
+            if (modal) modal.style.display = 'flex';
+            return;
+          }
+        }
+
         document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
         document.getElementById('panel-' + id).classList.add('active');
         document.getElementById('tabTitle').textContent = TAB_TITLES[id] || id;
@@ -1943,10 +2068,110 @@
           document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
           document.querySelectorAll('.btab-btn').forEach(function (b) { b.classList.remove('active'); });
         }
-        btn.classList.add('active');
+        if (btn) btn.classList.add('active');
+        
+        // Clear active drawer item highlight if we switch to a main bottom tab
+        if (id === 'overview' || id === 'shepherds' || id === 'mc-overview') {
+          document.querySelectorAll('.drawer-item').forEach(function(item) {
+            item.classList.remove('active');
+          });
+        }
+
         // Re-render on every tab switch so data always shows immediately
         if (allReports.length || allMicrochurchReports.length) {
           renderAll();
+        }
+
+        if (id === 'settings') {
+          renderShepherdPinsTable();
+        }
+      }
+
+      window.verifySettingsUnlock = function() {
+        var inputPin = document.getElementById('settingsUnlockPinInput').value;
+        var storedPin = localStorage.getItem('onc_pin') || '2500';
+        if (inputPin === storedPin) {
+          sessionStorage.setItem('onc_admin_settings_unlocked', 'true');
+          document.getElementById('settingsUnlockModal').style.display = 'none';
+          
+          // Switch to settings panel
+          switchTab('settings', window.prevSettingsTabBtn, false);
+        } else {
+          var err = document.getElementById('unlockErrorMsg');
+          if (err) {
+            err.textContent = '❌ Incorrect PIN. Access denied.';
+            err.style.display = 'block';
+          }
+          var inp = document.getElementById('settingsUnlockPinInput');
+          if (inp) {
+            inp.value = '';
+            inp.focus();
+          }
+        }
+      };
+
+      window.cancelUnlockSettings = function() {
+        document.getElementById('settingsUnlockModal').style.display = 'none';
+        // Go back to previous panel
+        if (window.prevSettingsTabId) {
+          var targetBtn = window.prevSettingsTabBtn;
+          if (!targetBtn) {
+            targetBtn = document.querySelector('.tab-btn[onclick*="' + window.prevSettingsTabId + '"]');
+          }
+          switchTab(window.prevSettingsTabId, targetBtn, false);
+        }
+      };
+
+      document.addEventListener("DOMContentLoaded", function() {
+        var pinInp = document.getElementById('settingsUnlockPinInput');
+        if (pinInp) {
+          pinInp.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+              verifySettingsUnlock();
+            }
+          });
+        }
+      });
+
+      function openDrawer() {
+        document.getElementById('mobileDrawer').classList.add('open');
+        document.getElementById('drawerOverlay').classList.add('open');
+      }
+
+      function closeDrawer() {
+        document.getElementById('mobileDrawer').classList.remove('open');
+        document.getElementById('drawerOverlay').classList.remove('open');
+      }
+
+      function drawerTab(tabId, el) {
+        closeDrawer();
+        
+        // Remove active class from drawer items
+        document.querySelectorAll('.drawer-item').forEach(function(item) {
+          item.classList.remove('active');
+        });
+        
+        // Highlight selected drawer item
+        if (el) el.classList.add('active');
+        
+        // Switch tab and pass More button as the active bottom bar item
+        var moreBtn = document.getElementById('btab-more');
+        switchTab(tabId, moreBtn, true);
+      }
+
+      function showProof(imgSrc) {
+        var modal = document.getElementById('proofViewerModal');
+        var img = document.getElementById('proofViewerImg');
+        if (modal && img) {
+          img.src = imgSrc;
+          modal.style.display = 'flex';
+        }
+      }
+
+      function closeProofViewer() {
+        var modal = document.getElementById('proofViewerModal');
+        if (modal) {
+          modal.style.display = 'none';
         }
       }
 
@@ -2574,7 +2799,33 @@
           var present = toArray(r.membersPresent).join(', ') || '—';
           var absent = toArray(r.membersAbsent).join(', ') || '—';
           var hasC = countConcerns(r);
-          return '<tr><td>' + (i + 1) + '</td><td>' + (r.sessionDate || r.date || '') + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td></tr>';
+
+          // 14 days auto-purge date validation for meeting proof photo
+          var showProofImg = false;
+          if (r.proofPhoto) {
+            var dateStr = r.sessionDate || r.date || r.submissionDate || '';
+            var reportDate = null;
+            if (dateStr.includes('/')) {
+              var parts = dateStr.split('/');
+              if (parts.length === 3) {
+                reportDate = new Date(parts[2], parts[1] - 1, parts[0]);
+              }
+            } else if (dateStr) {
+              reportDate = new Date(dateStr);
+            }
+            if (!reportDate && r.timestamp) {
+              reportDate = new Date(r.timestamp);
+            }
+            
+            var twoWeeksAgo = new Date();
+            twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+            if (reportDate && reportDate > twoWeeksAgo) {
+              showProofImg = true;
+            }
+          }
+          var proofHtml = showProofImg ? ' <span onclick="showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
+
+          return '<tr><td>' + (i + 1) + '</td><td>' + (r.sessionDate || r.date || '') + proofHtml + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td></tr>';
         }).join('') : '<tr><td colspan="10" class="empty"><div class="icon">📭</div><p>No reports match filters</p></td></tr>';
       }
 
@@ -3410,9 +3661,35 @@
         tbody.innerHTML = sorted.map(function(r, i) {
           var rate = parseFloat(r.attendanceRate) || 0;
           var pct = rate > 1 ? Math.round(rate) : Math.round(rate * 100);
+
+          // 14 days auto-purge date validation for meeting proof photo
+          var showProofImg = false;
+          if (r.proofPhoto) {
+            var dateStr = r.submissionDate || r.sessionDate || r.date || '';
+            var reportDate = null;
+            if (dateStr.includes('/')) {
+              var parts = dateStr.split('/');
+              if (parts.length === 3) {
+                reportDate = new Date(parts[2], parts[1] - 1, parts[0]);
+              }
+            } else if (dateStr) {
+              reportDate = new Date(dateStr);
+            }
+            if (!reportDate && r.timestamp) {
+              reportDate = new Date(r.timestamp);
+            }
+            
+            var twoWeeksAgo = new Date();
+            twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+            if (reportDate && reportDate > twoWeeksAgo) {
+              showProofImg = true;
+            }
+          }
+          var proofHtml = showProofImg ? ' <span onclick="showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
+
           return '<tr>' +
             '<td>' + (i+1) + '</td>' +
-            '<td>' + (r.submissionDate || '—') + '</td>' +
+            '<td>' + (r.submissionDate || '—') + proofHtml + '</td>' +
             '<td>' + (r.submissionDay || '—') + '</td>' +
             '<td>' + (formatTime(r.submissionTime) || '—') + '</td>' +
             '<td><strong>' + (r.shepherd || '—') + '</strong></td>' +
@@ -3664,7 +3941,93 @@
 
         doc.save('ONC_Microchurch_Report_' + new Date().toISOString().split('T')[0] + '.pdf');
       }
-    </script>
-</body>
 
+      window.renderShepherdPinsTable = function() {
+        var tbody = document.getElementById('shepherdPinsTableBody');
+        if (!tbody) return;
+
+        var searchQuery = (document.getElementById('shepherdPinSearch')?.value || '').toLowerCase().trim();
+
+        // Combine all shepherds alphabetically
+        var spsNames = ALL_SHEPHERDS.map(function(s) { return { name: s.name, type: 'SPS Shepherd' }; });
+        var mcNames = ALL_MC_SHEPHERDS.map(function(s) { return { name: s.name, type: 'Microchurch' }; });
+        var allCombined = spsNames.concat(mcNames).sort(function(a, b) {
+          return a.name.localeCompare(b.name);
+        });
+
+        // Load custom pins from localstorage
+        var customPins = {};
+        try {
+          customPins = JSON.parse(localStorage.getItem('onc_shepherd_pins') || '{}');
+        } catch (e) {}
+
+        var rowsHtml = '';
+        allCombined.forEach(function(shep) {
+          if (searchQuery && !shep.name.toLowerCase().includes(searchQuery)) {
+            return;
+          }
+
+          var hasCustomPin = customPins[shep.name] !== undefined && customPins[shep.name] !== '0000';
+          var statusBadge = hasCustomPin 
+            ? '<span class="badge" style="background:#dbeafe;color:#2563eb;font-weight:700;padding:4px 8px;border-radius:6px;font-size:11px;">Custom Set</span>' 
+            : '<span class="badge" style="background:#f1f5f9;color:#64748b;font-weight:700;padding:4px 8px;border-radius:6px;font-size:11px;">Default (0000)</span>';
+          
+          var actionBtn = hasCustomPin 
+            ? '<button onclick="resetShepherdPin(\'' + shep.name.replace(/'/g, "\\'") + '\')" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;width:100%;transition:background .2s;">Reset to 0000</button>'
+            : '<button disabled style="padding:6px 12px;background:#cbd5e1;color:#94a3b8;border:none;border-radius:8px;font-size:12px;font-weight:700;width:100%;cursor:not-allowed;">Reset</button>';
+
+          rowsHtml += '<tr>' +
+            '<td style="font-weight:700;color:var(--navy);">' + shep.name + '</td>' +
+            '<td>' + shep.type + '</td>' +
+            '<td style="text-align:center;">' + statusBadge + '</td>' +
+            '<td style="text-align:center;">' + actionBtn + '</td>' +
+            '</tr>';
+        });
+
+        if (!rowsHtml) {
+          rowsHtml = '<tr><td colspan="4" style="text-align:center;color:var(--gray);padding:20px;">No shepherds found matching search.</td></tr>';
+        }
+
+        tbody.innerHTML = rowsHtml;
+      };
+
+      window.resetShepherdPin = function(name) {
+        if (confirm('Are you sure you want to reset ' + name + '\'s PIN back to the default "0000"?')) {
+          var customPins = {};
+          try {
+            customPins = JSON.parse(localStorage.getItem('onc_shepherd_pins') || '{}');
+          } catch (e) {}
+
+          delete customPins[name];
+          localStorage.setItem('onc_shepherd_pins', JSON.stringify(customPins));
+          alert('Successfully reset ' + name + '\'s PIN back to default 0000!');
+          renderShepherdPinsTable();
+        }
+      };
+    </script>
+    <!-- SETTINGS UNLOCK MODAL -->
+  <div id="settingsUnlockModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px;">
+    <div style="background:#fff;border-radius:24px;border:3px solid #f0a500;width:100%;max-width:400px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#0f2044;font-family:'Outfit',sans-serif;position:relative;text-align:center;">
+      
+      <!-- Close button -->
+      <button onclick="cancelUnlockSettings()" style="position:absolute;top:20px;right:20px;background:rgba(15,32,68,0.08);border:none;color:#0f2044;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;font-weight:bold;">✕</button>
+
+      <div style="font-size:36px;margin-bottom:8px;">🔒</div>
+      <h2 style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:#0f2044;margin:0 0 6px;">Settings Tab Locked</h2>
+      <p style="font-size:13px;color:#64748b;margin:0 0 24px;">Please enter your Admin PIN to proceed</p>
+
+      <div class="field" style="text-align:left;margin-bottom:20px;">
+        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:1px;">Enter Admin PIN</label>
+        <input type="password" id="settingsUnlockPinInput" placeholder="••••" maxlength="6"
+          style="width:100%;padding:14px;border:2px solid #dce7f7;border-radius:12px;font-family:Outfit,sans-serif;font-size:24px;letter-spacing:8px;text-align:center;color:#0f2044;background:#f0f5ff;outline:none;margin-top:8px;">
+      </div>
+
+      <p id="unlockErrorMsg" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-bottom:16px;"></p>
+
+      <button type="button" onclick="verifySettingsUnlock()" style="width: 100%; padding: 16px; background: #0f2044; color: #fff; border: none; border-radius: 12px; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 15px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(15, 32, 68, 0.15);">
+        🔓 Access Settings
+      </button>
+    </div>
+  </div>
+</body>
 </html>
