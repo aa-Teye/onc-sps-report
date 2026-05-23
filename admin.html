@@ -1066,7 +1066,6 @@
           <option value="superadmin">👑 Super Admin</option>
           <option value="admin">🔐 Admin</option>
           <option value="zoneleader">🗂 Zone Leader</option>
-          <option value="viewonly">👁 View Only</option>
         </select>
       </div>
       <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6"
@@ -1957,10 +1956,9 @@
       var ROLE_PINS = {
         superadmin: localStorage.getItem('onc_pin') || '2500',
         admin: '1500',
-        zoneleader: '1000',
-        viewonly: '0500'
+        zoneleader: '1000'
       };
-      var currentRole = 'viewonly';
+      var currentRole = 'zoneleader';
       var currentZoneLeader = 'Example Leader';
       const ALL_MC_SHEPHERDS = [
         { name: "Michael Ayisia", microchurch: "Tesano 1", contact: "548201673" },
@@ -2202,31 +2200,11 @@
             mSettingsBtn.style.display = 'flex';
         }
         
-        // Hide Export for view only
-        if (role === 'viewonly') {
-          var exportBtn = document.querySelector('.tab-btn[onclick*="export"]');
-          if (exportBtn) 
-            exportBtn.style.display = 'none';
-          
-          // Hide export buttons
-          document.querySelectorAll('.btn-export').forEach(function(btn) {
-            btn.style.display = 'none';
-          });
-        } else {
-          var exportBtn = document.querySelector('.tab-btn[onclick*="export"]');
-          if (exportBtn) 
-            exportBtn.style.display = 'flex';
-          document.querySelectorAll('.btn-export').forEach(function(btn) {
-            btn.style.display = 'inline-block';
-          });
-        }
-        
         // Show role badge in topbar
         var roleBadges = {
           superadmin: '👑 Super Admin',
           admin: '🔐 Admin', 
-          zoneleader: '🗂 Zone Leader',
-          viewonly: '👁 View Only'
+          zoneleader: '🗂 Zone Leader'
         };
         
         var oldBadge = document.getElementById('roleBadge');
@@ -2262,11 +2240,6 @@
         if (settingsBtn) settingsBtn.style.display = '';
         var mSettingsBtn = document.querySelector('.drawer-item[onclick*="settings"]');
         if (mSettingsBtn) mSettingsBtn.style.display = '';
-        var exportBtn = document.querySelector('.tab-btn[onclick*="export"]');
-        if (exportBtn) exportBtn.style.display = '';
-        document.querySelectorAll('.btn-export').forEach(function(btn) {
-          btn.style.display = '';
-        });
       }
 
       var TAB_TITLES = {
