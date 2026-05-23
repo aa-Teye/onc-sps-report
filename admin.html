@@ -1044,6 +1044,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -1110,6 +1111,8 @@
             Analytics</div>
           <button class="tab-btn" onclick="switchTab('leaderboard',this)"><span class="icon">🏆</span><span
               class="tab-btn-label">Leaderboard</span></button>
+          <button class="tab-btn" onclick="switchTab('analytics',this)"><span class="icon">📊</span><span
+              class="tab-btn-label">Analytics</span></button>
 
           <div
             style="padding: 14px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;">
@@ -1822,7 +1825,63 @@
                   style="font-size:18px;font-weight:900;color:var(--navy);margin-bottom:20px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--light);padding-bottom:12px;">
                   ⛪ Microchurch Shepherds Stream</div>
                 <div id="mcLeaderboardList" style="display:flex;flex-direction:column;gap:16px;"></div>
+            </div>
+          </div>
+
+          <!-- TAB 14: ANALYTICS -->
+          <div class="tab-panel" id="panel-analytics">
+            <h2 style="margin-bottom:24px;">📊 Analytics Dashboard</h2>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+              
+              <!-- Chart 1: Attendance Rate per Shepherd -->
+              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
+                  👥 SPS Attendance Rate by Shepherd
+                </h3>
+                <canvas id="chartAttendance"></canvas>
               </div>
+
+              <!-- Chart 2: Reporting Rate Pie -->
+              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
+                  📋 Reporting Rate This Week
+                </h3>
+                <canvas id="chartReporting"></canvas>
+              </div>
+
+              <!-- Chart 3: Prayer Done -->
+              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
+                  🙏 Prayer Sessions This Week
+                </h3>
+                <canvas id="chartPrayer"></canvas>
+              </div>
+
+              <!-- Chart 4: MC Attendance -->
+              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
+                  ⛪ MC Attendance Rate by Shepherd
+                </h3>
+                <canvas id="chartMcAttendance"></canvas>
+              </div>
+
+              <!-- Chart 5: New Souls Trend -->
+              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
+                  ✨ New Souls Won (MC)
+                </h3>
+                <canvas id="chartNewSouls"></canvas>
+              </div>
+
+              <!-- Chart 6: Bible Coverage -->
+              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
+                  📖 Bible Topic Coverage
+                </h3>
+                <canvas id="chartBible"></canvas>
+              </div>
+
             </div>
           </div>
 
@@ -1856,6 +1915,7 @@
       <div class="drawer-item" onclick="drawerTab('zones', this)"><span class="icon">🗂</span>Zones</div>
       <div class="drawer-item" onclick="drawerTab('export', this)"><span class="icon">📤</span>Export</div>
       <div class="drawer-item" onclick="drawerTab('leaderboard', this)"><span class="icon">🏆</span>Leaderboard</div>
+      <div class="drawer-item" onclick="drawerTab('analytics', this)"><span class="icon">📊</span>Analytics</div>
       <div class="drawer-item" onclick="drawerTab('resources', this)"><span class="icon">📚</span>Resources</div>
       <div class="drawer-item" onclick="drawerTab('settings', this)"><span class="icon">⚙</span>Settings</div>
       <div class="drawer-item" onclick="closeDrawer(); logout()"
@@ -2113,7 +2173,7 @@
       var TAB_TITLES = {
         overview: 'Overview', shepherds: 'Shepherds', members: 'Members', reports: 'All Reports', topics: 'Bible Topics', attendance: 'Attendance', export: 'Export & Contacts',
         'mc-overview': 'Microchurch Overview', 'mc-shepherds': 'Microchurch Shepherds', 'mc-members': 'Microchurch Members', 'mc-reports': 'Microchurch Reports Logs',
-        'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings'
+        'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings', analytics: 'Analytics Dashboard'
       };
 
       function switchTab(id, btn, isMobile) {
@@ -2164,6 +2224,11 @@
             renderMcShepherds();
             renderMcMembers();
             renderMcReports();
+          }, 150);
+        }
+        if (id === 'analytics') {
+          setTimeout(function() {
+            renderAnalytics();
           }, 150);
         }
         if (id === 'settings') {
@@ -3578,6 +3643,201 @@
         var str = val.toString();
         if (str.startsWith('[L') || str.startsWith('[')) return 0;
         return parseInt(str) || 0;
+      }
+
+      var analyticsCharts = {};
+
+      function renderAnalytics() {
+        var weekly = allReports.filter(isThisWeek);
+        var mcWeekly = allMicrochurchReports.filter(isThisWeek);
+
+        // Chart 1: SPS Attendance Rate per Shepherd
+        var shepNames = ALL_SHEPHERDS.map(function(s) {
+          return s.name.split(' ')[0] + ' ' + 
+            (s.name.split(' ')[1] || '');
+        });
+        var shepRates = ALL_SHEPHERDS.map(function(s) {
+          var reps = weekly.filter(function(r) {
+            return r.shepherd === s.name;
+          });
+          if (!reps.length) return 0;
+          return Math.round(reps.reduce(function(a,r) {
+            return a + getRate(r);
+          }, 0) / reps.length);
+        });
+
+        if (analyticsCharts.attendance) 
+          analyticsCharts.attendance.destroy();
+        var ctx1 = document.getElementById(
+          'chartAttendance').getContext('2d');
+        analyticsCharts.attendance = new Chart(ctx1, {
+          type: 'bar',
+          data: {
+            labels: shepNames,
+            datasets: [{
+              label: 'Attendance Rate %',
+              data: shepRates,
+              backgroundColor: '#3b82f6',
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { min: 0, max: 100 } }
+          }
+        });
+
+        // Chart 2: Reporting Rate Pie
+        var reported = new Set(weekly.map(function(r) {
+          return r.shepherd;
+        })).size;
+        var notReported = 22 - reported;
+
+        if (analyticsCharts.reporting) 
+          analyticsCharts.reporting.destroy();
+        var ctx2 = document.getElementById(
+          'chartReporting').getContext('2d');
+        analyticsCharts.reporting = new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+            labels: ['Reported', 'Not Reported'],
+            datasets: [{
+              data: [reported, notReported],
+              backgroundColor: ['#22c55e', '#ef4444'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+
+        // Chart 3: Prayer Done Pie
+        var prayerYes = weekly.filter(function(r) {
+          return r.prayerDone === 'yes';
+        }).length;
+        var prayerNo = weekly.length - prayerYes;
+
+        if (analyticsCharts.prayer) 
+          analyticsCharts.prayer.destroy();
+        var ctx3 = document.getElementById(
+          'chartPrayer').getContext('2d');
+        analyticsCharts.prayer = new Chart(ctx3, {
+          type: 'doughnut',
+          data: {
+            labels: ['Prayer Done', 'No Prayer'],
+            datasets: [{
+              data: [prayerYes, prayerNo],
+              backgroundColor: ['#f59e0b', '#94a3b8'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+
+        // Chart 4: MC Attendance Rate
+        var mcNames = ALL_MC_SHEPHERDS.map(function(s) {
+          return s.name.split(' ')[0];
+        });
+        var mcRates = ALL_MC_SHEPHERDS.map(function(s) {
+          var reps = mcWeekly.filter(function(r) {
+            return r.shepherd === s.name;
+          });
+          if (!reps.length) return 0;
+          return Math.round(reps.reduce(function(a,r) {
+            var rate = parseFloat(r.attendanceRate) || 0;
+            return a + (rate > 1 ? rate : rate * 100);
+          }, 0) / reps.length);
+        });
+
+        if (analyticsCharts.mcAttendance) 
+          analyticsCharts.mcAttendance.destroy();
+        var ctx4 = document.getElementById(
+          'chartMcAttendance').getContext('2d');
+        analyticsCharts.mcAttendance = new Chart(ctx4, {
+          type: 'bar',
+          data: {
+            labels: mcNames,
+            datasets: [{
+              label: 'MC Attendance %',
+              data: mcRates,
+              backgroundColor: '#8b5cf6',
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { min: 0, max: 100 } }
+          }
+        });
+
+        // Chart 5: New Souls per MC Shepherd
+        var mcSouls = ALL_MC_SHEPHERDS.map(function(s) {
+          return mcWeekly.filter(function(r) {
+            return r.shepherd === s.name;
+          }).reduce(function(sum, r) {
+            return sum + parseSouls(r.newSouls);
+          }, 0);
+        });
+
+        if (analyticsCharts.newSouls) 
+          analyticsCharts.newSouls.destroy();
+        var ctx5 = document.getElementById(
+          'chartNewSouls').getContext('2d');
+        analyticsCharts.newSouls = new Chart(ctx5, {
+          type: 'bar',
+          data: {
+            labels: mcNames,
+            datasets: [{
+              label: 'New Souls',
+              data: mcSouls,
+              backgroundColor: '#f0a500',
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+          }
+        });
+
+        // Chart 6: Bible Coverage
+        var bibleYes = weekly.filter(function(r) {
+          return r.topicCovered === 'yes';
+        }).length;
+        var bibleNo = weekly.length - bibleYes;
+
+        if (analyticsCharts.bible) 
+          analyticsCharts.bible.destroy();
+        var ctx6 = document.getElementById(
+          'chartBible').getContext('2d');
+        analyticsCharts.bible = new Chart(ctx6, {
+          type: 'doughnut',
+          data: {
+            labels: ['Topic Covered', 'Not Covered'],
+            datasets: [{
+              data: [bibleYes, bibleNo],
+              backgroundColor: ['#0a1628', '#e2e8f0'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
       }
 
       function renderMcOverview() {
