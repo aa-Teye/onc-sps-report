@@ -2151,8 +2151,10 @@
             item.classList.remove('active');
           });
         }
-        if (id === 'mc-overview' || id === 'mc-shepherds' || 
-            id === 'mc-members' || id === 'mc-reports') {
+        if (id === 'mc-overview' || 
+            id === 'mc-shepherds' || 
+            id === 'mc-members' || 
+            id === 'mc-reports') {
           setTimeout(function() {
             renderMcOverview();
             renderMcShepherds();
