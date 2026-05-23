@@ -1056,6 +1056,19 @@
           alt="ONC Logo"></div>
       <h2>Admin Dashboard</h2>
       <p>SPS Management Portal<br>Overcomers Nation Church</p>
+      <div style="margin-bottom:16px;">
+        <select id="roleSelect" 
+          style="width:100%;padding:12px;
+          border:2px solid var(--border);
+          border-radius:10px;font-family:inherit;
+          font-size:14px;color:var(--navy);
+          background:white;outline:none;">
+          <option value="superadmin">👑 Super Admin</option>
+          <option value="admin">🔐 Admin</option>
+          <option value="zoneleader">🗂 Zone Leader</option>
+          <option value="viewonly">👁 View Only</option>
+        </select>
+      </div>
       <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6"
         onkeydown="if(event.key==='Enter')checkPin()">
       <button class="login-btn" onclick="checkPin()">🔐 Enter Dashboard</button>
@@ -1940,6 +1953,15 @@
       var _loadAllRunning = false;
       var allReports = [];
       var allMicrochurchReports = [];
+
+      var ROLE_PINS = {
+        superadmin: localStorage.getItem('onc_pin') || '2500',
+        admin: '1500',
+        zoneleader: '1000',
+        viewonly: '0500'
+      };
+      var currentRole = 'viewonly';
+      var currentZoneLeader = 'Example Leader';
       const ALL_MC_SHEPHERDS = [
         { name: "Michael Ayisia", microchurch: "Tesano 1", contact: "548201673" },
         { name: "Michael Ameyaw (Tesano 2)", microchurch: "Tesano 2", contact: "240727654" },
@@ -2130,8 +2152,11 @@
 
       function checkPin() {
         var pin = document.getElementById('pinInput').value;
-        var storedPin = localStorage.getItem('onc_pin') || '2500';
-        if (pin === storedPin) {
+        var role = document.getElementById('roleSelect').value;
+        var correctPin = ROLE_PINS[role];
+
+        if (pin === correctPin) {
+          currentRole = role;
           document.getElementById('loginScreen').style.display = 'none';
           document.getElementById('dashboard').style.display = 'block';
 
@@ -2149,11 +2174,77 @@
           keepWarm();
           setInterval(loadAll, 120000);
           setInterval(keepWarm, 4 * 60 * 1000);
-
+          applyRoleRestrictions();
         } else {
           document.getElementById('loginError').style.display = 'block';
           document.getElementById('pinInput').value = '';
           document.getElementById('pinInput').focus();
+        }
+      }
+
+      function applyRoleRestrictions() {
+        var role = currentRole;
+        
+        // Hide Settings for non-super-admin
+        if (role !== 'superadmin') {
+          var settingsBtn = document.querySelector('.tab-btn[onclick*="settings"]');
+          if (settingsBtn) 
+            settingsBtn.style.display = 'none';
+          var mSettingsBtn = document.querySelector('.drawer-item[onclick*="settings"]');
+          if (mSettingsBtn)
+            mSettingsBtn.style.display = 'none';
+        } else {
+          var settingsBtn = document.querySelector('.tab-btn[onclick*="settings"]');
+          if (settingsBtn) 
+            settingsBtn.style.display = 'flex';
+          var mSettingsBtn = document.querySelector('.drawer-item[onclick*="settings"]');
+          if (mSettingsBtn)
+            mSettingsBtn.style.display = 'flex';
+        }
+        
+        // Hide Export for view only
+        if (role === 'viewonly') {
+          var exportBtn = document.querySelector('.tab-btn[onclick*="export"]');
+          if (exportBtn) 
+            exportBtn.style.display = 'none';
+          
+          // Hide export buttons
+          document.querySelectorAll('.btn-export').forEach(function(btn) {
+            btn.style.display = 'none';
+          });
+        } else {
+          var exportBtn = document.querySelector('.tab-btn[onclick*="export"]');
+          if (exportBtn) 
+            exportBtn.style.display = 'flex';
+          document.querySelectorAll('.btn-export').forEach(function(btn) {
+            btn.style.display = 'inline-block';
+          });
+        }
+        
+        // Show role badge in topbar
+        var roleBadges = {
+          superadmin: '👑 Super Admin',
+          admin: '🔐 Admin', 
+          zoneleader: '🗂 Zone Leader',
+          viewonly: '👁 View Only'
+        };
+        
+        var oldBadge = document.getElementById('roleBadge');
+        if (oldBadge) {
+          oldBadge.remove();
+        }
+
+        var topbar = document.getElementById('tabTitle');
+        var roleEl = document.createElement('span');
+        roleEl.id = 'roleBadge';
+        roleEl.style.cssText = 
+          'font-size:12px;font-weight:700;' +
+          'padding:4px 10px;border-radius:20px;' +
+          'background:rgba(59,130,246,0.15);' +
+          'color:#3b82f6;margin-left:12px;display:inline-block;vertical-align:middle;';
+        roleEl.textContent = roleBadges[role];
+        if (topbar && topbar.parentNode) {
+          topbar.parentNode.insertBefore(roleEl, topbar.nextSibling);
         }
       }
 
@@ -2163,6 +2254,19 @@
         document.getElementById('dashboard').style.display = 'none';
         document.getElementById('pinInput').value = '';
         document.getElementById('loginError').style.display = 'none';
+
+        var oldBadge = document.getElementById('roleBadge');
+        if (oldBadge) oldBadge.remove();
+
+        var settingsBtn = document.querySelector('.tab-btn[onclick*="settings"]');
+        if (settingsBtn) settingsBtn.style.display = '';
+        var mSettingsBtn = document.querySelector('.drawer-item[onclick*="settings"]');
+        if (mSettingsBtn) mSettingsBtn.style.display = '';
+        var exportBtn = document.querySelector('.tab-btn[onclick*="export"]');
+        if (exportBtn) exportBtn.style.display = '';
+        document.querySelectorAll('.btn-export').forEach(function(btn) {
+          btn.style.display = '';
+        });
       }
 
       var TAB_TITLES = {
@@ -2910,7 +3014,26 @@
         var now = new Date();
         var grid = document.getElementById('shepherd-grid');
         var html = '';
-        ALL_SHEPHERDS.forEach(function (s) {
+
+        // Zone Leader restriction framework
+        var visibleShepherds = ALL_SHEPHERDS;
+        if (currentRole === 'zoneleader') {
+          var zoneConfig = [];
+          try {
+            zoneConfig = JSON.parse(localStorage.getItem('onc_zones') || '[]');
+          } catch (e) {}
+          var myZone = zoneConfig.find(function(z) {
+            return z.supershepherd === currentZoneLeader;
+          });
+          if (myZone) {
+            var myShepherds = myZone.shepherds || [];
+            visibleShepherds = ALL_SHEPHERDS.filter(function(s) {
+              return myShepherds.includes(s.name);
+            });
+          }
+        }
+
+        visibleShepherds.forEach(function (s) {
           var reps = allReports.filter(function (r) { return r.shepherd === s.name; });
           var weekReps = reps.filter(isThisWeek);
           var lastRep = reps.sort(function (a, b) { return new Date(b.timestamp) - new Date(a.timestamp); })[0];
