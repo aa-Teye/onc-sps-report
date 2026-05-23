@@ -2441,30 +2441,65 @@
       // Ping every 4 minutes to prevent cold starts
       setInterval(keepWarm, 4 * 60 * 1000);
 
+      window.onSpsReportsLoaded = function(data) {
+        if (data && data.reports) {
+          allReports = data.reports;
+          localStorage.setItem('onc_cached_reports',
+            JSON.stringify(allReports));
+        }
+
+        var old = document.getElementById('mcReportsScript');
+        if (old && old.parentNode) 
+          old.parentNode.removeChild(old);
+
+        var script = document.createElement('script');
+        script.id = 'mcReportsScript';
+        script.src = SCRIPT_URL + 
+          '?action=getMicrochurchReports' +
+          '&callback=onMcReportsLoaded';
+        script.onerror = function() {
+          console.error('MC reports load failed');
+          _loadAllRunning = false;
+          hideShimmer();
+        };
+        document.head.appendChild(script);
+      };
+
+      window.onMcReportsLoaded = function(data) {
+        if (data && data.reports) {
+          allMicrochurchReports = data.reports;
+          localStorage.setItem('onc_cached_mc_reports',
+            JSON.stringify(allMicrochurchReports));
+        }
+        _loadAllRunning = false;
+        hideShimmer();
+        renderAll();
+        var now = new Date();
+        var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('lastUpdated').textContent = 'Updated ' + timeStr;
+      };
+
       function loadAll() {
         if (_loadAllRunning) return;
         _loadAllRunning = true;
         showShimmer();
         document.getElementById('lastUpdated').textContent = 'Loading...';
-        fetchData('getReports', function (spsData) {
-          allReports = (spsData && spsData.reports) ?
-            spsData.reports : [];
-          localStorage.setItem('onc_cached_reports',
-            JSON.stringify(allReports));
 
-          fetchData('getMicrochurchReports', function (mcData) {
-            allMicrochurchReports = (mcData && mcData.reports) ?
-              mcData.reports : [];
-            localStorage.setItem('onc_cached_mc_reports',
-              JSON.stringify(allMicrochurchReports));
-            _loadAllRunning = false;
-            hideShimmer();
-            renderAll();
-            var now = new Date();
-            var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('lastUpdated').textContent = 'Updated ' + timeStr;
-          });
-        });
+        var old2 = document.getElementById('spsReportsScript');
+        if (old2 && old2.parentNode) 
+          old2.parentNode.removeChild(old2);
+
+        var script2 = document.createElement('script');
+        script2.id = 'spsReportsScript';
+        script2.src = SCRIPT_URL + 
+          '?action=getReports' +
+          '&callback=onSpsReportsLoaded';
+        script2.onerror = function() {
+          console.error('SPS reports load failed');
+          _loadAllRunning = false;
+          hideShimmer();
+        };
+        document.head.appendChild(script2);
       }
       var loadAllData = loadAll; // alias — both names work
 
