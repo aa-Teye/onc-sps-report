@@ -2228,7 +2228,9 @@
         }
         if (id === 'analytics') {
           setTimeout(function() {
-            renderAnalytics();
+            if (typeof renderAnalytics === 'function') {
+              renderAnalytics();
+            }
           }, 150);
         }
         if (id === 'settings') {
