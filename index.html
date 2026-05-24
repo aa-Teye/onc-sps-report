@@ -570,12 +570,41 @@
     <div class="card" id="mainCard">
       <div class="steps" id="progressSteps" style="display:none;"></div>
 
+      <!-- SEC WHO ARE YOU: CHOOSE SHEPHERD TYPE -->
+      <div class="section" id="secWhoAreYou">
+        <div style="text-align:center; padding:20px 0;">
+          <img src="logo.png" style="width:80px; height:80px; border-radius:50%; margin-bottom:16px;">
+          <h2 style="font-family:'Nunito',sans-serif; font-weight:900; font-size:22px; color:var(--navy); margin-bottom:8px;">
+            Welcome to ONC Shepherd Portal
+          </h2>
+          <p style="color:var(--gray); font-size:14px; margin-bottom:32px;">
+            Who are you?
+          </p>
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <button onclick="selectShepherdType('sps')"
+            style="padding:20px; border-radius:16px; background:var(--navy); color:white; border:none; font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
+            🙏 SPS Shepherd
+          </button>
+          <button onclick="selectShepherdType('mc')"
+            style="padding:20px; border-radius:16px; background:white; color:var(--navy); border:2px solid var(--navy); font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
+            ⛪ Microchurch Shepherd
+          </button>
+        </div>
+      </div>
+
       <!-- SEC LOGIN: SHEPHERD AUTHENTICATION -->
       <div class="section" id="secLogin" style="text-align: center; display: none;">
+        <div style="display:flex; justify-content: flex-start; margin-bottom: 12px;">
+          <button type="button" onclick="goBackToWhoAreYou()" style="background:none; border:none; color:var(--navy); font-weight:700; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:6px;">
+            ← Back
+          </button>
+        </div>
         <div class="logo-ring" style="margin: 0 auto 16px; background: linear-gradient(135deg, var(--gold), #f5c842); box-shadow: 0 8px 24px rgba(240, 165, 0, 0.35); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
           <img src="logo.png" style="width:72px;height:72px;border-radius:50%;object-fit:cover;" alt="ONC Logo">
         </div>
-        <h2 style="font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 22px; color: var(--navy); margin-bottom: 6px;">ONC Shepherd Portal</h2>
+        <h2 id="loginTitle" style="font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 20px; color: var(--navy); margin-bottom: 6px;">ONC Shepherd Portal</h2>
         <p style="font-size: 13px; color: var(--gray); margin-bottom: 24px;">Please authenticate to access reporting forms</p>
         
         <div class="field" style="text-align: left; margin-bottom: 16px;">
@@ -597,15 +626,6 @@
         <button type="button" onclick="verifyShepherdLogin()" style="width: 100%; padding: 16px; background: #0f2044; color: #fff; border: none; border-radius: 12px; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 15px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(15, 32, 68, 0.15);">
           🔓 Verify & Enter Portal
         </button>
-
-        <div style="display:flex; gap:10px; margin-top:14px;">
-          <button type="button" onclick="openChangePinModal()" style="width: 50%; padding: 12px; background: transparent; color: #0f2044; border: 2px solid #0f2044; border-radius: 12px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">
-            🔑 Change PIN
-          </button>
-          <button type="button" onclick="openResources()" style="width: 50%; padding: 12px; background: transparent; color: #0f2044; border: 2px solid #0f2044; border-radius: 12px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">
-            📚 Resources
-          </button>
-        </div>
 
         <p style="font-size: 12px; color: #64748b; margin-top: 16px; font-weight: 600;">
           💡 First time? Use default PIN: <span style="color: var(--accent); font-weight: 800;">0000</span>
@@ -650,24 +670,55 @@
 
       <!-- SEC LANDING: WELCOME -->
       <div class="section" id="secLanding">
-        <div class="card-title" style="margin-bottom: 24px; text-align: center; justify-content: center; font-size: 19px;">
-          Welcome to ONC SPS System
+        <div style="text-align:center;margin-bottom:32px;">
+          <div id="welcomeMsg" style="font-size:22px;
+            font-weight:900;color:var(--navy);
+            margin-bottom:8px;">
+            Welcome!
+          </div>
+          <div style="color:var(--gray);font-size:14px;">
+            What would you like to do today?
+          </div>
         </div>
-        <p style="text-align: center; color: var(--gray); font-size: 14px; margin-bottom: 28px; line-height: 1.5;">
-          Who are you reporting as today?
-        </p>
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <button type="button" class="yn-btn yes" onclick="chooseFlow('sps')" style="padding: 20px; font-size: 16px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--light); color: var(--navy); border-color: var(--border); box-shadow: 0 4px 12px rgba(15, 32, 68, 0.05); transition: all 0.2s;">
-            <span>🙏</span> SPS Shepherd
+        
+        <div style="display:flex;flex-direction:column;
+          gap:16px;">
+          <button id="btnSubmitReport"
+            onclick="goToReportForm()"
+            style="padding:20px;border-radius:16px;
+            background:var(--navy);color:white;
+            border:none;font-size:16px;font-weight:700;
+            cursor:pointer;display:flex;
+            align-items:center;justify-content:center;
+            gap:10px;">
+            📋 Submit Report
           </button>
-          <button type="button" class="yn-btn yes" onclick="chooseFlow('microchurch')" style="padding: 20px; font-size: 16px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--light); color: var(--navy); border-color: var(--border); box-shadow: 0 4px 12px rgba(15, 32, 68, 0.05); transition: all 0.2s;">
-            <span>⛪</span> Microchurch Shepherd
-          </button>
-          <button type="button" onclick="openStartGuide()" style="margin-top: 10px; padding: 14px; font-size: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; background: transparent; color: var(--accent); border: 2px dashed var(--accent); cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif; font-weight: 700;">
-            📖 Get Started Guide
-          </button>
-          <button type="button" onclick="openResources()" style="margin-top: 4px; padding: 14px; font-size: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; background: transparent; color: var(--accent); border: 2px dashed var(--accent); cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif; font-weight: 700;">
+          
+          <button onclick="openResources()"
+            style="padding:20px;border-radius:16px;
+            background:white;color:var(--navy);
+            border:2px solid var(--navy);
+            font-size:16px;font-weight:700;
+            cursor:pointer;display:flex;
+            align-items:center;justify-content:center;
+            gap:10px;">
             📚 Resources
+          </button>
+        </div>
+        
+        <div style="display:flex;justify-content:center;
+          gap:24px;margin-top:20px;">
+          <button onclick="openChangePinModal()"
+            style="background:none;border:none;
+            color:var(--accent);font-size:13px;
+            font-weight:700;cursor:pointer;">
+            🔑 Change PIN
+          </button>
+          <button onclick="logoutShepherd()"
+            style="background:none;border:none;
+            color:#ef4444;font-size:13px;
+            font-weight:700;cursor:pointer;">
+            🚪 Logout
           </button>
         </div>
       </div>
@@ -1200,35 +1251,13 @@
       localStorage.setItem('onc_intro_watched', 'true');
       
       document.getElementById('secIntro').classList.remove('active');
-      document.getElementById('secLogin').style.display = 'block';
+      document.getElementById('secWhoAreYou').classList.add('active');
     }
 
 
     // Auto-run: Restore session if valid, otherwise run intro
     document.addEventListener("DOMContentLoaded", function() {
-      // 1. Populate loginShepherdSelect alphabetically with all shepherds from both streams
-      var loginSelect = document.getElementById('loginShepherdSelect');
-      if (loginSelect) {
-        var spsSheps = Object.keys(shepherdData).map(function(name) {
-          return { name: name, type: 'sps', label: name + ' (SPS Shepherd)' };
-        });
-        var mcSheps = Object.keys(microchurchShepherdData).map(function(name) {
-          return { name: name, type: 'microchurch', label: name + ' (Microchurch)' };
-        });
-        var allCombined = spsSheps.concat(mcSheps).sort(function(a, b) {
-          return a.name.localeCompare(b.name);
-        });
-
-        allCombined.forEach(function(shep) {
-          var o = document.createElement('option');
-          o.value = shep.name;
-          o.dataset.type = shep.type;
-          o.textContent = shep.label;
-          loginSelect.appendChild(o);
-        });
-      }
-
-      // 2. Init SPS dropdown
+      // Init SPS dropdown
       const shepSel = document.getElementById('shepherdSelect');
       if (shepSel) {
         Object.keys(shepherdData).sort().forEach(s => {
@@ -1238,7 +1267,7 @@
         });
       }
 
-      // 3. Restore active session if present
+      // Restore active session if present
       var sessionActive = localStorage.getItem('onc_session_active') === 'true';
       var savedShep = localStorage.getItem('onc_logged_in_shepherd');
       var savedType = localStorage.getItem('onc_logged_in_type');
@@ -1247,33 +1276,73 @@
         state.shepherd = savedShep;
         state.shepherdType = savedType;
         
+        // Welcome message
+        var welcomeMsgEl = document.getElementById('welcomeMsg');
+        if (welcomeMsgEl) {
+          welcomeMsgEl.textContent = 'Welcome, ' + state.shepherd.split(' ')[0] + '! 👋';
+        }
+
         if (savedType === 'sps') {
           if (shepSel) shepSel.value = savedShep;
-          // Trigger change on SPS dropdown
           var event = new Event('change');
           shepSel.dispatchEvent(event);
-          // Show form step 1 directly
-          document.getElementById('sec1').classList.add('active');
-          document.getElementById('progressSteps').style.display = 'flex';
-          updateDots();
         } else {
           initMicrochurchShepherds();
-          const mcSel = document.getElementById('mcShepherdSelect');
-          if (mcSel) {
-            mcSel.value = savedShep;
-            selectMCShepherd(savedShep);
-          }
-          // Show MC form step 1 directly
-          document.getElementById('secMC1').classList.add('active');
-          document.getElementById('progressSteps').style.display = 'flex';
-          updateDots();
+          setTimeout(function() {
+            const mcSel = document.getElementById('mcShepherdSelect');
+            if (mcSel) {
+              mcSel.value = savedShep;
+              selectMCShepherd(savedShep);
+            }
+          }, 100);
         }
+        
+        // Show landing directly
+        document.getElementById('secLanding').classList.add('active');
       } else {
         // No session active, watch intro video
         document.getElementById('secIntro').classList.add('active');
         initIntroFlow();
       }
     });
+
+    function goBackToWhoAreYou() {
+      document.getElementById('secLogin').style.display = 'none';
+      document.getElementById('secWhoAreYou').classList.add('active');
+    }
+
+    function selectShepherdType(type) {
+      state.shepherdType = type === 'mc' ? 'microchurch' : 'sps';
+      
+      // Update login screen title
+      var title = document.getElementById('loginTitle');
+      if (title) {
+        title.textContent = type === 'sps' ? 
+          '🙏 SPS Shepherd Login' : 
+          '⛪ Microchurch Shepherd Login';
+      }
+      
+      // Populate dropdown with correct names
+      var select = document.getElementById('loginShepherdSelect');
+      if (select) {
+        select.innerHTML = '<option value="">— Select your name —</option>';
+        
+        var names = type === 'sps' ? 
+          Object.keys(shepherdData) : 
+          Object.keys(microchurchShepherdData);
+        
+        names.sort().forEach(function(name) {
+          var opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+      }
+      
+      // Show login screen
+      document.getElementById('secWhoAreYou').classList.remove('active');
+      document.getElementById('secLogin').style.display = 'block';
+    }
 
     function verifyShepherdLogin() {
       var select = document.getElementById('loginShepherdSelect');
@@ -1286,8 +1355,7 @@
         return;
       }
 
-      var opt = select.options[select.selectedIndex];
-      var shepherdType = opt.dataset.type; // 'sps' or 'microchurch'
+      var shepherdType = state.shepherdType;
       var enteredPin = pinEl.value.trim();
 
       if (!enteredPin) {
@@ -1295,7 +1363,6 @@
         return;
       }
 
-      // Retrieve shepherd PIN configuration from local storage
       var customPins = {};
       try {
         customPins = JSON.parse(localStorage.getItem('onc_shepherd_pins') || '{}');
@@ -1310,7 +1377,6 @@
         localStorage.setItem('onc_session_active', 'true');
 
         state.shepherd = shepherdName;
-        state.shepherdType = shepherdType;
 
         pinEl.value = '';
         document.getElementById('secLogin').style.display = 'none';
@@ -1322,23 +1388,44 @@
             var event = new Event('change');
             shepSel.dispatchEvent(event);
           }
-          document.getElementById('sec1').classList.add('active');
         } else {
           initMicrochurchShepherds();
-          const mcSel = document.getElementById('mcShepherdSelect');
-          if (mcSel) {
-            mcSel.value = shepherdName;
-            selectMCShepherd(shepherdName);
-          }
-          document.getElementById('secMC1').classList.add('active');
+          setTimeout(function() {
+            const mcSel = document.getElementById('mcShepherdSelect');
+            if (mcSel) {
+              mcSel.value = shepherdName;
+              selectMCShepherd(shepherdName);
+            }
+          }, 100);
         }
-        document.getElementById('progressSteps').style.display = 'flex';
-        updateDots();
+
+        // Update welcome message
+        document.getElementById('welcomeMsg').textContent = 'Welcome, ' + state.shepherd.split(' ')[0] + '! 👋';
+
+        // Go to landing page
+        document.getElementById('secLanding').classList.add('active');
+
         showToast('🔓 Login successful! Welcome, ' + shepherdName.split(' ')[0] + '!');
       } else {
         showToast('❌ Incorrect PIN! Please try again.');
         pinEl.value = '';
         pinEl.focus();
+      }
+    }
+
+    function goToReportForm() {
+      var type = state.shepherdType;
+      if (type === 'sps') {
+        document.getElementById('secLanding').classList.remove('active');
+        document.getElementById('sec1').classList.add('active');
+        document.getElementById('progressSteps').style.display = 'flex';
+        updateDots();
+      } else {
+        document.getElementById('secLanding').classList.remove('active');
+        initMicrochurchShepherds();
+        document.getElementById('secMC1').classList.add('active');
+        document.getElementById('progressSteps').style.display = 'flex';
+        updateDots();
       }
     }
 
@@ -1366,8 +1453,8 @@
       document.getElementById('loginShepherdSelect').value = '';
       document.getElementById('loginPinInput').value = '';
       
-      // Show login screen
-      document.getElementById('secLogin').style.display = 'block';
+      // Show choose type screen
+      document.getElementById('secWhoAreYou').classList.add('active');
       showToast('🚪 Logged out successfully');
     }
 
@@ -1653,7 +1740,9 @@
 
     function goBackMC(step) {
       if (step === 1) {
-        logoutShepherd();
+        document.getElementById('secMC1').classList.remove('active');
+        document.getElementById('progressSteps').style.display = 'none';
+        document.getElementById('secLanding').classList.add('active');
         return;
       }
       document.getElementById('secMC' + step).classList.remove('active');
@@ -1911,7 +2000,9 @@
 
     function goBack(step) {
       if (step === 1) {
-        logoutShepherd();
+        document.getElementById('sec1').classList.remove('active');
+        document.getElementById('progressSteps').style.display = 'none';
+        document.getElementById('secLanding').classList.add('active');
         return;
       }
       document.getElementById('sec' + step).classList.remove('active');
