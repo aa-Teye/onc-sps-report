@@ -1469,8 +1469,16 @@
     });
 
     function goBackToWhoAreYou() {
-      document.getElementById('secLogin').style.display = 'none';
-      document.getElementById('secWhoAreYou').classList.add('active');
+      var secLogin = document.getElementById('secLogin');
+      if (secLogin) {
+        secLogin.style.display = 'none';
+        secLogin.classList.remove('active');
+      }
+      var secWho = document.getElementById('secWhoAreYou');
+      if (secWho) {
+        secWho.style.display = '';
+        secWho.classList.add('active');
+      }
     }
 
     function selectShepherdType(type) {
@@ -1502,8 +1510,16 @@
       }
       
       // Show login screen
-      document.getElementById('secWhoAreYou').classList.remove('active');
-      document.getElementById('secLogin').style.display = 'block';
+      var secWho = document.getElementById('secWhoAreYou');
+      if (secWho) {
+        secWho.classList.remove('active');
+        secWho.style.display = 'none';
+      }
+      var secLogin = document.getElementById('secLogin');
+      if (secLogin) {
+        secLogin.style.display = 'block';
+        secLogin.classList.add('active');
+      }
     }
 
     function verifyShepherdLogin() {
@@ -1541,7 +1557,11 @@
         state.shepherd = shepherdName;
 
         pinEl.value = '';
-        document.getElementById('secLogin').style.display = 'none';
+        var secLogin = document.getElementById('secLogin');
+        if (secLogin) {
+          secLogin.style.display = 'none';
+          secLogin.classList.remove('active');
+        }
 
         if (shepherdType === 'sps') {
           const shepSel = document.getElementById('shepherdSelect');
@@ -1654,7 +1674,7 @@
       // Hide all sections
       document.querySelectorAll('.section').forEach(function(sec) {
         sec.classList.remove('active');
-        sec.style.display = 'none';
+        sec.style.display = '';
       });
       document.getElementById('progressSteps').style.display = 'none';
 
@@ -1689,7 +1709,15 @@
       }
       
       // Show choose type screen
-      document.getElementById('secWhoAreYou').classList.add('active');
+      var who = document.getElementById('secWhoAreYou');
+      if (who) {
+        who.style.display = '';
+        who.classList.add('active');
+      }
+      var secLogin = document.getElementById('secLogin');
+      if (secLogin) {
+        secLogin.style.display = 'none';
+      }
       showToast('🚪 Logged out successfully');
     }
 
