@@ -725,28 +725,99 @@
 
       <!-- SEC 1: WHO ARE YOU -->
       <div class="section" id="sec1">
-        <div class="card-title"><span class="dot"></span>Confirm Your Name</div>
-        <div class="field">
-          <label>Confirm Your Name</label>
-          <div class="select-wrap">
-            <select id="shepherdSelect"><option value="">— Choose your name —</option></select>
+        <select id="shepherdSelect" style="display:none;"><option value="">— Choose your name —</option></select>
+        <div style="text-align:center;
+          margin-bottom:24px;">
+          <div id="welcomeShepherdName"
+            style="font-size:22px;font-weight:900;
+            color:var(--navy);margin-bottom:4px;">
+            Welcome! 👋
           </div>
-          <div id="spsConfirmMsg" style="color:#22c55e;font-weight:700;margin-top:8px;font-size:13px;display:none;"></div>
-        </div>
-        <div class="field">
-          <label>Session Info</label>
-          <div id="sessionInfo" style="display:none;background:#f0f5ff;border-radius:12px;padding:14px 16px;font-size:14px;color:#0f2044;border:2px solid #dce7f7;line-height:2.2;">
-            <div>📅 <strong id="dispDate"></strong></div>
-            <div>📆 <strong id="dispDay"></strong></div>
-            <div>🕐 <strong id="dispTime"></strong></div>
-            <div>⏱ Duration: <strong>10 minutes</strong></div>
+          <div style="font-size:13px;color:var(--gray);">
+            Reporting as SPS Shepherd
           </div>
-          <div id="sessionPlaceholder" style="color:#64748b;font-size:13px;padding:10px 0;">Select your name to see session details</div>
         </div>
-        <div class="nav-btns">
-          <button class="btn-back" onclick="goBack(1)">← Back</button>
-          <button class="btn-next" onclick="goNext(1)">Next →</button>
+
+        <div style="background:#f0f5ff;
+          border-radius:16px;padding:20px;
+          margin-bottom:24px;">
+          <div style="font-weight:800;color:var(--navy);
+            font-size:15px;margin-bottom:16px;">
+            📋 Quick Guide
+          </div>
+          <div style="display:flex;flex-direction:column;
+            gap:12px;">
+            <div style="display:flex;gap:12px;
+              align-items:flex-start;">
+              <div style="width:28px;height:28px;
+                border-radius:50%;background:var(--navy);
+                color:white;display:flex;
+                align-items:center;justify-content:center;
+                font-weight:800;font-size:13px;
+                flex-shrink:0;">1</div>
+              <div>
+                <div style="font-weight:700;
+                  color:var(--navy);font-size:14px;">
+                  Mark Attendance
+                </div>
+                <div style="color:var(--gray);
+                  font-size:12px;">
+                  Select which members were present 
+                  in this session
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;
+              align-items:flex-start;">
+              <div style="width:28px;height:28px;
+                border-radius:50%;background:var(--navy);
+                color:white;display:flex;
+                align-items:center;justify-content:center;
+                font-weight:800;font-size:13px;
+                flex-shrink:0;">2</div>
+              <div>
+                <div style="font-weight:700;
+                  color:var(--navy);font-size:14px;">
+                  Fill Session Details
+                </div>
+                <div style="color:var(--gray);
+                  font-size:12px;">
+                  Enter date, topic, prayer status 
+                  and any concerns
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;
+              align-items:flex-start;">
+              <div style="width:28px;height:28px;
+                border-radius:50%;background:var(--navy);
+                color:white;display:flex;
+                align-items:center;justify-content:center;
+                font-weight:800;font-size:13px;
+                flex-shrink:0;">3</div>
+              <div>
+                <div style="font-weight:700;
+                  color:var(--navy);font-size:14px;">
+                  Review & Submit
+                </div>
+                <div style="color:var(--gray);
+                  font-size:12px;">
+                  Review your report summary 
+                  then submit to the system
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <button onclick="goToStep2SPS()"
+          style="width:100%;padding:16px;
+          background:var(--navy);color:white;
+          border:none;border-radius:12px;
+          font-weight:800;font-size:15px;
+          cursor:pointer;">
+          ▶ Proceed to Fill Form
+        </button>
       </div>
 
       <!-- SEC 2: ATTENDANCE -->
@@ -856,30 +927,119 @@
 
       <!-- MC SEC 1: WHO ARE YOU -->
       <div class="section" id="secMC1">
-        <div class="card-title"><span class="dot"></span>Confirm Your Name</div>
-        <div class="field">
-          <label>Confirm Your Name</label>
-          <div class="select-wrap">
-            <select id="mcShepherdSelect" onchange="selectMCShepherd(this.value)">
-              <option value="">— Choose your name —</option>
-            </select>
+        <select id="mcShepherdSelect" style="display:none;"><option value="">— Choose your name —</option></select>
+        <div style="text-align:center;
+          margin-bottom:24px;">
+          <div id="welcomeShepherdName"
+            style="font-size:22px;font-weight:900;
+            color:var(--navy);margin-bottom:4px;">
+            Welcome! 👋
           </div>
-          <div id="mcConfirmMsg" style="color:#22c55e;font-weight:700;margin-top:8px;font-size:13px;display:none;"></div>
-        </div>
-        <div class="field">
-          <label>Session Info</label>
-          <div id="mcSessionInfo" style="display:none;background:#f0f5ff;border-radius:12px;padding:14px 16px;font-size:14px;color:#0f2044;border:2px solid #dce7f7;line-height:2.2;">
-            <div>📅 <strong>Date:</strong> <span id="mcDispDate"></span></div>
-            <div>📆 <strong>Day:</strong> <span id="mcDispDay"></span></div>
-            <div>🕐 <strong>Time:</strong> <span id="mcDispTime"></span></div>
-            <div>⏱ Duration: <strong>1 hour</strong></div>
+          <div style="font-size:13px;color:var(--gray);">
+            Reporting as Microchurch Shepherd
           </div>
-          <div id="mcSessionPlaceholder" style="color:#64748b;font-size:13px;padding:10px 0;">Select your name to see session details</div>
         </div>
-        <div class="nav-btns">
-          <button class="btn-back" onclick="goBackMC(1)">← Back</button>
-          <button class="btn-next" onclick="goNextMC(1)">Next →</button>
+
+        <div style="background:#f0f5ff;
+          border-radius:16px;padding:20px;
+          margin-bottom:24px;">
+          <div style="font-weight:800;color:var(--navy);
+            font-size:15px;margin-bottom:16px;">
+            📋 Quick Guide
+          </div>
+          <div style="display:flex;flex-direction:column;
+            gap:12px;">
+            <div style="display:flex;gap:12px;
+              align-items:flex-start;">
+              <div style="width:28px;height:28px;
+                border-radius:50%;background:var(--navy);
+                color:white;display:flex;
+                align-items:center;justify-content:center;
+                font-weight:800;font-size:13px;
+                flex-shrink:0;">1</div>
+              <div>
+                <div style="font-weight:700;
+                  color:var(--navy);font-size:14px;">
+                  Mark member attendance
+                </div>
+                <div style="color:var(--gray);
+                  font-size:12px;">
+                  Select which members were present 
+                  in this session
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;
+              align-items:flex-start;">
+              <div style="width:28px;height:28px;
+                border-radius:50%;background:var(--navy);
+                color:white;display:flex;
+                align-items:center;justify-content:center;
+                font-weight:800;font-size:13px;
+                flex-shrink:0;">2</div>
+              <div>
+                <div style="font-weight:700;
+                  color:var(--navy);font-size:14px;">
+                  Fill meeting details
+                </div>
+                <div style="color:var(--gray);
+                  font-size:12px;">
+                  Enter date, topic, prayer status 
+                  and any concerns
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;
+              align-items:flex-start;">
+              <div style="width:28px;height:28px;
+                border-radius:50%;background:var(--navy);
+                color:white;display:flex;
+                align-items:center;justify-content:center;
+                font-weight:800;font-size:13px;
+                flex-shrink:0;">3</div>
+              <div>
+                <div style="font-weight:700;
+                  color:var(--navy);font-size:14px;">
+                  Add new souls (if any)
+                </div>
+                <div style="color:var(--gray);
+                  font-size:12px;">
+                  Record details for any new souls 
+                  won during this session
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;
+              align-items:flex-start;">
+              <div style="width:28px;height:28px;
+                border-radius:50%;background:var(--navy);
+                color:white;display:flex;
+                align-items:center;justify-content:center;
+                font-weight:800;font-size:13px;
+                flex-shrink:0;">4</div>
+              <div>
+                <div style="font-weight:700;
+                  color:var(--navy);font-size:14px;">
+                  Review & Submit
+                </div>
+                <div style="color:var(--gray);
+                  font-size:12px;">
+                  Review your report summary 
+                  then submit to the system
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <button onclick="goToStep2MC()"
+          style="width:100%;padding:16px;
+          background:var(--navy);color:white;
+          border:none;border-radius:12px;
+          font-weight:800;font-size:15px;
+          cursor:pointer;">
+          ▶ Proceed to Fill Form
+        </button>
       </div>
 
       <!-- MC SEC 2: MEETING TYPE -->
@@ -1471,6 +1631,11 @@
         updateDots();
       }
       prefillAndDisableNames();
+
+      const welcomeNames = document.querySelectorAll('#welcomeShepherdName');
+      welcomeNames.forEach(el => {
+        el.textContent = 'Welcome, ' + state.shepherd.split(' ')[0] + '! 👋';
+      });
     }
 
     function logoutShepherd() {
@@ -1528,7 +1693,7 @@
       showToast('🚪 Logged out successfully');
     }
 
-    shepSel.addEventListener('change', function() {
+    document.getElementById('shepherdSelect').addEventListener('change', function() {
       state.shepherd = this.value;
       if (!this.value) {
         document.getElementById('sessionInfo').style.display = 'none';
@@ -1547,6 +1712,33 @@
       state.attendance = {};
       (shepherdData[this.value] || []).forEach(m => state.attendance[m] = false);
     });
+
+    function goToStep2SPS() {
+      document.getElementById('sec1').classList.remove('active');
+      document.getElementById('sec2').classList.add('active');
+      currentStep = 2;
+      updateDots();
+      
+      var shepSel = document.getElementById('shepherdSelect');
+      if (shepSel && state.shepherd) {
+        shepSel.value = state.shepherd;
+        var evt = new Event('change');
+        shepSel.dispatchEvent(evt);
+      }
+    }
+
+    function goToStep2MC() {
+      document.getElementById('secMC1').classList.remove('active');
+      document.getElementById('secMC2').classList.add('active');
+      currentStep = 2;
+      updateDots();
+      
+      var mcSel = document.getElementById('mcShepherdSelect');
+      if (mcSel && state.shepherd) {
+        mcSel.value = state.shepherd;
+        selectMCShepherd(state.shepherd);
+      }
+    }
 
     function chooseFlow(type) {
       state.shepherdType = type;
