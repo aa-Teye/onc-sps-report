@@ -1886,7 +1886,7 @@
       const n = parseInt(document.getElementById('mcNewSoulsCount').value) || 1;
       state.newSoulsCount = n;
       if (!Array.isArray(state.newSouls)) state.newSouls = [];
-      while (state.newSouls.length < n) state.newSouls.push({ name:'', phone:'', dob:'', bornAgain:'', inChurch:'', occupation:'' });
+      while (state.newSouls.length < n) state.newSouls.push({ name:'', phone:'', dob:'', bornAgain:'', inChurch:'', occupation:'', occupationOther:'' });
       state.newSouls = state.newSouls.slice(0, n);
       const container = document.getElementById('soulCardsContainer');
       container.innerHTML = '';
@@ -1908,11 +1908,20 @@
             '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Date of Birth *</div><input type="date" value="' + soul.dob + '" data-soul="' + i + '" data-field="dob" style="width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;"></div>' +
             '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Born Again? *</div><div style="display:flex;gap:8px;"><button type="button" class="yn-btn yes soul-yn' + baYes + '" data-soul="' + i + '" data-field="bornAgain" data-val="yes" onclick="setSoulYN(this)">✅ Yes</button><button type="button" class="yn-btn no soul-yn' + baNo + '" data-soul="' + i + '" data-field="bornAgain" data-val="no" onclick="setSoulYN(this)">❌ No</button></div></div>' +
             '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Are you in the church? *</div><div style="display:flex;gap:8px;"><button type="button" class="yn-btn yes soul-yn' + icYes + '" data-soul="' + i + '" data-field="inChurch" data-val="yes" onclick="setSoulYN(this)">✅ Yes</button><button type="button" class="yn-btn no soul-yn' + icNo + '" data-soul="' + i + '" data-field="inChurch" data-val="no" onclick="setSoulYN(this)">❌ No</button></div></div>' +
-            '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Occupation <span style="font-weight:400;">(optional)</span></div><select data-soul="' + i + '" data-field="occupation" style="width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;appearance:none;"><option value="">-- Select --</option>' + occOpts + '</select></div>' +
+            '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Occupation <span style="font-weight:400;">(optional)</span></div><select data-soul="' + i + '" data-field="occupation" style="width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;appearance:none;"><option value="">-- Select --</option>' + occOpts + '</select><input type="text" placeholder="Please specify occupation" class="other-occupation-input" data-soul="' + i + '" data-field="occupationOther" value="' + (soul.occupationOther || '') + '" style="margin-top:8px;width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#fff;outline:none;display:' + (soul.occupation === 'Other' ? 'block' : 'none') + ';"></div>' +
           '</div>';
         card.querySelectorAll('input[data-field], select[data-field]').forEach(function(el) {
-          el.addEventListener('change', function() { state.newSouls[+this.dataset.soul][this.dataset.field] = this.value; });
-          el.addEventListener('input',  function() { state.newSouls[+this.dataset.soul][this.dataset.field] = this.value; });
+          el.addEventListener('change', function() {
+            const idx = +this.dataset.soul;
+            state.newSouls[idx][this.dataset.field] = this.value;
+            if (this.dataset.field === 'occupation') {
+              buildSoulCards();
+            }
+          });
+          el.addEventListener('input',  function() {
+            const idx = +this.dataset.soul;
+            state.newSouls[idx][this.dataset.field] = this.value;
+          });
         });
         container.appendChild(card);
       }
@@ -2040,7 +2049,11 @@
         actualTopic: state.actualTopic,
         prayerDone: state.prayerDone,
         newSoulsCount: state.newSoulsCount || 0,
-        newSouls: Array.isArray(state.newSouls) ? state.newSouls : [],
+        newSouls: Array.isArray(state.newSouls) ? state.newSouls.map(function(s) {
+          return Object.assign({}, s, {
+            occupation: s.occupation === 'Other' ? ('Other: ' + (s.occupationOther || '')) : s.occupation
+          });
+        }) : [],
         concerns: state.concerns,
         proofPhoto: state.proofPhoto || null,
         notes: ''
@@ -2081,7 +2094,7 @@
       const n = parseInt(document.getElementById('newMembersCountInput').value) || 1;
       state.newMembersCount = n;
       if (!Array.isArray(state.newMembers)) state.newMembers = [];
-      while (state.newMembers.length < n) state.newMembers.push({ name:'', phone:'', dob:'', bornAgain:'', inChurch:'', occupation:'' });
+      while (state.newMembers.length < n) state.newMembers.push({ name:'', phone:'', dob:'', bornAgain:'', inChurch:'', occupation:'', occupationOther:'' });
       state.newMembers = state.newMembers.slice(0, n);
       const container = document.getElementById('newMemberCardsContainer');
       container.innerHTML = '';
@@ -2103,11 +2116,20 @@
             '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Date of Birth *</div><input type="date" value="' + member.dob + '" data-member="' + i + '" data-field="dob" style="width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;"></div>' +
             '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Born Again? *</div><div style="display:flex;gap:8px;"><button type="button" class="yn-btn yes member-yn' + baYes + '" data-member="' + i + '" data-field="bornAgain" data-val="yes" onclick="setNewMemberYN(this)">✅ Yes</button><button type="button" class="yn-btn no member-yn' + baNo + '" data-member="' + i + '" data-field="bornAgain" data-val="no" onclick="setNewMemberYN(this)">❌ No</button></div></div>' +
             '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Are you in the church? *</div><div style="display:flex;gap:8px;"><button type="button" class="yn-btn yes member-yn' + icYes + '" data-member="' + i + '" data-field="inChurch" data-val="yes" onclick="setNewMemberYN(this)">✅ Yes</button><button type="button" class="yn-btn no member-yn' + icNo + '" data-member="' + i + '" data-field="inChurch" data-val="no" onclick="setNewMemberYN(this)">❌ No</button></div></div>' +
-            '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Occupation <span style="font-weight:400;">(optional)</span></div><select data-member="' + i + '" data-field="occupation" style="width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;appearance:none;"><option value="">-- Select --</option>' + occOpts + '</select></div>' +
+            '<div><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Occupation <span style="font-weight:400;">(optional)</span></div><select data-member="' + i + '" data-field="occupation" style="width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;appearance:none;"><option value="">-- Select --</option>' + occOpts + '</select><input type="text" placeholder="Please specify occupation" class="other-occupation-input" data-member="' + i + '" data-field="occupationOther" value="' + (member.occupationOther || '') + '" style="margin-top:8px;width:100%;padding:10px 12px;border:2px solid #dce7f7;border-radius:8px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#fff;outline:none;display:' + (member.occupation === 'Other' ? 'block' : 'none') + ';"></div>' +
           '</div>';
         card.querySelectorAll('input[data-field], select[data-field]').forEach(function(el) {
-          el.addEventListener('change', function() { state.newMembers[+this.dataset.member][this.dataset.field] = this.value; });
-          el.addEventListener('input',  function() { state.newMembers[+this.dataset.member][this.dataset.field] = this.value; });
+          el.addEventListener('change', function() {
+            const idx = +this.dataset.member;
+            state.newMembers[idx][this.dataset.field] = this.value;
+            if (this.dataset.field === 'occupation') {
+              buildNewMemberCards();
+            }
+          });
+          el.addEventListener('input',  function() {
+            const idx = +this.dataset.member;
+            state.newMembers[idx][this.dataset.field] = this.value;
+          });
         });
         container.appendChild(card);
       }
@@ -2314,7 +2336,11 @@
         prayerDone: state.prayerDone,
         concerns: state.concerns,
         newMembersCount: state.newMembersCount || 0,
-        newMembers: Array.isArray(state.newMembers) ? state.newMembers : [],
+        newMembers: Array.isArray(state.newMembers) ? state.newMembers.map(function(m) {
+          return Object.assign({}, m, {
+            occupation: m.occupation === 'Other' ? ('Other: ' + (m.occupationOther || '')) : m.occupation
+          });
+        }) : [],
         newMember: (state.newMembers && state.newMembers.length > 0) ? {
           name: state.newMembers[0].name,
           contact: state.newMembers[0].phone
