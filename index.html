@@ -725,12 +725,13 @@
 
       <!-- SEC 1: WHO ARE YOU -->
       <div class="section" id="sec1">
-        <div class="card-title"><span class="dot"></span>Who are you?</div>
+        <div class="card-title"><span class="dot"></span>Confirm Your Name</div>
         <div class="field">
-          <label>Select Your Name</label>
+          <label>Confirm Your Name</label>
           <div class="select-wrap">
             <select id="shepherdSelect"><option value="">— Choose your name —</option></select>
           </div>
+          <div id="spsConfirmMsg" style="color:#22c55e;font-weight:700;margin-top:8px;font-size:13px;display:none;"></div>
         </div>
         <div class="field">
           <label>Session Info</label>
@@ -855,14 +856,15 @@
 
       <!-- MC SEC 1: WHO ARE YOU -->
       <div class="section" id="secMC1">
-        <div class="card-title"><span class="dot"></span>Microchurch Shepherd</div>
+        <div class="card-title"><span class="dot"></span>Confirm Your Name</div>
         <div class="field">
-          <label>Select Your Name</label>
+          <label>Confirm Your Name</label>
           <div class="select-wrap">
             <select id="mcShepherdSelect" onchange="selectMCShepherd(this.value)">
               <option value="">— Choose your name —</option>
             </select>
           </div>
+          <div id="mcConfirmMsg" style="color:#22c55e;font-weight:700;margin-top:8px;font-size:13px;display:none;"></div>
         </div>
         <div class="field">
           <label>Session Info</label>
@@ -1413,6 +1415,47 @@
       }
     }
 
+    function prefillAndDisableNames() {
+      if (!state.shepherd) return;
+
+      var type = state.shepherdType;
+      if (type === 'sps') {
+        var shepSel = document.getElementById('shepherdSelect');
+        if (shepSel) {
+          shepSel.value = state.shepherd;
+          shepSel.disabled = true;
+          shepSel.style.background = '#f1f5f9';
+          shepSel.style.color = '#64748b';
+          
+          var event = new Event('change');
+          shepSel.dispatchEvent(event);
+        }
+        var confirmMsg = document.getElementById('spsConfirmMsg');
+        if (confirmMsg) {
+          confirmMsg.textContent = 'Reporting as: ' + state.shepherd;
+          confirmMsg.style.display = 'block';
+        }
+      } else {
+        initMicrochurchShepherds();
+        setTimeout(function() {
+          var mcSel = document.getElementById('mcShepherdSelect');
+          if (mcSel) {
+            mcSel.value = state.shepherd;
+            mcSel.disabled = true;
+            mcSel.style.background = '#f1f5f9';
+            mcSel.style.color = '#64748b';
+            selectMCShepherd(state.shepherd);
+          }
+        }, 100);
+
+        var confirmMsg = document.getElementById('mcConfirmMsg');
+        if (confirmMsg) {
+          confirmMsg.textContent = 'Reporting as: ' + state.shepherd;
+          confirmMsg.style.display = 'block';
+        }
+      }
+    }
+
     function goToReportForm() {
       var type = state.shepherdType;
       if (type === 'sps') {
@@ -1427,6 +1470,7 @@
         document.getElementById('progressSteps').style.display = 'flex';
         updateDots();
       }
+      prefillAndDisableNames();
     }
 
     function logoutShepherd() {
@@ -1452,6 +1496,32 @@
       // Restore dropdowns and inputs
       document.getElementById('loginShepherdSelect').value = '';
       document.getElementById('loginPinInput').value = '';
+
+      // Reset disabled name selects
+      var shepSel = document.getElementById('shepherdSelect');
+      if (shepSel) {
+        shepSel.disabled = false;
+        shepSel.style.background = '';
+        shepSel.style.color = '';
+        shepSel.value = '';
+      }
+      var mcSel = document.getElementById('mcShepherdSelect');
+      if (mcSel) {
+        mcSel.disabled = false;
+        mcSel.style.background = '';
+        mcSel.style.color = '';
+        mcSel.value = '';
+      }
+      var spsMsg = document.getElementById('spsConfirmMsg');
+      if (spsMsg) {
+        spsMsg.textContent = '';
+        spsMsg.style.display = 'none';
+      }
+      var mcMsg = document.getElementById('mcConfirmMsg');
+      if (mcMsg) {
+        mcMsg.textContent = '';
+        mcMsg.style.display = 'none';
+      }
       
       // Show choose type screen
       document.getElementById('secWhoAreYou').classList.add('active');
