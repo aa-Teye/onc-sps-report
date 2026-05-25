@@ -2121,6 +2121,7 @@
       }
 
       var refreshTimer = null;
+      var silentShowCount = 3;
 
       function fetchData(action, callback) {
         var script = document.createElement('script');
@@ -2623,6 +2624,7 @@
       };
 
       function loadAll() {
+        silentShowCount = 3;
         if (_loadAllRunning) return;
         _loadAllRunning = true;
         showShimmer();
@@ -2965,7 +2967,16 @@
 
         var silent = ALL_SHEPHERDS.filter(function (s) { return !shepSet.has(s.name); });
         var alertSilent = document.getElementById('alert-silent');
-        alertSilent.innerHTML = silent.length ? silent.slice(0, 8).map(function (s) { return '<li>' + s.name + '</li>'; }).join('') + (silent.length > 8 ? '<li>+ ' + (silent.length - 8) + ' more</li>' : '') : '<li style="color:#15803d">All shepherds reported!</li>';
+        if (!silent.length) {
+          alertSilent.innerHTML = '<li style="color:#15803d;font-weight:600;">✨ All shepherds reported!</li>';
+        } else {
+          var shown = silent.slice(0, silentShowCount);
+          var liHtml = shown.map(function (s) { return '<li>' + s.name + '</li>'; }).join('');
+          if (silent.length > silentShowCount) {
+            liHtml += '<li onclick="expandSilentList(event)" style="cursor:pointer;color:var(--accent);font-weight:700;margin-top:6px;display:flex;align-items:center;gap:4px;list-style:none;user-select:none;">➕ ' + (silent.length - silentShowCount) + ' more</li>';
+          }
+          alertSilent.innerHTML = liHtml;
+        }
 
         var absentSet = {};
         weekly.forEach(function (r) { toArray(r.membersAbsent).forEach(function (m) { absentSet[m] = (absentSet[m] || 0) + 1; }); });
@@ -2981,6 +2992,12 @@
           return '<div class="activity-item"><div><div class="activity-name">' + r.shepherd + '</div><div class="activity-meta">' + (r.sessionDate || r.date || '') + ' · ' + formatTime(r.sessionTime) + ' · ' + toArray(r.membersPresent).length + '/' + (r.totalMembers || 4) + ' members</div></div><div class="activity-rate">' + getRate(r) + '%</div></div>';
         }).join('') : '<div class="empty"><div class="icon">📭</div><p>No reports yet</p></div>';
       }
+
+      window.expandSilentList = function(event) {
+        if (event) event.stopPropagation();
+        silentShowCount += 3;
+        renderOverview();
+      };
 
       function renderShepherds() {
         var statusFilter = document.getElementById('filter-shep-status').value;
