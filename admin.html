@@ -1400,6 +1400,18 @@
             </div>
           </div>
           <div class="export-section">
+            <h3>📋 Direct Lists Export</h3>
+            <p style="color:var(--gray);font-size:13px;margin-bottom:12px;">Export clean spreadsheets of members with their own contact numbers, and shepherds lists.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+              <button class="btn-export" onclick="doExportCleanList('sps-shepherds')" style="background: linear-gradient(135deg, var(--navy), var(--blue)); color: white;">📋 SPS Shepherds List</button>
+              <button class="btn-export" onclick="doExportCleanList('mc-shepherds')" style="background: linear-gradient(135deg, var(--navy), var(--blue)); color: white;">📋 MC Shepherds List</button>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn-export" onclick="doExportCleanList('sps-members')" style="background: linear-gradient(135deg, var(--gold), #fbbf24); color: var(--navy); border: none;">👥 SPS Members List (Contacts only)</button>
+              <button class="btn-export" onclick="doExportCleanList('mc-members')" style="background: linear-gradient(135deg, var(--gold), #fbbf24); color: var(--navy); border: none;">👥 MC Members List (Contacts only)</button>
+            </div>
+          </div>
+          <div class="export-section">
             <h3>📝 Weekly Summary Report</h3>
             <div id="summary-preview"
               style="background:var(--light);border-radius:12px;padding:16px;margin-bottom:14px;font-size:13px;color:var(--navy);">
@@ -3305,6 +3317,111 @@
           doc.save(name + '.pdf');
         }
       }
+
+      function getMemberContactMap() {
+        var contacts = {};
+        
+        // 1. Scan SPS reports for new members contacts
+        (allReports || []).forEach(function (r) {
+          if (r.newMembers) {
+            var arr = [];
+            if (Array.isArray(r.newMembers)) {
+              arr = r.newMembers;
+            } else {
+              try {
+                arr = JSON.parse(r.newMembers);
+              } catch (e) {
+                if (typeof r.newMembers === 'string' && r.newMembers.trim()) {
+                  arr = r.newMembers.split(',').map(function (n) { return { name: n.trim() }; });
+                }
+              }
+            }
+            if (Array.isArray(arr)) {
+              arr.forEach(function (m) {
+                if (m && m.name && m.contact) {
+                  contacts[m.name.trim()] = m.contact.trim();
+                }
+              });
+            }
+          }
+        });
+
+        // 2. Scan Microchurch reports for new souls contacts
+        (allMicrochurchReports || []).forEach(function (r) {
+          if (r.newSouls) {
+            var arr = [];
+            if (Array.isArray(r.newSouls)) {
+              arr = r.newSouls;
+            } else {
+              try {
+                arr = JSON.parse(r.newSouls);
+              } catch (e) {
+                if (typeof r.newSouls === 'string' && r.newSouls.trim()) {
+                  arr = r.newSouls.split(',').map(function (n) { return { name: n.trim() }; });
+                }
+              }
+            }
+            if (Array.isArray(arr)) {
+              arr.forEach(function (s) {
+                if (s && s.name && s.phone) {
+                  contacts[s.name.trim()] = s.phone.trim();
+                }
+              });
+            }
+          }
+        });
+
+        return contacts;
+      }
+
+      window.doExportCleanList = function(type) {
+        var headers = [];
+        var rows = [];
+        var fileName = '';
+
+        if (type === 'sps-shepherds') {
+          headers = ['Shepherd Name', 'Contact Number'];
+          ALL_SHEPHERDS.forEach(function (s) {
+            rows.push([s.name, s.contact || 'N/A']);
+          });
+          fileName = 'ONC-SPS-Shepherds-List';
+        } else if (type === 'mc-shepherds') {
+          headers = ['Shepherd Name', 'Microchurch', 'Contact Number'];
+          ALL_MC_SHEPHERDS.forEach(function (s) {
+            rows.push([s.name, s.microchurch || 'N/A', s.contact || 'N/A']);
+          });
+          fileName = 'ONC-MC-Shepherds-List';
+        } else if (type === 'sps-members') {
+          headers = ['Member Name', 'Member Contact', 'Assigned Shepherd'];
+          var contactMap = getMemberContactMap();
+          Object.entries(memberData).forEach(function (e) {
+            var name = e[0], shep = e[1];
+            rows.push([name, contactMap[name] || 'N/A', shep]);
+          });
+          fileName = 'ONC-SPS-Members-Contacts';
+        } else if (type === 'mc-members') {
+          headers = ['Member Name', 'Member Contact', 'Assigned Shepherd', 'Microchurch'];
+          var contactMap = getMemberContactMap();
+          ALL_MC_SHEPHERDS.forEach(function (s) {
+            var members = (window.mcMemberData && window.mcMemberData[s.name]) || [];
+            members.forEach(function (m) {
+              rows.push([m, contactMap[m] || 'N/A', s.name, s.microchurch]);
+            });
+          });
+          fileName = 'ONC-MC-Members-Contacts';
+        }
+
+        if (!rows.length) {
+          alert('No data found to export!');
+          return;
+        }
+
+        // Export using sheetjs
+        var ws = XLSX.utils.aoa_to_sheet([headers].concat(rows));
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'List');
+        XLSX.writeFile(wb, fileName + '.xlsx');
+      };
 
       function renderSummaryPreview() {
         var el = document.getElementById('summary-preview');
