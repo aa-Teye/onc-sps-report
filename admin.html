@@ -2681,35 +2681,54 @@
         return val.toString().split(',').map(function (s) { return s.trim(); }).filter(Boolean);
       }
 
+      function parseRobustDate(val) {
+        if (!val) return null;
+        var s = val.toString().trim();
+        if (!s) return null;
+        
+        // Try parsing DD/MM/YYYY or DD-MM-YYYY with optional time
+        var clean = s.replace(/-/g, '/');
+        var parts = clean.split('/');
+        if (parts.length >= 3) {
+          var day = parseInt(parts[0], 10);
+          var month = parseInt(parts[1], 10) - 1;
+          var yearPart = parts[2].split(' ')[0];
+          var year = parseInt(yearPart, 10);
+          if (year < 100) year += 2000;
+          
+          var hour = 0, min = 0, sec = 0;
+          var timeMatches = s.split(' ');
+          if (timeMatches.length >= 2) {
+            var timeParts = timeMatches[1].split(':');
+            if (timeParts.length >= 2) {
+              hour = parseInt(timeParts[0], 10);
+              min = parseInt(timeParts[1], 10);
+              if (timeParts.length >= 3) {
+                sec = parseInt(timeParts[2], 10);
+              }
+            }
+          }
+          var parsed = new Date(year, month, day, hour, min, sec);
+          if (!isNaN(parsed.getTime())) return parsed;
+        }
+
+        var d = new Date(s);
+        if (!isNaN(d.getTime())) return d;
+        return null;
+      }
+
       function isThisWeek(r) {
         if (!r) return false;
-        var dateStr = r.submissionDate || r.sessionDate || r.date || '';
-        var reportDate = null;
-
-        if (dateStr) {
-          var parts = dateStr.toString().split('/');
-          if (parts.length === 3) {
-            // DD/MM/YYYY format
-            reportDate = new Date(
-              parseInt(parts[2]),
-              parseInt(parts[1]) - 1,
-              parseInt(parts[0])
-            );
-          } else {
-            reportDate = new Date(dateStr);
-          }
-        }
-
-        if (!reportDate || isNaN(reportDate.getTime())) {
-          if (r.timestamp) reportDate = new Date(r.timestamp);
-        }
+        var dateStr = r.sessionDate || r.date || r.submissionDate || r.timestamp || '';
+        var reportDate = parseRobustDate(dateStr);
 
         if (!reportDate || isNaN(reportDate.getTime()))
           return false;
 
         var now = new Date();
+        // Generous 9-day reporting window to capture late submissions from the weekend
         var weekAgo = new Date(
-          now.getTime() - 7 * 24 * 60 * 60 * 1000
+          now.getTime() - 9 * 24 * 60 * 60 * 1000
         );
         return reportDate >= weekAgo && reportDate <= now;
       }
@@ -3121,19 +3140,8 @@
           // 14 days auto-purge date validation for meeting proof photo
           var showProofImg = false;
           if (r.proofPhoto) {
-            var dateStr = r.sessionDate || r.date || r.submissionDate || '';
-            var reportDate = null;
-            if (dateStr.includes('/')) {
-              var parts = dateStr.split('/');
-              if (parts.length === 3) {
-                reportDate = new Date(parts[2], parts[1] - 1, parts[0]);
-              }
-            } else if (dateStr) {
-              reportDate = new Date(dateStr);
-            }
-            if (!reportDate && r.timestamp) {
-              reportDate = new Date(r.timestamp);
-            }
+            var dateStr = r.sessionDate || r.date || r.submissionDate || r.timestamp || '';
+            var reportDate = parseRobustDate(dateStr);
 
             var twoWeeksAgo = new Date();
             twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
@@ -3207,11 +3215,10 @@
         var shep = document.getElementById('exp-shep-filter').value;
         return allReports.filter(function (r) {
           if (shep && r.shepherd !== shep) return false;
-          var d = r.submissionDate || r.sessionDate || r.date || '';
+          var d = r.submissionDate || r.sessionDate || r.date || r.timestamp || '';
           if (from || to) {
-            var parts = d.split('/');
-            var rd = parts.length >= 3 ? new Date(parts[2], parts[1] - 1, parts[0]) : new Date(d);
-            if (isNaN(rd)) return true;
+            var rd = parseRobustDate(d);
+            if (!rd || isNaN(rd.getTime())) return true;
             var iso = rd.toISOString().split('T')[0];
             if (from && iso < from) return false;
             if (to && iso > to) return false;
@@ -4476,19 +4483,8 @@
             // 14 days auto-purge date validation for meeting proof photo
             var showProofImg = false;
             if (r.proofPhoto) {
-              var dateStr = r.submissionDate || r.sessionDate || r.date || '';
-              var reportDate = null;
-              if (dateStr.includes('/')) {
-                var parts = dateStr.split('/');
-                if (parts.length === 3) {
-                  reportDate = new Date(parts[2], parts[1] - 1, parts[0]);
-                }
-              } else if (dateStr) {
-                reportDate = new Date(dateStr);
-              }
-              if (!reportDate && r.timestamp) {
-                reportDate = new Date(r.timestamp);
-              }
+              var dateStr = r.submissionDate || r.sessionDate || r.date || r.timestamp || '';
+              var reportDate = parseRobustDate(dateStr);
 
               var twoWeeksAgo = new Date();
               twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
