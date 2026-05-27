@@ -1207,6 +1207,14 @@
           </div>
           <div class="section-title">Recent Activity <span class="pill" id="activity-count"></span></div>
           <div class="activity-list" id="activity-feed"></div>
+          <div style="text-align:center;margin-top:12px;">
+            <button onclick="switchTab('reports', this)"
+              style="background:none;border:none;
+              color:var(--accent);font-weight:700;
+              cursor:pointer;font-size:13px;">
+              View All Reports →
+            </button>
+          </div>
         </div>
 
         <!-- TAB 2: SHEPHERDS -->
@@ -3017,7 +3025,7 @@
         var highAct = ALL_SHEPHERDS.filter(function (s) { return weekly.filter(function (r) { return r.shepherd === s.name; }).length >= 3; });
         document.getElementById('alert-active').innerHTML = highAct.length ? highAct.map(function (s) { return '<li>' + s.name + '</li>'; }).join('') : '<li style="color:#64748b">None yet this week</li>';
 
-        var recent = allReports.slice().sort(function (a, b) { return new Date(b.timestamp) - new Date(a.timestamp); }).slice(0, 5);
+        var recent = allReports.slice().sort(function (a, b) { return new Date(b.timestamp) - new Date(a.timestamp); }).slice(0, 10);
         document.getElementById('activity-count').textContent = allReports.length + ' total';
         document.getElementById('activity-feed').innerHTML = recent.length ? recent.map(function (r) {
           return '<div class="activity-item"><div><div class="activity-name">' + r.shepherd + '</div><div class="activity-meta">' + (r.sessionDate || r.date || '') + ' · ' + formatTime(r.sessionTime) + ' · ' + toArray(r.membersPresent).length + '/' + (r.totalMembers || 4) + ' members</div></div><div class="activity-rate">' + getRate(r) + '%</div></div>';
