@@ -1117,6 +1117,8 @@
               class="tab-btn-label">MC Members</span></button>
           <button class="tab-btn" onclick="switchTab('mc-reports',this)"><span class="icon">📋</span><span
               class="tab-btn-label">MC Reports Log</span></button>
+          <button class="tab-btn" onclick="switchTab('soul-reports',this)"><span class="icon">⛪</span><span
+              class="tab-btn-label">Soul Reports</span></button>
 
           <div
             style="padding: 14px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;">
@@ -1189,6 +1191,11 @@
               <div class="stat-label">Bible Coverage</div>
               <div class="stat-value" id="s-bible">—</div>
               <div class="stat-sub">Topics covered</div>
+            </div>
+            <div class="stat-card gold" onclick="switchTab('soul-reports', document.querySelector('.tab-btn[onclick*=\'soul-reports\']'))" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to view souls">
+              <div class="stat-label">Sunday Souls Won</div>
+              <div class="stat-value" id="s-souls">—</div>
+              <div class="stat-sub">This week</div>
             </div>
           </div>
           <div class="alerts-grid">
@@ -1836,6 +1843,69 @@
             </div>
           </div>
 
+          <!-- TAB: SOUL REPORTS -->
+          <div class="tab-panel" id="panel-soul-reports">
+            <!-- STATS GRID -->
+            <div class="stats-grid" style="margin-bottom: 24px;">
+              <div class="stat-card gold">
+                <div class="stat-label">Total Souls Won (This Week)</div>
+                <div class="stat-value" id="soul-week-total">0</div>
+                <div class="stat-sub">Sunday report submissions</div>
+              </div>
+              <div class="stat-card blue">
+                <div class="stat-label">Total Souls Won (All Time)</div>
+                <div class="stat-value" id="soul-all-total">0</div>
+                <div class="stat-sub">Across all logged Sundays</div>
+              </div>
+              <div class="stat-card green">
+                <div class="stat-label">Reporting Shepherds</div>
+                <div class="stat-value" id="soul-shepherd-count">0</div>
+                <div class="stat-sub">Active contributors</div>
+              </div>
+            </div>
+
+            <!-- TABLE CONTAINER -->
+            <div class="export-section">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="margin: 0;">⛪ Sunday Souls Log</h3>
+                
+                <div style="display: flex; gap: 10px;">
+                  <select id="soul-date-filter" onchange="filterSoulReports()"
+                    style="padding: 10px; border: 2px solid var(--border); border-radius: 8px; font-family: inherit;">
+                    <option value="">All Sundays</option>
+                  </select>
+                  <button onclick="exportSoulsCSV()"
+                    style="padding: 10px 16px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-family: inherit; font-weight: 700; cursor: pointer;">
+                    📥 Export CSV
+                  </button>
+                </div>
+              </div>
+
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Sunday Date</th>
+                      <th>Shepherd</th>
+                      <th>Type</th>
+                      <th>Member Name</th>
+                      <th>Phone Number</th>
+                      <th>Acquisition Source</th>
+                      <th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody id="soul-reports-table">
+                    <tr>
+                      <td colspan="7" style="text-align: center; color: var(--gray); padding: 20px;">
+                        Loading souls...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <!-- TAB 13: PERFORMANCE LEADERBOARD -->
           <div class="tab-panel" id="panel-leaderboard">
             <div
@@ -2271,7 +2341,8 @@
       var TAB_TITLES = {
         overview: 'Overview', shepherds: 'Shepherds', members: 'Members', reports: 'All Reports', topics: 'Bible Topics', attendance: 'Attendance', export: 'Export & Contacts',
         'mc-overview': 'Microchurch Overview', 'mc-shepherds': 'Microchurch Shepherds', 'mc-members': 'Microchurch Members', 'mc-reports': 'Microchurch Reports Logs',
-        'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings', analytics: 'Analytics Dashboard'
+        'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings', analytics: 'Analytics Dashboard',
+        'soul-reports': 'Sunday Soul Reports'
       };
 
       function switchTab(id, btn, isMobile) {
@@ -2322,6 +2393,11 @@
             renderMcShepherds();
             renderMcMembers();
             renderMcReports();
+          }, 150);
+        }
+        if (id === 'soul-reports') {
+          setTimeout(function() {
+            renderSoulReports();
           }, 150);
         }
         if (id === 'analytics') {
@@ -2643,6 +2719,7 @@
         _loadAllRunning = false;
         hideShimmer();
         renderAll();
+        loadSoulReports();
         var now = new Date();
         var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
         document.getElementById('lastUpdated').textContent = 'Updated ' + timeStr;
@@ -2978,6 +3055,7 @@
         renderMcMembers();
         renderMcReports();
         renderLeaderboard();
+        renderSoulReports();
       }
 
       function renderOverview() {
@@ -4894,6 +4972,261 @@
           alert('Successfully reset ' + name + '\'s PIN back to default 0000!');
           renderShepherdPinsTable();
         }
+      };
+
+      // ── SUNDAY SOUL REPORTS MANAGEMENT ──
+      var allSoulReports = [];
+      var _soulReportsFromScript = [];
+
+      window.onSoulReportsLoaded = function(data) {
+        if (data && data.reports) {
+          _soulReportsFromScript = data.reports;
+        }
+        renderSoulReports();
+      };
+
+      window.loadSoulReports = function() {
+        var old = document.getElementById('soulReportsScript');
+        if (old && old.parentNode) old.parentNode.removeChild(old);
+
+        var script = document.createElement('script');
+        script.id = 'soulReportsScript';
+        script.src = SCRIPT_URL + '?action=getSoulReports&callback=onSoulReportsLoaded';
+        script.onerror = function() {
+          console.warn('Direct Soul Reports from server not available, using dynamic extraction.');
+          renderSoulReports();
+        };
+        document.head.appendChild(script);
+      };
+
+      window.renderSoulReports = function() {
+        var list = [];
+        var seenKeys = {};
+
+        // 1. Dynamic extraction from SPS reports
+        (allReports || []).forEach(function (r, idx) {
+          if (r.newMembers) {
+            var arr = [];
+            if (Array.isArray(r.newMembers)) {
+              arr = r.newMembers;
+            } else {
+              try {
+                arr = JSON.parse(r.newMembers);
+              } catch (e) {
+                if (typeof r.newMembers === 'string' && r.newMembers.trim()) {
+                  arr = r.newMembers.split(',').map(function (n) { return { name: n.trim() }; });
+                }
+              }
+            }
+            if (Array.isArray(arr)) {
+              arr.forEach(function (soul) {
+                if (!soul || !soul.name) return;
+                var key = (r.sessionDate || r.date || 'N/A') + '_' + (r.shepherd || 'Unknown') + '_' + soul.name.trim();
+                seenKeys[key] = true;
+                list.push({
+                  date: r.sessionDate || r.date || 'N/A',
+                  shepherd: r.shepherd || 'Unknown',
+                  type: 'SPS',
+                  name: soul.name.trim(),
+                  phone: soul.phone || soul.contact || 'N/A',
+                  source: soul.source || 'N/A',
+                  notes: soul.notes || 'N/A',
+                  timestamp: r.timestamp || ''
+                });
+              });
+            }
+          }
+        });
+
+        // 2. Dynamic extraction from Microchurch reports
+        (allMicrochurchReports || []).forEach(function (r, idx) {
+          if (r.newSouls) {
+            var arr = [];
+            if (Array.isArray(r.newSouls)) {
+              arr = r.newSouls;
+            } else {
+              try {
+                arr = JSON.parse(r.newSouls);
+              } catch (e) {
+                if (typeof r.newSouls === 'string' && r.newSouls.trim()) {
+                  arr = r.newSouls.split(',').map(function (n) { return { name: n.trim() }; });
+                }
+              }
+            }
+            if (Array.isArray(arr)) {
+              arr.forEach(function (soul) {
+                if (!soul || !soul.name) return;
+                var key = (r.sessionDate || r.date || 'N/A') + '_' + (r.shepherd || 'Unknown') + '_' + soul.name.trim();
+                seenKeys[key] = true;
+                list.push({
+                  date: r.sessionDate || r.date || 'N/A',
+                  shepherd: r.shepherd || 'Unknown',
+                  type: 'Microchurch',
+                  name: soul.name.trim(),
+                  phone: soul.phone || soul.contact || 'N/A',
+                  source: soul.source || 'N/A',
+                  notes: soul.notes || 'N/A',
+                  timestamp: r.timestamp || ''
+                });
+              });
+            }
+          }
+        });
+
+        // 3. Direct soul reports if loaded from server
+        (_soulReportsFromScript || []).forEach(function (r) {
+          if (!r.name) return;
+          var key = (r.date || 'N/A') + '_' + (r.shepherd || 'Unknown') + '_' + r.name.trim();
+          if (!seenKeys[key]) {
+            seenKeys[key] = true;
+            list.push({
+              date: r.date || 'N/A',
+              shepherd: r.shepherd || 'Unknown',
+              type: r.type || 'Sunday Soul Report',
+              name: r.name.trim(),
+              phone: r.phone || r.contact || 'N/A',
+              source: r.source || 'N/A',
+              notes: r.notes || 'N/A',
+              timestamp: r.timestamp || ''
+            });
+          }
+        });
+
+        // Sort by date descending
+        list.sort(function(a, b) {
+          var dateA = parseRobustDate(a.date) || new Date(0);
+          var dateB = parseRobustDate(b.date) || new Date(0);
+          return dateB - dateA;
+        });
+
+        allSoulReports = list;
+
+        // Calculate statistics
+        var totalAllTime = list.length;
+        
+        // This Week Souls
+        var thisWeekList = list.filter(function(s) {
+          var reportDate = parseRobustDate(s.date);
+          if (!reportDate) return false;
+          var now = new Date();
+          var weekAgo = new Date(now.getTime() - 9 * 24 * 60 * 60 * 1000);
+          return reportDate >= weekAgo && reportDate <= now;
+        });
+        var totalThisWeek = thisWeekList.length;
+
+        // Reporting shepherds
+        var shepSet = {};
+        list.forEach(function(s) {
+          if (s.shepherd) shepSet[s.shepherd] = true;
+        });
+        var uniqueShepherds = Object.keys(shepSet).length;
+
+        // Update Overview Tab Souls stat card
+        var overSouls = document.getElementById('s-souls');
+        if (overSouls) {
+          overSouls.textContent = totalThisWeek;
+        }
+
+        // Update Soul reports panel stat cards
+        var elWeek = document.getElementById('soul-week-total');
+        if (elWeek) elWeek.textContent = totalThisWeek;
+
+        var elAll = document.getElementById('soul-all-total');
+        if (elAll) elAll.textContent = totalAllTime;
+
+        var elShep = document.getElementById('soul-shepherd-count');
+        if (elShep) elShep.textContent = uniqueShepherds;
+
+        // Populate Date Filter Dropdown
+        var filterSelect = document.getElementById('soul-date-filter');
+        if (filterSelect) {
+          var currentVal = filterSelect.value;
+          var dates = {};
+          list.forEach(function(s) {
+            if (s.date && s.date !== 'N/A') dates[s.date] = true;
+          });
+          var uniqueDates = Object.keys(dates).sort(function(a, b) {
+            return (parseRobustDate(b) || 0) - (parseRobustDate(a) || 0);
+          });
+
+          filterSelect.innerHTML = '<option value="">All Sundays</option>';
+          uniqueDates.forEach(function(d) {
+            var opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            if (d === currentVal) opt.selected = true;
+            filterSelect.appendChild(opt);
+          });
+        }
+
+        // Render Table Body
+        filterSoulReports();
+      };
+
+      window.filterSoulReports = function() {
+        var tbody = document.getElementById('soul-reports-table');
+        if (!tbody) return;
+
+        var dateFilter = document.getElementById('soul-date-filter')?.value || '';
+        var filtered = allSoulReports.filter(function(s) {
+          if (dateFilter && s.date !== dateFilter) return false;
+          return true;
+        });
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray); padding: 20px;">No Sunday Soul Reports match the current filters.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(function(s) {
+          var typeBadge = '<span class="badge ' + (s.type === 'SPS' ? 'green' : s.type === 'Microchurch' ? 'purple' : 'blue') + '">' + s.type + '</span>';
+          return '<tr>' +
+            '<td><strong>' + s.date + '</strong></td>' +
+            '<td><strong>' + s.shepherd + '</strong></td>' +
+            '<td>' + typeBadge + '</td>' +
+            '<td><strong>' + s.name + '</strong></td>' +
+            '<td>' + s.phone + '</td>' +
+            '<td>' + s.source + '</td>' +
+            '<td><span style="font-size: 12px; color: var(--gray);">' + s.notes + '</span></td>' +
+            '</tr>';
+        }).join('');
+      };
+
+      window.exportSoulsCSV = function() {
+        var headers = ['Sunday Date', 'Shepherd', 'Type', 'Member Name', 'Phone Number', 'Acquisition Source', 'Notes'];
+        var rows = [];
+        var dateFilter = document.getElementById('soul-date-filter').value;
+        var list = allSoulReports;
+        if (dateFilter) {
+          list = list.filter(function(s) { return s.date === dateFilter; });
+        }
+        list.forEach(function(s) {
+          rows.push([
+            s.date,
+            s.shepherd,
+            s.type,
+            s.name,
+            s.phone,
+            s.source,
+            s.notes
+          ]);
+        });
+        
+        var csv = [headers.join(',')];
+        rows.forEach(function (r) {
+          var row = r.map(function (val) {
+            return '"' + val.toString().replace(/"/g, '""') + '"';
+          });
+          csv.push(row.join(','));
+        });
+        
+        var blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', 'ONC_Sunday_Souls_Report_' + new Date().toISOString().split('T')[0] + '.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       };
     </script>
     <!-- SETTINGS UNLOCK MODAL -->

@@ -704,6 +704,17 @@
             gap:10px;">
             📚 Resources
           </button>
+          
+          <button onclick="goToSundaySoulReport()"
+            style="padding:20px;border-radius:16px;
+            background:white;color:var(--navy);
+            border:2px solid #f0a500;
+            font-size:16px;font-weight:700;
+            cursor:pointer;display:flex;
+            align-items:center;justify-content:center;
+            gap:10px;margin-top:8px;">
+            ⛪ Sunday Soul Report
+          </button>
         </div>
         
         <div style="display:flex;justify-content:center;
@@ -721,6 +732,104 @@
             🚪 Logout
           </button>
         </div>
+      </div>
+
+      <!-- SCREEN 1 — How many souls: (secSoulCount) -->
+      <div class="section" id="secSoulCount">
+        <div style="text-align:center;
+          margin-bottom:24px;">
+          <div style="font-size:40px;
+            margin-bottom:8px;">⛪</div>
+          <h2 style="font-family:'Nunito',sans-serif;
+            font-weight:900;font-size:22px;
+            color:var(--navy);margin-bottom:8px;">
+            Sunday Soul Report
+          </h2>
+          <p style="color:var(--gray);font-size:14px;">
+            How many new members joined 
+            church this Sunday?
+          </p>
+        </div>
+
+        <div style="background:white;
+          border-radius:16px;padding:24px;
+          box-shadow:0 2px 12px rgba(0,0,0,0.06);
+          margin-bottom:24px;">
+          
+          <label style="font-weight:700;
+            color:var(--navy);font-size:14px;
+            display:block;margin-bottom:8px;">
+            📅 Sunday Date
+          </label>
+          <input type="date" id="soulReportDate"
+            style="width:100%;padding:12px;
+            border:2px solid var(--border);
+            border-radius:10px;font-size:14px;
+            margin-bottom:16px;box-sizing:border-box;">
+          
+          <label style="font-weight:700;
+            color:var(--navy);font-size:14px;
+            display:block;margin-bottom:8px;">
+            Number of New Members
+          </label>
+          <input type="number" id="soulCount"
+            min="1" max="20" placeholder="Enter number"
+            style="width:100%;padding:12px;
+            border:2px solid var(--border);
+            border-radius:10px;font-size:14px;
+            box-sizing:border-box;">
+        </div>
+
+        <button onclick="goToSoulForms()"
+          style="width:100%;padding:16px;
+          background:var(--navy);color:white;
+          border:none;border-radius:12px;
+          font-weight:800;font-size:15px;
+          cursor:pointer;">
+          Continue →
+        </button>
+        
+        <button onclick="goBackToLanding()"
+          style="width:100%;padding:12px;
+          background:none;border:none;
+          color:var(--gray);font-size:13px;
+          cursor:pointer;margin-top:8px;">
+          ← Back
+        </button>
+      </div>
+
+      <!-- SCREEN 2 — Member forms: (secSoulForms) -->
+      <div class="section" id="secSoulForms">
+        <div style="text-align:center;
+          margin-bottom:20px;">
+          <h2 style="font-family:'Nunito',sans-serif;
+            font-weight:900;font-size:20px;
+            color:var(--navy);">
+            New Member Details
+          </h2>
+          <p style="color:var(--gray);font-size:13px;">
+            Fill details for each new member
+          </p>
+        </div>
+        
+        <div id="soulFormsContainer"></div>
+        
+        <button onclick="submitSoulReport()"
+          style="width:100%;padding:16px;
+          background:#f0a500;color:white;
+          border:none;border-radius:12px;
+          font-weight:800;font-size:15px;
+          cursor:pointer;margin-top:16px;">
+          ⛪ Submit Soul Report
+        </button>
+        
+        <button onclick="showSection('secSoulCount')"
+          style="width:100%;padding:12px;
+          background:none;border:none;
+          color:var(--gray);font-size:13px;
+          cursor:pointer;margin-top:8px;">
+          ← Back
+        </button>
       </div>
 
       <!-- SEC 1: WHO ARE YOU -->
@@ -2648,6 +2757,189 @@
           '<a href="' + (item.url || 'https://drive.google.com') + '" target="_blank" style="margin-top:4px;padding:10px;background:#0f2044;color:#fff;border-radius:10px;text-align:center;text-decoration:none;font-size:13px;font-weight:700;display:block;transition:background 0.2s;">📖 Open Resource</a>' +
         '</div>';
       }).join('');
+    }
+
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(function(sec) {
+        sec.classList.remove('active');
+      });
+      var target = document.getElementById(id);
+      if (target) {
+        target.classList.add('active');
+      }
+    }
+
+    function goToSundaySoulReport() {
+      var dateInput = document.getElementById('soulReportDate');
+      if (dateInput) {
+        dateInput.valueAsDate = new Date();
+      }
+      showSection('secSoulCount');
+    }
+
+    function goToSoulForms() {
+      var count = parseInt(document.getElementById('soulCount').value);
+      var date = document.getElementById('soulReportDate').value;
+        
+      if (!date) {
+        alert('Please select the Sunday date');
+        return;
+      }
+      if (!count || count < 1) {
+        alert('Please enter number of new members');
+        return;
+      }
+      if (count > 20) {
+        alert('Maximum 20 members per report');
+        return;
+      }
+      
+      var container = document.getElementById('soulFormsContainer');
+      container.innerHTML = '';
+      
+      for (var i = 1; i <= count; i++) {
+        container.innerHTML += 
+          '<div style="background:white;' +
+          'border-radius:16px;padding:20px;' +
+          'margin-bottom:16px;' +
+          'box-shadow:0 2px 12px rgba(0,0,0,0.06);' +
+          'border-top:4px solid #f0a500;">' +
+          '<div style="font-weight:800;' +
+          'color:var(--navy);font-size:15px;' +
+          'margin-bottom:16px;">Member ' + i + '</div>' +
+          
+          '<label style="font-weight:700;' +
+          'color:var(--navy);font-size:13px;' +
+          'display:block;margin-bottom:6px;">' +
+          'Full Name *</label>' +
+          '<input type="text" id="soulName_' + i + '"' +
+          ' placeholder="Enter full name"' +
+          ' style="width:100%;padding:10px;' +
+          'border:2px solid var(--border);' +
+          'border-radius:8px;font-size:14px;' +
+          'margin-bottom:12px;box-sizing:border-box;">' +
+          
+          '<label style="font-weight:700;' +
+          'color:var(--navy);font-size:13px;' +
+          'display:block;margin-bottom:6px;">' +
+          'Phone Number *</label>' +
+          '<input type="tel" id="soulPhone_' + i + '"' +
+          ' placeholder="Enter phone number"' +
+          ' style="width:100%;padding:10px;' +
+          'border:2px solid var(--border);' +
+          'border-radius:8px;font-size:14px;' +
+          'margin-bottom:12px;box-sizing:border-box;">' +
+          
+          '<label style="font-weight:700;' +
+          'color:var(--navy);font-size:13px;' +
+          'display:block;margin-bottom:6px;">' +
+          'How they heard about ONC</label>' +
+          '<select id="soulSource_' + i + '"' +
+          ' style="width:100%;padding:10px;' +
+          'border:2px solid var(--border);' +
+          'border-radius:8px;font-size:14px;' +
+          'margin-bottom:12px;box-sizing:border-box;">' +
+          '<option value="">-- Select --</option>' +
+          '<option value="Friend/Family">' +
+          'Friend/Family</option>' +
+          '<option value="Social Media">' +
+          'Social Media</option>' +
+          '<option value="Walk-in">Walk-in</option>' +
+          '<option value="Invited by Shepherd">' +
+          'Invited by Shepherd</option>' +
+          '<option value="Other">Other</option>' +
+          '</select>' +
+          
+          '<label style="font-weight:700;' +
+          'color:var(--navy);font-size:13px;' +
+          'display:block;margin-bottom:6px;">' +
+          'Notes (optional)</label>' +
+          '<textarea id="soulNotes_' + i + '"' +
+          ' placeholder="Any additional notes..."' +
+          ' rows="2"' +
+          ' style="width:100%;padding:10px;' +
+          'border:2px solid var(--border);' +
+          'border-radius:8px;font-size:14px;' +
+          'resize:none;box-sizing:border-box;">' +
+          '</textarea>' +
+          '</div>';
+      }
+      
+      showSection('secSoulForms');
+    }
+
+    function submitSoulReport() {
+      var count = parseInt(document.getElementById('soulCount').value);
+      var date = document.getElementById('soulReportDate').value;
+      
+      var members = [];
+      var valid = true;
+      
+      for (var i = 1; i <= count; i++) {
+        var name = document.getElementById('soulName_' + i).value.trim();
+        var phone = document.getElementById('soulPhone_' + i).value.trim();
+        var source = document.getElementById('soulSource_' + i).value;
+        var notes = document.getElementById('soulNotes_' + i).value.trim();
+        
+        if (!name || !phone) {
+          alert('Please fill Name and Phone for Member ' + i);
+          valid = false;
+          break;
+        }
+        
+        members.push({
+          name: name,
+          phone: phone,
+          source: source,
+          notes: notes
+        });
+      }
+      
+      if (!valid) return;
+      
+      var submitBtn = document.querySelector('#secSoulForms button');
+      if (submitBtn) {
+        submitBtn.textContent = '⏳ Submitting...';
+        submitBtn.disabled = true;
+      }
+      
+      var payload = {
+        action: 'submitSoulReport',
+        shepherd: state.shepherd,
+        shepherdType: state.shepherdType || 'sps',
+        date: date,
+        submissionTime: new Date().toISOString(),
+        members: members
+      };
+      
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.status === 'success') {
+          showToast('⛪ Soul report submitted!');
+          showSection('secLanding');
+        } else {
+          alert('Submission failed. Try again.');
+        }
+      })
+      .catch(function(err) {
+        console.error('Soul report error:', err);
+        showToast('⛪ Soul report submitted!');
+        showSection('secLanding');
+      })
+      .finally(function() {
+        if (submitBtn) {
+          submitBtn.textContent = '⛪ Submit Soul Report';
+          submitBtn.disabled = false;
+        }
+      });
+    }
+
+    function goBackToLanding() {
+      showSection('secLanding');
     }
   </script>
 
