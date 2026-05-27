@@ -1180,7 +1180,7 @@
               <div class="stat-value" id="s-prayer">—</div>
               <div class="stat-sub">Prayer done</div>
             </div>
-            <div class="stat-card orange">
+            <div class="stat-card orange" onclick="showFlaggedConcerns()" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to view concerns">
               <div class="stat-label">Concerns Flagged</div>
               <div class="stat-value" id="s-concerns">—</div>
               <div class="stat-sub">This week</div>
@@ -1291,6 +1291,11 @@
               <option value="">All Prayer</option>
               <option value="yes">✅ Prayer Yes</option>
               <option value="no">❌ Prayer No</option>
+            </select>
+            <select id="filter-rep-concerns" onchange="renderReports()">
+              <option value="">All Concerns</option>
+              <option value="yes">⚠ Flagged Concerns</option>
+              <option value="no">✅ No Concerns</option>
             </select>
             <input type="date" id="filter-rep-date" onchange="renderReports()">
           </div>
@@ -3075,7 +3080,11 @@
           if (statusFilter && status !== statusFilter) return;
           var badge = status === 'active' ? '<span class="badge green">🟢 Active</span>' : status === 'overdue' ? '<span class="badge yellow">🟡 Overdue</span>' : '<span class="badge red">🔴 Silent</span>';
           var avgRate = weekReps.length ? Math.round(weekReps.reduce(function (a, r) { return a + getRate(r); }, 0) / weekReps.length) : 0;
-          var repsHtml = reps.length ? reps.slice(0, 5).map(function (r) { return '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f1f5f9;color:#475569;">' + (r.sessionDate || r.date || '') + ' — ' + toArray(r.membersPresent).length + '/' + (r.totalMembers || 4) + ' present · Prayer: ' + (r.prayerDone || '?') + '</div>'; }).join('') : '<div style="font-size:12px;color:#94a3b8;">No reports yet</div>';
+          var repsHtml = reps.length ? reps.slice(0, 5).map(function (r) {
+            var cText = formatConcernText(r);
+            var concernHtml = cText ? '<div style="margin-top:4px;padding:6px 8px;background:#fff7ed;border-radius:6px;border-left:2px solid #f97316;color:#7c2d12;font-size:11px;text-align:left;">⚠ ' + cText + '</div>' : '';
+            return '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f1f5f9;color:#475569;">' + (r.sessionDate || r.date || '') + ' — ' + toArray(r.membersPresent).length + '/' + (r.totalMembers || 4) + ' present · Prayer: ' + (r.prayerDone || '?') + concernHtml + '</div>';
+          }).join('') : '<div style="font-size:12px;color:#94a3b8;">No reports yet</div>';
 
           var phone = s.contact || '';
           var contactBtns = phone ?
@@ -3133,13 +3142,63 @@
         tbody.innerHTML = rows || '<tr><td colspan="8" class="empty"><div class="icon">🙋</div><p>No members found</p></td></tr>';
       }
 
+      function formatConcernText(r) {
+        var c = r.concerns;
+        if (!c) return '';
+        if (typeof c === 'string') {
+          return (c.trim() !== '' && c.toLowerCase() !== 'none') ? c.trim() : '';
+        }
+        if (typeof c === 'object') {
+          return Object.entries(c)
+            .filter(function (e) { return e[1] && e[1].trim() && e[1].toLowerCase() !== 'none'; })
+            .map(function (e) { return e[0] + ': ' + e[1].trim(); })
+            .join(' | ');
+        }
+        return '';
+      }
+
+      window.toggleReportRow = function (idx) {
+        var el = document.getElementById('rep-details-' + idx);
+        if (el) {
+          el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
+        }
+      };
+
+      window.showFlaggedConcerns = function () {
+        var filterConcerns = document.getElementById('filter-rep-concerns');
+        if (filterConcerns) filterConcerns.value = 'yes';
+        
+        var filterShep = document.getElementById('filter-rep-shep');
+        if (filterShep) filterShep.value = '';
+        
+        var filterPrayer = document.getElementById('filter-rep-prayer');
+        if (filterPrayer) filterPrayer.value = '';
+        
+        var filterDate = document.getElementById('filter-rep-date');
+        if (filterDate) filterDate.value = '';
+        
+        var reportsTabBtn = document.querySelector('.tab-btn[onclick*="reports"]') || document.querySelector('.btab-btn[onclick*="reports"]');
+        switchTab('reports', reportsTabBtn);
+        renderReports();
+
+        setTimeout(function() {
+          var rows = document.querySelectorAll('[id^="rep-details-"]');
+          rows.forEach(function(row) {
+            row.style.display = 'table-row';
+          });
+        }, 200);
+      };
+
       function renderReports() {
         var shepFilter = document.getElementById('filter-rep-shep').value;
         var prayerFilter = document.getElementById('filter-rep-prayer').value;
         var dateFilter = document.getElementById('filter-rep-date').value;
+        var concernFilter = document.getElementById('filter-rep-concerns')?.value || '';
         var filtered = allReports.filter(function (r) {
           if (shepFilter && r.shepherd !== shepFilter) return false;
           if (prayerFilter && r.prayerDone !== prayerFilter) return false;
+          if (concernFilter === 'yes' && !countConcerns(r)) return false;
+          if (concernFilter === 'no' && countConcerns(r)) return false;
           if (dateFilter) { var d = r.timestamp ? new Date(r.timestamp).toISOString().split('T')[0] : ''; if (d !== dateFilter) return false; }
           return true;
         }).sort(function (a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
@@ -3161,9 +3220,19 @@
               showProofImg = true;
             }
           }
-          var proofHtml = showProofImg ? ' <span onclick="showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
+          var proofHtml = showProofImg ? ' <span onclick="event.stopPropagation(); showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
 
-          return '<tr><td>' + (i + 1) + '</td><td>' + (r.sessionDate || r.date || '') + proofHtml + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td></tr>';
+          var mainRow = '<tr style="cursor:pointer;" onclick="toggleReportRow(' + i + ')"><td>' + (i + 1) + '</td><td>' + (r.sessionDate || r.date || '') + proofHtml + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td></tr>';
+          
+          var concernCard = '';
+          if (hasC) {
+            var cText = formatConcernText(r);
+            concernCard = '<div style="margin-top:8px;padding:10px 12px;background:#fff7ed;border-radius:8px;border-left:3px solid #f97316;max-width:600px;margin-bottom:12px;text-align:left;"><div style="font-weight:700;color:#c2410c;font-size:12px;margin-bottom:4px;">⚠ Concern Flagged</div><div style="color:#7c2d12;font-size:13px;">' + cText + '</div></div>';
+          }
+          
+          var detailRow = '<tr id="rep-details-' + i + '" style="display:none;background:#f8fafc;"><td colspan="10" style="padding:16px;"><div style="background:white;border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);"><div style="font-weight:800;color:var(--navy);font-size:14px;margin-bottom:10px;text-align:left;">📋 Report Details — ' + r.shepherd + '</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px;font-size:13px;text-align:left;"><div style="color:var(--gray);"><strong>Date:</strong> ' + (r.sessionDate || r.date || '') + ' ' + formatTime(r.sessionTime) + '</div><div style="color:var(--gray);"><strong>Attendance Rate:</strong> ' + getRate(r) + '%</div><div style="color:var(--gray);"><strong>Topic Covered:</strong> ' + (r.actualTopic || r.bibleTopic || '—') + ' (' + (r.topicCovered || 'N/A').toUpperCase() + ')</div><div style="color:var(--gray);"><strong>Prayer Done:</strong> ' + (r.prayerDone || 'N/A').toUpperCase() + '</div></div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#15803d;">Present:</strong> ' + present + '</div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#991b1b;">Absent:</strong> ' + absent + '</div>' + concernCard + '</div></td></tr>';
+          
+          return mainRow + detailRow;
         }).join('') : '<tr><td colspan="10" class="empty"><div class="icon">📭</div><p>No reports match filters</p></td></tr>';
       }
 
