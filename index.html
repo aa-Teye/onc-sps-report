@@ -1182,14 +1182,14 @@
 
         </div>
 
-        <button onclick="submitGuestForm()"
+        <button onclick="reviewGuestForm()"
           style="width:100%;padding:16px;
           background:var(--navy);color:white;
           border:none;border-radius:12px;
           font-weight:800;font-size:15px;
           cursor:pointer;margin-top:20px;
           margin-bottom:8px;">
-          ✅ Submit Guest Form
+          📋 Review & Submit
         </button>
         
         <button onclick="showSection('secFirstTimersLanding')"
@@ -1198,6 +1198,48 @@
           color:var(--gray);font-size:13px;
           cursor:pointer;margin-bottom:20px;">
           ← Back
+        </button>
+      </div>
+
+      <div class="section" id="secGuestReview">
+        <div style="display:flex;align-items:center;
+          gap:12px;margin-bottom:20px;">
+          <button onclick="showSection('secGuestForm')"
+            style="background:none;border:none;
+            color:var(--gray);cursor:pointer;
+            font-size:20px;">←</button>
+          <h2 style="font-family:'Nunito',sans-serif;
+            font-weight:900;font-size:18px;
+            color:var(--navy);margin:0;">
+            📋 Review Guest Details
+          </h2>
+        </div>
+        
+        <p style="color:var(--gray);font-size:13px;
+          margin-bottom:16px;">
+          Please review the details before submitting
+        </p>
+        
+        <div id="guestReviewContent"
+          style="display:flex;flex-direction:column;
+          gap:12px;margin-bottom:20px;">
+        </div>
+        
+        <button onclick="submitGuestForm()"
+          style="width:100%;padding:16px;
+          background:#22c55e;color:white;
+          border:none;border-radius:12px;
+          font-weight:800;font-size:15px;
+          cursor:pointer;margin-bottom:8px;">
+          ✅ Confirm & Submit
+        </button>
+        
+        <button onclick="showSection('secGuestForm')"
+          style="width:100%;padding:12px;
+          background:none;border:none;
+          color:var(--gray);font-size:13px;
+          cursor:pointer;">
+          ✏️ Edit Details
         </button>
       </div>
 
@@ -3715,6 +3757,84 @@
       return sources.join(', ');
     }
 
+    function reviewGuestForm() {
+      var firstName = document.getElementById(
+        'guestFirstName').value.trim();
+      var lastName = document.getElementById(
+        'guestLastName').value.trim();
+      var phone = document.getElementById(
+        'guestPhone').value.trim();
+      
+      if (!firstName || !lastName || !phone) {
+        alert('Please fill First Name, Last Name and Phone Number');
+        return;
+      }
+      
+      var content = document.getElementById(
+        'guestReviewContent');
+      if (!content) return;
+      
+      function reviewRow(label, value) {
+        if (!value) return '';
+        return '<div style="background:white;' +
+          'border-radius:10px;padding:12px 16px;' +
+          'box-shadow:0 1px 4px rgba(0,0,0,0.06);">' +
+          '<div style="font-size:11px;color:#94a3b8;' +
+          'font-weight:700;margin-bottom:2px;">' +
+          label + '</div>' +
+          '<div style="font-size:14px;font-weight:600;' +
+          'color:#0a1628;">' + value + '</div>' +
+          '</div>';
+      }
+      
+      var dob = '';
+      var day = document.getElementById(
+        'guestDOBDay').value;
+      var month = document.getElementById(
+        'guestDOBMonth').value;
+      var year = document.getElementById(
+        'guestDOBYear').value;
+      if (day && month && year) {
+        dob = day + '/' + month + '/' + year;
+      }
+      
+      content.innerHTML = 
+        reviewRow('Full Name', firstName + ' ' + 
+          document.getElementById('guestMiddleName')
+            .value.trim() + ' ' + lastName) +
+        reviewRow('Phone', phone) +
+        reviewRow('Email', document.getElementById(
+          'guestEmail').value.trim()) +
+        reviewRow('Date of Birth', dob) +
+        reviewRow('Gender', ftState.gender) +
+        reviewRow('Marital Status', ftState.marital) +
+        reviewRow('Occupation', document.getElementById(
+          'guestOccupation').value.trim()) +
+        reviewRow('Company/School', 
+          document.getElementById(
+            'guestCompany').value.trim()) +
+        reviewRow('Residence', document.getElementById(
+          'guestResidence').value.trim()) +
+        reviewRow('How Heard About ONC', 
+          getCheckedSources()) +
+        reviewRow('Invited By', document.getElementById(
+          'guestInvitedBy').value.trim()) +
+        reviewRow('WhatsApp Number', 
+          document.getElementById(
+            'guestWhatsApp').value.trim()) +
+        reviewRow('Born Again', ftState.bornAgain) +
+        reviewRow('Belongs to Church', ftState.church) +
+        reviewRow('Church Name', document.getElementById(
+          'guestChurchName').value.trim()) +
+        reviewRow('Contact Preference', 
+          ftState.contact) +
+        reviewRow('Purpose of Visit', ftState.purpose) +
+        reviewRow('Feedback', document.getElementById(
+          'guestFeedback').value.trim());
+      
+      showSection('secGuestReview');
+    }
+
     function submitGuestForm() {
       var firstName = document.getElementById(
         'guestFirstName').value.trim();
@@ -3770,9 +3890,27 @@
           'guestFeedback').value.trim(),
         followUpStatus: 'Needs Follow Up'
       };
+
+      if (ftState.editingGuestId) {
+        var idx = todaysGuests.findIndex(
+          function(g) { 
+            return g.id === ftState.editingGuestId; 
+          });
+        if (idx > -1) {
+          todaysGuests[idx] = guest;
+          todaysGuests[idx].id = ftState.editingGuestId;
+          localStorage.setItem('todays_guests',
+            JSON.stringify(todaysGuests));
+          ftState.editingGuestId = null;
+          showToast('✅ Guest updated successfully!');
+          resetGuestForm();
+          showSection('secFirstTimersLanding');
+          return;
+        }
+      }
       
       var submitBtn = document.querySelector(
-        '#secGuestForm button[onclick="submitGuestForm()"]');
+        '#secGuestReview button[onclick="submitGuestForm()"]');
       if (submitBtn) {
         submitBtn.textContent = '⏳ Submitting...';
         submitBtn.disabled = true;
@@ -3879,12 +4017,92 @@
               'border-radius:20px;font-size:11px;' +
               'font-weight:700;">📞 Needs Follow Up' +
               '</span></div>' +
+              '<button onclick="editTodaysGuest(\'' + 
+                g.id + '\')" ' +
+                'style="margin-top:10px;width:100%;' +
+                'padding:8px;background:white;' +
+                'color:var(--navy);border:2px solid var(--navy);' +
+                'border-radius:8px;font-weight:700;' +
+                'cursor:pointer;font-size:13px;">'+
+                '✏️ Edit Details</button>' +
               '</div>';
           }
         ).join('');
       }
       
       showSection('secTodaysGuests');
+    }
+
+    function editTodaysGuest(guestId) {
+      var guest = todaysGuests.find(function(g) {
+        return g.id === guestId;
+      });
+      if (!guest) return;
+      
+      // Pre-fill all form fields with guest data
+      document.getElementById('guestFirstName')
+        .value = guest.firstName || '';
+      document.getElementById('guestMiddleName')
+        .value = guest.middleName || '';
+      document.getElementById('guestLastName')
+        .value = guest.lastName || '';
+      document.getElementById('guestPhone')
+        .value = guest.phone || '';
+      document.getElementById('guestEmail')
+        .value = guest.email || '';
+      document.getElementById('guestDOBDay')
+        .value = guest.dobDay || '';
+      document.getElementById('guestDOBMonth')
+        .value = guest.dobMonth || '';
+      document.getElementById('guestDOBYear')
+        .value = guest.dobYear || '';
+      document.getElementById('guestOccupation')
+        .value = guest.occupation || '';
+      document.getElementById('guestCompany')
+        .value = guest.company || '';
+      document.getElementById('guestResidence')
+        .value = guest.residence || '';
+      document.getElementById('guestInvitedBy')
+        .value = guest.invitedBy || '';
+      document.getElementById('guestWhatsApp')
+        .value = guest.whatsapp || '';
+      document.getElementById('guestFeedback')
+        .value = guest.feedback || '';
+      
+      var churchNameInput = document.getElementById('guestChurchName');
+      if (churchNameInput) {
+        churchNameInput.value = guest.churchName || '';
+      }
+
+      var ids = ['srcFriend','srcMember','srcFacebook',
+        'srcWhatsApp','srcPodbean','srcWebsite',
+        'srcTV','srcRadio'];
+      var values = ['Friend', 'Church Member', 'Facebook', 'WhatsApp', 'Podbean', 'Website', 'TV', 'Radio'];
+      ids.forEach(function(id, idx) {
+        var el = document.getElementById(id);
+        if (el) {
+          el.checked = guest.heardFrom && guest.heardFrom.indexOf(values[idx]) > -1;
+        }
+      });
+
+      if (guest.gender) selectGender(guest.gender);
+      if (guest.maritalStatus) 
+        selectMarital(guest.maritalStatus);
+      if (guest.podcast) 
+        selectOption('podcast', guest.podcast);
+      if (guest.bornAgain) 
+        selectOption('bornAgain', guest.bornAgain);
+      if (guest.belongsToChurch) 
+        selectOption('church', guest.belongsToChurch);
+      if (guest.contactPreference) 
+        selectOption('contact', guest.contactPreference);
+      if (guest.purposeOfVisit) 
+        selectOption('purpose', guest.purposeOfVisit);
+      
+      // Store editing guest ID
+      ftState.editingGuestId = guestId;
+      
+      showSection('secGuestForm');
     }
 
     function logoutFirstTimers() {
