@@ -583,14 +583,641 @@
         </div>
         
         <div style="display:flex; flex-direction:column; gap:16px;">
-          <button onclick="selectShepherdType('sps')"
+          <button onclick="selectUserType('sps')"
             style="padding:20px; border-radius:16px; background:var(--navy); color:white; border:none; font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
             🙏 SPS Shepherd
           </button>
-          <button onclick="selectShepherdType('mc')"
+          <button onclick="selectUserType('mc')"
             style="padding:20px; border-radius:16px; background:white; color:var(--navy); border:2px solid var(--navy); font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
             ⛪ Microchurch Shepherd
           </button>
+          <button onclick="selectUserType('firsttimers')"
+            style="padding:20px;border-radius:16px;
+            background:white;color:var(--navy);
+            border:2px solid #f0a500;
+            font-size:16px;font-weight:700;
+            cursor:pointer;display:flex;
+            align-items:center;justify-content:center;
+            gap:10px;margin-top:8px;">
+            🆕 First Timers Unit
+          </button>
+        </div>
+      </div>
+
+      <!-- First Timers Login screen -->
+      <div class="section" id="secFirstTimersLogin">
+        <div style="text-align:center;padding:20px 0;">
+          <div style="font-size:48px;
+            margin-bottom:12px;">🆕</div>
+          <h2 style="font-family:'Nunito',sans-serif;
+            font-weight:900;font-size:22px;
+            color:var(--navy);margin-bottom:8px;">
+            First Timers Unit
+          </h2>
+          <p style="color:var(--gray);font-size:14px;
+            margin-bottom:32px;">
+            Enter your PIN to access the portal
+          </p>
+        </div>
+
+        <div style="background:white;
+          border-radius:16px;padding:24px;
+          box-shadow:0 2px 12px rgba(0,0,0,0.06);
+          margin-bottom:24px;">
+          
+          <label style="font-weight:700;
+            color:var(--navy);font-size:14px;
+            display:block;margin-bottom:8px;">
+            ENTER 4-DIGIT PIN
+          </label>
+          <input type="password" 
+            id="ftPinInput"
+            maxlength="4"
+            placeholder="••••"
+            style="width:100%;padding:16px;
+            border:2px solid var(--border);
+            border-radius:10px;font-size:24px;
+            text-align:center;letter-spacing:8px;
+            box-sizing:border-box;">
+          
+          <div id="ftPinError"
+            style="color:#ef4444;font-size:13px;
+            margin-top:8px;display:none;
+            text-align:center;">
+            Incorrect PIN. Please try again.
+          </div>
+        </div>
+
+        <button onclick="checkFirstTimersPin()"
+          style="width:100%;padding:16px;
+          background:var(--navy);color:white;
+          border:none;border-radius:12px;
+          font-weight:800;font-size:15px;
+          cursor:pointer;margin-bottom:12px;">
+          🔓 Enter Portal
+        </button>
+        
+        <p style="text-align:center;
+          color:var(--gray);font-size:12px;
+          margin-bottom:16px;">
+          💡 Default PIN: 0000
+        </p>
+
+        <button onclick="showSection('secWhoAreYou')"
+          style="width:100%;padding:12px;
+          background:none;border:none;
+          color:var(--gray);font-size:13px;
+          cursor:pointer;">
+          ← Back
+        </button>
+      </div>
+
+      <!-- First Timers Landing screen -->
+      <div class="section" id="secFirstTimersLanding">
+        <div style="text-align:center;
+          margin-bottom:32px;">
+          <div style="font-size:40px;
+            margin-bottom:8px;">🆕</div>
+          <div style="font-size:22px;font-weight:900;
+            color:var(--navy);margin-bottom:4px;">
+            First Timers Unit
+          </div>
+          <div style="color:var(--gray);font-size:14px;">
+            What would you like to do?
+          </div>
+        </div>
+        
+        <div style="display:flex;
+          flex-direction:column;gap:16px;">
+          
+          <button onclick="showSection('secGuestForm')"
+            style="padding:20px;border-radius:16px;
+            background:var(--navy);color:white;
+            border:none;font-size:16px;font-weight:700;
+            cursor:pointer;display:flex;
+            align-items:center;justify-content:center;
+            gap:10px;">
+            📋 Register New Guest
+          </button>
+          
+          <button onclick="viewTodaysGuests()"
+            style="padding:20px;border-radius:16px;
+            background:white;color:var(--navy);
+            border:2px solid var(--navy);
+            font-size:16px;font-weight:700;
+            cursor:pointer;display:flex;
+            align-items:center;justify-content:center;
+            gap:10px;">
+            📊 View Today's Guests
+          </button>
+        </div>
+        
+        <div style="display:flex;
+          justify-content:center;gap:24px;
+          margin-top:20px;">
+          <button onclick="openChangePinModalFT()"
+            style="background:none;border:none;
+            color:var(--accent);font-size:13px;
+            font-weight:700;cursor:pointer;">
+            🔑 Change PIN
+          </button>
+          <button onclick="logoutFirstTimers()"
+            style="background:none;border:none;
+            color:#ef4444;font-size:13px;
+            font-weight:700;cursor:pointer;">
+            🚪 Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- Guest Registration Form -->
+      <div class="section" id="secGuestForm">
+        <div style="display:flex;align-items:center;
+          gap:12px;margin-bottom:20px;">
+          <button onclick="showSection('secFirstTimersLanding')"
+            style="background:none;border:none;
+            color:var(--gray);cursor:pointer;
+            font-size:20px;">←</button>
+          <h2 style="font-family:'Nunito',sans-serif;
+            font-weight:900;font-size:18px;
+            color:var(--navy);margin:0;">
+            📋 Guest Registration
+          </h2>
+        </div>
+
+        <div id="guestFormDate"
+          style="background:#f0f5ff;border-radius:10px;
+          padding:10px 14px;margin-bottom:16px;
+          font-size:13px;font-weight:700;
+          color:var(--navy);">
+        </div>
+
+        <div style="display:flex;flex-direction:column;
+          gap:14px;">
+
+          <!-- Personal Details -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              👤 Personal Details
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">First Name *</label>
+            <input type="text" id="guestFirstName"
+              placeholder="Enter first name"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Middle Name</label>
+            <input type="text" id="guestMiddleName"
+              placeholder="Enter middle name"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Last Name *</label>
+            <input type="text" id="guestLastName"
+              placeholder="Enter last name"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Contact Number *</label>
+            <input type="tel" id="guestPhone"
+              placeholder="Enter phone number"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Email Address</label>
+            <input type="email" id="guestEmail"
+              placeholder="Enter email address"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Date of Birth</label>
+            <div style="display:flex;gap:8px;
+              margin-bottom:10px;">
+              <input type="number" id="guestDOBDay"
+                placeholder="Day" min="1" max="31"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                box-sizing:border-box;">
+              <input type="number" id="guestDOBMonth"
+                placeholder="Month" min="1" max="12"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                box-sizing:border-box;">
+              <input type="number" id="guestDOBYear"
+                placeholder="Year"
+                style="flex:2;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                box-sizing:border-box;">
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Gender</label>
+            <div style="display:flex;gap:10px;
+              margin-bottom:10px;">
+              <button id="genderMale"
+                onclick="selectGender('Male')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Male</button>
+              <button id="genderFemale"
+                onclick="selectGender('Female')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Female</button>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Marital Status</label>
+            <div style="display:flex;gap:10px;
+              margin-bottom:10px;">
+              <button id="maritalSingle"
+                onclick="selectMarital('Single')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Single</button>
+              <button id="maritalMarried"
+                onclick="selectMarital('Married')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Married</button>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Occupation</label>
+            <input type="text" id="guestOccupation"
+              placeholder="Enter occupation"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Company/School/Place of Work</label>
+            <input type="text" id="guestCompany"
+              placeholder="Enter company or school"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Place of Residence 
+              (closest landmark)</label>
+            <input type="text" id="guestResidence"
+              placeholder="Enter residence/landmark"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              box-sizing:border-box;">
+          </div>
+
+          <!-- How did you hear -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              📣 How Did You Hear About Us?
+            </div>
+
+            <div style="display:grid;
+              grid-template-columns:1fr 1fr;
+              gap:8px;margin-bottom:12px;">
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="srcFriend"
+                  value="Friend">
+                Friend
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="srcMember"
+                  value="Church Member">
+                Church Member
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="srcFacebook"
+                  value="Facebook">
+                Facebook
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="srcWhatsApp"
+                  value="WhatsApp">
+                WhatsApp
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="srcPodbean"
+                  value="Podbean">
+                Podbean
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="srcWebsite"
+                  value="Website">
+                Website
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="srcTV"
+                  value="TV">
+                TV
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="srcRadio"
+                  value="Radio">
+                Radio
+              </label>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">
+              Name of Friend/Member who invited you
+            </label>
+            <input type="text" id="guestInvitedBy"
+              placeholder="Enter name of inviter"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              box-sizing:border-box;">
+          </div>
+
+          <!-- Follow Up -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              📞 Follow Up Details
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:8px;">
+              Receive Faith Academy Podcasts?
+            </label>
+            <div style="display:flex;gap:10px;
+              margin-bottom:12px;">
+              <button id="podcastYes"
+                onclick="selectOption('podcast','Yes')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">YES</button>
+              <button id="podcastNo"
+                onclick="selectOption('podcast','No')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">NO</button>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">
+              Active WhatsApp Number
+            </label>
+            <input type="tel" id="guestWhatsApp"
+              placeholder="Enter WhatsApp number"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:12px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:8px;">
+              Are you born again?
+            </label>
+            <div style="display:flex;gap:10px;
+              margin-bottom:12px;">
+              <button id="bornAgainYes"
+                onclick="selectOption('bornAgain','Yes')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">YES</button>
+              <button id="bornAgainNo"
+                onclick="selectOption('bornAgain','No')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">NO</button>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:8px;">
+              Do you belong to a church?
+            </label>
+            <div style="display:flex;gap:10px;
+              margin-bottom:8px;">
+              <button id="churchYes"
+                onclick="selectOption('church','Yes')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">YES</button>
+              <button id="churchNo"
+                onclick="selectOption('church','No')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">NO</button>
+            </div>
+            <input type="text" id="guestChurchName"
+              placeholder="If yes, enter church name"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:12px;box-sizing:border-box;
+              display:none;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:8px;">
+              Can we call/visit you?
+            </label>
+            <div style="display:flex;gap:8px;
+              margin-bottom:12px;">
+              <button id="contactCall"
+                onclick="selectOption('contact','Call')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Call</button>
+              <button id="contactVisit"
+                onclick="selectOption('contact','Visit')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Visit</button>
+              <button id="contactBoth"
+                onclick="selectOption('contact','Both')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Both</button>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:8px;">
+              Purpose of Visit
+            </label>
+            <div style="display:flex;gap:8px;
+              margin-bottom:12px;">
+              <button id="purposeVisit"
+                onclick="selectOption('purpose','Visit')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Visit</button>
+              <button id="purposeStaying"
+                onclick="selectOption('purpose','Staying')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Staying</button>
+              <button id="purposeOther"
+                onclick="selectOption('purpose','Other')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Other</button>
+            </div>
+          </div>
+
+          <!-- Feedback -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              💬 Feedback / Testimony
+            </div>
+            <textarea id="guestFeedback"
+              placeholder="Please share your feedback or testimony from today's service..."
+              rows="4"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              resize:none;box-sizing:border-box;">
+            </textarea>
+          </div>
+
+        </div>
+
+        <button onclick="submitGuestForm()"
+          style="width:100%;padding:16px;
+          background:var(--navy);color:white;
+          border:none;border-radius:12px;
+          font-weight:800;font-size:15px;
+          cursor:pointer;margin-top:20px;
+          margin-bottom:8px;">
+          ✅ Submit Guest Form
+        </button>
+        
+        <button onclick="showSection('secFirstTimersLanding')"
+          style="width:100%;padding:12px;
+          background:none;border:none;
+          color:var(--gray);font-size:13px;
+          cursor:pointer;margin-bottom:20px;">
+          ← Back
+        </button>
+      </div>
+
+      <!-- View Today's Guests screen -->
+      <div class="section" id="secTodaysGuests">
+        <div style="display:flex;align-items:center;
+          gap:12px;margin-bottom:20px;">
+          <button onclick="showSection('secFirstTimersLanding')"
+            style="background:none;border:none;
+            color:var(--gray);cursor:pointer;
+            font-size:20px;">←</button>
+          <h2 style="font-family:'Nunito',sans-serif;
+            font-weight:900;font-size:18px;
+            color:var(--navy);margin:0;">
+            📊 Today's Guests
+          </h2>
+        </div>
+        <div id="todaysGuestsList"
+          style="display:flex;flex-direction:column;
+          gap:12px;">
         </div>
       </div>
 
@@ -1587,6 +2214,20 @@
       if (secWho) {
         secWho.style.display = '';
         secWho.classList.add('active');
+      }
+    }
+
+    function selectUserType(type) {
+      if (type === 'sps') {
+        selectShepherdType('sps');
+        return;
+      }
+      if (type === 'mc') {
+        selectShepherdType('mc');
+        return;
+      }
+      if (type === 'firsttimers') {
+        showSection('secFirstTimersLogin');
       }
     }
 
@@ -2940,6 +3581,326 @@
 
     function goBackToLanding() {
       showSection('secLanding');
+    }
+
+    // First Timers Unit flow JS functions
+    var ftState = {
+      pin: localStorage.getItem('ft_pin') || '0000',
+      gender: '',
+      marital: '',
+      podcast: '',
+      bornAgain: '',
+      church: '',
+      contact: '',
+      purpose: ''
+    };
+
+    var todaysGuests = JSON.parse(
+      localStorage.getItem('todays_guests') || '[]');
+
+    function checkFirstTimersPin() {
+      var pin = document.getElementById(
+        'ftPinInput').value;
+      var errorEl = document.getElementById(
+        'ftPinError');
+      
+      if (pin === ftState.pin) {
+        if (errorEl) errorEl.style.display = 'none';
+        document.getElementById('ftPinInput').value = '';
+        
+        var today = new Date().toLocaleDateString(
+          'en-GB');
+        var dateEl = document.getElementById(
+          'guestFormDate');
+        if (dateEl) {
+          dateEl.textContent = '📅 ' + today;
+        }
+        
+        showSection('secFirstTimersLanding');
+      } else {
+        if (errorEl) errorEl.style.display = 'block';
+        document.getElementById('ftPinInput').value = '';
+      }
+    }
+
+    function selectGender(value) {
+      ftState.gender = value;
+      document.getElementById('genderMale')
+        .style.background = 
+        value === 'Male' ? 'var(--navy)' : 'white';
+      document.getElementById('genderMale')
+        .style.color = 
+        value === 'Male' ? 'white' : 'var(--navy)';
+      document.getElementById('genderFemale')
+        .style.background = 
+        value === 'Female' ? 'var(--navy)' : 'white';
+      document.getElementById('genderFemale')
+        .style.color = 
+        value === 'Female' ? 'white' : 'var(--navy)';
+    }
+
+    function selectMarital(value) {
+      ftState.marital = value;
+      document.getElementById('maritalSingle')
+        .style.background = 
+        value === 'Single' ? 'var(--navy)' : 'white';
+      document.getElementById('maritalSingle')
+        .style.color = 
+        value === 'Single' ? 'white' : 'var(--navy)';
+      document.getElementById('maritalMarried')
+        .style.background = 
+        value === 'Married' ? 'var(--navy)' : 'white';
+      document.getElementById('maritalMarried')
+        .style.color = 
+        value === 'Married' ? 'white' : 'var(--navy)';
+    }
+
+    function selectOption(field, value) {
+      ftState[field] = value;
+      
+      var buttonMap = {
+        podcast: ['podcastYes','podcastNo'],
+        bornAgain: ['bornAgainYes','bornAgainNo'],
+        church: ['churchYes','churchNo'],
+        contact: ['contactCall','contactVisit',
+          'contactBoth'],
+        purpose: ['purposeVisit','purposeStaying',
+          'purposeOther']
+      };
+      
+      var valueMap = {
+        podcast: ['Yes','No'],
+        bornAgain: ['Yes','No'],
+        church: ['Yes','No'],
+        contact: ['Call','Visit','Both'],
+        purpose: ['Visit','Staying','Other']
+      };
+      
+      var buttons = buttonMap[field];
+      var values = valueMap[field];
+      
+      if (buttons) {
+        buttons.forEach(function(btnId, idx) {
+          var btn = document.getElementById(btnId);
+          if (btn) {
+            btn.style.background = 
+              values[idx] === value ? 
+              'var(--navy)' : 'white';
+            btn.style.color = 
+              values[idx] === value ? 
+              'white' : 'var(--navy)';
+          }
+        });
+      }
+      
+      if (field === 'church') {
+        var churchNameEl = document.getElementById(
+          'guestChurchName');
+        if (churchNameEl) {
+          churchNameEl.style.display = 
+            value === 'Yes' ? 'block' : 'none';
+        }
+      }
+    }
+
+    function getCheckedSources() {
+      var sources = [];
+      var ids = ['srcFriend','srcMember','srcFacebook',
+        'srcWhatsApp','srcPodbean','srcWebsite',
+        'srcTV','srcRadio'];
+      ids.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && el.checked) sources.push(el.value);
+      });
+      return sources.join(', ');
+    }
+
+    function submitGuestForm() {
+      var firstName = document.getElementById(
+        'guestFirstName').value.trim();
+      var lastName = document.getElementById(
+        'guestLastName').value.trim();
+      var phone = document.getElementById(
+        'guestPhone').value.trim();
+      
+      if (!firstName || !lastName || !phone) {
+        alert('Please fill First Name, Last Name and Phone Number');
+        return;
+      }
+      
+      var guest = {
+        id: 'G' + Date.now(),
+        date: new Date().toLocaleDateString('en-GB'),
+        time: new Date().toLocaleTimeString('en-GB'),
+        firstName: firstName,
+        middleName: document.getElementById(
+          'guestMiddleName').value.trim(),
+        lastName: lastName,
+        fullName: firstName + ' ' + lastName,
+        phone: phone,
+        email: document.getElementById(
+          'guestEmail').value.trim(),
+        dobDay: document.getElementById(
+          'guestDOBDay').value,
+        dobMonth: document.getElementById(
+          'guestDOBMonth').value,
+        dobYear: document.getElementById(
+          'guestDOBYear').value,
+        gender: ftState.gender,
+        maritalStatus: ftState.marital,
+        occupation: document.getElementById(
+          'guestOccupation').value.trim(),
+        company: document.getElementById(
+          'guestCompany').value.trim(),
+        residence: document.getElementById(
+          'guestResidence').value.trim(),
+        heardFrom: getCheckedSources(),
+        invitedBy: document.getElementById(
+          'guestInvitedBy').value.trim(),
+        podcast: ftState.podcast,
+        whatsapp: document.getElementById(
+          'guestWhatsApp').value.trim(),
+        bornAgain: ftState.bornAgain,
+        belongsToChurch: ftState.church,
+        churchName: document.getElementById(
+          'guestChurchName').value.trim(),
+        contactPreference: ftState.contact,
+        purposeOfVisit: ftState.purpose,
+        feedback: document.getElementById(
+          'guestFeedback').value.trim(),
+        followUpStatus: 'Needs Follow Up'
+      };
+      
+      var submitBtn = document.querySelector(
+        '#secGuestForm button[onclick="submitGuestForm()"]');
+      if (submitBtn) {
+        submitBtn.textContent = '⏳ Submitting...';
+        submitBtn.disabled = true;
+      }
+      
+      var payload = {
+        action: 'submitGuestForm',
+        guest: guest
+      };
+      
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        todaysGuests.push(guest);
+        localStorage.setItem('todays_guests',
+          JSON.stringify(todaysGuests));
+        showToast('✅ Guest registered successfully!');
+        resetGuestForm();
+        showSection('secFirstTimersLanding');
+      })
+      .catch(function(err) {
+        todaysGuests.push(guest);
+        localStorage.setItem('todays_guests',
+          JSON.stringify(todaysGuests));
+        showToast('✅ Guest registered successfully!');
+        resetGuestForm();
+        showSection('secFirstTimersLanding');
+      })
+      .finally(function() {
+        if (submitBtn) {
+          submitBtn.textContent = '✅ Submit Guest Form';
+          submitBtn.disabled = false;
+        }
+      });
+    }
+
+    function resetGuestForm() {
+      var inputs = document.querySelectorAll(
+        '#secGuestForm input, #secGuestForm textarea');
+      inputs.forEach(function(input) {
+        input.value = '';
+      });
+      var checkboxes = document.querySelectorAll(
+        '#secGuestForm input[type="checkbox"]');
+      checkboxes.forEach(function(cb) {
+        cb.checked = false;
+      });
+      ftState.gender = '';
+      ftState.marital = '';
+      ftState.podcast = '';
+      ftState.bornAgain = '';
+      ftState.church = '';
+      ftState.contact = '';
+      ftState.purpose = '';
+      
+      var allBtns = document.querySelectorAll(
+        '#secGuestForm button[id]');
+      allBtns.forEach(function(btn) {
+        btn.style.background = 'white';
+        btn.style.color = 'var(--navy)';
+      });
+      
+      var churchEl = document.getElementById(
+        'guestChurchName');
+      if (churchEl) churchEl.style.display = 'none';
+    }
+
+    function viewTodaysGuests() {
+      var list = document.getElementById(
+        'todaysGuestsList');
+      
+      if (!list) return;
+      
+      if (todaysGuests.length === 0) {
+        list.innerHTML = 
+          '<div style="text-align:center;' +
+          'padding:40px;color:var(--gray);">' +
+          '<div style="font-size:40px;' +
+          'margin-bottom:8px;">👥</div>' +
+          '<p>No guests registered today yet.</p>' +
+          '</div>';
+      } else {
+        list.innerHTML = todaysGuests.map(
+          function(g) {
+            return '<div style="background:white;' +
+              'border-radius:12px;padding:16px;' +
+              'box-shadow:0 2px 8px rgba(0,0,0,0.06);">' +
+              '<div style="font-weight:700;' +
+              'color:var(--navy);font-size:15px;">' +
+              g.fullName + '</div>' +
+              '<div style="color:var(--gray);' +
+              'font-size:13px;margin:4px 0;">📞 ' +
+              g.phone + '</div>' +
+              '<div style="color:var(--gray);' +
+              'font-size:12px;">Invited by: ' +
+              (g.invitedBy || 'Not specified') + 
+              '</div>' +
+              '<div style="margin-top:8px;">' +
+              '<span style="background:#fef3c7;' +
+              'color:#b45309;padding:2px 8px;' +
+              'border-radius:20px;font-size:11px;' +
+              'font-weight:700;">📞 Needs Follow Up' +
+              '</span></div>' +
+              '</div>';
+          }
+        ).join('');
+      }
+      
+      showSection('secTodaysGuests');
+    }
+
+    function logoutFirstTimers() {
+      showSection('secWhoAreYou');
+    }
+
+    function openChangePinModalFT() {
+      var newPin = prompt('Enter new 4-digit PIN:');
+      if (newPin && newPin.length === 4 && 
+          !isNaN(newPin)) {
+        ftState.pin = newPin;
+        localStorage.setItem('ft_pin', newPin);
+        alert('✅ PIN updated successfully!');
+      } else if (newPin) {
+        alert('PIN must be exactly 4 digits');
+      }
     }
   </script>
 
