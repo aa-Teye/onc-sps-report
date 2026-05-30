@@ -1471,6 +1471,49 @@
             </div>
             <button class="btn-export" onclick="doExportSummaryPDF()">⬇ Download Summary PDF</button>
           </div>
+
+          <div style="background:white;
+          border-radius:16px;padding:24px;
+          box-shadow:0 1px 8px rgba(0,0,0,.06);
+          margin-top:16px;">
+            <h3 style="margin-bottom:8px;
+            color:#0a1628;">👥 Members Export</h3>
+            <p style="color:#64748b;font-size:13px;
+            margin-bottom:16px;">
+              Complete church directory including 
+              shepherds, members and converted 
+              first timers.
+            </p>
+            <button onclick="exportAllMembers()"
+              style="padding:12px 24px;
+              background:#0a1628;color:white;
+              border:none;border-radius:10px;
+              font-weight:700;cursor:pointer;
+              font-size:14px;">
+              ⬇ Export All Members Excel
+            </button>
+          </div>
+
+          <div style="background:white;
+          border-radius:16px;padding:24px;
+          box-shadow:0 1px 8px rgba(0,0,0,.06);
+          margin-top:16px;">
+            <h3 style="margin-bottom:8px;
+            color:#0a1628;">🆕 First Timers Export</h3>
+            <p style="color:#64748b;font-size:13px;
+            margin-bottom:16px;">
+              All guest registration records with 
+              full details and follow up status.
+            </p>
+            <button onclick="exportAllFirstTimers()"
+              style="padding:12px 24px;
+              background:#006B3F;color:white;
+              border:none;border-radius:10px;
+              font-weight:700;cursor:pointer;
+              font-size:14px;">
+              ⬇ Export First Timers Excel
+            </button>
+          </div>
         </div>
 
         <!-- TAB 14: RESOURCES -->
@@ -1966,6 +2009,22 @@
                   ⛪ Microchurch Shepherds Stream</div>
                 <div id="mcLeaderboardList" style="display:flex;flex-direction:column;gap:16px;"></div>
               </div>
+            </div>
+
+            <div style="background:white;
+            border-radius:16px;padding:24px;
+            box-shadow:0 1px 8px rgba(0,0,0,.06);
+            margin-top:24px;">
+              <h3 style="font-size:16px;font-weight:800;
+              color:#0a1628;margin-bottom:16px;">
+                🌟 Soul Winners Leaderboard
+              </h3>
+              <p style="color:#64748b;font-size:13px;
+              margin-bottom:16px;">
+                Members and shepherds who have 
+                invited the most first timers
+              </p>
+              <div id="soulWinnersBoard"></div>
             </div>
           </div>
 
@@ -2688,6 +2747,13 @@
           setTimeout(function() {
             buildMembersList();
             renderMembership();
+          }, 150);
+        }
+        if (id === 'leaderboard') {
+          setTimeout(function() {
+            renderLeaderboard();
+            renderSoulWinners();
+            loadFirstTimers();
           }, 150);
         }
       }
@@ -3868,6 +3934,144 @@
         XLSX.utils.book_append_sheet(wb, ws, 'List');
         XLSX.writeFile(wb, fileName + '.xlsx');
       };
+
+      function exportAllMembers() {
+        var headers = [
+          'Name', 'Role', 'Phone',
+          'Shepherd/Zone', 'Microchurch',
+          'Location', 'Potential Leader'
+        ];
+        
+        var rows = [];
+        
+        // SPS Shepherds
+        var spsShepherds = window.CHURCH_DATA ? 
+          window.CHURCH_DATA.spsShepherds : 
+          ALL_SHEPHERDS;
+        spsShepherds.forEach(function(s) {
+          rows.push([
+            s.name, 'SPS Shepherd',
+            s.contact || '',
+            s.zone || '',
+            '', '', 'No'
+          ]);
+        });
+        
+        // MC Shepherds
+        var mcShepherds = window.CHURCH_DATA ?
+          window.CHURCH_DATA.mcShepherds :
+          ALL_MC_SHEPHERDS;
+        mcShepherds.forEach(function(s) {
+          rows.push([
+            s.name, 'MC Shepherd',
+            s.contact || '',
+            '', s.microchurch || '',
+            '', 'No'
+          ]);
+        });
+        
+        // Members from memberData
+        Object.entries(memberData).forEach(
+          function(entry) {
+            var shepherd = entry[0];
+            var members = entry[1] || [];
+            members.forEach(function(m) {
+              var name = typeof m === 'string' ? 
+                m : (m.name || '');
+              var phone = typeof m === 'object' ? 
+                (m.phone || m.contact || '') : '';
+              rows.push([
+                name, 'Member', phone,
+                shepherd, '', '', 'No'
+              ]);
+            });
+          }
+        );
+        
+        // Converted First Timers
+        allGuestReports.forEach(function(g) {
+          if (g.followUpStatus === 
+              'Converted to Member') {
+            rows.push([
+              g.fullName || '', 
+              'Converted First Timer',
+              g.phone || '',
+              g.invitedBy || '',
+              '', g.residence || '', 'No'
+            ]);
+          }
+        });
+        
+        var ws = XLSX.utils.aoa_to_sheet(
+          [headers].concat(rows));
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(
+          wb, ws, 'All Members');
+        XLSX.writeFile(wb, 'ONC_AllMembers_' +
+          new Date().toLocaleDateString('en-GB')
+            .replace(/\//g,'-') + '.xlsx');
+      }
+
+      function exportAllFirstTimers() {
+        if (!allGuestReports || 
+            allGuestReports.length === 0) {
+          loadFirstTimers();
+          setTimeout(function() {
+            doExportFirstTimers();
+          }, 3000);
+        } else {
+          doExportFirstTimers();
+        }
+      }
+
+      function doExportFirstTimers() {
+        var headers = [
+          'Date', 'Full Name', 'Phone', 'Email',
+          'Date of Birth', 'Gender', 
+          'Marital Status', 'Occupation',
+          'Company/School', 'Residence',
+          'How Heard About ONC', 'Invited By',
+          'Faith Academy Podcasts',
+          'WhatsApp Number', 'Born Again',
+          'Belongs to Church', 'Church Name',
+          'Contact Preference',
+          'Follow Up Status', 'Feedback'
+        ];
+        
+        var rows = allGuestReports.map(function(g) {
+          return [
+            g.date || '',
+            g.fullName || '',
+            g.phone || '',
+            g.email || '',
+            g.dob || '',
+            g.gender || '',
+            g.maritalStatus || '',
+            g.occupation || '',
+            g.company || '',
+            g.residence || '',
+            g.heardFrom || '',
+            g.invitedBy || '',
+            g.podcast || '',
+            g.whatsapp || '',
+            g.bornAgain || '',
+            g.belongsToChurch || '',
+            g.churchName || '',
+            g.contactPreference || '',
+            g.followUpStatus || '',
+            g.feedback || ''
+          ];
+        });
+        
+        var ws = XLSX.utils.aoa_to_sheet(
+          [headers].concat(rows));
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(
+          wb, ws, 'First Timers');
+        XLSX.writeFile(wb, 'ONC_FirstTimers_' +
+          new Date().toLocaleDateString('en-GB')
+            .replace(/\//g,'-') + '.xlsx');
+      }
 
       function renderSummaryPreview() {
         var el = document.getElementById('summary-preview');
@@ -5083,6 +5287,72 @@
               '</div></div>';
           }).join('');
         }
+      }
+
+      function renderSoulWinners() {
+        if (!allGuestReports || 
+            allGuestReports.length === 0) {
+          var el = document.getElementById(
+            'soulWinnersBoard');
+          if (el) el.innerHTML = 
+            '<p style="color:#64748b;' +
+            'text-align:center;padding:20px;">' +
+            'No data yet.</p>';
+          return;
+        }
+        
+        var counts = {};
+        allGuestReports.forEach(function(g) {
+          var inviter = g.invitedBy || 'Unknown';
+          if (!inviter || inviter.trim() === '') 
+            inviter = 'Unknown';
+          counts[inviter] = 
+            (counts[inviter] || 0) + 1;
+        });
+        
+        var sorted = Object.entries(counts)
+          .sort(function(a,b) { 
+            return b[1] - a[1]; 
+          });
+        
+        var medals = ['🥇','🥈','🥉'];
+        var html = '<table style="width:100%;' +
+          'border-collapse:collapse;' +
+          'font-size:14px;">' +
+          '<thead><tr style="background:#f0a500;' +
+          'color:white;">' +
+          '<th style="padding:10px;' +
+          'text-align:left;">Rank</th>' +
+          '<th style="padding:10px;' +
+          'text-align:left;">Name</th>' +
+          '<th style="padding:10px;' +
+          'text-align:center;">Souls Won</th>' +
+          '</tr></thead><tbody>';
+        
+        sorted.forEach(function(entry, idx) {
+          var bg = idx % 2 === 0 ? 
+            '#f8fafc' : 'white';
+          var rank = idx < 3 ? 
+            medals[idx] : '#' + (idx+1);
+          html += '<tr style="background:' + bg +
+            ';border-bottom:1px solid #e2e8f0;">' +
+            '<td style="padding:10px;' +
+            'font-weight:700;">' + rank + '</td>' +
+            '<td style="padding:10px;' +
+            'font-weight:700;color:#0a1628;">' + 
+            entry[0] + '</td>' +
+            '<td style="padding:10px;' +
+            'text-align:center;font-weight:800;' +
+            'color:#f0a500;font-size:18px;">' + 
+            entry[1] + '</td>' +
+            '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        
+        var el = document.getElementById(
+          'soulWinnersBoard');
+        if (el) el.innerHTML = html;
       }
 
       function exportMC_CSV() {
