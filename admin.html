@@ -5519,15 +5519,14 @@
           window.onGuestsLoaded = null;
           if (data && data.guests) {
             allGuestReports = data.guests;
-            renderFirstTimers();
           }
+          renderFirstTimers();
         };
-        
-        var old = document.getElementById(
-          'guestsScript');
+
+        var old = document.getElementById('guestsScript');
         if (old && old.parentNode)
           old.parentNode.removeChild(old);
-        
+
         var script = document.createElement('script');
         script.id = 'guestsScript';
         script.src = SCRIPT_URL +
