@@ -1040,6 +1040,22 @@
         background-position: -200% 0;
       }
     }
+
+    .sidebar-section-label {
+      padding: 14px 16px 4px 16px;
+      font-size: 10px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin-top: 8px;
+    }
+
+    body.sidebar-collapsed .sidebar-section-label,
+    .sidebar.collapsed .sidebar-section-label {
+      display: none;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1119,6 +1135,22 @@
               class="tab-btn-label">MC Reports Log</span></button>
           <button class="tab-btn" onclick="switchTab('soul-reports',this)"><span class="icon">⛪</span><span
               class="tab-btn-label">Soul Reports</span></button>
+
+          <div class="sidebar-section-label">
+            CHURCH GROWTH
+          </div>
+
+          <button class="tab-btn" 
+            onclick="switchTab('first-timers', this)">
+            <span class="icon">🆕</span>
+            <span class="tab-btn-label">First Timers</span>
+          </button>
+
+          <button class="tab-btn" 
+            onclick="switchTab('membership', this)">
+            <span class="icon">👥</span>
+            <span class="tab-btn-label">Membership</span>
+          </button>
 
           <div
             style="padding: 14px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;">
@@ -1987,6 +2019,242 @@
             </div>
           </div>
 
+          <div class="tab-panel" id="panel-first-timers">
+            <h2 style="margin-bottom:24px;font-size:22px;
+              font-weight:800;color:#0a1628;">
+              🆕 First Timers
+            </h2>
+
+            <!-- Period filter -->
+            <div style="display:flex;gap:8px;
+              margin-bottom:20px;flex-wrap:wrap;">
+              <button onclick="setFTperiod('today')"
+                id="ftPeriodToday"
+                style="padding:8px 16px;border-radius:20px;
+                background:#006B3F;color:white;border:none;
+                font-weight:700;cursor:pointer;font-size:13px;">
+                Today
+              </button>
+              <button onclick="setFTperiod('week')"
+                id="ftPeriodWeek"
+                style="padding:8px 16px;border-radius:20px;
+                background:#e2e8f0;color:#0a1628;border:none;
+                font-weight:700;cursor:pointer;font-size:13px;">
+                This Week
+              </button>
+              <button onclick="setFTperiod('all')"
+                id="ftPeriodAll"
+                style="padding:8px 16px;border-radius:20px;
+                background:#e2e8f0;color:#0a1628;border:none;
+                font-weight:700;cursor:pointer;font-size:13px;">
+                All Time
+              </button>
+            </div>
+
+            <!-- Stats cards -->
+            <div style="display:grid;
+              grid-template-columns:repeat(4,1fr);
+              gap:16px;margin-bottom:24px;">
+              
+              <div style="background:white;
+                border-radius:16px;padding:20px;
+                box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;
+                  margin-bottom:4px;">Total Guests</div>
+                <div id="ftTotalGuests"
+                  style="font-size:32px;font-weight:900;
+                  color:#0a1628;">0</div>
+              </div>
+              
+              <div style="background:white;
+                border-radius:16px;padding:20px;
+                box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;
+                  margin-bottom:4px;">Needs Follow Up</div>
+                <div id="ftNeedsFollowUp"
+                  style="font-size:32px;font-weight:900;
+                  color:#ef4444;">0</div>
+              </div>
+              
+              <div style="background:white;
+                border-radius:16px;padding:20px;
+                box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;
+                  margin-bottom:4px;">Contacted</div>
+                <div id="ftContacted"
+                  style="font-size:32px;font-weight:900;
+                  color:#f59e0b;">0</div>
+              </div>
+              
+              <div style="background:white;
+                border-radius:16px;padding:20px;
+                box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;
+                  margin-bottom:4px;">Converted to Member</div>
+                <div id="ftConverted"
+                  style="font-size:32px;font-weight:900;
+                  color:#22c55e;">0</div>
+              </div>
+            </div>
+
+            <!-- Guests table -->
+            <div style="background:white;
+              border-radius:16px;padding:24px;
+              box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div style="display:flex;
+                justify-content:space-between;
+                align-items:center;margin-bottom:16px;">
+                <h3 style="font-size:16px;font-weight:800;
+                  color:#0a1628;">Guest List</h3>
+                <button onclick="exportFirstTimers()"
+                  style="padding:8px 16px;background:#006B3F;
+                  color:white;border:none;border-radius:8px;
+                  font-weight:700;cursor:pointer;
+                  font-size:13px;">
+                  ⬇ Export Excel
+                </button>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;
+                  border-collapse:collapse;font-size:13px;"
+                  id="ftGuestsTable">
+                  <thead>
+                    <tr style="background:#006B3F;
+                      color:white;">
+                      <th style="padding:10px;
+                        text-align:left;">Date</th>
+                      <th style="padding:10px;
+                        text-align:left;">Name</th>
+                      <th style="padding:10px;">Phone</th>
+                      <th style="padding:10px;">
+                        Invited By</th>
+                      <th style="padding:10px;">
+                        How Heard</th>
+                      <th style="padding:10px;">
+                        Born Again</th>
+                      <th style="padding:10px;">
+                        Follow Up Status</th>
+                      <th style="padding:10px;">
+                        Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ftGuestsBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="panel-membership">
+            <h2 style="margin-bottom:24px;font-size:22px;
+              font-weight:800;color:#0a1628;">
+              👥 Church Membership
+            </h2>
+
+            <!-- Stats -->
+            <div style="display:grid;
+              grid-template-columns:repeat(4,1fr);
+              gap:16px;margin-bottom:24px;">
+              
+              <div style="background:white;
+                border-radius:16px;padding:20px;
+                box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;
+                  margin-bottom:4px;">Total Members</div>
+                <div id="memTotal"
+                  style="font-size:32px;font-weight:900;
+                  color:#0a1628;">0</div>
+              </div>
+              
+              <div style="background:white;
+                border-radius:16px;padding:20px;
+                box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;
+                  margin-bottom:4px;">Total Shepherds</div>
+                <div id="memShepherds"
+                  style="font-size:32px;font-weight:900;
+                  color:#3b82f6;">0</div>
+              </div>
+              
+              <div style="background:white;
+                border-radius:16px;padding:20px;
+                box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;
+                  margin-bottom:4px;">Converted First Timers</div>
+                <div id="memConverted"
+                  style="font-size:32px;font-weight:900;
+                  color:#22c55e;">0</div>
+              </div>
+              
+              <div style="background:white;
+                border-radius:16px;padding:20px;
+                box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;
+                  margin-bottom:4px;">Potential Leaders</div>
+                <div id="memLeaders"
+                  style="font-size:32px;font-weight:900;
+                  color:#f59e0b;">0</div>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div style="display:flex;gap:10px;
+              margin-bottom:16px;flex-wrap:wrap;">
+              <select id="memFilterRole"
+                onchange="renderMembership()"
+                style="padding:8px 12px;border-radius:8px;
+                border:2px solid #e2e8f0;font-size:13px;">
+                <option value="">All Roles</option>
+                <option value="shepherd">SPS Shepherd</option>
+                <option value="mc">MC Shepherd</option>
+                <option value="member">Member</option>
+                <option value="firsttimer">
+                  Converted First Timer</option>
+              </select>
+              <input type="text" id="memSearch"
+                placeholder="Search by name..."
+                oninput="renderMembership()"
+                style="padding:8px 12px;border-radius:8px;
+                border:2px solid #e2e8f0;font-size:13px;
+                flex:1;">
+              <button onclick="exportMembership()"
+                style="padding:8px 16px;background:#006B3F;
+                color:white;border:none;border-radius:8px;
+                font-weight:700;cursor:pointer;
+                font-size:13px;">
+                ⬇ Export Excel
+              </button>
+            </div>
+
+            <!-- Members table -->
+            <div style="background:white;
+              border-radius:16px;padding:24px;
+              box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div style="overflow-x:auto;">
+                <table style="width:100%;
+                  border-collapse:collapse;font-size:13px;">
+                  <thead>
+                    <tr style="background:#0a1628;
+                      color:white;">
+                      <th style="padding:10px;
+                        text-align:left;">Name</th>
+                      <th style="padding:10px;">Role</th>
+                      <th style="padding:10px;">Phone</th>
+                      <th style="padding:10px;">
+                        Shepherd/Zone</th>
+                      <th style="padding:10px;">
+                        Location</th>
+                      <th style="padding:10px;">
+                        👑 Leader</th>
+                      <th style="padding:10px;">
+                        Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="membershipBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
         </div><!-- end content-area -->
       </div><!-- end dash-shell -->
     </div><!-- end dashboard -->
@@ -2342,7 +2610,7 @@
         overview: 'Overview', shepherds: 'Shepherds', members: 'Members', reports: 'All Reports', topics: 'Bible Topics', attendance: 'Attendance', export: 'Export & Contacts',
         'mc-overview': 'Microchurch Overview', 'mc-shepherds': 'Microchurch Shepherds', 'mc-members': 'Microchurch Members', 'mc-reports': 'Microchurch Reports Logs',
         'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings', analytics: 'Analytics Dashboard',
-        'soul-reports': 'Sunday Soul Reports'
+        'soul-reports': 'Sunday Soul Reports', 'first-timers': 'First Timers', 'membership': 'Church Membership'
       };
 
       function switchTab(id, btn, isMobile) {
@@ -2409,6 +2677,17 @@
         }
         if (id === 'settings') {
           renderShepherdPinsTable();
+        }
+        if (id === 'first-timers') {
+          setTimeout(function() {
+            loadFirstTimers();
+          }, 150);
+        }
+        if (id === 'membership') {
+          setTimeout(function() {
+            buildMembersList();
+            renderMembership();
+          }, 150);
         }
       }
 
@@ -5228,6 +5507,488 @@
         link.click();
         document.body.removeChild(link);
       };
+
+      // --- FIRST TIMERS & MEMBERSHIP MANAGEMENT ---
+      var allGuestReports = [];
+      var currentFTPeriod = 'today';
+      var allMembersList = [];
+
+      function loadFirstTimers() {
+        window.onGuestsLoaded = function(data) {
+          window.onGuestsLoaded = null;
+          if (data && data.guests) {
+            allGuestReports = data.guests;
+            renderFirstTimers();
+          }
+        };
+        
+        var old = document.getElementById(
+          'guestsScript');
+        if (old && old.parentNode)
+          old.parentNode.removeChild(old);
+        
+        var script = document.createElement('script');
+        script.id = 'guestsScript';
+        script.src = SCRIPT_URL +
+          '?action=getGuests&callback=onGuestsLoaded';
+        script.onerror = function() {
+          renderFirstTimers();
+        };
+        document.head.appendChild(script);
+      }
+
+      function setFTperiod(period) {
+        currentFTPeriod = period;
+        var periods = ['Today','Week','All'];
+        periods.forEach(function(p) {
+          var btn = document.getElementById(
+            'ftPeriod' + p);
+          if (btn) {
+            btn.style.background = 
+              p.toLowerCase() === period ||
+              (p === 'All' && period === 'all') ?
+              '#006B3F' : '#e2e8f0';
+            btn.style.color = 
+              p.toLowerCase() === period ||
+              (p === 'All' && period === 'all') ?
+              'white' : '#0a1628';
+          }
+        });
+        renderFirstTimers();
+      }
+
+      function getFilteredGuests() {
+        var today = new Date();
+        today.setHours(0,0,0,0);
+        
+        return allGuestReports.filter(function(g) {
+          if (currentFTPeriod === 'today') {
+            var gDate = new Date(g.date);
+            gDate.setHours(0,0,0,0);
+            return gDate.getTime() === today.getTime();
+          }
+          if (currentFTPeriod === 'week') {
+            var weekStart = new Date(today);
+            weekStart.setDate(
+              today.getDate() - today.getDay());
+            var gd = new Date(g.date);
+            return gd >= weekStart;
+          }
+          return true;
+        });
+      }
+
+      function renderFirstTimers() {
+        var guests = getFilteredGuests();
+        
+        var needsFollowUp = guests.filter(function(g) {
+          return g.followUpStatus === 'Needs Follow Up'
+            || !g.followUpStatus;
+        }).length;
+        
+        var contacted = guests.filter(function(g) {
+          return g.followUpStatus === 'Contacted';
+        }).length;
+        
+        var converted = guests.filter(function(g) {
+          return g.followUpStatus === 
+            'Converted to Member';
+        }).length;
+        
+        var el1 = document.getElementById(
+          'ftTotalGuests');
+        if (el1) el1.textContent = guests.length;
+        
+        var el2 = document.getElementById(
+          'ftNeedsFollowUp');
+        if (el2) el2.textContent = needsFollowUp;
+        
+        var el3 = document.getElementById(
+          'ftContacted');
+        if (el3) el3.textContent = contacted;
+        
+        var el4 = document.getElementById(
+          'ftConverted');
+        if (el4) el4.textContent = converted;
+        
+        var tbody = document.getElementById(
+          'ftGuestsBody');
+        if (!tbody) return;
+        
+        if (guests.length === 0) {
+          tbody.innerHTML = 
+            '<tr><td colspan="8" style="text-align:' +
+            'center;padding:40px;color:#64748b;">' +
+            'No guests found for this period.</td></tr>';
+          return;
+        }
+        
+        tbody.innerHTML = guests.map(function(g, idx) {
+          var bg = idx % 2 === 0 ? '#f8fafc' : 'white';
+          var statusColor = 
+            g.followUpStatus === 'Converted to Member' ?
+              '#22c55e' :
+            g.followUpStatus === 'Contacted' ?
+              '#f59e0b' : '#ef4444';
+          var statusBg = 
+            g.followUpStatus === 'Converted to Member' ?
+              '#dcfce7' :
+            g.followUpStatus === 'Contacted' ?
+              '#fef3c7' : '#fee2e2';
+          
+          return '<tr style="background:' + bg + 
+            ';border-bottom:1px solid #e2e8f0;">' +
+            '<td style="padding:10px;color:#64748b;">' +
+            (g.date || '') + '</td>' +
+            '<td style="padding:10px;font-weight:700;' +
+            'color:#0a1628;">' + 
+            (g.fullName || g.firstName + ' ' + 
+              g.lastName || '') + '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            (g.phone || '') + '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            (g.invitedBy || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            (g.heardFrom || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            (g.bornAgain === 'Yes' ? 
+              '<span style="color:#22c55e;">✅ Yes</span>' : 
+              '<span style="color:#ef4444;">❌ No</span>') + 
+            '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            '<select onchange="updateGuestStatus(\'' + 
+              (g.id || idx) + '\', this.value)" ' +
+            'style="padding:4px 8px;border-radius:6px;' +
+            'border:1px solid #e2e8f0;font-size:12px;' +
+            'background:' + statusBg + ';' +
+            'color:' + statusColor + ';font-weight:700;">' +
+            '<option value="Needs Follow Up"' + 
+              ((!g.followUpStatus || 
+                g.followUpStatus === "Needs Follow Up") ? 
+                " selected" : "") + 
+              '>📞 Needs Follow Up</option>' +
+            '<option value="Contacted"' + 
+              (g.followUpStatus === "Contacted" ? 
+                " selected" : "") + 
+              '>✅ Contacted</option>' +
+            '<option value="Converted to Member"' + 
+              (g.followUpStatus === 
+                "Converted to Member" ? 
+                " selected" : "") + 
+              '>🟢 Converted to Member</option>' +
+            '</select></td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            '<button onclick="viewGuestDetails(\'' + 
+              (g.id || idx) + '\')" ' +
+            'style="padding:4px 10px;background:#0a1628;' +
+            'color:white;border:none;border-radius:6px;' +
+            'cursor:pointer;font-size:12px;">View</button>' +
+            '</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      function updateGuestStatus(guestId, status) {
+        var guest = allGuestReports.find(function(g) {
+          return g.id === guestId;
+        });
+        if (guest) {
+          guest.followUpStatus = status;
+          if (status === 'Converted to Member') {
+            addToMembership(guest);
+          }
+          renderFirstTimers();
+          renderMembership();
+        }
+      }
+
+      function viewGuestDetails(guestId) {
+        var guest = allGuestReports.find(function(g) {
+          return g.id === guestId;
+        });
+        if (!guest) return;
+        
+        var details = 
+          'Name: ' + (guest.fullName || '') + '\n' +
+          'Phone: ' + (guest.phone || '') + '\n' +
+          'Email: ' + (guest.email || '') + '\n' +
+          'Gender: ' + (guest.gender || '') + '\n' +
+          'Marital: ' + (guest.maritalStatus || '') + '\n' +
+          'Occupation: ' + (guest.occupation || '') + '\n' +
+          'Residence: ' + (guest.residence || '') + '\n' +
+          'Invited By: ' + (guest.invitedBy || '') + '\n' +
+          'How Heard: ' + (guest.heardFrom || '') + '\n' +
+          'Born Again: ' + (guest.bornAgain || '') + '\n' +
+          'Church: ' + (guest.churchName || '') + '\n' +
+          'Contact Pref: ' + 
+            (guest.contactPreference || '') + '\n' +
+          'Purpose: ' + (guest.purposeOfVisit || '') + '\n' +
+          'Feedback: ' + (guest.feedback || '');
+        
+        alert(details);
+      }
+
+      function addToMembership(guest) {
+        var exists = allMembersList.find(function(m) {
+          return m.phone === guest.phone;
+        });
+        if (!exists) {
+          allMembersList.push({
+            name: guest.fullName || 
+              guest.firstName + ' ' + guest.lastName,
+            phone: guest.phone,
+            role: 'firsttimer',
+            roleLabel: 'Converted First Timer',
+            shepherd: guest.invitedBy || '',
+            location: guest.residence || '',
+            joinDate: guest.date,
+            isLeader: false
+          });
+        }
+      }
+
+      function buildMembersList() {
+        allMembersList = [];
+        
+        ALL_SHEPHERDS.forEach(function(s) {
+          allMembersList.push({
+            name: s.name,
+            phone: s.contact || '',
+            role: 'shepherd',
+            roleLabel: 'SPS Shepherd',
+            shepherd: 'SPS',
+            location: '',
+            joinDate: '',
+            isLeader: false
+          });
+        });
+        
+        ALL_MC_SHEPHERDS.forEach(function(s) {
+          allMembersList.push({
+            name: s.name,
+            phone: s.contact || '',
+            role: 'mc',
+            roleLabel: 'MC Shepherd',
+            shepherd: s.microchurch || '',
+            location: '',
+            joinDate: '',
+            isLeader: false
+          });
+        });
+        
+        if (typeof memberData !== 'undefined') {
+          Object.entries(memberData).forEach(
+            function(entry) {
+              var memberName = entry[0];
+              var shepName = entry[1];
+              allMembersList.push({
+                name: memberName,
+                phone: '',
+                role: 'member',
+                roleLabel: 'Member',
+                shepherd: shepName,
+                location: '',
+                joinDate: '',
+                isLeader: false
+              });
+            }
+          );
+        }
+        
+        allGuestReports.forEach(function(g) {
+          if (g.followUpStatus === 
+              'Converted to Member') {
+            addToMembership(g);
+          }
+        });
+      }
+
+      function renderMembership() {
+        buildMembersList();
+        
+        var roleFilter = document.getElementById(
+          'memFilterRole') ?
+          document.getElementById('memFilterRole')
+            .value : '';
+        var search = document.getElementById(
+          'memSearch') ?
+          document.getElementById('memSearch')
+            .value.toLowerCase() : '';
+        
+        var filtered = allMembersList.filter(
+          function(m) {
+            if (roleFilter && m.role !== roleFilter) 
+              return false;
+            if (search && !m.name.toLowerCase()
+                .includes(search)) return false;
+            return true;
+          }
+        );
+        
+        var total = document.getElementById('memTotal');
+        if (total) total.textContent = 
+          allMembersList.length;
+        
+        var sheps = document.getElementById(
+          'memShepherds');
+        if (sheps) sheps.textContent = 
+          allMembersList.filter(function(m) {
+            return m.role === 'shepherd' || 
+              m.role === 'mc';
+          }).length;
+        
+        var conv = document.getElementById(
+          'memConverted');
+        if (conv) conv.textContent = 
+          allMembersList.filter(function(m) {
+            return m.role === 'firsttimer';
+          }).length;
+        
+        var leaders = document.getElementById(
+          'memLeaders');
+        if (leaders) leaders.textContent = 
+          allMembersList.filter(function(m) {
+            return m.isLeader;
+          }).length;
+        
+        var tbody = document.getElementById(
+          'membershipBody');
+        if (!tbody) return;
+        
+        if (filtered.length === 0) {
+          tbody.innerHTML = 
+            '<tr><td colspan="7" style="text-align:' +
+            'center;padding:40px;color:#64748b;">' +
+            'No members found.</td></tr>';
+          return;
+        }
+        
+        var roleColors = {
+          shepherd: '#3b82f6',
+          mc: '#8b5cf6',
+          member: '#22c55e',
+          firsttimer: '#f59e0b'
+        };
+        
+        tbody.innerHTML = filtered.map(function(m, idx) {
+          var bg = idx % 2 === 0 ? '#f8fafc' : 'white';
+          var roleColor = roleColors[m.role] || '#64748b';
+          
+          return '<tr style="background:' + bg + 
+            ';border-bottom:1px solid #e2e8f0;">' +
+            '<td style="padding:10px;font-weight:700;' +
+            'color:#0a1628;">' + m.name + '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            '<span style="background:' + roleColor + 
+              '20;color:' + roleColor + ';' +
+              'padding:3px 10px;border-radius:20px;' +
+              'font-size:11px;font-weight:700;">' +
+              m.roleLabel + '</span></td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            (m.phone || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;' +
+            'color:#64748b;">' + 
+            (m.shepherd || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;' +
+            'color:#64748b;">' + 
+            (m.location || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            '<button onclick="toggleLeader(\'' + 
+              m.name + '\')" ' +
+            'style="background:none;border:none;' +
+            'cursor:pointer;font-size:18px;">' +
+            (m.isLeader ? '👑' : '☆') + 
+            '</button></td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            '<a href="tel:' + m.phone + '" ' +
+            'style="padding:4px 8px;background:#22c55e;' +
+            'color:white;border-radius:6px;' +
+            'text-decoration:none;font-size:11px;' +
+            'font-weight:700;margin-right:4px;">📞</a>' +
+            '<a href="https://wa.me/233' + 
+              (m.phone||'').replace(/^0/,'') + '" ' +
+            'target="_blank" ' +
+            'style="padding:4px 8px;background:#25D366;' +
+            'color:white;border-radius:6px;' +
+            'text-decoration:none;font-size:11px;' +
+            'font-weight:700;">💬</a>' +
+            '</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      function toggleLeader(memberName) {
+        var member = allMembersList.find(function(m) {
+          return m.name === memberName;
+        });
+        if (member) {
+          member.isLeader = !member.isLeader;
+          renderMembership();
+        }
+      }
+
+      function exportFirstTimers() {
+        var guests = getFilteredGuests();
+        var headers = [
+          'Date', 'Full Name', 'Phone', 'Email',
+          'Gender', 'Marital Status', 'Occupation',
+          'Residence', 'Invited By', 'How Heard',
+          'Born Again', 'Church', 'Contact Pref',
+          'Purpose', 'Follow Up Status', 'Feedback'
+        ];
+        var rows = guests.map(function(g) {
+          return [
+            g.date || '',
+            g.fullName || '',
+            g.phone || '',
+            g.email || '',
+            g.gender || '',
+            g.maritalStatus || '',
+            g.occupation || '',
+            g.residence || '',
+            g.invitedBy || '',
+            g.heardFrom || '',
+            g.bornAgain || '',
+            g.churchName || '',
+            g.contactPreference || '',
+            g.purposeOfVisit || '',
+            g.followUpStatus || '',
+            g.feedback || ''
+          ];
+        });
+        var ws = XLSX.utils.aoa_to_sheet(
+          [headers].concat(rows));
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(
+          wb, ws, 'First Timers');
+        XLSX.writeFile(wb, 'ONC_FirstTimers_' +
+          new Date().toLocaleDateString('en-GB')
+            .replace(/\//g,'-') + '.xlsx');
+      }
+
+      function exportMembership() {
+        var headers = [
+          'Name', 'Role', 'Phone', 
+          'Shepherd/Zone', 'Location',
+          'Potential Leader', 'Join Date'
+        ];
+        var rows = allMembersList.map(function(m) {
+          return [
+            m.name, m.roleLabel, m.phone,
+            m.shepherd, m.location,
+            m.isLeader ? 'Yes' : 'No',
+            m.joinDate || ''
+          ];
+        });
+        var ws = XLSX.utils.aoa_to_sheet(
+          [headers].concat(rows));
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(
+          wb, ws, 'Membership');
+        XLSX.writeFile(wb, 'ONC_Membership_' +
+          new Date().toLocaleDateString('en-GB')
+            .replace(/\//g,'-') + '.xlsx');
+      }
     </script>
     <!-- SETTINGS UNLOCK MODAL -->
     <div id="settingsUnlockModal"
