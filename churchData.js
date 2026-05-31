@@ -1,5 +1,5 @@
 // ONC Church Data - Generated from SPS Assigned List Batch 1
-// SPS Shepherds: 28 | MC Shepherds: 19 | Total Members: 83
+// SPS Shepherds: 29 | MC Shepherds: 19 | Total Members: 83
 // Last updated: May 2026
 
 window.CHURCH_DATA = {
@@ -333,7 +333,7 @@ window.CHURCH_DATA = {
     },
     {
       "name": "Mrs Petrina Gyane",
-      "contact": "",
+      "contact": "0261199972",
       "zone": "Zone 6",
       "members": [
         {
@@ -348,7 +348,7 @@ window.CHURCH_DATA = {
     },
     {
       "name": "Samuel Tortor",
-      "contact": "",
+      "contact": "0248665544",
       "zone": "Zone 6",
       "members": [
         {
@@ -363,7 +363,7 @@ window.CHURCH_DATA = {
     },
     {
       "name": "Loretta Owusu",
-      "contact": "",
+      "contact": "0548216348",
       "zone": "Zone 7",
       "members": [
         {
@@ -374,7 +374,7 @@ window.CHURCH_DATA = {
     },
     {
       "name": "Melchizedek Ofori",
-      "contact": "",
+      "contact": "0549051818",
       "zone": "Zone 7",
       "members": [
         {
@@ -388,8 +388,8 @@ window.CHURCH_DATA = {
       ]
     },
     {
-      "name": "Bernice Can- Tamakloe",
-      "contact": "",
+      "name": "Bernice Can-Tamakloe",
+      "contact": "0547912591",
       "zone": "Zone 7",
       "members": [
         {
@@ -404,7 +404,7 @@ window.CHURCH_DATA = {
     },
     {
       "name": "Ruth Dadzie",
-      "contact": "",
+      "contact": "0249872507",
       "zone": "Zone 7",
       "members": [
         {
@@ -419,7 +419,7 @@ window.CHURCH_DATA = {
     },
     {
       "name": "Anita Asamoah",
-      "contact": "",
+      "contact": "0545201849",
       "zone": "Zone 7",
       "members": [
         {
@@ -431,6 +431,12 @@ window.CHURCH_DATA = {
           "contact": "0595580993"
         }
       ]
+    },
+    {
+      "name": "Christabel Arhin",
+      "contact": "0530415531",
+      "zone": "Zone 7",
+      "members": []
     }
   ],
   mcShepherds: [
@@ -589,9 +595,10 @@ window.CHURCH_DATA = {
       "shepherds": [
         "Loretta Owusu",
         "Melchizedek Ofori",
-        "Bernice Can- Tamakloe",
+        "Bernice Can-Tamakloe",
         "Ruth Dadzie",
-        "Anita Asamoah"
+        "Anita Asamoah",
+        "Christabel Arhin"
       ]
     }
   ]
