@@ -4597,7 +4597,6 @@
       
       var members = [];
       
-      // Get members from churchData.js
       if (window.CHURCH_DATA) {
         if (state.shepherdType === 'sps') {
           var shepherd = window.CHURCH_DATA
@@ -4610,7 +4609,10 @@
         } else if (state.shepherdType === 'mc') {
           var mcShepherd = window.CHURCH_DATA
             .mcShepherds.find(function(s) {
-              return s.name === state.shepherd;
+              return s.name === state.shepherd ||
+                s.name.indexOf(state.shepherd) > -1||
+                state.shepherd.indexOf(s.name) > -1||
+                s.microchurch === state.shepherd;
             });
           if (mcShepherd && mcShepherd.members) {
             members = mcShepherd.members;
@@ -4618,7 +4620,6 @@
         }
       }
       
-      // Fallback to shepherdData
       if (members.length === 0 && 
           typeof shepherdData !== 'undefined' &&
           shepherdData[state.shepherd]) {
@@ -4642,19 +4643,20 @@
         return;
       }
       
-      list.innerHTML = members.map(function(m, idx) {
+      list.innerHTML = members.map(function(m) {
         var name = typeof m === 'string' ? 
           m : (m.name || '');
         var phone = typeof m === 'object' ? 
           (m.contact || m.phone || '') : '';
         
         var waNumber = phone.replace(/^0/, '233');
-        
-        var hasPhone = phone && phone.trim() !== '';
+        var hasPhone = phone && 
+          phone.trim() !== '';
         
         return '<div style="background:white;' +
           'border-radius:16px;padding:16px;' +
-          'box-shadow:0 2px 8px rgba(0,0,0,0.06);">' +
+          'box-shadow:0 2px 8px ' +
+          'rgba(0,0,0,0.06);">' +
           
           '<div style="display:flex;' +
           'align-items:center;gap:12px;' +
@@ -4662,14 +4664,16 @@
           '<div style="width:44px;height:44px;' +
           'background:var(--navy);' +
           'border-radius:50%;display:flex;' +
-          'align-items:center;justify-content:center;' +
-          'color:white;font-weight:800;font-size:16px;' +
-          'flex-shrink:0;">' +
+          'align-items:center;' +
+          'justify-content:center;' +
+          'color:white;font-weight:800;' +
+          'font-size:16px;flex-shrink:0;">' +
           name.charAt(0).toUpperCase() + 
           '</div>' +
           '<div style="flex:1;">' +
-          '<div style="font-weight:800;font-size:15px;' +
-          'color:var(--navy);">' + name + '</div>' +
+          '<div style="font-weight:800;' +
+          'font-size:15px;color:var(--navy);">' +
+          name + '</div>' +
           '<div style="font-size:13px;' +
           'color:var(--gray);margin-top:2px;">' +
           (hasPhone ? '📞 ' + phone : 
@@ -4683,32 +4687,32 @@
             '<a href="tel:' + phone + '" ' +
             'style="flex:1;padding:10px;' +
             'background:#22c55e;color:white;' +
-            'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-weight:700;' +
+            'border-radius:8px;text-align:center;'+
+            'text-decoration:none;font-weight:700;'+
             'font-size:13px;display:block;">'+
             '📞 Call</a>' +
             
-            '<a href="https://wa.me/' + waNumber + 
-            '" target="_blank" ' +
+            '<a href="https://wa.me/' + 
+            waNumber + '" target="_blank" ' +
             'style="flex:1;padding:10px;' +
             'background:#25D366;color:white;' +
-            'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-weight:700;' +
+            'border-radius:8px;text-align:center;'+
+            'text-decoration:none;font-weight:700;'+
             'font-size:13px;display:block;">'+
             '💬 WhatsApp</a>' +
             
             '<a href="sms:' + phone + '" ' +
             'style="flex:1;padding:10px;' +
             'background:#3b82f6;color:white;' +
-            'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-weight:700;' +
+            'border-radius:8px;text-align:center;'+
+            'text-decoration:none;font-weight:700;'+
             'font-size:13px;display:block;">'+
             '✉ SMS</a>' +
             
             '</div>' :
             '<div style="text-align:center;' +
             'padding:8px;background:#f8fafc;' +
-            'border-radius:8px;color:var(--gray);' +
+            'border-radius:8px;color:var(--gray);'+
             'font-size:12px;">'+
             'No contact number available</div>'
           ) +
