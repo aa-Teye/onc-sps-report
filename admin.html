@@ -5991,9 +5991,12 @@
           'Name: ' + (guest.fullName || '') + '\n' +
           'Phone: ' + (guest.phone || '') + '\n' +
           'Email: ' + (guest.email || '') + '\n' +
+          'Date of Birth: ' + (guest.dob || '') + '\n' +
           'Gender: ' + (guest.gender || '') + '\n' +
-          'Marital: ' + (guest.maritalStatus || '') + '\n' +
+          'Marital Status: ' + 
+            (guest.maritalStatus || '') + '\n' +
           'Occupation: ' + (guest.occupation || '') + '\n' +
+          'Company/School: ' + (guest.company || '') + '\n' +
           'Residence: ' + (guest.residence || '') + '\n' +
           'Invited By: ' + (guest.invitedBy || '') + '\n' +
           'How Heard: ' + (guest.heardFrom || '') + '\n' +
@@ -6001,7 +6004,6 @@
           'Church: ' + (guest.churchName || '') + '\n' +
           'Contact Pref: ' + 
             (guest.contactPreference || '') + '\n' +
-          'Purpose: ' + (guest.purposeOfVisit || '') + '\n' +
           'Feedback: ' + (guest.feedback || '');
         
         alert(details);
