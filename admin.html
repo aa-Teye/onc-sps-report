@@ -1851,120 +1851,7 @@
           </div>
         </div>
 
-        <!-- panel-announcements -->
-        <div class="tab-panel" 
-          id="panel-announcements">
-          <h2 style="margin-bottom:24px;
-            font-size:22px;font-weight:800;
-            color:#0a1628;">
-            📢 Announcements
-          </h2>
 
-          <div style="background:white;
-            border-radius:16px;padding:24px;
-            box-shadow:0 1px 8px rgba(0,0,0,.06);
-            margin-bottom:24px;">
-            <h3 style="font-size:16px;font-weight:800;
-              color:#0a1628;margin-bottom:16px;">
-              ✏️ Post New Announcement
-            </h3>
-            
-            <label style="font-weight:700;
-              font-size:13px;color:#0a1628;
-              display:block;margin-bottom:6px;">
-              Title
-            </label>
-            <input type="text" id="annoTitle"
-              placeholder="Announcement title..."
-              style="width:100%;padding:10px;
-              border:2px solid #e2e8f0;
-              border-radius:8px;font-size:14px;
-              margin-bottom:12px;
-              box-sizing:border-box;">
-            
-            <label style="font-weight:700;
-              font-size:13px;color:#0a1628;
-              display:block;margin-bottom:6px;">
-              Message
-            </label>
-            <textarea id="annoMessage"
-              placeholder="Type announcement here..."
-              rows="4"
-              style="width:100%;padding:10px;
-              border:2px solid #e2e8f0;
-              border-radius:8px;font-size:14px;
-              resize:none;margin-bottom:12px;
-              box-sizing:border-box;">
-            </textarea>
-            
-            <label style="font-weight:700;
-              font-size:13px;color:#0a1628;
-              display:block;margin-bottom:6px;">
-              Who should see this?
-            </label>
-            <select id="annoAudience"
-              style="width:100%;padding:10px;
-              border:2px solid #e2e8f0;
-              border-radius:8px;font-size:14px;
-              margin-bottom:12px;
-              box-sizing:border-box;">
-              <option value="all">All Shepherds</option>
-              <option value="sps">SPS Only</option>
-              <option value="mc">MC Only</option>
-              <option value="firsttimers">
-                First Timers Unit Only
-              </option>
-            </select>
-            
-            <label style="font-weight:700;
-              font-size:13px;color:#0a1628;
-              display:block;margin-bottom:6px;">
-              Expiry Date (optional)
-            </label>
-            <input type="date" id="annoExpiry"
-              style="width:100%;padding:10px;
-              border:2px solid #e2e8f0;
-              border-radius:8px;font-size:14px;
-              margin-bottom:16px;
-              box-sizing:border-box;">
-            
-            <button onclick="postAnnouncement()"
-              style="width:100%;padding:14px;
-              background:#0a1628;color:white;
-              border:none;border-radius:10px;
-              font-weight:800;font-size:15px;
-              cursor:pointer;">
-              📢 Post Announcement
-            </button>
-          </div>
-
-          <div style="background:white;
-            border-radius:16px;padding:24px;
-            box-shadow:0 1px 8px rgba(0,0,0,.06);">
-            <div style="display:flex;
-              justify-content:space-between;
-              align-items:center;margin-bottom:16px;">
-              <h3 style="font-size:16px;font-weight:800;
-                color:#0a1628;">
-                📋 Posted Announcements
-              </h3>
-              <button onclick="loadAnnouncements()"
-                style="padding:8px 16px;
-                background:#006B3F;color:white;
-                border:none;border-radius:8px;
-                font-weight:700;cursor:pointer;
-                font-size:13px;">
-                🔄 Refresh
-              </button>
-            </div>
-            <div id="announcementsList">
-              <div style="text-align:center;
-                padding:40px;color:#64748b;">
-                Click Refresh to load announcements
-              </div>
-            </div>
-          </div>
-        </div>
 
           <!-- TAB 9: MICROCHURCH OVERVIEW -->
           <div class="tab-panel" id="panel-mc-overview">
@@ -2529,6 +2416,121 @@
                   </thead>
                   <tbody id="membershipBody"></tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" 
+            id="panel-announcements">
+            <h2 style="margin-bottom:24px;
+              font-size:22px;font-weight:800;
+              color:#0a1628;">
+              📢 Announcements
+            </h2>
+
+            <div style="background:white;
+              border-radius:16px;padding:24px;
+              box-shadow:0 1px 8px rgba(0,0,0,.06);
+              margin-bottom:24px;">
+              <h3 style="font-size:16px;
+                font-weight:800;color:#0a1628;
+                margin-bottom:16px;">
+                ✏️ Post New Announcement
+              </h3>
+              
+              <label style="font-weight:700;
+                font-size:13px;color:#0a1628;
+                display:block;margin-bottom:6px;">
+                Title
+              </label>
+              <input type="text" id="annoTitle"
+                placeholder="Announcement title..."
+                style="width:100%;padding:10px;
+                border:2px solid #e2e8f0;
+                border-radius:8px;font-size:14px;
+                margin-bottom:12px;
+                box-sizing:border-box;">
+              
+              <label style="font-weight:700;
+                font-size:13px;color:#0a1628;
+                display:block;margin-bottom:6px;">
+                Message
+              </label>
+              <textarea id="annoMessage"
+                placeholder="Type announcement here..."
+                rows="4"
+                style="width:100%;padding:10px;
+                border:2px solid #e2e8f0;
+                border-radius:8px;font-size:14px;
+                resize:none;margin-bottom:12px;
+                box-sizing:border-box;">
+              </textarea>
+              
+              <label style="font-weight:700;
+                font-size:13px;color:#0a1628;
+                display:block;margin-bottom:6px;">
+                Who should see this?
+              </label>
+              <select id="annoAudience"
+                style="width:100%;padding:10px;
+                border:2px solid #e2e8f0;
+                border-radius:8px;font-size:14px;
+                margin-bottom:12px;
+                box-sizing:border-box;">
+                <option value="all">All Shepherds</option>
+                <option value="sps">SPS Only</option>
+                <option value="mc">MC Only</option>
+                <option value="firsttimers">
+                  First Timers Unit Only
+                </option>
+              </select>
+              
+              <label style="font-weight:700;
+                font-size:13px;color:#0a1628;
+                display:block;margin-bottom:6px;">
+                Expiry Date (optional)
+              </label>
+              <input type="date" id="annoExpiry"
+                style="width:100%;padding:10px;
+                border:2px solid #e2e8f0;
+                border-radius:8px;font-size:14px;
+                margin-bottom:16px;
+                box-sizing:border-box;">
+              
+              <button onclick="postAnnouncement()"
+                style="width:100%;padding:14px;
+                background:#0a1628;color:white;
+                border:none;border-radius:10px;
+                font-weight:800;font-size:15px;
+                cursor:pointer;">
+                📢 Post Announcement
+              </button>
+            </div>
+
+            <div style="background:white;
+              border-radius:16px;padding:24px;
+              box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div style="display:flex;
+                justify-content:space-between;
+                align-items:center;margin-bottom:16px;">
+                <h3 style="font-size:16px;
+                  font-weight:800;color:#0a1628;">
+                  📋 Posted Announcements
+                </h3>
+                <button onclick="loadAnnouncements()"
+                  style="padding:8px 16px;
+                  background:#006B3F;color:white;
+                  border:none;border-radius:8px;
+                  font-weight:700;cursor:pointer;
+                  font-size:13px;">
+                  🔄 Refresh
+                </button>
+              </div>
+              <div id="announcementsList">
+                <div style="text-align:center;
+                  padding:40px;color:#64748b;">
+                  Click Refresh to load
+                </div>
               </div>
             </div>
           </div>
