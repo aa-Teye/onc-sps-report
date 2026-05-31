@@ -3458,9 +3458,10 @@
       var expectedPin = customPins[shepherdName] || '0000';
 
       if (curPin === expectedPin) {
-        customPins[shepherdName] = newPin;
+        var paddedPin = String(newPin).padStart(4, '0');
+        customPins[shepherdName] = paddedPin;
         localStorage.setItem('onc_shepherd_pins', JSON.stringify(customPins));
-        localStorage.setItem('onc_pin_' + shepherdName, newPin);
+        localStorage.setItem('onc_pin_' + shepherdName, paddedPin);
 
         fetch(SCRIPT_URL, {
           method: 'POST',
@@ -3469,7 +3470,7 @@
             name: shepherdName,
             role: (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ? 
               'MC Shepherd' : 'SPS Shepherd',
-            pin: newPin
+            pin: paddedPin
           })
         }).catch(function(err) {
           console.log('PIN sync error:', err);
@@ -4064,8 +4065,9 @@
       var newPin = prompt('Enter new 4-digit PIN:');
       if (newPin && newPin.length === 4 && 
           !isNaN(newPin)) {
-        ftState.pin = newPin;
-        localStorage.setItem('ft_pin', newPin);
+        var paddedPin = String(newPin).padStart(4, '0');
+        ftState.pin = paddedPin;
+        localStorage.setItem('ft_pin', paddedPin);
         alert('✅ PIN updated successfully!');
       } else if (newPin) {
         alert('PIN must be exactly 4 digits');
