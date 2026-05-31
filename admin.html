@@ -6632,8 +6632,12 @@
             var icon = actionIcons[l.action] || '📌';
             var color = actionColors[l.action] || 
               '#64748b';
-            return '<tr style="background:' + bg +
-              ';border-bottom:1px solid #e2e8f0;">' +
+            var originalIdx = allActivityLogs.indexOf(l);
+            return '<tr onclick="viewLogDetail('+originalIdx+')" ' +
+              'style="background:' + bg +
+              ';border-bottom:1px solid #e2e8f0;cursor:pointer;" ' +
+              'onmouseover="this.style.background=\'#f0f5ff\'" ' +
+              'onmouseout="this.style.background=\''+bg+'\'">' +
               '<td style="padding:10px;color:#64748b;' +
               'font-size:12px;">' + 
               (l.timestamp || '') + '</td>' +
@@ -6908,6 +6912,133 @@
             function(a) { return a.id !== id; });
           renderAnnouncements();
         });
+      }
+
+      function viewLogDetail(idx) {
+        var log = allActivityLogs[idx];
+        if (!log) return;
+        
+        var actionIcons = {
+          'LOGIN': '🔐',
+          'PIN_CHANGED': '🔑',
+          'REPORT_SUBMITTED': '📋',
+          'MC_REPORT_SUBMITTED': '⛪',
+          'GUEST_REGISTERED': '🆕',
+          'TOPIC_UPDATED': '📖',
+          'ANNOUNCEMENT_POSTED': '📢',
+          'ANNOUNCEMENT_DELETED': '🗑'
+        };
+        
+        var actionColors = {
+          'LOGIN': '#3b82f6',
+          'PIN_CHANGED': '#f59e0b',
+          'REPORT_SUBMITTED': '#22c55e',
+          'MC_REPORT_SUBMITTED': '#8b5cf6',
+          'GUEST_REGISTERED': '#f0a500',
+          'TOPIC_UPDATED': '#0a1628',
+          'ANNOUNCEMENT_POSTED': '#006B3F',
+          'ANNOUNCEMENT_DELETED': '#ef4444'
+        };
+        
+        var icon = actionIcons[log.action] || '📌';
+        var color = actionColors[log.action] || 
+          '#64748b';
+        
+        var existing = document.getElementById(
+          'logDetailModal');
+        if (existing) existing.remove();
+        
+        var modal = document.createElement('div');
+        modal.id = 'logDetailModal';
+        modal.style.cssText = 
+          'position:fixed;top:0;left:0;' +
+          'width:100%;height:100%;' +
+          'background:rgba(0,0,0,0.5);' +
+          'z-index:99999;display:flex;' +
+          'align-items:center;' +
+          'justify-content:center;' +
+          'padding:20px;box-sizing:border-box;';
+        
+        modal.innerHTML = 
+          '<div style="background:white;' +
+          'border-radius:20px;padding:28px;' +
+          'max-width:480px;width:100%;' +
+          'box-shadow:0 20px 60px rgba(0,0,0,0.2);">' +
+          '<div style="display:flex;' +
+          'justify-content:space-between;' +
+          'align-items:center;margin-bottom:20px;">' +
+          '<h3 style="font-weight:900;font-size:18px;' +
+          'color:#0a1628;margin:0;">Activity Detail' +
+          '</h3>' +
+          '<button onclick="closeLogDetail()" ' +
+          'style="background:none;border:none;' +
+          'font-size:24px;cursor:pointer;' +
+          'color:#64748b;">×</button>' +
+          '</div>' +
+          '<div style="background:#f8fafc;' +
+          'border-radius:12px;padding:20px;' +
+          'margin-bottom:16px;">' +
+          '<div style="display:flex;gap:12px;' +
+          'align-items:center;margin-bottom:16px;">' +
+          '<div style="width:48px;height:48px;' +
+          'background:'+color+'20;border-radius:12px;' +
+          'display:flex;align-items:center;' +
+          'justify-content:center;font-size:24px;">' +
+          icon + '</div>' +
+          '<div>' +
+          '<div style="font-weight:800;font-size:16px;' +
+          'color:#0a1628;">'+(log.action||'')+'</div>' +
+          '<div style="font-size:13px;color:#64748b;">' +
+          (log.timestamp||'')+'</div>' +
+          '</div></div>' +
+          '<div style="display:flex;' +
+          'flex-direction:column;gap:12px;">' +
+          '<div style="display:flex;gap:8px;">' +
+          '<div style="font-size:12px;font-weight:700;' +
+          'color:#64748b;min-width:80px;">USER</div>' +
+          '<div style="font-size:14px;font-weight:700;' +
+          'color:#0a1628;">'+(log.user||'—')+'</div>' +
+          '</div>' +
+          '<div style="display:flex;gap:8px;">' +
+          '<div style="font-size:12px;font-weight:700;' +
+          'color:#64748b;min-width:80px;">ACTION</div>' +
+          '<div><span style="background:'+color+'20;' +
+          'color:'+color+';padding:3px 10px;' +
+          'border-radius:20px;font-size:12px;' +
+          'font-weight:700;">'+icon+' '+
+          (log.action||'')+'</span></div>' +
+          '</div>' +
+          '<div style="display:flex;gap:8px;">' +
+          '<div style="font-size:12px;font-weight:700;' +
+          'color:#64748b;min-width:80px;">DETAIL</div>'+
+          '<div style="font-size:14px;color:#374151;">' +
+          (log.detail||'—')+'</div>' +
+          '</div>' +
+          '<div style="display:flex;gap:8px;">' +
+          '<div style="font-size:12px;font-weight:700;' +
+          'color:#64748b;min-width:80px;">TIME</div>' +
+          '<div style="font-size:14px;color:#374151;">' +
+          (log.timestamp||'—')+'</div>' +
+          '</div>' +
+          '</div></div>' +
+          '<button onclick="closeLogDetail()" ' +
+          'style="width:100%;padding:12px;' +
+          'background:#0a1628;color:white;' +
+          'border:none;border-radius:10px;' +
+          'font-weight:700;cursor:pointer;' +
+          'font-size:14px;">Close</button>' +
+          '</div>';
+        
+        document.body.appendChild(modal);
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) closeLogDetail();
+        });
+      }
+
+      function closeLogDetail() {
+        var modal = document.getElementById(
+          'logDetailModal');
+        if (modal) modal.remove();
       }
     </script>
     <!-- SETTINGS UNLOCK MODAL -->
