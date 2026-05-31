@@ -1203,7 +1203,7 @@
             <div class="stat-card green">
               <div class="stat-label">Shepherds Reported</div>
               <div class="stat-value" id="s-reported">—</div>
-              <div class="stat-sub">of 22 shepherds</div>
+              <div class="stat-sub">of 29 shepherds</div>
             </div>
             <div class="stat-card gold">
               <div class="stat-label">Avg Attendance</div>
@@ -2432,28 +2432,36 @@
       const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
 
       const ALL_SHEPHERDS = [
-        { name: "Frank Armah", contact: "558150432" },
-        { name: "Bright Mamene", contact: "546024584" },
-        { name: "Christiana Konzondong", contact: "549722727" },
-        { name: "Gloria Owusu Ansah", contact: "598427368" },
-        { name: "Linda Neequaye", contact: "204752124" },
-        { name: "Getrude Abena Owusu Achiaa", contact: "242384662" },
-        { name: "Gloria Lartey", contact: "532458862" },
-        { name: "Priscilla Sedi Anatsui", contact: "552365696" },
-        { name: "Abigail Akakpo", contact: "246807808" },
-        { name: "LP. Sophia Korkor", contact: "236929939" },
-        { name: "Wisdom Akakpo", contact: "246461508" },
-        { name: "Cyril Amevor", contact: "246038534" },
-        { name: "Mr. Ebenezer Okronipa", contact: "243310124" },
-        { name: "Solomon Aziakah", contact: "245775546" },
-        { name: "Deborah Otumfuor", contact: "203219321" },
-        { name: "Patience Addo", contact: "247816836" },
-        { name: "Benjamin Armah Agyeman", contact: "204027587" },
-        { name: "Martha Asinyo", contact: "542365036" },
-        { name: "Shine Asinyo", contact: "594742093" },
-        { name: "Patience Mensah", contact: "208003701" },
-        { name: "Ruth Yeboah", contact: "242972177" },
-        { name: "Sharon Tricia Amanu", contact: "246505610" }
+        { name: "Frank Armah", contact: "0558150432" },
+        { name: "Bright Mamene", contact: "0546024584" },
+        { name: "Christiana Konzondong", contact: "0549722727" },
+        { name: "Gloria Owusu Ansah", contact: "0598427368" },
+        { name: "Linda Neequaye", contact: "0204752124" },
+        { name: "Getrude Abena Owusu Achiaa", contact: "0242384662" },
+        { name: "Gloria Lartey", contact: "0532458862" },
+        { name: "Priscilla Sedi Anatsui", contact: "0552365696" },
+        { name: "Abigail Akakpo", contact: "0246807808" },
+        { name: "LP. Sophia Korkor", contact: "0236929939" },
+        { name: "Wisdom Akakpo", contact: "0246461508" },
+        { name: "Cyril Amevor", contact: "0246038534" },
+        { name: "Mr. Ebenezer Okronipa", contact: "0243310124" },
+        { name: "Solomon Aziakah", contact: "0245775546" },
+        { name: "Deborah Otumfuor", contact: "0203219321" },
+        { name: "Patience Addo", contact: "0247816836" },
+        { name: "Benjamin Armah Agyeman", contact: "0204027587" },
+        { name: "Martha Asinyo", contact: "0542365036" },
+        { name: "Shine Asinyo", contact: "0594742093" },
+        { name: "Patience Mensah", contact: "0208003701" },
+        { name: "Ruth Yeboah", contact: "0242972177" },
+        { name: "Sharon Tricia Amanu", contact: "0246505610" },
+        { name: "Mrs Petrina Gyane", contact: "0261199972" },
+        { name: "Samuel Tortor", contact: "0248665544" },
+        { name: "Loretta Owusu", contact: "0548216348" },
+        { name: "Melchizedek Ofori", contact: "0549051818" },
+        { name: "Bernice Can-Tamakloe", contact: "0547912591" },
+        { name: "Ruth Dadzie", contact: "0249872507" },
+        { name: "Anita Asamoah", contact: "0545201849" },
+        { name: "Christabel Arhin", contact: "0530415531" }
       ];
 
       const memberData = {
@@ -3427,7 +3435,7 @@
         var bibleYes = weekly.filter(function (r) { return r.topicCovered === 'yes' || r.topicCovered === 'Yes'; }).length;
 
         document.getElementById('s-sessions').textContent = weekly.length;
-        document.getElementById('s-reported').textContent = shepSet.size + '/22';
+        document.getElementById('s-reported').textContent = shepSet.size + '/29';
         document.getElementById('s-avgatt').textContent = avgAtt + '%';
         document.getElementById('s-prayer').textContent = prayers;
         document.getElementById('s-concerns').textContent = concerns;
@@ -4088,7 +4096,7 @@
 
         el.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px;">' +
           '<div style="background:#fff;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Sessions</div><div style="font-size:22px;font-weight:800;color:var(--navy);">' + weekly.length + '</div></div>' +
-          '<div style="background:#fff;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Reported</div><div style="font-size:22px;font-weight:800;color:var(--navy);">' + shepSet.size + '/22</div></div>' +
+          '<div style="background:#fff;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Reported</div><div style="font-size:22px;font-weight:800;color:var(--navy);">' + shepSet.size + '/29</div></div>' +
           '<div style="background:#fff;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Avg Rate</div><div style="font-size:22px;font-weight:800;color:var(--navy);">' + avgRate + '%</div></div>' +
           '<div style="background:#fff;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Prayer</div><div style="font-size:22px;font-weight:800;color:var(--navy);">' + prayers + '</div></div>' +
           '</div>' +
@@ -4114,7 +4122,7 @@
         doc.setFontSize(13); doc.text('Key Metrics', 14, y); y += 8;
         doc.setFontSize(10);
         doc.text('Total Sessions This Week: ' + weekly.length, 14, y); y += 6;
-        doc.text('Shepherds Reported: ' + shepSet.size + ' / 22', 14, y); y += 6;
+        doc.text('Shepherds Reported: ' + shepSet.size + ' / 29', 14, y); y += 6;
         doc.text('Average Attendance Rate: ' + avgRate + '%', 14, y); y += 6;
         doc.text('Prayer Sessions: ' + prayers, 14, y); y += 10;
 
@@ -4604,7 +4612,7 @@
         var reported = new Set(weekly.map(function(r) {
           return r.shepherd;
         })).size;
-        var notReported = 22 - reported;
+        var notReported = 29 - reported;
 
         if (analyticsCharts.reporting) 
           analyticsCharts.reporting.destroy();
