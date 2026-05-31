@@ -6712,6 +6712,26 @@
 
       var allAnnouncements = [];
 
+      function adminToast(msg) {
+        var t = document.createElement('div');
+        t.textContent = msg;
+        t.style.cssText = 
+          'position:fixed;bottom:24px;' +
+          'left:50%;transform:translateX(-50%);' +
+          'background:#0a1628;color:white;' +
+          'padding:12px 24px;border-radius:10px;' +
+          'font-weight:700;font-size:14px;' +
+          'z-index:99999;opacity:1;' +
+          'transition:opacity 0.3s;';
+        document.body.appendChild(t);
+        setTimeout(function() {
+          t.style.opacity = '0';
+          setTimeout(function() { 
+            t.remove(); 
+          }, 300);
+        }, 2500);
+      }
+
       function postAnnouncement() {
         var title = document.getElementById(
           'annoTitle').value.trim();
@@ -6751,7 +6771,7 @@
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          showToast('📢 Announcement posted!');
+          adminToast('📢 Announcement posted!');
           document.getElementById(
             'annoTitle').value = '';
           document.getElementById(
@@ -6761,7 +6781,7 @@
           loadAnnouncements();
         })
         .catch(function() {
-          showToast('📢 Announcement posted!');
+          adminToast('📢 Announcement posted!');
           document.getElementById(
             'annoTitle').value = '';
           document.getElementById(
@@ -6880,7 +6900,7 @@
         })
         .then(function(r) { return r.json(); })
         .then(function() {
-          showToast('✅ Announcement deleted!');
+          adminToast('✅ Announcement deleted!');
           loadAnnouncements();
         })
         .catch(function() {
