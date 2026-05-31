@@ -6944,6 +6944,19 @@
         var color = actionColors[log.action] || 
           '#64748b';
         
+        var descriptions = {
+          'LOGIN': 'User logged into the system',
+          'PIN_CHANGED': 'User changed their login PIN',
+          'REPORT_SUBMITTED': 'SPS shepherd submitted attendance report',
+          'MC_REPORT_SUBMITTED': 'Microchurch shepherd submitted attendance report',
+          'GUEST_REGISTERED': 'New first timer guest was registered',
+          'TOPIC_UPDATED': 'Bible study topic was updated by admin',
+          'ANNOUNCEMENT_POSTED': 'New announcement was posted to shepherds',
+          'ANNOUNCEMENT_DELETED': 'An announcement was removed'
+        };
+        var description = descriptions[log.action] || 
+          'System activity recorded';
+        
         var existing = document.getElementById(
           'logDetailModal');
         if (existing) existing.remove();
@@ -7007,6 +7020,13 @@
           'border-radius:20px;font-size:12px;' +
           'font-weight:700;">'+icon+' '+
           (log.action||'')+'</span></div>' +
+          '</div>' +
+          '<div style="display:flex;gap:8px;">' +
+          '<div style="font-size:12px;font-weight:700;' +
+          'color:#64748b;min-width:80px;">SUMMARY</div>'+
+          '<div style="font-size:13px;color:#374151;' +
+          'font-style:italic;line-height:1.5;">' +
+          description + '</div>' +
           '</div>' +
           '<div style="display:flex;gap:8px;">' +
           '<div style="font-size:12px;font-weight:700;' +
