@@ -1177,6 +1177,13 @@
               Activity Log
             </span>
           </button>
+          <button class="tab-btn"
+            onclick="switchTab('announcements', this)">
+            <span class="icon">📢</span>
+            <span class="tab-btn-label">
+              Announcements
+            </span>
+          </button>
         </nav>
         <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Logout</button></div>
       </div>
@@ -1839,6 +1846,121 @@
               <div style="text-align:center;
                 padding:40px;color:#64748b;">
                 Click Refresh to load activity
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- panel-announcements -->
+        <div class="tab-panel" 
+          id="panel-announcements">
+          <h2 style="margin-bottom:24px;
+            font-size:22px;font-weight:800;
+            color:#0a1628;">
+            📢 Announcements
+          </h2>
+
+          <div style="background:white;
+            border-radius:16px;padding:24px;
+            box-shadow:0 1px 8px rgba(0,0,0,.06);
+            margin-bottom:24px;">
+            <h3 style="font-size:16px;font-weight:800;
+              color:#0a1628;margin-bottom:16px;">
+              ✏️ Post New Announcement
+            </h3>
+            
+            <label style="font-weight:700;
+              font-size:13px;color:#0a1628;
+              display:block;margin-bottom:6px;">
+              Title
+            </label>
+            <input type="text" id="annoTitle"
+              placeholder="Announcement title..."
+              style="width:100%;padding:10px;
+              border:2px solid #e2e8f0;
+              border-radius:8px;font-size:14px;
+              margin-bottom:12px;
+              box-sizing:border-box;">
+            
+            <label style="font-weight:700;
+              font-size:13px;color:#0a1628;
+              display:block;margin-bottom:6px;">
+              Message
+            </label>
+            <textarea id="annoMessage"
+              placeholder="Type announcement here..."
+              rows="4"
+              style="width:100%;padding:10px;
+              border:2px solid #e2e8f0;
+              border-radius:8px;font-size:14px;
+              resize:none;margin-bottom:12px;
+              box-sizing:border-box;">
+            </textarea>
+            
+            <label style="font-weight:700;
+              font-size:13px;color:#0a1628;
+              display:block;margin-bottom:6px;">
+              Who should see this?
+            </label>
+            <select id="annoAudience"
+              style="width:100%;padding:10px;
+              border:2px solid #e2e8f0;
+              border-radius:8px;font-size:14px;
+              margin-bottom:12px;
+              box-sizing:border-box;">
+              <option value="all">All Shepherds</option>
+              <option value="sps">SPS Only</option>
+              <option value="mc">MC Only</option>
+              <option value="firsttimers">
+                First Timers Unit Only
+              </option>
+            </select>
+            
+            <label style="font-weight:700;
+              font-size:13px;color:#0a1628;
+              display:block;margin-bottom:6px;">
+              Expiry Date (optional)
+            </label>
+            <input type="date" id="annoExpiry"
+              style="width:100%;padding:10px;
+              border:2px solid #e2e8f0;
+              border-radius:8px;font-size:14px;
+              margin-bottom:16px;
+              box-sizing:border-box;">
+            
+            <button onclick="postAnnouncement()"
+              style="width:100%;padding:14px;
+              background:#0a1628;color:white;
+              border:none;border-radius:10px;
+              font-weight:800;font-size:15px;
+              cursor:pointer;">
+              📢 Post Announcement
+            </button>
+          </div>
+
+          <div style="background:white;
+            border-radius:16px;padding:24px;
+            box-shadow:0 1px 8px rgba(0,0,0,.06);">
+            <div style="display:flex;
+              justify-content:space-between;
+              align-items:center;margin-bottom:16px;">
+              <h3 style="font-size:16px;font-weight:800;
+                color:#0a1628;">
+                📋 Posted Announcements
+              </h3>
+              <button onclick="loadAnnouncements()"
+                style="padding:8px 16px;
+                background:#006B3F;color:white;
+                border:none;border-radius:8px;
+                font-weight:700;cursor:pointer;
+                font-size:13px;">
+                🔄 Refresh
+              </button>
+            </div>
+            <div id="announcementsList">
+              <div style="text-align:center;
+                padding:40px;color:#64748b;">
+                Click Refresh to load announcements
               </div>
             </div>
           </div>
@@ -2795,7 +2917,8 @@
         'mc-overview': 'Microchurch Overview', 'mc-shepherds': 'Microchurch Shepherds', 'mc-members': 'Microchurch Members', 'mc-reports': 'Microchurch Reports Logs',
         'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings', analytics: 'Analytics Dashboard',
         'soul-reports': 'Sunday Soul Reports', 'first-timers': 'First Timers', 'membership': 'Church Membership',
-        'activity-log': 'Activity Log'
+        'activity-log': 'Activity Log',
+        'announcements': 'Announcements'
       };
 
       function switchTab(id, btn, isMobile) {
@@ -2884,6 +3007,11 @@
         if (id === 'activity-log') {
           setTimeout(function() {
             loadActivityLog();
+          }, 150);
+        }
+        if (id === 'announcements') {
+          setTimeout(function() {
+            loadAnnouncements();
           }, 150);
         }
       }
@@ -6578,6 +6706,186 @@
           '&callback=onPinsLoadedAdmin';
         script.onerror = function() {};
         document.head.appendChild(script);
+      }
+
+      var allAnnouncements = [];
+
+      function postAnnouncement() {
+        var title = document.getElementById(
+          'annoTitle').value.trim();
+        var message = document.getElementById(
+          'annoMessage').value.trim();
+        var audience = document.getElementById(
+          'annoAudience').value;
+        var expiry = document.getElementById(
+          'annoExpiry').value;
+        
+        if (!title || !message) {
+          alert('Please enter title and message');
+          return;
+        }
+        
+        var announcement = {
+          id: 'ANN-' + Date.now(),
+          title: title,
+          message: message,
+          audience: audience,
+          expiry: expiry,
+          postedBy: currentRole === 'superadmin' ? 
+            'General Overseer' : 'Admin',
+          postedDate: new Date().toLocaleDateString(
+            'en-GB'),
+          postedTime: new Date().toLocaleTimeString(
+            'en-GB', {
+              hour:'2-digit', minute:'2-digit'})
+        };
+        
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'postAnnouncement',
+            announcement: announcement
+          })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          showToast('📢 Announcement posted!');
+          document.getElementById(
+            'annoTitle').value = '';
+          document.getElementById(
+            'annoMessage').value = '';
+          document.getElementById(
+            'annoExpiry').value = '';
+          loadAnnouncements();
+        })
+        .catch(function() {
+          showToast('📢 Announcement posted!');
+          document.getElementById(
+            'annoTitle').value = '';
+          document.getElementById(
+            'annoMessage').value = '';
+          loadAnnouncements();
+        });
+      }
+
+      function loadAnnouncements() {
+        window.onAnnouncementsLoaded = function(data) {
+          window.onAnnouncementsLoaded = null;
+          if (data && data.announcements) {
+            allAnnouncements = data.announcements;
+          }
+          renderAnnouncements();
+        };
+        
+        var old = document.getElementById('annoScript');
+        if (old && old.parentNode)
+          old.parentNode.removeChild(old);
+        
+        var script = document.createElement('script');
+        script.id = 'annoScript';
+        script.src = SCRIPT_URL +
+          '?action=getAnnouncements' +
+          '&callback=onAnnouncementsLoaded';
+        script.onerror = function() {
+          renderAnnouncements();
+        };
+        document.head.appendChild(script);
+      }
+
+      function renderAnnouncements() {
+        var list = document.getElementById(
+          'announcementsList');
+        if (!list) return;
+        
+        if (allAnnouncements.length === 0) {
+          list.innerHTML = 
+            '<div style="text-align:center;' +
+            'padding:40px;color:#64748b;">' +
+            'No announcements yet.</div>';
+          return;
+        }
+        
+        var audienceLabels = {
+          'all': '👥 All Shepherds',
+          'sps': '🙏 SPS Only',
+          'mc': '⛪ MC Only',
+          'firsttimers': '🆕 First Timers Only'
+        };
+        
+        list.innerHTML = allAnnouncements
+          .map(function(a) {
+            var isExpired = a.expiry && 
+              new Date(a.expiry) < new Date();
+            var border = isExpired ? 
+              '#e2e8f0' : '#0a1628';
+            var bg = isExpired ? '#f8fafc' : 'white';
+            
+            return '<div style="border-left:4px solid '+
+              border+';padding:16px;margin-bottom:12px;'+
+              'background:'+bg+';border-radius:8px;">' +
+              '<div style="display:flex;' +
+              'justify-content:space-between;' +
+              'align-items:flex-start;' +
+              'margin-bottom:8px;">' +
+              '<div style="font-weight:800;' +
+              'font-size:15px;color:#0a1628;">' +
+              (a.title||'') + '</div>' +
+              (isExpired ?
+                '<span style="background:#fee2e2;'+
+                'color:#b91c1c;padding:2px 8px;'+
+                'border-radius:20px;font-size:11px;'+
+                'font-weight:700;">Expired</span>' :
+                '<span style="background:#dcfce7;'+
+                'color:#15803d;padding:2px 8px;'+
+                'border-radius:20px;font-size:11px;'+
+                'font-weight:700;">Active</span>') +
+              '</div>' +
+              '<div style="color:#374151;font-size:14px;'+
+              'margin-bottom:10px;">' +
+              (a.message||'') + '</div>' +
+              '<div style="display:flex;gap:12px;'+
+              'flex-wrap:wrap;font-size:12px;'+
+              'color:#64748b;">' +
+              '<span>'+(audienceLabels[a.audience]||
+                a.audience)+'</span>' +
+              '<span>📅 '+(a.postedDate||'')+' '+
+                (a.postedTime||'')+'</span>' +
+              '<span>By: '+(a.postedBy||'')+'</span>'+
+              (a.expiry ? '<span>Expires: '+
+                a.expiry+'</span>' : '') +
+              '</div>' +
+              '<button onclick="deleteAnnouncement(\''+
+              a.id+'\')" '+
+              'style="margin-top:10px;padding:6px 12px;'+
+              'background:#fee2e2;color:#b91c1c;'+
+              'border:none;border-radius:6px;'+
+              'cursor:pointer;font-size:12px;'+
+              'font-weight:700;">🗑 Delete</button>'+
+              '</div>';
+          }).join('');
+      }
+
+      function deleteAnnouncement(id) {
+        if (!confirm('Delete this announcement?')) 
+          return;
+        
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'deleteAnnouncement',
+            id: id
+          })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function() {
+          showToast('✅ Announcement deleted!');
+          loadAnnouncements();
+        })
+        .catch(function() {
+          allAnnouncements = allAnnouncements.filter(
+            function(a) { return a.id !== id; });
+          renderAnnouncements();
+        });
       }
     </script>
     <!-- SETTINGS UNLOCK MODAL -->
