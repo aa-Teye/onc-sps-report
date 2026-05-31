@@ -2145,6 +2145,7 @@
 
     // Auto-run: Restore session if valid, otherwise run intro
     document.addEventListener("DOMContentLoaded", function() {
+      loadPinsFromBackend();
       // Init SPS dropdown
       const shepSel = document.getElementById('shepherdSelect');
       if (shepSel) {
@@ -2286,7 +2287,7 @@
         customPins = JSON.parse(localStorage.getItem('onc_shepherd_pins') || '{}');
       } catch (e) {}
 
-      var expectedPin = customPins[shepherdName] || (shepherdData[shepherdName] ? shepherdData[shepherdName].pin : '0000');
+      var expectedPin = localStorage.getItem('onc_pin_' + shepherdName) || customPins[shepherdName] || (shepherdData[shepherdName] ? shepherdData[shepherdName].pin : '0000');
 
       if (enteredPin === expectedPin) {
         // Save session locally
@@ -2295,6 +2296,21 @@
         localStorage.setItem('onc_session_active', 'true');
 
         state.shepherd = shepherdName;
+        state.shepherdType = shepherdType;
+
+        // Log login activity
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'logActivity',
+            user: state.shepherd,
+            activity: 'LOGIN',
+            logAction: 'LOGIN',
+            actionType: 'LOGIN',
+            event: 'LOGIN',
+            detail: 'Logged in as ' + (state.shepherdType === 'mc' || state.shepherdType === 'microchurch' ? 'MC Shepherd' : 'SPS Shepherd')
+          })
+        }).catch(function() {});
 
         pinEl.value = '';
         var secLogin = document.getElementById('secLogin');
@@ -3299,6 +3315,21 @@
       if (curPin === expectedPin) {
         customPins[shepherdName] = newPin;
         localStorage.setItem('onc_shepherd_pins', JSON.stringify(customPins));
+        localStorage.setItem('onc_pin_' + shepherdName, newPin);
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'savePinChange',
+            name: shepherdName,
+            role: (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ? 
+              'MC Shepherd' : 'SPS Shepherd',
+            pin: newPin
+          })
+        }).catch(function(err) {
+          console.log('PIN sync error:', err);
+        });
+
         showToast('✅ PIN updated successfully!');
         closeChangePinModal();
       } else {
@@ -4190,6 +4221,31 @@
       closeFollowUpModal();
       showToast('✅ Follow up recorded!');
       loadFollowUpList();
+    }
+
+    function loadPinsFromBackend() {
+      window.onPinsLoaded = function(data) {
+        window.onPinsLoaded = null;
+        if (data && data.pins) {
+          data.pins.forEach(function(p) {
+            if (p.name && p.pin) {
+              localStorage.setItem(
+                'onc_pin_' + p.name, p.pin);
+            }
+          });
+        }
+      };
+      
+      var old = document.getElementById('pinsScript');
+      if (old && old.parentNode)
+        old.parentNode.removeChild(old);
+      
+      var script = document.createElement('script');
+      script.id = 'pinsScript';
+      script.src = SCRIPT_URL + 
+        '?action=getPins&callback=onPinsLoaded';
+      script.onerror = function() {};
+      document.head.appendChild(script);
     }
   </script>
 

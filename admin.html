@@ -1168,6 +1168,15 @@
               class="tab-btn-label">Resources</span></button>
           <button class="tab-btn" onclick="switchTab('settings',this)"><span class="icon">⚙</span><span
               class="tab-btn-label">Settings</span></button>
+          <button class="tab-btn"
+            onclick="switchTab('activity-log', this)"
+            id="activityLogBtn"
+            style="display:none;">
+            <span class="icon">📋</span>
+            <span class="tab-btn-label">
+              Activity Log
+            </span>
+          </button>
         </nav>
         <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Logout</button></div>
       </div>
@@ -1746,7 +1755,94 @@
               <div id="rem-msg-status" style="font-size:13px;font-weight:600;"></div>
             </div>
           </div>
+
+          <!-- PIN Change History -->
+          <div style="background:white;
+          border-radius:16px;padding:24px;
+          box-shadow:0 1px 8px rgba(0,0,0,.06);
+          margin-top:20px;display:none;" id="pinChangesSection">
+            <h3 style="font-size:16px;font-weight:800;
+            color:#0a1628;margin-bottom:16px;">
+              🔑 PIN Change History
+            </h3>
+            <p style="color:#64748b;font-size:13px;
+            margin-bottom:12px;">
+              Shows when shepherds changed their PINs
+            </p>
+            <button onclick="loadPinChanges()"
+              style="padding:8px 16px;
+              background:#0a1628;color:white;
+              border:none;border-radius:8px;
+              font-weight:700;cursor:pointer;
+              font-size:13px;margin-bottom:16px;">
+              🔄 Load PIN Changes
+            </button>
+            <div id="pinChangesList"></div>
+          </div>
+
         </div><!-- end panel-settings -->
+
+        <!-- panel-activity-log -->
+        <div class="tab-panel" 
+          id="panel-activity-log">
+          <h2 style="margin-bottom:24px;
+            font-size:22px;font-weight:800;
+            color:#0a1628;">
+            📋 Activity Log
+          </h2>
+          <p style="color:#64748b;font-size:13px;
+            margin-bottom:20px;">
+            All system activity — visible to 
+            General Overseer only
+          </p>
+
+          <div style="display:flex;gap:8px;
+            margin-bottom:16px;flex-wrap:wrap;">
+            <select id="activityFilter"
+              onchange="renderActivityLog()"
+              style="padding:8px 12px;
+              border-radius:8px;
+              border:2px solid #e2e8f0;
+              font-size:13px;">
+              <option value="">All Activity</option>
+              <option value="LOGIN">Logins</option>
+              <option value="PIN_CHANGED">
+                PIN Changes
+              </option>
+              <option value="REPORT_SUBMITTED">
+                Reports Submitted
+              </option>
+              <option value="MC_REPORT_SUBMITTED">
+                MC Reports
+              </option>
+              <option value="GUEST_REGISTERED">
+                Guest Registrations
+              </option>
+              <option value="TOPIC_UPDATED">
+                Topic Updates
+              </option>
+            </select>
+            <button onclick="loadActivityLog()"
+              style="padding:8px 16px;
+              background:#006B3F;color:white;
+              border:none;border-radius:8px;
+              font-weight:700;cursor:pointer;
+              font-size:13px;">
+              🔄 Refresh
+            </button>
+          </div>
+
+          <div style="background:white;
+            border-radius:16px;padding:24px;
+            box-shadow:0 1px 8px rgba(0,0,0,.06);">
+            <div id="activityLogList">
+              <div style="text-align:center;
+                padding:40px;color:#64748b;">
+                Click Refresh to load activity
+              </div>
+            </div>
+          </div>
+        </div>
 
           <!-- TAB 9: MICROCHURCH OVERVIEW -->
           <div class="tab-panel" id="panel-mc-overview">
@@ -2624,6 +2720,14 @@
           var mSettingsBtn = document.querySelector('.drawer-item[onclick*="settings"]');
           if (mSettingsBtn)
             mSettingsBtn.style.display = 'none';
+
+          // Hide Activity Log button
+          var logBtn = document.getElementById('activityLogBtn');
+          if (logBtn) logBtn.style.display = 'none';
+          
+          // Hide PIN Changes section
+          var pinSection = document.getElementById('pinChangesSection');
+          if (pinSection) pinSection.style.display = 'none';
         } else {
           var settingsBtn = document.querySelector('.tab-btn[onclick*="settings"]');
           if (settingsBtn) 
@@ -2631,6 +2735,14 @@
           var mSettingsBtn = document.querySelector('.drawer-item[onclick*="settings"]');
           if (mSettingsBtn)
             mSettingsBtn.style.display = 'flex';
+
+          // Show Activity Log button
+          var logBtn = document.getElementById('activityLogBtn');
+          if (logBtn) logBtn.style.display = 'flex';
+          
+          // Show PIN Changes section
+          var pinSection = document.getElementById('pinChangesSection');
+          if (pinSection) pinSection.style.display = 'block';
         }
         
         // Show role badge in topbar
@@ -2673,13 +2785,17 @@
         if (settingsBtn) settingsBtn.style.display = '';
         var mSettingsBtn = document.querySelector('.drawer-item[onclick*="settings"]');
         if (mSettingsBtn) mSettingsBtn.style.display = '';
+
+        var logBtn = document.getElementById('activityLogBtn');
+        if (logBtn) logBtn.style.display = 'none';
       }
 
       var TAB_TITLES = {
         overview: 'Overview', shepherds: 'Shepherds', members: 'Members', reports: 'All Reports', topics: 'Bible Topics', attendance: 'Attendance', export: 'Export & Contacts',
         'mc-overview': 'Microchurch Overview', 'mc-shepherds': 'Microchurch Shepherds', 'mc-members': 'Microchurch Members', 'mc-reports': 'Microchurch Reports Logs',
         'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings', analytics: 'Analytics Dashboard',
-        'soul-reports': 'Sunday Soul Reports', 'first-timers': 'First Timers', 'membership': 'Church Membership'
+        'soul-reports': 'Sunday Soul Reports', 'first-timers': 'First Timers', 'membership': 'Church Membership',
+        'activity-log': 'Activity Log'
       };
 
       function switchTab(id, btn, isMobile) {
@@ -2763,6 +2879,11 @@
             renderLeaderboard();
             renderSoulWinners();
             loadFirstTimers();
+          }, 150);
+        }
+        if (id === 'activity-log') {
+          setTimeout(function() {
+            loadActivityLog();
           }, 150);
         }
       }
@@ -6277,6 +6398,186 @@
         XLSX.writeFile(wb, 'ONC_Membership_' +
           new Date().toLocaleDateString('en-GB')
             .replace(/\//g,'-') + '.xlsx');
+      }
+
+      var allActivityLogs = [];
+
+      function loadActivityLog() {
+        var list = document.getElementById(
+          'activityLogList');
+        if (list) {
+          list.innerHTML = 
+            '<div style="text-align:center;' +
+            'padding:40px;">⏳ Loading...</div>';
+        }
+        
+        window.onActivityLoaded = function(data) {
+          window.onActivityLoaded = null;
+          if (data && data.logs) {
+            allActivityLogs = data.logs;
+            renderActivityLog();
+          }
+        };
+        
+        var old = document.getElementById(
+          'activityScript');
+        if (old && old.parentNode)
+          old.parentNode.removeChild(old);
+        
+        var script = document.createElement('script');
+        script.id = 'activityScript';
+        script.src = SCRIPT_URL +
+          '?action=getActivityLog' +
+          '&callback=onActivityLoaded';
+        script.onerror = function() {
+          if (list) list.innerHTML = 
+            '<div style="color:#ef4444;' +
+            'text-align:center;padding:20px;">' +
+            'Failed to load. Try again.</div>';
+        };
+        document.head.appendChild(script);
+      }
+
+      function renderActivityLog() {
+        var filter = document.getElementById(
+          'activityFilter') ?
+          document.getElementById(
+            'activityFilter').value : '';
+        
+        var logs = allActivityLogs;
+        if (filter) {
+          logs = logs.filter(function(l) {
+            return l.action === filter;
+          });
+        }
+        
+        var list = document.getElementById(
+          'activityLogList');
+        if (!list) return;
+        
+        if (logs.length === 0) {
+          list.innerHTML = 
+            '<div style="text-align:center;' +
+            'padding:40px;color:#64748b;">' +
+            'No activity found.</div>';
+          return;
+        }
+        
+        var actionIcons = {
+          'LOGIN': '🔐',
+          'PIN_CHANGED': '🔑',
+          'REPORT_SUBMITTED': '📋',
+          'MC_REPORT_SUBMITTED': '⛪',
+          'GUEST_REGISTERED': '🆕',
+          'TOPIC_UPDATED': '📖'
+        };
+        
+        var actionColors = {
+          'LOGIN': '#3b82f6',
+          'PIN_CHANGED': '#f59e0b',
+          'REPORT_SUBMITTED': '#22c55e',
+          'MC_REPORT_SUBMITTED': '#8b5cf6',
+          'GUEST_REGISTERED': '#f0a500',
+          'TOPIC_UPDATED': '#0a1628'
+        };
+        
+        list.innerHTML = 
+          '<table style="width:100%;' +
+          'border-collapse:collapse;' +
+          'font-size:13px;">' +
+          '<thead><tr style="background:#0f2044;' +
+          'color:white;">' +
+          '<th style="padding:10px;' +
+          'text-align:left;">Time</th>' +
+          '<th style="padding:10px;' +
+          'text-align:left;">Action</th>' +
+          '<th style="padding:10px;' +
+          'text-align:left;">User</th>' +
+          '<th style="padding:10px;' +
+          'text-align:left;">Detail</th>' +
+          '</tr></thead><tbody>' +
+          logs.map(function(l, idx) {
+            var bg = idx % 2 === 0 ? 
+              '#f8fafc' : 'white';
+            var icon = actionIcons[l.action] || '📌';
+            var color = actionColors[l.action] || 
+              '#64748b';
+            return '<tr style="background:' + bg +
+              ';border-bottom:1px solid #e2e8f0;">' +
+              '<td style="padding:10px;color:#64748b;' +
+              'font-size:12px;">' + 
+              (l.timestamp || '') + '</td>' +
+              '<td style="padding:10px;">' +
+              '<span style="background:' + color + 
+              '20;color:' + color + ';padding:3px 8px;' +
+              'border-radius:20px;font-size:11px;' +
+              'font-weight:700;">' +
+              icon + ' ' + (l.action || '') + 
+              '</span></td>' +
+              '<td style="padding:10px;font-weight:700;' +
+              'color:#0a1628;">' + 
+              (l.user || '') + '</td>' +
+              '<td style="padding:10px;color:#64748b;">' +
+              (l.detail || '') + '</td>' +
+              '</tr>';
+          }).join('') +
+          '</tbody></table>';
+      }
+
+      function loadPinChanges() {
+        window.onPinsLoadedAdmin = function(data) {
+          window.onPinsLoadedAdmin = null;
+          var list = document.getElementById(
+            'pinChangesList');
+          if (!list) return;
+          
+          if (!data || !data.pins || 
+              data.pins.length === 0) {
+            list.innerHTML = 
+              '<p style="color:#64748b;">No PIN changes recorded yet.</p>';
+            return;
+          }
+          
+          list.innerHTML = 
+            '<table style="width:100%;' +
+            'border-collapse:collapse;' +
+            'font-size:13px;">' +
+            '<thead><tr style="background:#0f2044;' +
+            'color:white;">' +
+            '<th style="padding:10px;">Name</th>' +
+            '<th style="padding:10px;">Role</th>' +
+            '<th style="padding:10px;">Changed Date</th>' +
+            '<th style="padding:10px;">Changed Time</th>' +
+            '</tr></thead><tbody>' +
+            data.pins.map(function(p, idx) {
+              var bg = idx%2===0 ? '#f8fafc':'white';
+              return '<tr style="background:'+bg+
+                ';border-bottom:1px solid #e2e8f0;">' +
+                '<td style="padding:10px;font-weight:700;">' +
+                (p.name||'') + '</td>' +
+                '<td style="padding:10px;color:#64748b;">' +
+                (p.role||'') + '</td>' +
+                '<td style="padding:10px;color:#64748b;">' +
+                (p.changedDate||'—') + '</td>' +
+                '<td style="padding:10px;color:#64748b;">' +
+                (p.changedTime||'—') + '</td>' +
+                '</tr>';
+            }).join('') +
+            '</tbody></table>';
+        };
+        
+        var old = document.getElementById(
+          'pinsAdminScript');
+        if (old && old.parentNode)
+          old.parentNode.removeChild(old);
+        
+        var script = document.createElement('script');
+        script.id = 'pinsAdminScript';
+        script.src = SCRIPT_URL +
+          '?action=getPins' +
+          '&callback=onPinsLoadedAdmin';
+        script.onerror = function() {};
+        document.head.appendChild(script);
       }
     </script>
     <!-- SETTINGS UNLOCK MODAL -->
