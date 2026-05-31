@@ -1056,6 +1056,10 @@
     .sidebar.collapsed .sidebar-section-label {
       display: none;
     }
+
+    .sidebar.collapsed .tab-section-label {
+      display: none;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1105,84 +1109,135 @@
             alt="ONC Logo"><span>SPS Admin</span>
         </div>
         <nav style="overflow-y: auto; max-height: calc(100vh - 120px);">
-          <div
-            style="padding: 10px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px;">
-            SPS Flow</div>
-          <button class="tab-btn active" onclick="switchTab('overview',this)"><span class="icon">📊</span><span
-              class="tab-btn-label">Overview</span></button>
-          <button class="tab-btn" onclick="switchTab('shepherds',this)"><span class="icon">👥</span><span
-              class="tab-btn-label">Shepherds</span></button>
-          <button class="tab-btn" onclick="switchTab('members',this)"><span class="icon">🙋</span><span
-              class="tab-btn-label">Members</span></button>
-          <button class="tab-btn" onclick="switchTab('reports',this)"><span class="icon">📋</span><span
-              class="tab-btn-label">Reports</span></button>
-          <button class="tab-btn" onclick="switchTab('bible-study',this)"><span class="icon">📖</span><span
-              class="tab-btn-label">Bible Study</span></button>
-          <button class="tab-btn" onclick="switchTab('zones',this)"><span class="icon">🗂</span><span
-              class="tab-btn-label">Zones</span></button>
-          <button class="tab-btn" onclick="switchTab('export',this)"><span class="icon">📤</span><span
-              class="tab-btn-label">Export</span></button>
-
-          <div
-            style="padding: 14px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;">
-            Microchurch Flow</div>
-          <button class="tab-btn" onclick="switchTab('mc-overview',this)"><span class="icon">⛪</span><span
-              class="tab-btn-label">MC Overview</span></button>
-          <button class="tab-btn" onclick="switchTab('mc-shepherds',this)"><span class="icon">👥</span><span
-              class="tab-btn-label">MC Shepherds</span></button>
-          <button class="tab-btn" onclick="switchTab('mc-members',this)"><span class="icon">🙋</span><span
-              class="tab-btn-label">MC Members</span></button>
-          <button class="tab-btn" onclick="switchTab('mc-reports',this)"><span class="icon">📋</span><span
-              class="tab-btn-label">MC Reports Log</span></button>
-          <button class="tab-btn" onclick="switchTab('soul-reports',this)"><span class="icon">⛪</span><span
-              class="tab-btn-label">Soul Reports</span></button>
-
-          <div class="sidebar-section-label">
-            CHURCH GROWTH
+          <!-- OVERVIEW -->
+          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+            color:#94a3b8;letter-spacing:1px;
+            padding:16px 20px 6px;
+            text-transform:uppercase;">
+            📊 Overview
           </div>
+          <button class="tab-btn active" 
+            onclick="switchTab('overview', this)">
+            <span class="icon">🏠</span>
+            <span class="tab-btn-label">Overview</span>
+          </button>
+          <button class="tab-btn"
+            onclick="switchTab('analytics', this)">
+            <span class="icon">📈</span>
+            <span class="tab-btn-label">Analytics</span>
+          </button>
+          <button class="tab-btn"
+            onclick="switchTab('leaderboard', this)">
+            <span class="icon">🏆</span>
+            <span class="tab-btn-label">Leaderboard</span>
+          </button>
 
-          <button class="tab-btn" 
+          <!-- SHEPHERDS -->
+          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+            color:#94a3b8;letter-spacing:1px;
+            padding:16px 20px 6px;
+            text-transform:uppercase;">
+            👥 Shepherds
+          </div>
+          <button class="tab-btn"
+            onclick="switchTab('shepherds', this)">
+            <span class="icon">🙏</span>
+            <span class="tab-btn-label">SPS Shepherds</span>
+          </button>
+          <button class="tab-btn"
+            onclick="switchTab('mc-shepherds', this)">
+            <span class="icon">⛪</span>
+            <span class="tab-btn-label">MC Shepherds</span>
+          </button>
+          <button class="tab-btn"
+            onclick="switchTab('zones', this)">
+            <span class="icon">🗺</span>
+            <span class="tab-btn-label">Zones</span>
+          </button>
+
+          <!-- REPORTS -->
+          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+            color:#94a3b8;letter-spacing:1px;
+            padding:16px 20px 6px;
+            text-transform:uppercase;">
+            📋 Reports
+          </div>
+          <button class="tab-btn"
+            onclick="switchTab('reports', this)">
+            <span class="icon">📋</span>
+            <span class="tab-btn-label">SPS Reports</span>
+          </button>
+          <button class="tab-btn"
+            onclick="switchTab('mc-reports', this)">
+            <span class="icon">📄</span>
+            <span class="tab-btn-label">MC Reports</span>
+          </button>
+          <button class="tab-btn"
             onclick="switchTab('first-timers', this)">
             <span class="icon">🆕</span>
             <span class="tab-btn-label">First Timers</span>
           </button>
 
-          <button class="tab-btn" 
+          <!-- GROWTH -->
+          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+            color:#94a3b8;letter-spacing:1px;
+            padding:16px 20px 6px;
+            text-transform:uppercase;">
+            🌱 Growth
+          </div>
+          <button class="tab-btn"
             onclick="switchTab('membership', this)">
             <span class="icon">👥</span>
             <span class="tab-btn-label">Membership</span>
           </button>
+          <button class="tab-btn"
+            onclick="switchTab('leaderboard', this)"
+            id="soulWinnersBtn">
+            <span class="icon">🌟</span>
+            <span class="tab-btn-label">Soul Winners</span>
+          </button>
 
-          <div
-            style="padding: 14px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;">
-            Analytics</div>
-          <button class="tab-btn" onclick="switchTab('leaderboard',this)"><span class="icon">🏆</span><span
-              class="tab-btn-label">Leaderboard</span></button>
-          <button class="tab-btn" onclick="switchTab('analytics',this)"><span class="icon">📊</span><span
-              class="tab-btn-label">Analytics</span></button>
+          <!-- COMMUNICATION -->
+          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+            color:#94a3b8;letter-spacing:1px;
+            padding:16px 20px 6px;
+            text-transform:uppercase;">
+            📢 Communication
+          </div>
+          <button class="tab-btn"
+            onclick="switchTab('announcements', this)">
+            <span class="icon">📢</span>
+            <span class="tab-btn-label">Announcements</span>
+          </button>
 
-          <div
-            style="padding: 14px 16px 4px 16px; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;">
-            System</div>
-          <button class="tab-btn" onclick="switchTab('resources',this)"><span class="icon">📚</span><span
-              class="tab-btn-label">Resources</span></button>
-          <button class="tab-btn" onclick="switchTab('settings',this)"><span class="icon">⚙</span><span
-              class="tab-btn-label">Settings</span></button>
+          <!-- SYSTEM -->
+          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+            color:#94a3b8;letter-spacing:1px;
+            padding:16px 20px 6px;
+            text-transform:uppercase;">
+            ⚙️ System
+          </div>
+          <button class="tab-btn"
+            onclick="switchTab('settings', this)">
+            <span class="icon">⚙️</span>
+            <span class="tab-btn-label">Settings</span>
+          </button>
           <button class="tab-btn"
             onclick="switchTab('activity-log', this)"
             id="activityLogBtn"
             style="display:none;">
             <span class="icon">📋</span>
-            <span class="tab-btn-label">
-              Activity Log
-            </span>
+            <span class="tab-btn-label">Activity Log</span>
           </button>
           <button class="tab-btn"
-            onclick="switchTab('announcements', this)">
-            <span class="icon">📢</span>
-            <span class="tab-btn-label">
-              Announcements
-            </span>
+            onclick="switchTab('export', this)">
+            <span class="icon">⬇</span>
+            <span class="tab-btn-label">Export</span>
+          </button>
+          <button class="tab-btn"
+            onclick="switchTab('reminders', this)">
+            <span class="icon">🔔</span>
+            <span class="tab-btn-label">Reminders</span>
           </button>
         </nav>
         <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Logout</button></div>
