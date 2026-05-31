@@ -1580,31 +1580,70 @@
         </div>
 
         <div class="form-group" style="margin-top: 14px;">
-          <label style="color:#ef4444;font-weight:700;font-size:14px;display:block;margin-bottom:6px;">📸 Proof of Meeting (Required) *</label>
-          <p style="font-size:12px;color:#64748b;margin:4px 0 8px">
-            Screenshot for online / Photo for in-person
-          </p>
-          <input type="file" id="proofPhoto_sps" 
-            accept="image/*" capture="environment"
-            onchange="previewProof(this, 'sps')"
-            style="display:none">
-          <label for="proofPhoto_sps" style="
-            display:flex;align-items:center;justify-content:center;gap:8px;
-            padding:12px 16px;border:2px dashed #cbd5e1;
-            border-radius:12px;cursor:pointer;
-            font-size:13px;color:#64748b;
-            background:#f8fafc;transition: all 0.2s;">
-            📷 Tap to take photo or upload
-          </label>
-          <div id="proofPreview_sps" style="margin-top:8px;
-            display:none;">
-            <img id="proofImg_sps" style="width:100%;
-              max-height:200px;object-fit:cover;
-              border-radius:10px;border:2px solid #e2e8f0;">
-            <button type="button" onclick="removeProof('sps')"
-              style="margin-top:6px;font-size:12px;
-              color:#ef4444;background:none;border:none;
-              cursor:pointer;font-weight:700;">✕ Remove photo</button>
+          <div style="margin-bottom:12px;">
+            <label style="font-weight:700;
+              font-size:13px;color:var(--navy);
+              display:block;margin-bottom:8px;">
+              📸 Proof of Meeting
+            </label>
+            
+            <div style="display:flex;gap:8px;
+              flex-direction:column;">
+              
+              <!-- Take photo with camera -->
+              <label style="display:flex;
+                align-items:center;justify-content:center;gap:10px;
+                padding:12px 16px;
+                background:var(--navy);color:white;
+                border-radius:10px;cursor:pointer;
+                font-weight:700;font-size:14px;">
+                📷 Take Photo
+                <input type="file" 
+                  id="proofPhotoCamera_sps"
+                  accept="image/*"
+                  capture="environment"
+                  style="display:none;"
+                  onchange="handleProofPhoto(this, 'sps')">
+              </label>
+              
+              <!-- Choose from gallery/files -->
+              <label style="display:flex;
+                align-items:center;justify-content:center;gap:10px;
+                padding:12px 16px;
+                background:white;color:var(--navy);
+                border:2px solid var(--navy);
+                border-radius:10px;cursor:pointer;
+                font-weight:700;font-size:14px;">
+                🖼 Choose from Gallery
+                <input type="file"
+                  id="proofPhotoGallery_sps"
+                  accept="image/*"
+                  style="display:none;"
+                  onchange="handleProofPhoto(this, 'sps')">
+              </label>
+              
+              <!-- Preview -->
+              <div id="proofPhotoPreview_sps"
+                style="display:none;margin-top:8px;">
+                <img id="proofPhotoImg_sps"
+                  style="width:100%;max-height:200px;
+                  object-fit:cover;border-radius:10px;
+                  border:2px solid var(--border);">
+                <button type="button" onclick="clearProofPhoto('sps')"
+                  style="width:100%;margin-top:6px;
+                  padding:8px;background:#fee2e2;
+                  color:#b91c1c;border:none;
+                  border-radius:8px;cursor:pointer;
+                  font-weight:700;font-size:13px;">
+                  🗑 Remove Photo
+                </button>
+              </div>
+              
+              <div id="proofPhotoName_sps"
+                style="font-size:12px;color:var(--gray);
+                display:none;">
+              </div>
+            </div>
           </div>
         </div>
         <div class="field">
@@ -1830,31 +1869,70 @@
         </div>
 
         <div class="form-group" style="margin-top: 14px; margin-bottom: 14px;">
-          <label style="color:#ef4444;font-weight:700;font-size:14px;display:block;margin-bottom:6px;">📸 Proof of Meeting (Required) *</label>
-          <p style="font-size:12px;color:#64748b;margin:4px 0 8px">
-            Screenshot for online / Photo for in-person
-          </p>
-          <input type="file" id="proofPhoto_mc" 
-            accept="image/*" capture="environment"
-            onchange="previewProof(this, 'mc')"
-            style="display:none">
-          <label for="proofPhoto_mc" style="
-            display:flex;align-items:center;justify-content:center;gap:8px;
-            padding:12px 16px;border:2px dashed #cbd5e1;
-            border-radius:12px;cursor:pointer;
-            font-size:13px;color:#64748b;
-            background:#f8fafc;transition: all 0.2s;">
-            📷 Tap to take photo or upload
-          </label>
-          <div id="proofPreview_mc" style="margin-top:8px;
-            display:none;">
-            <img id="proofImg_mc" style="width:100%;
-              max-height:200px;object-fit:cover;
-              border-radius:10px;border:2px solid #e2e8f0;">
-            <button type="button" onclick="removeProof('mc')"
-              style="margin-top:6px;font-size:12px;
-              color:#ef4444;background:none;border:none;
-              cursor:pointer;font-weight:700;">✕ Remove photo</button>
+          <div style="margin-bottom:12px;">
+            <label style="font-weight:700;
+              font-size:13px;color:var(--navy);
+              display:block;margin-bottom:8px;">
+              📸 Proof of Meeting
+            </label>
+            
+            <div style="display:flex;gap:8px;
+              flex-direction:column;">
+              
+              <!-- Take photo with camera -->
+              <label style="display:flex;
+                align-items:center;justify-content:center;gap:10px;
+                padding:12px 16px;
+                background:var(--navy);color:white;
+                border-radius:10px;cursor:pointer;
+                font-weight:700;font-size:14px;">
+                📷 Take Photo
+                <input type="file" 
+                  id="proofPhotoCamera_mc"
+                  accept="image/*"
+                  capture="environment"
+                  style="display:none;"
+                  onchange="handleProofPhoto(this, 'mc')">
+              </label>
+              
+              <!-- Choose from gallery/files -->
+              <label style="display:flex;
+                align-items:center;justify-content:center;gap:10px;
+                padding:12px 16px;
+                background:white;color:var(--navy);
+                border:2px solid var(--navy);
+                border-radius:10px;cursor:pointer;
+                font-weight:700;font-size:14px;">
+                🖼 Choose from Gallery
+                <input type="file"
+                  id="proofPhotoGallery_mc"
+                  accept="image/*"
+                  style="display:none;"
+                  onchange="handleProofPhoto(this, 'mc')">
+              </label>
+              
+              <!-- Preview -->
+              <div id="proofPhotoPreview_mc"
+                style="display:none;margin-top:8px;">
+                <img id="proofPhotoImg_mc"
+                  style="width:100%;max-height:200px;
+                  object-fit:cover;border-radius:10px;
+                  border:2px solid var(--border);">
+                <button type="button" onclick="clearProofPhoto('mc')"
+                  style="width:100%;margin-top:6px;
+                  padding:8px;background:#fee2e2;
+                  color:#b91c1c;border:none;
+                  border-radius:8px;cursor:pointer;
+                  font-weight:700;font-size:13px;">
+                  🗑 Remove Photo
+                </button>
+              </div>
+              
+              <div id="proofPhotoName_mc"
+                style="font-size:12px;color:var(--gray);
+                display:none;">
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2808,7 +2886,7 @@
     }
 
     async function submitMCReport() {
-      if (!state.proofPhoto) {
+      if (!proofPhotoBase64) {
         showToast('❌ Please upload proof of meeting to continue');
         return;
       }
@@ -2839,7 +2917,7 @@
           });
         }) : [],
         concerns: state.concerns,
-        proofPhoto: state.proofPhoto || null,
+        proofPhoto: proofPhotoBase64 || null,
         notes: ''
       };
       try {
@@ -2858,6 +2936,7 @@
       document.getElementById('secSuccess').classList.add('active');
       document.getElementById('progressSteps').style.display = 'none';
       btn.disabled = false;
+      clearProofPhoto();
     }
 
     function selectNewMemberJoin(val, btn) {
@@ -3096,7 +3175,7 @@
     }
 
     async function submitReport() {
-      if (!state.proofPhoto) {
+      if (!proofPhotoBase64) {
         showToast('❌ Please upload proof of meeting to continue');
         return;
       }
@@ -3129,7 +3208,7 @@
           name: state.newMembers[0].name,
           contact: state.newMembers[0].phone
         } : { name: '', contact: '' },
-        proofPhoto: state.proofPhoto || null,
+        proofPhoto: proofPhotoBase64 || null,
         notes: ''
       };
       try {
@@ -3142,6 +3221,7 @@
       document.getElementById('secSuccess').classList.add('active');
       document.getElementById('progressSteps').style.display = 'none';
       btn.disabled = false;
+      clearProofPhoto();
     }
 
     function resetForm() {
@@ -3183,22 +3263,49 @@
       setTimeout(function(){ t.classList.remove('show'); }, 2500);
     }
 
-    function previewProof(input, type) {
-      if (input.files && input.files[0]) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-          state.proofPhoto = e.target.result;
-          document.getElementById('proofImg_' + type).src = e.target.result;
-          document.getElementById('proofPreview_' + type).style.display = 'block';
-        };
-        reader.readAsDataURL(input.files[0]);
+    var proofPhotoBase64 = '';
+
+    function handleProofPhoto(input, type) {
+      var file = input.files[0];
+      if (!file) return;
+      
+      var nameEl = document.getElementById(
+        'proofPhotoName_' + type);
+      if (nameEl) {
+        nameEl.textContent = '✅ ' + file.name;
+        nameEl.style.display = 'block';
       }
+      
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        proofPhotoBase64 = e.target.result;
+        
+        var preview = document.getElementById(
+          'proofPhotoPreview_' + type);
+        var img = document.getElementById(
+          'proofPhotoImg_' + type);
+        
+        if (preview) preview.style.display = 'block';
+        if (img) img.src = proofPhotoBase64;
+      };
+      reader.readAsDataURL(file);
     }
 
-    function removeProof(type) {
-      state.proofPhoto = null;
-      document.getElementById('proofPhoto_' + type).value = '';
-      document.getElementById('proofPreview_' + type).style.display = 'none';
+    function clearProofPhoto(type) {
+      proofPhotoBase64 = '';
+      
+      var types = type ? [type] : ['sps', 'mc'];
+      types.forEach(function(t) {
+        var camera = document.getElementById('proofPhotoCamera_' + t);
+        var gallery = document.getElementById('proofPhotoGallery_' + t);
+        var preview = document.getElementById('proofPhotoPreview_' + t);
+        var nameEl = document.getElementById('proofPhotoName_' + t);
+        
+        if (camera) camera.value = '';
+        if (gallery) gallery.value = '';
+        if (preview) preview.style.display = 'none';
+        if (nameEl) nameEl.style.display = 'none';
+      });
     }
 
     function openStartGuide() {
