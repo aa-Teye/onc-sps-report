@@ -4376,8 +4376,9 @@
         if (data && data.pins) {
           data.pins.forEach(function(p) {
             if (p.name && p.pin) {
+              var paddedPin = String(p.pin).padStart(4, '0');
               localStorage.setItem(
-                'onc_pin_' + p.name, p.pin);
+                'onc_pin_' + p.name, paddedPin);
             }
           });
         }
