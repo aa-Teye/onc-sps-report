@@ -1095,7 +1095,7 @@
       <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6"
         onkeydown="if(event.key==='Enter')checkPin()">
       <button class="login-btn" onclick="checkPin()">🔐 Enter Dashboard</button>
-      <p class="login-error" id="loginError">❌ Incorrect PIN. Try again.</p>
+      <p class="login-error" id="loginError">❌ Incorrect PIN. Please try again.</p>
     </div>
   </div>
 
@@ -2864,37 +2864,34 @@
 
       function checkPin() {
         var pin = document.getElementById('pinInput').value;
-        var detectedRole = '';
-        var detectedRoleName = '';
-
-        if (pin === (localStorage.getItem('onc_pin') || '2500')) {
-          detectedRole = 'superadmin';
-          detectedRoleName = '👑 General Overseer';
-        }
-        else if (pin === (localStorage.getItem('onc_pin_admin') || '1500')) {
-          detectedRole = 'admin';
-          detectedRoleName = '🔐 Admin';
-        }
-        else if (pin === (localStorage.getItem('onc_pin_zoneleader') || '1000')) {
-          detectedRole = 'zoneleader';
-          detectedRoleName = '🗂 Zone Leader';
-        }
-        else if (pin === (localStorage.getItem('onc_pin_spshead') || '3000')) {
-          detectedRole = 'spshead';
-          detectedRoleName = '🙏 SPS Head';
-        }
-        else if (pin === (localStorage.getItem('onc_pin_mchead') || '4000')) {
-          detectedRole = 'mchead';
-          detectedRoleName = '⛪ MC Head';
-        }
-        else if (pin === (localStorage.getItem('onc_pin_ftshead') || '5000')) {
-          detectedRole = 'ftshead';
-          detectedRoleName = '🆕 First Timers Head';
+        var selectedRole = document.getElementById('roleSelect').value;
+        
+        var expectedPin = '';
+        var roleName = '';
+        
+        if (selectedRole === 'superadmin') {
+          expectedPin = localStorage.getItem('onc_pin') || '2500';
+          roleName = '👑 General Overseer';
+        } else if (selectedRole === 'admin') {
+          expectedPin = localStorage.getItem('onc_pin_admin') || '1500';
+          roleName = '🔐 Admin';
+        } else if (selectedRole === 'zoneleader') {
+          expectedPin = localStorage.getItem('onc_pin_zoneleader') || '1000';
+          roleName = '🗂 Zone Leader';
+        } else if (selectedRole === 'spshead') {
+          expectedPin = localStorage.getItem('onc_pin_spshead') || '3000';
+          roleName = '🙏 SPS Head';
+        } else if (selectedRole === 'mchead') {
+          expectedPin = localStorage.getItem('onc_pin_mchead') || '4000';
+          roleName = '⛪ MC Head';
+        } else if (selectedRole === 'ftshead') {
+          expectedPin = localStorage.getItem('onc_pin_ftshead') || '5000';
+          roleName = '🆕 First Timers Head';
         }
 
-        if (detectedRole) {
-          currentRole = detectedRole;
-          currentRoleName = detectedRoleName;
+        if (pin === expectedPin) {
+          currentRole = selectedRole;
+          currentRoleName = roleName;
           currentPIN = pin;
           
           document.getElementById('loginScreen').style.display = 'none';
