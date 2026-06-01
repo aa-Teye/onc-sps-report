@@ -4402,6 +4402,7 @@
       };
 
       function renderReports() {
+        // Access control: SPS Reports are blocked for MC Head (mchead) and First Timers Head (ftshead)
         if (currentRole === 'mchead' || 
             currentRole === 'ftshead') {
           document.getElementById(
@@ -5928,6 +5929,7 @@
       }
 
       function renderMcReports() {
+        // Access control: MC Reports are blocked for SPS Head (spshead) and First Timers Head (ftshead)
         if (currentRole === 'spshead' || 
             currentRole === 'ftshead') {
           document.getElementById(
