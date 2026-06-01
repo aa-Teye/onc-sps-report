@@ -1087,6 +1087,9 @@
           <option value="superadmin">👑 General Overseer</option>
           <option value="admin">🔐 Admin</option>
           <option value="zoneleader">🗂 Zone Leader</option>
+          <option value="spshead">🙏 SPS Head</option>
+          <option value="mchead">⛪ MC Head</option>
+          <option value="ftshead">🆕 First Timers Head</option>
         </select>
       </div>
       <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6"
@@ -2705,6 +2708,9 @@
 
 
       const ADMIN_PIN = '2500';
+      const SPS_HEAD_PIN = '3000';
+      const MC_HEAD_PIN = '4000';
+      const FT_HEAD_PIN = '5000';
       const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
 
       const ALL_SHEPHERDS = [
@@ -2858,11 +2864,39 @@
 
       function checkPin() {
         var pin = document.getElementById('pinInput').value;
-        var role = document.getElementById('roleSelect').value;
-        var correctPin = ROLE_PINS[role];
+        var detectedRole = '';
+        var detectedRoleName = '';
 
-        if (pin === correctPin) {
-          currentRole = role;
+        if (pin === (localStorage.getItem('onc_pin') || '2500')) {
+          detectedRole = 'superadmin';
+          detectedRoleName = '👑 General Overseer';
+        }
+        else if (pin === (localStorage.getItem('onc_pin_admin') || '1500')) {
+          detectedRole = 'admin';
+          detectedRoleName = '🔐 Admin';
+        }
+        else if (pin === (localStorage.getItem('onc_pin_zoneleader') || '1000')) {
+          detectedRole = 'zoneleader';
+          detectedRoleName = '🗂 Zone Leader';
+        }
+        else if (pin === (localStorage.getItem('onc_pin_spshead') || '3000')) {
+          detectedRole = 'spshead';
+          detectedRoleName = '🙏 SPS Head';
+        }
+        else if (pin === (localStorage.getItem('onc_pin_mchead') || '4000')) {
+          detectedRole = 'mchead';
+          detectedRoleName = '⛪ MC Head';
+        }
+        else if (pin === (localStorage.getItem('onc_pin_ftshead') || '5000')) {
+          detectedRole = 'ftshead';
+          detectedRoleName = '🆕 First Timers Head';
+        }
+
+        if (detectedRole) {
+          currentRole = detectedRole;
+          currentRoleName = detectedRoleName;
+          currentPIN = pin;
+          
           document.getElementById('loginScreen').style.display = 'none';
           document.getElementById('dashboard').style.display = 'block';
 
@@ -2888,10 +2922,131 @@
         }
       }
 
+      function updateSectionLabels() {
+        var allLabels = document.querySelectorAll('.tab-section-label');
+        allLabels.forEach(function(label) {
+          var hasVisibleSibling = false;
+          var next = label.nextElementSibling;
+          while (next && !next.classList.contains('tab-section-label')) {
+            if (next.classList.contains('tab-btn') && next.style.display !== 'none') {
+              hasVisibleSibling = true;
+              break;
+            }
+            next = next.nextElementSibling;
+          }
+          if (hasVisibleSibling) {
+            label.style.display = 'block';
+          } else {
+            label.style.display = 'none';
+          }
+        });
+      }
+
+      function setVisibleTabs(visibleIds) {
+        var allBtns = document.querySelectorAll('.tab-btn');
+        allBtns.forEach(function(btn) {
+          btn.style.display = 'none';
+        });
+        
+        var allLabels = document.querySelectorAll('.tab-section-label');
+        allLabels.forEach(function(label) {
+          label.style.display = 'none';
+        });
+        
+        visibleIds.forEach(function(tabId) {
+          var btns = document.querySelectorAll('[onclick*="switchTab(\'' + tabId + '\'"]');
+          btns.forEach(function(btn) {
+            btn.style.display = 'flex';
+            
+            var parent = btn.parentElement;
+            while (parent) {
+              if (parent.classList.contains('tab-section-label')) {
+                parent.style.display = 'block';
+                break;
+              }
+              var prev = btn.previousElementSibling;
+              if (prev && prev.classList.contains('tab-section-label')) {
+                prev.style.display = 'block';
+                break;
+              }
+              parent = parent.parentElement;
+            }
+          });
+        });
+        
+        updateSectionLabels();
+      }
+
       function applyRoleRestrictions() {
         var role = currentRole;
         
-        // Hide Settings for non-super-admin
+        // Show everything by default
+        var allBtns = document.querySelectorAll('.tab-btn');
+        allBtns.forEach(function(btn) {
+          btn.style.display = 'flex';
+        });
+        var allLabels = document.querySelectorAll('.tab-section-label');
+        allLabels.forEach(function(label) {
+          label.style.display = 'block';
+        });
+        
+        // Enable audience select by default
+        var annoSelect = document.getElementById('annoAudience');
+        if (annoSelect) {
+          annoSelect.disabled = false;
+        }
+
+        if (role === 'spshead') {
+          setVisibleTabs([
+            'overview','analytics','leaderboard',
+            'shepherds','reports','announcements',
+            'activity-log','export','reminders'
+          ]);
+          
+          if (annoSelect) {
+            annoSelect.value = 'sps';
+            annoSelect.disabled = true;
+          }
+        }
+        else if (role === 'mchead') {
+          setVisibleTabs([
+            'overview','analytics','leaderboard',
+            'mc-shepherds','mc-reports',
+            'announcements','activity-log',
+            'export','reminders'
+          ]);
+          
+          if (annoSelect) {
+            annoSelect.value = 'mc';
+            annoSelect.disabled = true;
+          }
+        }
+        else if (role === 'ftshead') {
+          setVisibleTabs([
+            'first-timers','announcements',
+            'activity-log','export'
+          ]);
+          
+          if (annoSelect) {
+            annoSelect.value = 'firsttimers';
+            annoSelect.disabled = true;
+          }
+        }
+        else if (role === 'zoneleader') {
+          setVisibleTabs([
+            'overview','shepherds','reports','export'
+          ]);
+        }
+        else if (role === 'admin') {
+          setVisibleTabs([
+            'overview','analytics','leaderboard',
+            'shepherds','mc-shepherds','zones',
+            'reports','mc-reports','first-timers',
+            'membership','announcements','export'
+          ]);
+        }
+
+        // Show Settings for non-super-admin
         if (role !== 'superadmin') {
           var settingsBtn = document.querySelector('.tab-btn[onclick*="settings"]');
           if (settingsBtn) 
@@ -2900,10 +3055,6 @@
           if (mSettingsBtn)
             mSettingsBtn.style.display = 'none';
 
-          // Hide Activity Log button
-          var logBtn = document.getElementById('activityLogBtn');
-          if (logBtn) logBtn.style.display = 'none';
-          
           // Hide PIN Changes section
           var pinSection = document.getElementById('pinChangesSection');
           if (pinSection) pinSection.style.display = 'none';
@@ -2914,21 +3065,33 @@
           var mSettingsBtn = document.querySelector('.drawer-item[onclick*="settings"]');
           if (mSettingsBtn)
             mSettingsBtn.style.display = 'flex';
-
-          // Show Activity Log button
-          var logBtn = document.getElementById('activityLogBtn');
-          if (logBtn) logBtn.style.display = 'flex';
           
           // Show PIN Changes section
           var pinSection = document.getElementById('pinChangesSection');
           if (pinSection) pinSection.style.display = 'block';
         }
+
+        // Show/hide Activity Log button dynamically
+        var logBtn = document.getElementById('activityLogBtn');
+        if (logBtn) {
+          if (role === 'superadmin' || 
+              role === 'spshead' ||
+              role === 'mchead' ||
+              role === 'ftshead') {
+            logBtn.style.display = 'flex';
+          } else {
+            logBtn.style.display = 'none';
+          }
+        }
         
         // Show role badge in topbar
-        var roleBadges = {
-          superadmin: '👑 General Overseer',
-          admin: '🔐 Admin', 
-          zoneleader: '🗂 Zone Leader'
+        var roleDisplayNames = {
+          'superadmin': '👑 General Overseer',
+          'admin': '🔐 Admin',
+          'zoneleader': '🗂 Zone Leader',
+          'spshead': '🙏 SPS Head',
+          'mchead': '⛪ MC Head',
+          'ftshead': '🆕 First Timers Head'
         };
         
         var oldBadge = document.getElementById('roleBadge');
@@ -2944,7 +3107,7 @@
           'padding:4px 10px;border-radius:20px;' +
           'background:rgba(59,130,246,0.15);' +
           'color:#3b82f6;margin-left:12px;display:inline-block;vertical-align:middle;';
-        roleEl.textContent = roleBadges[role];
+        roleEl.textContent = roleDisplayNames[role] || role;
         if (topbar && topbar.parentNode) {
           topbar.parentNode.insertBefore(roleEl, topbar.nextSibling);
         }
@@ -4669,8 +4832,33 @@
         if (cur !== currentPIN) { msg.textContent = '❌ Current PIN is incorrect.'; msg.style.color = '#ef4444'; return; }
         if (nw.length < 4) { msg.textContent = '❌ New PIN must be at least 4 digits.'; msg.style.color = '#ef4444'; return; }
         if (nw !== conf) { msg.textContent = '❌ New PINs do not match.'; msg.style.color = '#ef4444'; return; }
+        
         currentPIN = nw;
-        localStorage.setItem('onc_pin', nw);
+        if (currentRole === 'superadmin') {
+          localStorage.setItem('onc_pin', nw);
+        } else {
+          localStorage.setItem('onc_pin_' + currentRole, nw);
+        }
+        
+        var roleLabels = {
+          'superadmin': 'General Overseer',
+          'admin': 'Admin',
+          'zoneleader': 'Zone Leader',
+          'spshead': 'SPS Head',
+          'mchead': 'MC Head',
+          'ftshead': 'First Timers Head'
+        };
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'savePinChange',
+            name: roleLabels[currentRole] || currentRole,
+            role: roleLabels[currentRole] || currentRole,
+            pin: nw
+          })
+        }).catch(function(e) {});
+        
         msg.textContent = '✅ PIN changed successfully.'; msg.style.color = '#15803d';
         document.getElementById('pin-current').value = '';
         document.getElementById('pin-new').value = '';
@@ -6630,6 +6818,31 @@
             'activityFilter').value : '';
         
         var logs = allActivityLogs;
+        
+        if (currentRole === 'spshead') {
+          logs = logs.filter(function(l) {
+            return l.action === 'REPORT_SUBMITTED' ||
+              l.action === 'PIN_CHANGED' ||
+              l.action === 'LOGIN';
+          });
+        }
+
+        if (currentRole === 'mchead') {
+          logs = logs.filter(function(l) {
+            return l.action === 'MC_REPORT_SUBMITTED' ||
+              l.action === 'PIN_CHANGED' ||
+              l.action === 'LOGIN';
+          });
+        }
+
+        if (currentRole === 'ftshead') {
+          logs = logs.filter(function(l) {
+            return l.action === 'GUEST_REGISTERED' ||
+              l.action === 'PIN_CHANGED' ||
+              l.action === 'LOGIN';
+          });
+        }
+        
         if (filter) {
           logs = logs.filter(function(l) {
             return l.action === filter;
