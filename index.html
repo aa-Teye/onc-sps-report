@@ -621,6 +621,15 @@
           </p>
         </div>
 
+        <div id="ftPinError" style="background:#fee2e2;
+          color:#b91c1c;padding:12px 16px;
+          border-radius:10px;font-weight:700;
+          font-size:14px;margin-bottom:16px;
+          display:none;text-align:center;
+          border:2px solid #fca5a5;">
+          ❌ Incorrect PIN. Please try again.
+        </div>
+
         <div style="background:white;
           border-radius:16px;padding:24px;
           box-shadow:0 2px 12px rgba(0,0,0,0.06);
@@ -640,13 +649,6 @@
             border-radius:10px;font-size:24px;
             text-align:center;letter-spacing:8px;
             box-sizing:border-box;">
-          
-          <div id="ftPinError"
-            style="color:#ef4444;font-size:13px;
-            margin-top:8px;display:none;
-            text-align:center;">
-            Incorrect PIN. Please try again.
-          </div>
         </div>
 
         <button onclick="checkFirstTimersPin()"
@@ -1339,6 +1341,15 @@
         </div>
         <h2 id="loginTitle" style="font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 20px; color: var(--navy); margin-bottom: 6px;">ONC Shepherd Portal</h2>
         <p style="font-size: 13px; color: var(--gray); margin-bottom: 24px;">Please authenticate to access reporting forms</p>
+        
+        <div id="shepherdLoginError" style="background:#fee2e2;
+          color:#b91c1c;padding:12px 16px;
+          border-radius:10px;font-weight:700;
+          font-size:14px;margin-bottom:16px;
+          display:none;text-align:center;
+          border:2px solid #fca5a5;">
+          ❌ Incorrect PIN. Please try again.
+        </div>
         
         <div class="field" style="text-align: left; margin-bottom: 16px;">
           <label style="font-weight: 700; color: var(--navy); font-size: 13px;">Select Your Name</label>
@@ -2391,6 +2402,9 @@
     function selectShepherdType(type) {
       state.shepherdType = type === 'mc' ? 'microchurch' : 'sps';
       
+      var errorEl = document.getElementById('shepherdLoginError');
+      if (errorEl) errorEl.style.display = 'none';
+      
       // Update login screen title
       var title = document.getElementById('loginTitle');
       if (title) {
@@ -2456,6 +2470,9 @@
       var expectedPin = localStorage.getItem('onc_pin_' + shepherdName) || customPins[shepherdName] || (shepherdData[shepherdName] ? shepherdData[shepherdName].pin : '0000');
 
       if (enteredPin === expectedPin) {
+        var errorEl = document.getElementById('shepherdLoginError');
+        if (errorEl) errorEl.style.display = 'none';
+
         // Save session locally
         localStorage.setItem('onc_logged_in_shepherd', shepherdName);
         localStorage.setItem('onc_logged_in_type', shepherdType);
@@ -2511,7 +2528,12 @@
 
         showToast('🔓 Login successful! Welcome, ' + shepherdName.split(' ')[0] + '!');
       } else {
-        showToast('❌ Incorrect PIN! Please try again.');
+        var errorEl = document.getElementById('shepherdLoginError');
+        if (errorEl) {
+          errorEl.style.display = 'block';
+        } else {
+          showToast('❌ Incorrect PIN! Please try again.');
+        }
         pinEl.value = '';
         pinEl.focus();
       }
@@ -4619,13 +4641,30 @@
             members = shepherd.members;
           }
         } else if (state.shepherdType === 'mc') {
-          var mcShepherd = window.CHURCH_DATA
-            .mcShepherds.find(function(s) {
-              return s.name === state.shepherd ||
-                s.name.indexOf(state.shepherd) > -1||
-                state.shepherd.indexOf(s.name) > -1||
-                s.microchurch === state.shepherd;
-            });
+          var mcShepherd = null;
+
+          if (window.CHURCH_DATA && 
+              window.CHURCH_DATA.mcShepherds) {
+            
+            var shepherdName = (state.shepherd || '')
+              .toLowerCase().trim();
+            
+            mcShepherd = window.CHURCH_DATA
+              .mcShepherds.find(function(s) {
+                var sName = (s.name || '')
+                  .toLowerCase().trim();
+                var sMC = (s.microchurch || '')
+                  .toLowerCase().trim();
+                
+                return sName === shepherdName ||
+                  sName.indexOf(shepherdName) > -1 ||
+                  shepherdName.indexOf(sName) > -1 ||
+                  sMC === shepherdName ||
+                  sName.split('(')[0].trim() === 
+                    shepherdName.split('(')[0].trim();
+              });
+          }
+          
           if (mcShepherd && mcShepherd.members) {
             members = mcShepherd.members;
           }
@@ -4633,6 +4672,7 @@
       }
       
       if (members.length === 0 && 
+          state.shepherdType === 'sps' &&
           typeof shepherdData !== 'undefined' &&
           shepherdData[state.shepherd]) {
         var rawMembers = shepherdData[
@@ -4644,12 +4684,16 @@
       }
       
       if (members.length === 0) {
+        var msg = state.shepherdType === 'mc' ?
+          'No members listed for this microchurch' :
+          'No members assigned yet.';
+        
         list.innerHTML = 
           '<div style="text-align:center;' +
           'padding:40px;color:var(--gray);">' +
           '<div style="font-size:40px;' +
           'margin-bottom:8px;">👥</div>' +
-          '<p>No members assigned yet.</p>' +
+          '<p>' + msg + '</p>' +
           '</div>';
         showSection('secKnowYourMembers');
         return;
