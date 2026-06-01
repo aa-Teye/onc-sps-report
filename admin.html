@@ -2249,46 +2249,46 @@
 
           <!-- TAB 14: ANALYTICS -->
           <div class="tab-panel" id="panel-analytics">
-            <h2 style="margin-bottom:24px;font-size:22px;font-weight:800;color:#0a1628;">📊 Analytics Dashboard</h2>
+            <h2 id="analyticsTitle" style="margin-bottom:24px;font-size:22px;font-weight:800;color:#0a1628;">📊 Analytics Dashboard</h2>
             
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
               
-              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div class="sps-analytics-section" style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
                 <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
                   👥 SPS Attendance Rate by Shepherd
                 </h3>
                 <canvas id="chartAttendance"></canvas>
               </div>
 
-              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div class="sps-analytics-section" style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
                 <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
                   📋 Reporting Rate This Week
                 </h3>
                 <canvas id="chartReporting"></canvas>
               </div>
 
-              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div class="sps-analytics-section" style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
                 <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
                   🙏 Prayer Sessions This Week
                 </h3>
                 <canvas id="chartPrayer"></canvas>
               </div>
 
-              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div class="mc-analytics-section" style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
                 <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
                   ⛪ MC Attendance Rate by Shepherd
                 </h3>
                 <canvas id="chartMcAttendance"></canvas>
               </div>
 
-              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div class="mc-analytics-section" style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
                 <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
                   ✨ New Souls Won (MC)
                 </h3>
                 <canvas id="chartNewSouls"></canvas>
               </div>
 
-              <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div class="sps-analytics-section" style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
                 <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
                   📖 Bible Topic Coverage
                 </h3>
@@ -3167,6 +3167,7 @@
         
         filterOverviewByRole();
         updateOverviewTitle();
+        filterAnalyticsByRole();
       }
 
       function filterOverviewByRole() {
@@ -3232,6 +3233,54 @@
         };
         
         title.textContent = titles[currentRole] || '📊 Overview';
+      }
+
+      function filterAnalyticsByRole() {
+        var spsCharts = document.querySelectorAll('.sps-analytics-section');
+        var mcCharts = document.querySelectorAll('.mc-analytics-section');
+        
+        if (currentRole === 'spshead') {
+          spsCharts.forEach(function(c) {
+            c.style.display = '';
+          });
+          mcCharts.forEach(function(c) {
+            c.style.display = 'none';
+          });
+        } else if (currentRole === 'mchead') {
+          spsCharts.forEach(function(c) {
+            c.style.display = 'none';
+          });
+          mcCharts.forEach(function(c) {
+            c.style.display = '';
+          });
+        } else if (currentRole === 'ftshead') {
+          spsCharts.forEach(function(c) {
+            c.style.display = 'none';
+          });
+          mcCharts.forEach(function(c) {
+            c.style.display = 'none';
+          });
+        } else {
+          spsCharts.forEach(function(c) {
+            c.style.display = '';
+          });
+          mcCharts.forEach(function(c) {
+            c.style.display = '';
+          });
+        }
+        
+        var title = document.getElementById('analyticsTitle');
+        if (title) {
+          var titles = {
+            'superadmin': '📈 Analytics',
+            'admin': '📈 Analytics',
+            'spshead': '📈 SPS Analytics',
+            'mchead': '📈 MC Analytics',
+            'ftshead': '📈 Analytics',
+            'zoneleader': '📈 Analytics'
+          };
+          title.textContent = titles[currentRole] || '📈 Analytics';
+        }
       }
 
       function logout() {
@@ -3357,6 +3406,9 @@
         }
         if (id === 'overview') {
           filterOverviewByRole();
+        }
+        if (id === 'analytics') {
+          filterAnalyticsByRole();
         }
       }
 
