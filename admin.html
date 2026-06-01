@@ -1551,100 +1551,120 @@
 
         <!-- TAB 7: EXPORT -->
         <div class="tab-panel" id="panel-export">
-          <div class="export-section">
-            <h3>📊 Export Session Reports</h3>
-            <div class="filter-bar" style="margin-bottom:14px;">
-              <div style="display:flex;align-items:center;gap:6px;"><label
-                  style="font-size:12px;font-weight:700;color:var(--gray);">From</label><input type="date"
-                  id="exp-date-from"></div>
-              <div style="display:flex;align-items:center;gap:6px;"><label
-                  style="font-size:12px;font-weight:700;color:var(--gray);">To</label><input type="date"
-                  id="exp-date-to"></div>
-              <select id="exp-shep-filter">
-                <option value="">All Shepherds</option>
-              </select>
-              <button onclick="clearExportFilters()"
-                style="padding:8px 14px;border:2px solid var(--border);border-radius:10px;background:var(--white);color:var(--navy);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">Clear</button>
+          
+          <div id="spsExportSection">
+            <div class="export-section">
+              <h3>📊 Export Session Reports</h3>
+              <div class="filter-bar" style="margin-bottom:14px;">
+                <div style="display:flex;align-items:center;gap:6px;"><label
+                    style="font-size:12px;font-weight:700;color:var(--gray);">From</label><input type="date"
+                    id="exp-date-from"></div>
+                <div style="display:flex;align-items:center;gap:6px;"><label
+                    style="font-size:12px;font-weight:700;color:var(--gray);">To</label><input type="date"
+                    id="exp-date-to"></div>
+                <select id="exp-shep-filter">
+                  <option value="">All Shepherds</option>
+                </select>
+                <button onclick="clearExportFilters()"
+                  style="padding:8px 14px;border:2px solid var(--border);border-radius:10px;background:var(--white);color:var(--navy);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">Clear</button>
+              </div>
+              <div id="exp-report-count" style="font-size:13px;color:var(--gray);margin-bottom:12px;"></div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn-export" onclick="doExportReports('csv')">⬇ Download CSV</button>
+                <button class="btn-export" onclick="doExportReports('xlsx')">⬇ Download Excel</button>
+                <button class="btn-export" onclick="doExportReports('pdf')">⬇ Download PDF</button>
+              </div>
             </div>
-            <div id="exp-report-count" style="font-size:13px;color:var(--gray);margin-bottom:12px;"></div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button class="btn-export" onclick="doExportReports('csv')">⬇ Download CSV</button>
-              <button class="btn-export" onclick="doExportReports('xlsx')">⬇ Download Excel</button>
-              <button class="btn-export" onclick="doExportReports('pdf')">⬇ Download PDF</button>
+            
+            <div class="export-section">
+              <h3>👥 Export Members Directory</h3>
+              <p style="color:var(--gray);font-size:13px;margin-bottom:12px;">All 88 members with shepherd assignments and
+                contact info.</p>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn-export" onclick="doExportMembers('csv')">⬇ Members CSV</button>
+                <button class="btn-export" onclick="doExportMembers('xlsx')">⬇ Members Excel</button>
+                <button class="btn-export" onclick="doExportMembers('pdf')">⬇ Members PDF</button>
+              </div>
+            </div>
+            
+            <div class="export-section">
+              <h3>📋 Direct Lists Export</h3>
+              <p style="color:var(--gray);font-size:13px;margin-bottom:12px;">Export clean spreadsheets of members with their own contact numbers, and shepherds lists.</p>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+                <button class="btn-export" onclick="doExportCleanList('sps-shepherds')" style="background: linear-gradient(135deg, var(--navy), var(--blue)); color: white;">📋 SPS Shepherds List</button>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn-export" onclick="doExportCleanList('sps-members')" style="background: linear-gradient(135deg, var(--gold), #fbbf24); color: var(--navy); border: none;">👥 SPS Members List (Contacts only)</button>
+              </div>
+            </div>
+            
+            <div class="export-section">
+              <h3>📝 Weekly Summary Report</h3>
+              <div id="summary-preview"
+                style="background:var(--light);border-radius:12px;padding:16px;margin-bottom:14px;font-size:13px;color:var(--navy);">
+              </div>
+              <button class="btn-export" onclick="doExportSummaryPDF()">⬇ Download Summary PDF</button>
+            </div>
+            
+            <div style="background:white;
+            border-radius:16px;padding:24px;
+            box-shadow:0 1px 8px rgba(0,0,0,.06);
+            margin-top:16px;margin-bottom:16px;">
+              <h3 style="margin-bottom:8px;
+              color:#0a1628;">👥 Members Export</h3>
+              <p style="color:#64748b;font-size:13px;
+              margin-bottom:16px;">
+                Complete church directory including 
+                shepherds, members and converted 
+                first timers.
+              </p>
+              <button onclick="exportAllMembers()"
+                style="padding:12px 24px;
+                background:#0a1628;color:white;
+                border:none;border-radius:10px;
+                font-weight:700;cursor:pointer;
+                font-size:14px;">
+                ⬇ Export All Members Excel
+              </button>
             </div>
           </div>
-          <div class="export-section">
-            <h3>👥 Export Members Directory</h3>
-            <p style="color:var(--gray);font-size:13px;margin-bottom:12px;">All 88 members with shepherd assignments and
-              contact info.</p>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button class="btn-export" onclick="doExportMembers('csv')">⬇ Members CSV</button>
-              <button class="btn-export" onclick="doExportMembers('xlsx')">⬇ Members Excel</button>
-              <button class="btn-export" onclick="doExportMembers('pdf')">⬇ Members PDF</button>
+          
+          <div id="mcExportSection">
+            <div class="export-section">
+              <h3>📋 Direct Lists Export (MC)</h3>
+              <p style="color:var(--gray);font-size:13px;margin-bottom:12px;">Export clean spreadsheets of members with their own contact numbers, and shepherds lists.</p>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+                <button class="btn-export" onclick="doExportCleanList('mc-shepherds')" style="background: linear-gradient(135deg, var(--navy), var(--blue)); color: white;">📋 MC Shepherds List</button>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn-export" onclick="doExportCleanList('mc-members')" style="background: linear-gradient(135deg, var(--gold), #fbbf24); color: var(--navy); border: none;">👥 MC Members List (Contacts only)</button>
+              </div>
             </div>
           </div>
-          <div class="export-section">
-            <h3>📋 Direct Lists Export</h3>
-            <p style="color:var(--gray);font-size:13px;margin-bottom:12px;">Export clean spreadsheets of members with their own contact numbers, and shepherds lists.</p>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-              <button class="btn-export" onclick="doExportCleanList('sps-shepherds')" style="background: linear-gradient(135deg, var(--navy), var(--blue)); color: white;">📋 SPS Shepherds List</button>
-              <button class="btn-export" onclick="doExportCleanList('mc-shepherds')" style="background: linear-gradient(135deg, var(--navy), var(--blue)); color: white;">📋 MC Shepherds List</button>
+          
+          <div id="ftExportSection">
+            <div style="background:white;
+            border-radius:16px;padding:24px;
+            box-shadow:0 1px 8px rgba(0,0,0,.06);
+            margin-top:16px;">
+              <h3 style="margin-bottom:8px;
+              color:#0a1628;">🆕 First Timers Export</h3>
+              <p style="color:#64748b;font-size:13px;
+              margin-bottom:16px;">
+                All guest registration records with 
+                full details and follow up status.
+              </p>
+              <button onclick="exportAllFirstTimers()"
+                style="padding:12px 24px;
+                background:#006B3F;color:white;
+                border:none;border-radius:10px;
+                font-weight:700;cursor:pointer;
+                font-size:14px;">
+                ⬇ Export First Timers Excel
+              </button>
             </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button class="btn-export" onclick="doExportCleanList('sps-members')" style="background: linear-gradient(135deg, var(--gold), #fbbf24); color: var(--navy); border: none;">👥 SPS Members List (Contacts only)</button>
-              <button class="btn-export" onclick="doExportCleanList('mc-members')" style="background: linear-gradient(135deg, var(--gold), #fbbf24); color: var(--navy); border: none;">👥 MC Members List (Contacts only)</button>
-            </div>
           </div>
-          <div class="export-section">
-            <h3>📝 Weekly Summary Report</h3>
-            <div id="summary-preview"
-              style="background:var(--light);border-radius:12px;padding:16px;margin-bottom:14px;font-size:13px;color:var(--navy);">
-            </div>
-            <button class="btn-export" onclick="doExportSummaryPDF()">⬇ Download Summary PDF</button>
-          </div>
-
-          <div style="background:white;
-          border-radius:16px;padding:24px;
-          box-shadow:0 1px 8px rgba(0,0,0,.06);
-          margin-top:16px;">
-            <h3 style="margin-bottom:8px;
-            color:#0a1628;">👥 Members Export</h3>
-            <p style="color:#64748b;font-size:13px;
-            margin-bottom:16px;">
-              Complete church directory including 
-              shepherds, members and converted 
-              first timers.
-            </p>
-            <button onclick="exportAllMembers()"
-              style="padding:12px 24px;
-              background:#0a1628;color:white;
-              border:none;border-radius:10px;
-              font-weight:700;cursor:pointer;
-              font-size:14px;">
-              ⬇ Export All Members Excel
-            </button>
-          </div>
-
-          <div style="background:white;
-          border-radius:16px;padding:24px;
-          box-shadow:0 1px 8px rgba(0,0,0,.06);
-          margin-top:16px;">
-            <h3 style="margin-bottom:8px;
-            color:#0a1628;">🆕 First Timers Export</h3>
-            <p style="color:#64748b;font-size:13px;
-            margin-bottom:16px;">
-              All guest registration records with 
-              full details and follow up status.
-            </p>
-            <button onclick="exportAllFirstTimers()"
-              style="padding:12px 24px;
-              background:#006B3F;color:white;
-              border:none;border-radius:10px;
-              font-weight:700;cursor:pointer;
-              font-size:14px;">
-              ⬇ Export First Timers Excel
-            </button>
-          </div>
+          
         </div>
 
         <!-- TAB 14: RESOURCES -->
@@ -2216,19 +2236,23 @@
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
               <!-- SPS Shepherds Stream -->
-              <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
-                <div
-                  style="font-size:18px;font-weight:900;color:var(--navy);margin-bottom:20px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--light);padding-bottom:12px;">
-                  🙏 SPS Shepherds Stream</div>
-                <div id="spsLeaderboardList" style="display:flex;flex-direction:column;gap:16px;"></div>
+              <div id="spsLeaderboardSection">
+                <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
+                  <div
+                    style="font-size:18px;font-weight:900;color:var(--navy);margin-bottom:20px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--light);padding-bottom:12px;">
+                    🙏 SPS Shepherds Stream</div>
+                  <div id="spsLeaderboardList" style="display:flex;flex-direction:column;gap:16px;"></div>
+                </div>
               </div>
 
               <!-- Microchurch Shepherds Stream -->
-              <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
-                <div
-                  style="font-size:18px;font-weight:900;color:var(--navy);margin-bottom:20px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--light);padding-bottom:12px;">
-                  ⛪ Microchurch Shepherds Stream</div>
-                <div id="mcLeaderboardList" style="display:flex;flex-direction:column;gap:16px;"></div>
+              <div id="mcLeaderboardSection">
+                <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.04);">
+                  <div
+                    style="font-size:18px;font-weight:900;color:var(--navy);margin-bottom:20px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--light);padding-bottom:12px;">
+                    ⛪ Microchurch Shepherds Stream</div>
+                  <div id="mcLeaderboardList" style="display:flex;flex-direction:column;gap:16px;"></div>
+                </div>
               </div>
             </div>
 
@@ -2253,7 +2277,14 @@
           <div class="tab-panel" id="panel-analytics">
             <h2 id="analyticsTitle" style="margin-bottom:24px;font-size:22px;font-weight:800;color:#0a1628;">📊 Analytics Dashboard</h2>
             
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+            <div id="analyticsRestrictedMessage" style="display:none;">
+              <div style="text-align:center;padding:60px;color:#64748b;">
+                <div style="font-size:48px;">📊</div>
+                <p>No analytics available for First Timers Head</p>
+              </div>
+            </div>
+
+            <div id="analyticsGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
               
               <div class="sps-analytics-section" style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
                 <h3 style="margin-bottom:16px;font-size:15px;color:#0a1628;">
@@ -3171,6 +3202,8 @@
         updateOverviewTitle();
         filterAnalyticsByRole();
         updateReportTitles();
+        filterLeaderboardByRole();
+        filterExportByRole();
       }
 
       function filterOverviewByRole() {
@@ -3241,35 +3274,38 @@
       function filterAnalyticsByRole() {
         var spsCharts = document.querySelectorAll('.sps-analytics-section');
         var mcCharts = document.querySelectorAll('.mc-analytics-section');
+        var grid = document.getElementById('analyticsGrid');
+        var restrictedMsg = document.getElementById('analyticsRestrictedMessage');
         
-        if (currentRole === 'spshead') {
-          spsCharts.forEach(function(c) {
-            c.style.display = '';
-          });
-          mcCharts.forEach(function(c) {
-            c.style.display = 'none';
-          });
-        } else if (currentRole === 'mchead') {
-          spsCharts.forEach(function(c) {
-            c.style.display = 'none';
-          });
-          mcCharts.forEach(function(c) {
-            c.style.display = '';
-          });
-        } else if (currentRole === 'ftshead') {
-          spsCharts.forEach(function(c) {
-            c.style.display = 'none';
-          });
-          mcCharts.forEach(function(c) {
-            c.style.display = 'none';
-          });
+        if (currentRole === 'ftshead') {
+          if (grid) grid.style.display = 'none';
+          if (restrictedMsg) restrictedMsg.style.display = '';
         } else {
-          spsCharts.forEach(function(c) {
-            c.style.display = '';
-          });
-          mcCharts.forEach(function(c) {
-            c.style.display = '';
-          });
+          if (grid) grid.style.display = 'grid';
+          if (restrictedMsg) restrictedMsg.style.display = 'none';
+          
+          if (currentRole === 'spshead') {
+            spsCharts.forEach(function(c) {
+              c.style.display = '';
+            });
+            mcCharts.forEach(function(c) {
+              c.style.display = 'none';
+            });
+          } else if (currentRole === 'mchead') {
+            spsCharts.forEach(function(c) {
+              c.style.display = 'none';
+            });
+            mcCharts.forEach(function(c) {
+              c.style.display = '';
+            });
+          } else {
+            spsCharts.forEach(function(c) {
+              c.style.display = '';
+            });
+            mcCharts.forEach(function(c) {
+              c.style.display = '';
+            });
+          }
         }
         
         var title = document.getElementById('analyticsTitle');
@@ -3296,6 +3332,81 @@
         
         if (mcTitle) {
           mcTitle.textContent = currentRole === 'mchead' ? '📄 MC Reports' : '📄 MC Reports';
+        }
+      }
+
+      function filterLeaderboardByRole() {
+        var spsLeaderboard = 
+          document.getElementById(
+            'spsLeaderboardSection');
+        var mcLeaderboard = 
+          document.getElementById(
+            'mcLeaderboardSection');
+        var soulWinners = 
+          document.getElementById(
+            'soulWinnersBoard');
+            
+        if (currentRole === 'spshead') {
+          if (spsLeaderboard) 
+            spsLeaderboard.style.display = '';
+          if (mcLeaderboard) 
+            mcLeaderboard.style.display = 'none';
+        } else if (currentRole === 'mchead') {
+          if (spsLeaderboard) 
+            spsLeaderboard.style.display = 'none';
+          if (mcLeaderboard) 
+            mcLeaderboard.style.display = '';
+        } else if (currentRole === 'ftshead') {
+          if (spsLeaderboard) 
+            spsLeaderboard.style.display = 'none';
+          if (mcLeaderboard) 
+            mcLeaderboard.style.display = 'none';
+          if (soulWinners) 
+            soulWinners.style.display = '';
+        } else {
+          if (spsLeaderboard) 
+            spsLeaderboard.style.display = '';
+          if (mcLeaderboard) 
+            mcLeaderboard.style.display = '';
+        }
+      }
+
+      function filterExportByRole() {
+        var spsExport = document.getElementById(
+          'spsExportSection');
+        var mcExport = document.getElementById(
+          'mcExportSection');
+        var ftExport = document.getElementById(
+          'ftExportSection');
+          
+        if (currentRole === 'spshead') {
+          if (spsExport) 
+            spsExport.style.display = '';
+          if (mcExport) 
+            mcExport.style.display = 'none';
+          if (ftExport) 
+            ftExport.style.display = 'none';
+        } else if (currentRole === 'mchead') {
+          if (spsExport) 
+            spsExport.style.display = 'none';
+          if (mcExport) 
+            mcExport.style.display = '';
+          if (ftExport) 
+            ftExport.style.display = 'none';
+        } else if (currentRole === 'ftshead') {
+          if (spsExport) 
+            spsExport.style.display = 'none';
+          if (mcExport) 
+            mcExport.style.display = 'none';
+          if (ftExport) 
+            ftExport.style.display = '';
+        } else {
+          if (spsExport) 
+            spsExport.style.display = '';
+          if (mcExport) 
+            mcExport.style.display = '';
+          if (ftExport) 
+            ftExport.style.display = '';
         }
       }
 
@@ -3425,6 +3536,12 @@
         }
         if (id === 'analytics') {
           filterAnalyticsByRole();
+        }
+        if (id === 'leaderboard') {
+          filterLeaderboardByRole();
+        }
+        if (id === 'export') {
+          filterExportByRole();
         }
       }
 
@@ -7046,25 +7163,26 @@
         
         if (currentRole === 'spshead') {
           logs = logs.filter(function(l) {
-            return l.action === 'REPORT_SUBMITTED' ||
+            return l.action === 
+              'REPORT_SUBMITTED' ||
+              l.action === 'PIN_CHANGED' ||
+              l.action === 'LOGIN' ||
+              l.action === 'TOPIC_UPDATED';
+          });
+        } else if (currentRole === 'mchead') {
+          logs = logs.filter(function(l) {
+            return l.action === 
+              'MC_REPORT_SUBMITTED' ||
               l.action === 'PIN_CHANGED' ||
               l.action === 'LOGIN';
           });
-        }
-
-        if (currentRole === 'mchead') {
+        } else if (currentRole === 'ftshead') {
           logs = logs.filter(function(l) {
-            return l.action === 'MC_REPORT_SUBMITTED' ||
+            return l.action === 
+              'GUEST_REGISTERED' ||
               l.action === 'PIN_CHANGED' ||
-              l.action === 'LOGIN';
-          });
-        }
-
-        if (currentRole === 'ftshead') {
-          logs = logs.filter(function(l) {
-            return l.action === 'GUEST_REGISTERED' ||
-              l.action === 'PIN_CHANGED' ||
-              l.action === 'LOGIN';
+              l.action === 'LOGIN' ||
+              l.action === 'ANNOUNCEMENT_POSTED';
           });
         }
         
