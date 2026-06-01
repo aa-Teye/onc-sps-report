@@ -1268,41 +1268,97 @@
             Members tab.
           </div>
 
+          <h2 id="overviewTitle" style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px;">📊 Overview</h2>
+
           <div class="stats-grid">
-            <div class="stat-card blue">
+            <div class="stat-card blue sps-stat-card">
               <div class="stat-label">Sessions This Week</div>
               <div class="stat-value" id="s-sessions">—</div>
               <div class="stat-sub">Total submissions</div>
             </div>
-            <div class="stat-card green">
+            <div class="stat-card green sps-stat-card">
               <div class="stat-label">Shepherds Reported</div>
               <div class="stat-value" id="s-reported">—</div>
               <div class="stat-sub">of 29 shepherds</div>
             </div>
-            <div class="stat-card gold">
+            <div class="stat-card gold sps-stat-card">
               <div class="stat-label">Avg Attendance</div>
               <div class="stat-value" id="s-avgatt">—</div>
               <div class="stat-sub">Members per session</div>
             </div>
-            <div class="stat-card purple">
+            <div class="stat-card purple sps-stat-card">
               <div class="stat-label">Prayer Sessions</div>
               <div class="stat-value" id="s-prayer">—</div>
               <div class="stat-sub">Prayer done</div>
             </div>
-            <div class="stat-card orange" onclick="showFlaggedConcerns()" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to view concerns">
+            <div class="stat-card orange sps-stat-card" onclick="showFlaggedConcerns()" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to view concerns">
               <div class="stat-label">Concerns Flagged</div>
               <div class="stat-value" id="s-concerns">—</div>
               <div class="stat-sub">This week</div>
             </div>
-            <div class="stat-card red">
+            <div class="stat-card red sps-stat-card">
               <div class="stat-label">Bible Coverage</div>
               <div class="stat-value" id="s-bible">—</div>
               <div class="stat-sub">Topics covered</div>
             </div>
-            <div class="stat-card gold" onclick="switchTab('soul-reports', document.querySelector('.tab-btn[onclick*=\'soul-reports\']'))" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to view souls">
+            <div class="stat-card gold sps-stat-card" onclick="switchTab('soul-reports', document.querySelector('.tab-btn[onclick*=\'soul-reports\']'))" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to view souls">
               <div class="stat-label">Sunday Souls Won</div>
               <div class="stat-value" id="s-souls">—</div>
               <div class="stat-sub">This week</div>
+            </div>
+
+            <!-- MC Stats Cards -->
+            <div class="stat-card blue mc-stat-card">
+              <div class="stat-label">MC Sessions This Week</div>
+              <div class="stat-value" id="mc-s-sessions">—</div>
+              <div class="stat-sub">Submissions this week</div>
+            </div>
+            <div class="stat-card green mc-stat-card">
+              <div class="stat-label">MC Shepherds Reported</div>
+              <div class="stat-value" id="mc-s-reported">—</div>
+              <div class="stat-sub">of 20 shepherds</div>
+            </div>
+            <div class="stat-card blue mc-stat-card">
+              <div class="stat-label">MC Avg Attendance</div>
+              <div class="stat-value" id="mc-s-attendance">—</div>
+              <div class="stat-sub">Attendance rate</div>
+            </div>
+            <div class="stat-card green mc-stat-card">
+              <div class="stat-label">MC Prayer Sessions</div>
+              <div class="stat-value" id="mc-s-prayer">—</div>
+              <div class="stat-sub">Covered by prayer</div>
+            </div>
+            <div class="stat-card gold mc-stat-card" onclick="switchTab('soul-reports', document.querySelector('.tab-btn[onclick*=\'soul-reports\']'))" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to view souls">
+              <div class="stat-label">MC New Souls This Week</div>
+              <div class="stat-value" id="mc-s-souls">—</div>
+              <div class="stat-sub">Souls won this week</div>
+            </div>
+            <div class="stat-card blue mc-stat-card">
+              <div class="stat-label">MC Bible Coverage</div>
+              <div class="stat-value" id="mc-s-bible">—</div>
+              <div class="stat-sub">Covered topic</div>
+            </div>
+
+            <!-- First Timers Stats Cards -->
+            <div class="stat-card blue ft-stat-card">
+              <div class="stat-label">FT Total Guests</div>
+              <div class="stat-value" id="ftTotalGuestsOverview">—</div>
+              <div class="stat-sub">Registered guests</div>
+            </div>
+            <div class="stat-card red ft-stat-card">
+              <div class="stat-label">FT Needs Follow Up</div>
+              <div class="stat-value" id="ftNeedsFollowUpOverview">—</div>
+              <div class="stat-sub">Pending follow-up</div>
+            </div>
+            <div class="stat-card gold ft-stat-card">
+              <div class="stat-label">FT Contacted</div>
+              <div class="stat-value" id="ftContactedOverview">—</div>
+              <div class="stat-sub">Contacted guests</div>
+            </div>
+            <div class="stat-card green ft-stat-card">
+              <div class="stat-label">FT Converted to Member</div>
+              <div class="stat-value" id="ftConvertedOverview">—</div>
+              <div class="stat-sub">Converted guests</div>
             </div>
           </div>
           <div class="alerts-grid">
@@ -3108,6 +3164,74 @@
         if (topbar && topbar.parentNode) {
           topbar.parentNode.insertBefore(roleEl, topbar.nextSibling);
         }
+        
+        filterOverviewByRole();
+        updateOverviewTitle();
+      }
+
+      function filterOverviewByRole() {
+        var spsCards = document.querySelectorAll('.sps-stat-card');
+        var mcCards = document.querySelectorAll('.mc-stat-card');
+        var ftCards = document.querySelectorAll('.ft-stat-card');
+        
+        if (currentRole === 'spshead') {
+          spsCards.forEach(function(c) {
+            c.style.display = '';
+          });
+          mcCards.forEach(function(c) {
+            c.style.display = 'none';
+          });
+          ftCards.forEach(function(c) {
+            c.style.display = 'none';
+          });
+        } else if (currentRole === 'mchead') {
+          spsCards.forEach(function(c) {
+            c.style.display = 'none';
+          });
+          mcCards.forEach(function(c) {
+            c.style.display = '';
+          });
+          ftCards.forEach(function(c) {
+            c.style.display = 'none';
+          });
+        } else if (currentRole === 'ftshead') {
+          spsCards.forEach(function(c) {
+            c.style.display = 'none';
+          });
+          mcCards.forEach(function(c) {
+            c.style.display = 'none';
+          });
+          ftCards.forEach(function(c) {
+            c.style.display = '';
+          });
+        } else {
+          // superadmin and admin see everything
+          spsCards.forEach(function(c) {
+            c.style.display = '';
+          });
+          mcCards.forEach(function(c) {
+            c.style.display = '';
+          });
+          ftCards.forEach(function(c) {
+            c.style.display = '';
+          });
+        }
+      }
+
+      function updateOverviewTitle() {
+        var title = document.getElementById('overviewTitle');
+        if (!title) return;
+        
+        var titles = {
+          'superadmin': '📊 Church Overview',
+          'admin': '📊 Church Overview',
+          'spshead': '📊 SPS Overview',
+          'mchead': '📊 MC Overview',
+          'ftshead': '📊 First Timers Overview',
+          'zoneleader': '📊 Overview'
+        };
+        
+        title.textContent = titles[currentRole] || '📊 Overview';
       }
 
       function logout() {
@@ -3230,6 +3354,9 @@
           setTimeout(function() {
             loadAnnouncements();
           }, 150);
+        }
+        if (id === 'overview') {
+          filterOverviewByRole();
         }
       }
 
@@ -3541,6 +3668,7 @@
         hideShimmer();
         renderAll();
         loadSoulReports();
+        loadFirstTimers();
         var now = new Date();
         var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
         document.getElementById('lastUpdated').textContent = 'Updated ' + timeStr;
@@ -6368,18 +6496,26 @@
         var el1 = document.getElementById(
           'ftTotalGuests');
         if (el1) el1.textContent = guests.length;
+        var el1o = document.getElementById('ftTotalGuestsOverview');
+        if (el1o) el1o.textContent = guests.length;
         
         var el2 = document.getElementById(
           'ftNeedsFollowUp');
         if (el2) el2.textContent = needsFollowUp;
+        var el2o = document.getElementById('ftNeedsFollowUpOverview');
+        if (el2o) el2o.textContent = needsFollowUp;
         
         var el3 = document.getElementById(
           'ftContacted');
         if (el3) el3.textContent = contacted;
+        var el3o = document.getElementById('ftContactedOverview');
+        if (el3o) el3o.textContent = contacted;
         
         var el4 = document.getElementById(
           'ftConverted');
         if (el4) el4.textContent = converted;
+        var el4o = document.getElementById('ftConvertedOverview');
+        if (el4o) el4o.textContent = converted;
         
         var tbody = document.getElementById(
           'ftGuestsBody');
