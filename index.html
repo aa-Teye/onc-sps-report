@@ -2323,6 +2323,8 @@
     // Auto-run: Restore session if valid, otherwise run intro
     document.addEventListener("DOMContentLoaded", function() {
       loadPinsFromBackend();
+      // CHANGE 4 — Retry any failed FT submissions on app load
+      retryFailedFTSubmissions();
       // Init SPS dropdown
       const shepSel = document.getElementById('shepherdSelect');
       if (shepSel) {
@@ -3689,6 +3691,8 @@
         }
         
         showSection('secFirstTimersLanding');
+        // CHANGE 5 — Check for pending unsynced submissions on login
+        checkFTPendingSync();
       } else {
         if (errorEl) errorEl.style.display = 'block';
         document.getElementById('ftPinInput').value = '';
@@ -3947,7 +3951,20 @@
         action: 'submitGuestForm',
         guest: guest
       };
-      
+
+      // CHANGE 1 — Save to localStorage as backup BEFORE sending to backend
+      var guestBackup = {
+        id: 'G' + Date.now(),
+        savedAt: new Date().toISOString(),
+        synced: false,
+        data: guest
+      };
+      var ftBackups = JSON.parse(
+        localStorage.getItem('ft_pending_backup') || '[]');
+      ftBackups.push(guestBackup);
+      localStorage.setItem(
+        'ft_pending_backup', JSON.stringify(ftBackups));
+
       fetch(SCRIPT_URL, {
         method: 'POST',
         body: JSON.stringify(payload)
@@ -3957,15 +3974,29 @@
         todaysGuests.push(guest);
         localStorage.setItem('todays_guests',
           JSON.stringify(todaysGuests));
+
+        // CHANGE 2 — Mark backup as synced after successful backend response
+        var backups = JSON.parse(
+          localStorage.getItem('ft_pending_backup') || '[]');
+        backups = backups.map(function(b) {
+          if (b.id === guestBackup.id) b.synced = true;
+          return b;
+        });
+        localStorage.setItem(
+          'ft_pending_backup', JSON.stringify(backups));
+
         showToast('✅ Guest registered successfully!');
         resetGuestForm();
         showSection('secFirstTimersLanding');
       })
       .catch(function(err) {
+        // Guest already saved to localStorage backup above (CHANGE 1)
         todaysGuests.push(guest);
         localStorage.setItem('todays_guests',
           JSON.stringify(todaysGuests));
-        showToast('✅ Guest registered successfully!');
+
+        // CHANGE 3 — Show warning toast instead of false success
+        showToast('⚠️ Saved locally but server sync failed. Will retry automatically.', 'warning');
         resetGuestForm();
         showSection('secFirstTimersLanding');
       })
@@ -3975,6 +4006,58 @@
           submitBtn.disabled = false;
         }
       });
+    }
+
+    // CHANGE 4 — Auto-retry unsynced First Timers submissions
+    function retryFailedFTSubmissions() {
+      var backups = JSON.parse(
+        localStorage.getItem('ft_pending_backup') || '[]');
+      var unsynced = backups.filter(function(b) {
+        return !b.synced;
+      });
+      if (unsynced.length === 0) return;
+
+      unsynced.forEach(function(backup) {
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'submitGuestForm',
+            guest: backup.data
+          })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+          if (result.status === 'success') {
+            var all = JSON.parse(
+              localStorage.getItem('ft_pending_backup') || '[]');
+            all = all.map(function(b) {
+              if (b.id === backup.id) b.synced = true;
+              return b;
+            });
+            localStorage.setItem(
+              'ft_pending_backup', JSON.stringify(all));
+            console.log('FT Synced: ' + backup.id);
+          }
+        })
+        .catch(function() {
+          console.log('FT retry failed for: ' + backup.id);
+        });
+      });
+    }
+
+    // CHANGE 5 — Check for pending unsynced submissions after login
+    function checkFTPendingSync() {
+      var backups = JSON.parse(
+        localStorage.getItem('ft_pending_backup') || '[]');
+      var unsynced = backups.filter(function(b) {
+        return !b.synced;
+      });
+      if (unsynced.length > 0) {
+        showToast('⚠️ ' + unsynced.length +
+          ' guest(s) pending sync. Please check internet connection.',
+          'warning');
+        retryFailedFTSubmissions();
+      }
     }
 
     function resetGuestForm() {
