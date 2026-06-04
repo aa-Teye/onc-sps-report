@@ -562,6 +562,20 @@
 </head>
 
 <body>
+  <div id="globalAlert"
+    style="display:none;
+    position:fixed;
+    top:0;left:0;right:0;
+    z-index:99999;
+    padding:14px 20px;
+    font-weight:700;
+    font-size:14px;
+    text-align:center;
+    background:#b91c1c;
+    color:white;
+    box-shadow:0 4px 12px
+    rgba(0,0,0,0.3);">
+  </div>
   <div class="app">
     <div class="header">
       <div class="logo-ring"><img src="logo.png" style="width:56px;height:56px;border-radius:50%;object-fit:cover;" alt="ONC Logo"></div>
@@ -621,14 +635,7 @@
           </p>
         </div>
 
-        <div id="ftPinError" style="background:#fee2e2;
-          color:#b91c1c;padding:12px 16px;
-          border-radius:10px;font-weight:700;
-          font-size:14px;margin-bottom:16px;
-          display:none;text-align:center;
-          border:2px solid #fca5a5;">
-          ❌ Incorrect PIN. Please try again.
-        </div>
+
 
         <div style="background:white;
           border-radius:16px;padding:24px;
@@ -1394,14 +1401,7 @@
         <h2 id="loginTitle" style="font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 20px; color: var(--navy); margin-bottom: 6px;">ONC Shepherd Portal</h2>
         <p style="font-size: 13px; color: var(--gray); margin-bottom: 24px;">Please authenticate to access reporting forms</p>
         
-        <div id="shepherdLoginError" style="background:#fee2e2;
-          color:#b91c1c;padding:12px 16px;
-          border-radius:10px;font-weight:700;
-          font-size:14px;margin-bottom:16px;
-          display:none;text-align:center;
-          border:2px solid #fca5a5;">
-          ❌ Incorrect PIN. Please try again.
-        </div>
+
         
         <div class="field" style="text-align: left; margin-bottom: 16px;">
           <label style="font-weight: 700; color: var(--navy); font-size: 13px;">Select Your Name</label>
@@ -2504,7 +2504,7 @@
 
       var shepherdName = select.value;
       if (!shepherdName) {
-        showToast('Please select your name first');
+        showGlobalAlert('Please select your name first', 'error');
         return;
       }
 
@@ -2512,7 +2512,7 @@
       var enteredPin = pinEl.value.trim();
 
       if (!enteredPin) {
-        showToast('Please enter your 4-digit PIN');
+        showGlobalAlert('Please enter your 4-digit PIN', 'error');
         return;
       }
 
@@ -2524,9 +2524,6 @@
       var expectedPin = localStorage.getItem('onc_pin_' + shepherdName) || customPins[shepherdName] || (shepherdData[shepherdName] ? shepherdData[shepherdName].pin : '0000');
 
       if (enteredPin === expectedPin) {
-        var errorEl = document.getElementById('shepherdLoginError');
-        if (errorEl) errorEl.style.display = 'none';
-
         // Save session locally
         localStorage.setItem('onc_logged_in_shepherd', shepherdName);
         localStorage.setItem('onc_logged_in_type', shepherdType);
@@ -2580,14 +2577,9 @@
         // Go to landing page
         checkAnnouncements();
 
-        showToast('🔓 Login successful! Welcome, ' + shepherdName.split(' ')[0] + '!');
+        showGlobalAlert('🔓 Login successful! Welcome, ' + shepherdName.split(' ')[0] + '!', 'success');
       } else {
-        var errorEl = document.getElementById('shepherdLoginError');
-        if (errorEl) {
-          errorEl.style.display = 'block';
-        } else {
-          showToast('❌ Incorrect PIN! Please try again.');
-        }
+        showGlobalAlert('❌ Incorrect PIN. Please try again.', 'error');
         pinEl.value = '';
         pinEl.focus();
       }
@@ -2716,7 +2708,7 @@
       if (secLogin) {
         secLogin.style.display = 'none';
       }
-      showToast('🚪 Logged out successfully');
+      showGlobalAlert('🚪 Logged out successfully', 'info');
     }
 
     document.getElementById('shepherdSelect').addEventListener('change', function() {
@@ -3007,10 +2999,10 @@
 
     function goNextMC(step) {
       if (step === 1) {
-        if (!state.shepherd) { showToast('Please select your name'); return; }
+        if (!state.shepherd) { showGlobalAlert('Please select your name', 'error'); return; }
       }
       if (step === 2) {
-        if (!state.meetingType) { showToast('Please select meeting type'); return; }
+        if (!state.meetingType) { showGlobalAlert('Please select meeting type', 'error'); return; }
         buildMCMemberCards();
       }
       if (step === 3) {
@@ -3018,11 +3010,11 @@
         fetchMCTopic();
       }
       if (step === 4) {
-        if (!state.prayerDone) { showToast('Please answer the prayer question'); return; }
+        if (!state.prayerDone) { showGlobalAlert('Please answer the prayer question', 'error'); return; }
         const soulsYesBtn = document.getElementById('mcNewSoulsYes');
         if (soulsYesBtn && soulsYesBtn.classList.contains('selected')) {
           if (!state.newSouls || state.newSouls < 1) {
-            showToast('Please enter the number of new souls');
+            showGlobalAlert('Please enter the number of new souls', 'error');
             return;
           }
         }
@@ -3051,7 +3043,7 @@
 
     async function submitMCReport() {
       if (!proofPhotoBase64) {
-        showToast('❌ Please upload proof of meeting to continue');
+        showGlobalAlert('❌ Please upload proof of meeting to continue', 'error');
         return;
       }
       var btn = document.getElementById('mcBtnSubmit');
@@ -3277,7 +3269,7 @@
 
     function goNext(step) {
       if (step === 1) {
-        if (!state.shepherd) { showToast('Please select your name'); return; }
+        if (!state.shepherd) { showGlobalAlert('Please select your name', 'error'); return; }
         buildMemberCards();
       }
       if (step === 2) {
@@ -3285,21 +3277,21 @@
         fetchTopic();
       }
       if (step === 3) {
-        if (!state.prayerDone) { showToast('Please answer the prayer question'); return; }
+        if (!state.prayerDone) { showGlobalAlert('Please answer the prayer question', 'error'); return; }
         const yesBtn = document.getElementById('newMemberYesBtn');
         if (yesBtn && yesBtn.classList.contains('selected')) {
           const n = parseInt(document.getElementById('newMembersCountInput').value) || 0;
           if (n < 1) {
-            showToast('Please enter the number of new members');
+            showGlobalAlert('Please enter the number of new members', 'error');
             return;
           }
           for (let i = 0; i < state.newMembers.length; i++) {
             const member = state.newMembers[i];
-            if (!member.name || !member.name.trim()) { showToast('Please enter Name for Member #' + (i + 1)); return; }
-            if (!member.phone || !member.phone.trim()) { showToast('Please enter Phone for Member #' + (i + 1)); return; }
-            if (!member.dob) { showToast('Please select Date of Birth for Member #' + (i + 1)); return; }
-            if (!member.bornAgain) { showToast('Please answer "Born Again" for Member #' + (i + 1)); return; }
-            if (!member.inChurch) { showToast('Please answer "In Church" for Member #' + (i + 1)); return; }
+            if (!member.name || !member.name.trim()) { showGlobalAlert('Please enter Name for Member #' + (i + 1), 'error'); return; }
+            if (!member.phone || !member.phone.trim()) { showGlobalAlert('Please enter Phone for Member #' + (i + 1), 'error'); return; }
+            if (!member.dob) { showGlobalAlert('Please select Date of Birth for Member #' + (i + 1), 'error'); return; }
+            if (!member.bornAgain) { showGlobalAlert('Please answer "Born Again" for Member #' + (i + 1), 'error'); return; }
+            if (!member.inChurch) { showGlobalAlert('Please answer "In Church" for Member #' + (i + 1), 'error'); return; }
           }
         }
         buildReview();
@@ -3340,7 +3332,7 @@
 
     async function submitReport() {
       if (!proofPhotoBase64) {
-        showToast('❌ Please upload proof of meeting to continue');
+        showGlobalAlert('❌ Please upload proof of meeting to continue', 'error');
         return;
       }
       var btn = document.querySelector('.btn-submit');
@@ -3425,6 +3417,28 @@
       var t = document.getElementById('toast');
       t.textContent = msg; t.classList.add('show');
       setTimeout(function(){ t.classList.remove('show'); }, 2500);
+    }
+
+    function showGlobalAlert(message, type) {
+      var alertEl = document.getElementById('globalAlert');
+      if (!alertEl) return;
+
+      var colors = {
+        'error': '#b91c1c',
+        'success': '#15803d',
+        'warning': '#b45309',
+        'info': '#1d4ed8'
+      };
+
+      alertEl.style.background = colors[type] || colors['error'];
+      alertEl.textContent = message;
+      alertEl.style.display = 'block';
+
+      // Auto hide after 4 seconds
+      clearTimeout(window.alertTimeout);
+      window.alertTimeout = setTimeout(function() {
+        alertEl.style.display = 'none';
+      }, 4000);
     }
 
     var proofPhotoBase64 = '';
@@ -3560,19 +3574,19 @@
       var newPin = newInp.value.trim();
 
       if (!shepherdName) {
-        showToast('Please select your name');
+        showGlobalAlert('Please select your name', 'error');
         return;
       }
       if (!curPin) {
-        showToast('Please enter your current PIN');
+        showGlobalAlert('Please enter your current PIN', 'error');
         return;
       }
       if (!newPin) {
-        showToast('Please enter your new PIN');
+        showGlobalAlert('Please enter your new PIN', 'error');
         return;
       }
       if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
-        showToast('New PIN must be exactly 4 digits');
+        showGlobalAlert('New PIN must be exactly 4 digits', 'error');
         return;
       }
 
@@ -3602,10 +3616,10 @@
           console.log('PIN sync error:', err);
         });
 
-        showToast('✅ PIN updated successfully!');
+        showGlobalAlert('✅ PIN changed successfully!', 'success');
         closeChangePinModal();
       } else {
-        showToast('❌ Incorrect current PIN!');
+        showGlobalAlert('❌ Incorrect PIN. Please try again.', 'error');
         curInp.value = '';
         curInp.focus();
       }
@@ -3727,11 +3741,8 @@
     function checkFirstTimersPin() {
       var pin = document.getElementById(
         'ftPinInput').value;
-      var errorEl = document.getElementById(
-        'ftPinError');
       
       if (pin === ftState.pin) {
-        if (errorEl) errorEl.style.display = 'none';
         document.getElementById('ftPinInput').value = '';
         
         var today = new Date().toLocaleDateString(
@@ -3746,7 +3757,7 @@
         // CHANGE 5 — Check for pending unsynced submissions on login
         checkFTPendingSync();
       } else {
-        if (errorEl) errorEl.style.display = 'block';
+        showGlobalAlert('❌ Incorrect PIN. Please try again.', 'error');
         document.getElementById('ftPinInput').value = '';
       }
     }
@@ -3851,7 +3862,7 @@
         'guestPhone').value.trim();
       
       if (!firstName || !lastName || !phone) {
-        alert('Please fill First Name, Last Name and Phone Number');
+        showGlobalAlert('Please fill First Name, Last Name and Phone Number', 'error');
         return;
       }
       
@@ -3928,7 +3939,7 @@
         'guestPhone').value.trim();
       
       if (!firstName || !lastName || !phone) {
-        alert('Please fill First Name, Last Name and Phone Number');
+        showGlobalAlert('Please fill First Name, Last Name and Phone Number', 'error');
         return;
       }
       
@@ -3985,7 +3996,7 @@
           localStorage.setItem('todays_guests',
             JSON.stringify(todaysGuests));
           ftState.editingGuestId = null;
-          showToast('✅ Guest updated successfully!');
+          showGlobalAlert('✅ Guest registered successfully!', 'success');
           resetGuestForm();
           showSection('secFirstTimersLanding');
           return;
@@ -4037,7 +4048,7 @@
         localStorage.setItem(
           'ft_pending_backup', JSON.stringify(backups));
 
-        showToast('✅ Guest registered successfully!');
+        showGlobalAlert('✅ Guest registered successfully!', 'success');
         resetGuestForm();
         showSection('secFirstTimersLanding');
       })
@@ -4048,7 +4059,7 @@
           JSON.stringify(todaysGuests));
 
         // CHANGE 3 — Show warning toast instead of false success
-        showToast('⚠️ Saved locally but server sync failed. Will retry automatically.', 'warning');
+        showGlobalAlert('⚠️ Saved locally but server sync failed. Will retry automatically.', 'warning');
         resetGuestForm();
         showSection('secFirstTimersLanding');
       })
@@ -4105,7 +4116,7 @@
         return !b.synced;
       });
       if (unsynced.length > 0) {
-        showToast('⚠️ ' + unsynced.length +
+        showGlobalAlert('⚠️ ' + unsynced.length +
           ' guest(s) pending sync. Please check internet connection.',
           'warning');
         retryFailedFTSubmissions();
@@ -4275,9 +4286,9 @@
         var paddedPin = String(newPin).padStart(4, '0');
         ftState.pin = paddedPin;
         localStorage.setItem('ft_pin', paddedPin);
-        alert('✅ PIN updated successfully!');
+        showGlobalAlert('✅ PIN changed successfully!', 'success');
       } else if (newPin) {
-        alert('PIN must be exactly 4 digits');
+        showGlobalAlert('PIN must be exactly 4 digits', 'error');
       }
     }
 
@@ -4622,7 +4633,7 @@
       }
       
       closeFollowUpModal();
-      showToast('✅ Follow up recorded!');
+      showGlobalAlert('✅ Follow up recorded!', 'success');
       loadFollowUpList();
     }
 
