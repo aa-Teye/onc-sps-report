@@ -3716,8 +3716,22 @@
             desc: "Central Bible study outlines, group management rules, and leader tools for MC Shepherds."
           }
         ];
-        localStorage.setItem('onc_resources', JSON.stringify(list));
       }
+
+      // Prepend weekly resource so it is always up to date and shown at the top
+      var weeklyResource = {
+        title: "Weekly Bible Study Resources & Material",
+        category: "Weekly Material",
+        audience: "Both",
+        url: "https://drive.google.com/drive/folders/1OCXX6iN_cdok0h-mI10fP_cEHNcKegI_?usp=drive_link",
+        desc: "Access study outlines, discussion sheets, media files, and tools for this week's meetings."
+      };
+      
+      // Filter out any older weekly resource to avoid duplicates, then prepend
+      list = list.filter(function(item) {
+        return item.title !== "Weekly Bible Study Resources & Material";
+      });
+      list.unshift(weeklyResource);
 
       // Filter by flow stream context
       var currentFlow = state.shepherdType; // 'sps' or 'microchurch' or empty
