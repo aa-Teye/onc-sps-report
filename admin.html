@@ -2130,13 +2130,21 @@
                   <option value="30">Last 30 Days</option>
                 </select>
               </div>
-              <div style="display:flex;gap:8px;margin-top:16px;">
+              <div style="display:flex;gap:8px;margin-top:16px;align-items:center;">
                 <button onclick="exportMC_CSV()"
                   style="padding:10px 16px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer;">📥
                   CSV</button>
                 <button onclick="exportMC_PDF()"
                   style="padding:10px 16px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer;">📄
                   PDF</button>
+                <button onclick="loadMCReports()"
+                  style="padding:8px 14px;
+                  background:#0f2044;color:white;
+                  border:none;border-radius:8px;
+                  font-weight:700;cursor:pointer;
+                  font-size:13px;">
+                  🔄 Refresh
+                </button>
               </div>
             </div>
             <div class="table-wrap">
@@ -7344,7 +7352,7 @@
               'onmouseout="this.style.background=\''+bg+'\'">' +
               '<td style="padding:10px;color:#64748b;' +
               'font-size:12px;">' + 
-              (l.timestamp || '') + '</td>' +
+              formatLogTimestamp(l.timestamp || '') + '</td>' +
               '<td style="padding:10px;">' +
               '<span style="background:' + color + 
               '20;color:' + color + ';padding:3px 8px;' +
@@ -7572,6 +7580,51 @@
         };
       }
 
+      function formatLogTimestamp(ts) {
+        if (!ts) return '';
+        
+        // If already in dd/mm/yyyy format
+        if (ts.indexOf('/') > -1) return ts;
+        
+        // Convert ISO format
+        try {
+          var date = new Date(ts);
+          var day = String(date.getDate())
+            .padStart(2,'0');
+          var month = String(date.getMonth()+1)
+            .padStart(2,'0');
+          var year = date.getFullYear();
+          var hours = String(date.getHours())
+            .padStart(2,'0');
+          var mins = String(date.getMinutes())
+            .padStart(2,'0');
+          var secs = String(date.getSeconds())
+            .padStart(2,'0');
+          return day+'/'+month+'/'+year+
+            ' '+hours+':'+mins+':'+secs;
+        } catch(e) {
+          return ts;
+        }
+      }
+
+      function loadMCReports() {
+        adminToast('⏳ Refreshing MC reports...');
+        var old = document.getElementById('mcReportsScript');
+        if (old && old.parentNode) 
+          old.parentNode.removeChild(old);
+
+        var script = document.createElement('script');
+        script.id = 'mcReportsScript';
+        script.src = SCRIPT_URL + 
+          '?action=getMicrochurchReports' +
+          '&callback=onMcReportsLoaded';
+        script.onerror = function() {
+          console.error('MC reports load failed');
+          adminToast('❌ Failed to load MC reports');
+        };
+        document.head.appendChild(script);
+      }
+
       function renderAnnouncements() {
         var list = document.getElementById(
           'announcementsList');
@@ -7756,7 +7809,7 @@
           '<div style="font-weight:800;font-size:16px;' +
           'color:#0a1628;">'+(log.action||'')+'</div>' +
           '<div style="font-size:13px;color:#64748b;">' +
-          (log.timestamp||'')+'</div>' +
+          formatLogTimestamp(log.timestamp||'')+'</div>' +
           '</div></div>' +
           '<div style="display:flex;' +
           'flex-direction:column;gap:12px;">' +
@@ -7792,7 +7845,7 @@
           '<div style="font-size:12px;font-weight:700;' +
           'color:#64748b;min-width:80px;">TIME</div>' +
           '<div style="font-size:14px;color:#374151;">' +
-          (log.timestamp||'—')+'</div>' +
+          formatLogTimestamp(log.timestamp||'—')+'</div>' +
           '</div>' +
           '</div></div>' +
           '<button onclick="closeLogDetail()" ' +
