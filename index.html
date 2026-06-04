@@ -779,44 +779,54 @@
           </h2>
         </div>
 
-        <!-- CHANGE 4: Status filter tabs -->
+        <!-- CHANGE 1: Monthly filter tabs -->
         <div style="display:flex;gap:8px;
-          flex-wrap:wrap;margin-bottom:16px;">
-          <button onclick="setFUFilter('active')"
-            id="fuFilterActive"
+          flex-wrap:wrap;margin-bottom:16px;
+          overflow-x:auto;padding-bottom:4px;">
+          <button onclick="setFUFilter('thismonth')"
+            id="fuFilterThismonth"
             style="padding:8px 14px;
-            border-radius:20px;
+            border-radius:20px;white-space:nowrap;
             background:var(--navy);color:white;
             border:none;font-weight:700;
             cursor:pointer;font-size:12px;">
-            📋 Active
+            🆕 This Month
+          </button>
+          <button onclick="setFUFilter('lastmonth')"
+            id="fuFilterLastmonth"
+            style="padding:8px 14px;
+            border-radius:20px;white-space:nowrap;
+            background:#e2e8f0;color:#0a1628;
+            border:none;font-weight:700;
+            cursor:pointer;font-size:12px;">
+            📋 Last Month
+          </button>
+          <button onclick="setFUFilter('twomonths')"
+            id="fuFilterTwomonths"
+            style="padding:8px 14px;
+            border-radius:20px;white-space:nowrap;
+            background:#e2e8f0;color:#0a1628;
+            border:none;font-weight:700;
+            cursor:pointer;font-size:12px;">
+            📋 2 Months Ago
           </button>
           <button onclick="setFUFilter('converted')"
             id="fuFilterConverted"
             style="padding:8px 14px;
-            border-radius:20px;
+            border-radius:20px;white-space:nowrap;
             background:#e2e8f0;color:#0a1628;
             border:none;font-weight:700;
             cursor:pointer;font-size:12px;">
-            ✅ Converted
+            🏆 Converted
           </button>
-          <button onclick="setFUFilter('closed')"
-            id="fuFilterClosed"
+          <button onclick="setFUFilter('archived')"
+            id="fuFilterArchived"
             style="padding:8px 14px;
-            border-radius:20px;
+            border-radius:20px;white-space:nowrap;
             background:#e2e8f0;color:#0a1628;
             border:none;font-weight:700;
             cursor:pointer;font-size:12px;">
-            ❌ Closed
-          </button>
-          <button onclick="setFUFilter('all')"
-            id="fuFilterAll"
-            style="padding:8px 14px;
-            border-radius:20px;
-            background:#e2e8f0;color:#0a1628;
-            border:none;font-weight:700;
-            cursor:pointer;font-size:12px;">
-            👥 All
+            📁 Archived
           </button>
         </div>
 
@@ -827,25 +837,25 @@
             border-radius:8px;padding:6px 12px;
             font-size:12px;font-weight:700;
             color:#15803d;">
-            🟢 Day 0-2: New
+            🟢 Day 0-7: New
           </div>
           <div style="background:#fef3c7;
             border-radius:8px;padding:6px 12px;
             font-size:12px;font-weight:700;
             color:#b45309;">
-            🟡 Day 3-7: Follow Up Soon
+            🟡 Day 8-14: Follow Up
           </div>
           <div style="background:#fee2e2;
             border-radius:8px;padding:6px 12px;
             font-size:12px;font-weight:700;
             color:#b91c1c;">
-            🔴 Day 8-14: Urgent
+            🔴 Day 15-21: Urgent
           </div>
           <div style="background:#f1f5f9;
             border-radius:8px;padding:6px 12px;
             font-size:12px;font-weight:700;
             color:#64748b;">
-            ⚫ 15+ Days: Long Overdue
+            ⚫ 22+ Days: Overdue
           </div>
         </div>
 
@@ -4278,11 +4288,11 @@
     };
 
     // ── CHANGE 5: filter state ────────────────────────────────
-    var currentFUFilter = 'active';
+    var currentFUFilter = 'thismonth';
 
     function setFUFilter(filter) {
       currentFUFilter = filter;
-      var filters = ['active','converted','closed','all'];
+      var filters = ['thismonth','lastmonth','twomonths','converted','archived'];
       filters.forEach(function(f) {
         var btn = document.getElementById(
           'fuFilter' + f.charAt(0).toUpperCase() + f.slice(1));
@@ -4307,30 +4317,41 @@
       });
     }
 
-    // ── CHANGE 1 + 5: rewritten loadFollowUpList ─────────────────
+    // ── CHANGE 3: filterGuestsByTab helper ────────────────────
+    function filterGuestsByTab(guests) {
+      return guests.filter(function(g) {
+        var status = (g.followUpStatus || g.status || '').toLowerCase();
+        var date   = g.date || g.Date || '';
+        var guestDate = getGuestMonth(date);
+        var monthDiff = getMonthDiff(guestDate);
+
+        if (currentFUFilter === 'converted') {
+          return status === 'converted';
+        }
+        if (currentFUFilter === 'archived') {
+          return monthDiff >= 3 ||
+                 status === 'not interested' ||
+                 status === 'unreachable';
+        }
+        // Exclude converted/archived from monthly tabs
+        if (status === 'converted' ||
+            status === 'not interested' ||
+            status === 'unreachable') return false;
+
+        if (currentFUFilter === 'thismonth')  return monthDiff === 0;
+        if (currentFUFilter === 'lastmonth')  return monthDiff === 1;
+        if (currentFUFilter === 'twomonths') return monthDiff === 2;
+        return false;
+      });
+    }
+
+    // ── CHANGE 3+4: rewritten loadFollowUpList ─────────────────
     function loadFollowUpList() {
       var list = document.getElementById('followUpList');
       if (!list) return;
 
-      var guests = getGuests();
-
-      // Apply status filter (CHANGE 1 + 5)
-      var filtered = guests.filter(function(g) {
-        var status = (g.followUpStatus || '').toLowerCase();
-        if (currentFUFilter === 'active') {
-          return status !== 'converted' &&
-                 status !== 'not interested' &&
-                 status !== 'unreachable';
-        }
-        if (currentFUFilter === 'converted') {
-          return status === 'converted';
-        }
-        if (currentFUFilter === 'closed') {
-          return status === 'not interested' ||
-                 status === 'unreachable';
-        }
-        return true; // 'all'
-      });
+      var guests   = getGuests();
+      var filtered = filterGuestsByTab(guests);
 
       if (filtered.length === 0) {
         list.innerHTML =
@@ -4340,29 +4361,31 @@
         return;
       }
 
-      // CHANGE 3: sort oldest first (most urgent at top)
+      // Sort most overdue first
       filtered.sort(function(a, b) {
         return getDaysSince(b.date) - getDaysSince(a.date);
       });
 
       list.innerHTML = filtered.map(function(g) {
-        var days = getDaysSince(g.date);
+        var days    = getDaysSince(g.date);
+        var urgency = getUrgencyLabel(g.date);
 
-        // CHANGE 3: updated colour coding ranges
-        var urgency = days <= 2 ?
-          {color:'#dcfce7', text:'#15803d', label:'🟢 Day '+days+' — New'} :
-          days <= 7 ?
-          {color:'#fef3c7', text:'#b45309', label:'🟡 Day '+days+' — Follow Up Soon'} :
-          days <= 14 ?
-          {color:'#fee2e2', text:'#b91c1c', label:'🔴 Day '+days+' — Urgent'} :
-          {color:'#f1f5f9', text:'#64748b', label:'⚫ Day '+days+' — Long Overdue'};
-
-        var followUps = JSON.parse(
-          localStorage.getItem('followups_' + g.id) || '[]');
-        var lastFollowUp = followUps.length > 0 ?
-          followUps[followUps.length - 1] : null;
+        var followUps   = JSON.parse(localStorage.getItem('followups_' + g.id) || '[]');
+        var lastFollowUp = followUps.length > 0 ? followUps[followUps.length - 1] : null;
 
         var currentStatus = g.followUpStatus || 'Needs Follow Up';
+
+        // CHANGE 4: urgency + status header row
+        var urgencyRow =
+          '<div style="display:flex;justify-content:space-between;' +
+          'align-items:center;margin-bottom:8px;">' +
+          '<span style="background:' + urgency.color + '22;color:' + urgency.color + ';' +
+          'padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">' +
+          urgency.label + ' — Day ' + days +
+          '</span>' +
+          '<span style="font-size:11px;color:#64748b;">' +
+          currentStatus + '</span></div>';
+
         var statusHtml = lastFollowUp ?
           '<div style="background:#f0fdf4;border-radius:6px;padding:6px 10px;' +
           'font-size:11px;color:#15803d;margin-top:8px;font-weight:700;">' +
@@ -4372,23 +4395,14 @@
           'font-size:11px;color:#c2410c;margin-top:8px;font-weight:700;">' +
           '📞 Not yet contacted</div>';
 
-        // Status badge
-        var statusBadge = '<div style="font-size:11px;font-weight:700;' +
-          'margin-top:4px;padding:3px 8px;display:inline-block;' +
-          'border-radius:20px;background:#f1f5f9;color:#475569;">' +
-          currentStatus + '</div>';
-
         return '<div style="background:white;border-radius:16px;padding:16px;' +
           'box-shadow:0 2px 8px rgba(0,0,0,0.06);' +
-          'border-left:4px solid ' + urgency.text + ';">' +
+          'border-left:4px solid ' + urgency.color + ';">' +
 
-          '<div style="display:flex;justify-content:space-between;' +
-          'align-items:flex-start;margin-bottom:8px;">' +
-          '<div style="font-weight:800;font-size:15px;color:var(--navy);">' +
+          urgencyRow +
+
+          '<div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:6px;">' +
           (g.fullName || g.firstName + ' ' + g.lastName) + '</div>' +
-          '<span style="background:' + urgency.color + ';color:' + urgency.text + ';' +
-          'padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;">' +
-          urgency.label + '</span></div>' +
 
           '<div style="font-size:13px;color:var(--gray);margin-bottom:4px;">' +
           '📞 ' + (g.phone || '—') + '</div>' +
@@ -4399,7 +4413,6 @@
           '<div style="font-size:12px;color:var(--gray);margin-bottom:4px;">' +
           '⛪ Born Again: ' + (g.bornAgain || '—') + '</div>' +
 
-          statusBadge +
           statusHtml +
 
           '<div style="display:flex;gap:8px;margin-top:12px;">' +
@@ -4421,17 +4434,44 @@
       }).join('');
     }
 
-    // CHANGE 3: parse dd/mm/yyyy format correctly
+    // ── CHANGE 2: Helper functions ─────────────────────────────
+    function getGuestMonth(dateStr) {
+      if (!dateStr) return null;
+      var parts = dateStr.split('/');
+      if (parts.length !== 3) return null;
+      return new Date(
+        parseInt(parts[2]),
+        parseInt(parts[1]) - 1,
+        parseInt(parts[0])
+      );
+    }
+
+    function getMonthDiff(date) {
+      if (!date) return 999;
+      var now = new Date();
+      var months = (now.getFullYear() - date.getFullYear()) * 12 +
+                   (now.getMonth() - date.getMonth());
+      return months;
+    }
+
+    function getUrgencyLabel(dateStr) {
+      var days = getDaysSince(dateStr);
+      if (days <= 7)  return { label: '🟢 New',        color: '#22c55e' };
+      if (days <= 14) return { label: '🟡 Follow Up',  color: '#f59e0b' };
+      if (days <= 21) return { label: '🔴 Urgent',      color: '#ef4444' };
+      return               { label: '⚫ Overdue',      color: '#64748b' };
+    }
+
+    // CHANGE 2: parse dd/mm/yyyy correctly
     function getDaysSince(dateStr) {
       if (!dateStr) return 0;
       var parts = dateStr.split('/');
-      var date;
-      if (parts.length === 3) {
-        // dd/mm/yyyy
-        date = new Date(parts[2], parts[1] - 1, parts[0]);
-      } else {
-        date = new Date(dateStr);
-      }
+      if (parts.length !== 3) return 0;
+      var date = new Date(
+        parseInt(parts[2]),
+        parseInt(parts[1]) - 1,
+        parseInt(parts[0])
+      );
       if (isNaN(date.getTime())) return 0;
       var now = new Date();
       return Math.floor((now - date) / (1000 * 60 * 60 * 24));
@@ -4548,15 +4588,15 @@
       localStorage.setItem(key, 
         JSON.stringify(existing));
       
-      // CHANGE 2: map outcome to a guest followUpStatus
+      // CHANGE 5: updated outcome → status map (simplified keys)
       var outcomeToStatus = {
-        'Called — No Answer':       'Needs Follow Up',
-        'Picked Up — Coming Back':  'Needs Follow Up',
-        'Picked Up — Not Coming':   'Not Interested',
-        'Needs Follow Up':          'Needs Follow Up',
-        'Converted — Joined Church':'Converted',
-        'Not Interested':           'Not Interested',
-        'Unreachable — Wrong Number':'Unreachable'
+        'Needs Follow Up':     'Needs Follow Up',
+        'Called — No Answer':  'Needs Follow Up',
+        'Called — Coming Back':'Needs Follow Up',
+        'Called — Not Coming': 'Not Interested',
+        'Converted':           'Converted',
+        'Not Interested':      'Not Interested',
+        'Unreachable':         'Unreachable'
       };
       var newStatus = outcomeToStatus[record.outcome] || 'Needs Follow Up';
 
@@ -5081,7 +5121,7 @@
         color:var(--navy);margin-bottom:16px;">
       </div>
 
-      <!-- CHANGE 2: single outcome dropdown replaces two binary button groups -->
+      <!-- CHANGE 5: updated outcome select options -->
       <label style="font-weight:700;
         font-size:13px;color:var(--navy);
         display:block;margin-bottom:8px;">
@@ -5096,13 +5136,13 @@
         background:white;margin-bottom:16px;
         box-sizing:border-box;">
         <option value="">-- Select Outcome --</option>
-        <option value="Called — No Answer">📞 Called — No Answer</option>
-        <option value="Picked Up — Coming Back">✅ Picked Up — Coming Back</option>
-        <option value="Picked Up — Not Coming">❌ Picked Up — Not Coming</option>
         <option value="Needs Follow Up">🔄 Needs Follow Up</option>
-        <option value="Converted — Joined Church">✅ Converted — Joined Church</option>
+        <option value="Called — No Answer">📞 Called — No Answer</option>
+        <option value="Called — Coming Back">✅ Called — Coming Back</option>
+        <option value="Called — Not Coming">❌ Called — Not Coming</option>
+        <option value="Converted">🏆 Converted</option>
         <option value="Not Interested">❌ Not Interested</option>
-        <option value="Unreachable — Wrong Number">📵 Unreachable — Wrong Number</option>
+        <option value="Unreachable">📵 Unreachable</option>
       </select>
 
       <label style="font-weight:700;
