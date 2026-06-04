@@ -3695,13 +3695,6 @@
       if (!list || list.length === 0) {
         list = [
           {
-            title: "ONC Shepherd General Handbook",
-            category: "Manual",
-            audience: "Both",
-            url: "https://drive.google.com",
-            desc: "Official handbook detailing administrative procedures, spiritual guidelines, and reporting schedules."
-          },
-          {
             title: "SPS Follow-Up Best Practices Guide",
             category: "Guide",
             audience: "SPS Shepherds",
@@ -3727,9 +3720,10 @@
         desc: "Access study outlines, discussion sheets, media files, and tools for this week's meetings."
       };
       
-      // Filter out any older weekly resource to avoid duplicates, then prepend
+      // Filter out any older weekly resource to avoid duplicates, and filter out sensitive handbook
       list = list.filter(function(item) {
-        return item.title !== "Weekly Bible Study Resources & Material";
+        return item.title !== "Weekly Bible Study Resources & Material" &&
+               item.title !== "ONC Shepherd General Handbook";
       });
       list.unshift(weeklyResource);
 

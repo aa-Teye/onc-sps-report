@@ -3746,19 +3746,25 @@
             allResources = [];
           }
         } else {
-          // Default initial handbook so it's not blank
+          // Default initial guide so it's not blank
           allResources = [
             {
-              title: "ONC Shepherd General Handbook",
-              category: "Manual",
-              audience: "All Shepherds",
+              title: "SPS Follow-Up Best Practices Guide",
+              category: "Guide",
+              audience: "SPS Shepherds",
               url: "https://drive.google.com",
-              desc: "Official handbook detailing administrative procedures, spiritual guidelines, and reporting schedules.",
+              desc: "Best practices, calling strategies, and spiritual outlines for SPS Shepherds.",
               dateAdded: new Date().toISOString()
             }
           ];
-          localStorage.setItem('onc_resources', JSON.stringify(allResources));
         }
+        
+        // Filter out sensitive manual
+        allResources = allResources.filter(function(r) {
+          return r.title !== "ONC Shepherd General Handbook";
+        });
+        localStorage.setItem('onc_resources', JSON.stringify(allResources));
+        
         renderResources();
       }
 
