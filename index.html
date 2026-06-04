@@ -557,6 +557,17 @@
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.08); }
     }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
   </style>
   <script src="churchData.js"></script>
 </head>
@@ -565,7 +576,7 @@
   <div id="globalAlert"
     style="display:none;
     position:fixed;
-    top:0;left:0;right:0;
+    top:60px;left:0;right:0;
     z-index:99999;
     padding:14px 20px;
     font-weight:700;
@@ -573,8 +584,9 @@
     text-align:center;
     background:#b91c1c;
     color:white;
-    box-shadow:0 4px 12px
-    rgba(0,0,0,0.3);">
+    border-radius:0 0 12px 12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.2);
+    animation:slideDown 0.3s ease;">
   </div>
   <div class="app">
     <div class="header">
