@@ -1,6 +1,6 @@
 // ONC Church Data - Updated with MC Members
 // SPS Shepherds: 29 | MC Shepherds: 20 | Total Members: 280+
-// Last updated: May 2026
+// Last updated: June 2026 (May MC List)
 
 window.CHURCH_DATA = {
   spsShepherds: [
@@ -441,9 +441,9 @@ window.CHURCH_DATA = {
       ]
     },
     {
-      "name": "Rev Dr Ebenezer Okronipa (Afropa 2)",
+      "name": "Harriet Ampofo",
       "microchurch": "Afropa 2",
-      "contact": "0200994446",
+      "contact": "0208533288",
       "members": [
         { "name": "Wilhelmina Komesour", "contact": "0592284829" },
         { "name": "Aisha Mohammed", "contact": "0539139623" },
@@ -473,7 +473,7 @@ window.CHURCH_DATA = {
       ]
     },
     {
-      "name": "Rev Dr Ebenezer Okronipa (Manasseh)",
+      "name": "Bernice Amuzu",
       "microchurch": "Manasseh",
       "contact": "0241503359",
       "members": [
@@ -484,7 +484,7 @@ window.CHURCH_DATA = {
         { "name": "Christabel", "contact": "" },
         { "name": "Winnifred Ndobo", "contact": "" },
         { "name": "Latifa", "contact": "" },
-        { "name": "Bernice Amuzu", "contact": "" },
+        { "name": "Bernice Amuzu", "contact": "0241503359" },
         { "name": "Carol Nkansah", "contact": "" },
         { "name": "Nhyira Antwi", "contact": "" },
         { "name": "Abigail Antwi", "contact": "" },
@@ -572,11 +572,11 @@ window.CHURCH_DATA = {
       "members": [
         { "name": "Esther Hammond Doku", "contact": "0246531897" },
         { "name": "Mama Doris Otumfour", "contact": "0530707925" },
-        { "name": "Arthur Benjamin Justice Tandoh", "contact": "" },
+        { "name": "Benjamin Justice Tandoh Arthur", "contact": "" },
         { "name": "Nadia Awentemi", "contact": "0533604049" },
         { "name": "Rosemond Prah", "contact": "0553403415" },
         { "name": "Mr Ebenezer Okronipa Snr", "contact": "0248282456" },
-        { "name": "Destiny Alexis Nhyira", "contact": "" },
+        { "name": "Alexis Nhyira Destiny", "contact": "" },
         { "name": "Emmalyn Sackey", "contact": "" },
         { "name": "Clifford Obeng", "contact": "" },
         { "name": "Lawrencia Thompson", "contact": "0597374098" }
@@ -600,9 +600,9 @@ window.CHURCH_DATA = {
       ]
     },
     {
-      "name": "GCTU Shepherd",
+      "name": "Sandra Boateng",
       "microchurch": "GCTU",
-      "contact": "",
+      "contact": "0553475810",
       "members": [
         { "name": "Edmund Oteng-Mawia", "contact": "0593333171" },
         { "name": "Elinam Dowetin", "contact": "0504606972" },
