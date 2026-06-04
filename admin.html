@@ -4082,12 +4082,40 @@
         if (!reportDate || isNaN(reportDate.getTime()))
           return false;
 
-        var now = new Date();
-        // Generous 9-day reporting window to capture late submissions from the weekend
+        // Default to current date
+        var referenceDate = new Date();
+        
+        // Find the latest report date in the database to base "this week" on dynamically
+        var latest = null;
+        if (typeof allReports !== 'undefined' && Array.isArray(allReports)) {
+          allReports.forEach(function (rep) {
+            if (!rep) return;
+            var dStr = rep.sessionDate || rep.date || rep.submissionDate || rep.timestamp || '';
+            var d = parseRobustDate(dStr);
+            if (d && !isNaN(d.getTime())) {
+              if (!latest || d > latest) latest = d;
+            }
+          });
+        }
+        if (typeof allMicrochurchReports !== 'undefined' && Array.isArray(allMicrochurchReports)) {
+          allMicrochurchReports.forEach(function (rep) {
+            if (!rep) return;
+            var dStr = rep.submissionDate || rep.date || rep.timestamp || '';
+            var d = parseRobustDate(dStr);
+            if (d && !isNaN(d.getTime())) {
+              if (!latest || d > latest) latest = d;
+            }
+          });
+        }
+        if (latest) {
+          referenceDate = latest;
+        }
+
+        // Generous 9-day reporting window to capture late submissions from the weekend relative to the latest date
         var weekAgo = new Date(
-          now.getTime() - 9 * 24 * 60 * 60 * 1000
+          referenceDate.getTime() - 9 * 24 * 60 * 60 * 1000
         );
-        return reportDate >= weekAgo && reportDate <= now;
+        return reportDate >= weekAgo;
       }
 
       function getRate(r) {
@@ -6637,13 +6665,24 @@
         // Calculate statistics
         var totalAllTime = list.length;
         
+        // Dynamic reference date for "this week" based on the latest report date in the list
+        var referenceDate = new Date();
+        var latest = null;
+        list.forEach(function(s) {
+          var d = parseRobustDate(s.date);
+          if (d && !isNaN(d.getTime())) {
+            if (!latest || d > latest) latest = d;
+          }
+        });
+        if (latest) referenceDate = latest;
+
+        var weekAgo = new Date(referenceDate.getTime() - 9 * 24 * 60 * 60 * 1000);
+
         // This Week Souls
         var thisWeekList = list.filter(function(s) {
           var reportDate = parseRobustDate(s.date);
           if (!reportDate) return false;
-          var now = new Date();
-          var weekAgo = new Date(now.getTime() - 9 * 24 * 60 * 60 * 1000);
-          return reportDate >= weekAgo && reportDate <= now;
+          return reportDate >= weekAgo;
         });
         var totalThisWeek = thisWeekList.length;
 
