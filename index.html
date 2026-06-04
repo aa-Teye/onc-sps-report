@@ -1705,21 +1705,23 @@
         <div class="card-title"><span class="dot"></span>Session Details</div>
         <div class="field">
           <label>Bible Study Topic</label>
-          <div id="topicBox" style="background:#f0f5ff;border-radius:12px;padding:14px 16px;border:2px solid #dce7f7;">
-            <div id="topicText" style="font-size:14px;color:#64748b;">⏳ Loading topic...</div>
+          <div id="bibleTopicDisplay"
+            style="display:none;
+            background:#f0fdf4;
+            border:2px solid #22c55e;
+            border-radius:10px;padding:12px;
+            font-size:14px;color:#15803d;
+            margin-bottom:8px;
+            font-weight:700;">
           </div>
-          <div id="topicButtons" style="display:none;margin-top:10px;">
-            <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Was this topic covered?</div>
-            <div class="yn-group">
-              <button class="yn-btn yes" onclick="selectYN('topicCovered','yes',this)">✅ Yes</button>
-              <button class="yn-btn no" onclick="selectYN('topicCovered','no',this)">❌ No</button>
-            </div>
-            <div style="margin-top:12px;">
-              <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">What topic did you cover?</div>
-              <input type="text" id="actualTopicInput" placeholder="Enter topic covered..." oninput="state.actualTopic=this.value"
-                style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;transition:border-color .2s;"
-                onfocus="this.style.borderColor='#2e80e8'" onblur="this.style.borderColor='#dce7f7'">
-            </div>
+          <input type="text" id="bibleTopic" oninput="state.bibleTopic=this.value; state.actualTopic=this.value;"
+            style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:white;outline:none;transition:border-color .2s;"
+            onfocus="this.style.borderColor='#2e80e8'" onblur="this.style.borderColor='#dce7f7'">
+          <div id="bibleTopicNote"
+            style="font-size:11px;
+            color:#b45309;margin-top:4px;
+            display:none;">
+            ⚠️ No topic set by admin — please enter your own topic
           </div>
         </div>
         <div class="field">
@@ -2005,20 +2007,23 @@
         <!-- Bible Study Topic -->
         <div class="field">
           <label>Bible Study Topic</label>
-          <div id="mcTopicBox" style="background:#f0f5ff;border-radius:12px;padding:14px 16px;border:2px solid #dce7f7;margin-bottom:10px;">
-            <div id="mcTopicText" style="font-size:14px;color:#64748b;">⏳ Loading topic...</div>
+          <div id="bibleTopicDisplay_mc"
+            style="display:none;
+            background:#f0fdf4;
+            border:2px solid #22c55e;
+            border-radius:10px;padding:12px;
+            font-size:14px;color:#15803d;
+            margin-bottom:8px;
+            font-weight:700;">
           </div>
-          <div id="mcTopicButtons" style="display:none;">
-            <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Did you cover this topic?</div>
-            <div class="yn-group">
-              <button type="button" class="yn-btn yes" id="mcTopicYes" onclick="selectMCTopicCovered('yes', this)">✅ Yes</button>
-              <button type="button" class="yn-btn no" id="mcTopicNo" onclick="selectMCTopicCovered('no', this)">❌ No</button>
-            </div>
-            <div style="margin-top:12px;">
-              <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">What topic did you cover?</div>
-              <input type="text" id="mcActualTopicInput" placeholder="Enter topic covered..." oninput="state.actualTopic=this.value"
-                style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:#f0f5ff;outline:none;">
-            </div>
+          <input type="text" id="bibleTopic_mc" oninput="state.bibleTopic=this.value; state.actualTopic=this.value;"
+            style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;background:white;outline:none;transition:border-color .2s;"
+            onfocus="this.style.borderColor='#2e80e8'" onblur="this.style.borderColor='#dce7f7'">
+          <div id="bibleTopicNote_mc"
+            style="font-size:11px;
+            color:#b45309;margin-top:4px;
+            display:none;">
+            ⚠️ No topic set by admin — please enter your own topic
           </div>
         </div>
 
@@ -2859,28 +2864,83 @@
       buildMCMemberCards();
     }
 
-    function fetchMCTopic() {
-      document.getElementById('mcTopicText').textContent = '⏳ Loading topic...';
-      document.getElementById('mcTopicText').style.color = '#64748b';
-      document.getElementById('mcTopicButtons').style.display = 'none';
+    function loadBibleTopicForForm(type) {
+      var inputId = type === 'mc' ? 'bibleTopic_mc' : 'bibleTopic';
+      var displayId = type === 'mc' ? 'bibleTopicDisplay_mc' : 'bibleTopicDisplay';
+      var noteId = type === 'mc' ? 'bibleTopicNote_mc' : 'bibleTopicNote';
+      
+      var input = document.getElementById(inputId);
+      var display = document.getElementById(displayId);
+      var note = document.getElementById(noteId);
+      
+      // Set initial loading state
+      if (display) {
+        display.textContent = '⏳ Loading topic...';
+        display.style.display = 'block';
+        display.style.background = '#f0f5ff';
+        display.style.borderColor = '#dce7f7';
+        display.style.color = '#64748b';
+      }
+      if (input) {
+        input.value = '';
+        input.readOnly = true;
+        input.placeholder = 'Loading...';
+      }
+      if (note) note.style.display = 'none';
+
       var done = false;
       var s = document.createElement('script');
-      window._mcTopicCallback = function(data) {
-        if (done) return; done = true;
-        state.bibleTopic = (data && data.topic) ? data.topic : '';
-        if (state.bibleTopic) {
-          document.getElementById('mcTopicText').innerHTML = '<strong>This week\'s topic:</strong> ' + state.bibleTopic;
-          document.getElementById('mcTopicText').style.color = '#0f2044';
-          document.getElementById('mcTopicButtons').style.display = 'block';
+      
+      window['onTopicForForm_' + type] = function(data) {
+        if (done) return;
+        done = true;
+        window['onTopicForForm_' + type] = null;
+        
+        var topic = data.topic || '';
+        state.bibleTopic = topic;
+        state.actualTopic = topic;
+        state.topicCovered = topic ? 'yes' : 'no';
+
+        if (topic) {
+          // Topic set by GO - show and lock
+          if (display) {
+            display.textContent = '📖 Topic: ' + topic;
+            display.style.display = 'block';
+            display.style.background = '#f0fdf4';
+            display.style.borderColor = '#22c55e';
+            display.style.color = '#15803d';
+          }
+          if (input) {
+            input.value = topic;
+            input.readOnly = true;
+            input.style.background = '#f8fafc';
+            input.style.color = '#64748b';
+          }
+          if (note) note.style.display = 'none';
         } else {
-          document.getElementById('mcTopicText').textContent = 'No topic set this week.';
+          // No topic set - let shepherd enter
+          if (display) display.style.display = 'none';
+          if (input) {
+            input.value = '';
+            input.readOnly = false;
+            input.style.background = 'white';
+            input.style.color = '#0a1628';
+            input.placeholder = 'Enter Bible study topic...';
+          }
+          if (note) note.style.display = 'block';
         }
-        if (document.body.contains(s)) document.body.removeChild(s);
+        if (document.head.contains(s)) document.head.removeChild(s);
       };
-      s.src = SCRIPT_URL + '?action=getTopic&callback=_mcTopicCallback';
-      s.onerror = function() { window._mcTopicCallback({}); };
-      document.body.appendChild(s);
-      setTimeout(function() { window._mcTopicCallback({}); }, 6000);
+      
+      s.src = SCRIPT_URL + '?action=getTopic&callback=onTopicForForm_' + type;
+      s.onerror = function() {
+        if (window['onTopicForForm_' + type]) window['onTopicForForm_' + type]({});
+      };
+      document.head.appendChild(s);
+      
+      setTimeout(function() {
+        if (window['onTopicForForm_' + type]) window['onTopicForForm_' + type]({});
+      }, 6000);
     }
 
     function selectMCTopicCovered(val, btn) {
@@ -3021,7 +3081,7 @@
       }
       if (step === 3) {
         buildMCConcernFields();
-        fetchMCTopic();
+        loadBibleTopicForForm('mc');
       }
       if (step === 4) {
         if (!state.prayerDone) { showGlobalAlert('Please answer the prayer question', 'error'); return; }
@@ -3215,29 +3275,7 @@
       });
     }
 
-    function fetchTopic() {
-      document.getElementById('topicText').textContent = '⏳ Loading topic...';
-      document.getElementById('topicText').style.color = '#64748b';
-      document.getElementById('topicButtons').style.display = 'none';
-      var done = false;
-      var s = document.createElement('script');
-      window._topicCallback = function(data) {
-        if (done) return; done = true;
-        state.bibleTopic = (data && data.topic) ? data.topic : '';
-        if (state.bibleTopic) {
-          document.getElementById('topicText').innerHTML = '<strong>This week\'s topic:</strong> ' + state.bibleTopic;
-          document.getElementById('topicText').style.color = '#0f2044';
-          document.getElementById('topicButtons').style.display = 'block';
-        } else {
-          document.getElementById('topicText').textContent = 'No topic set this week.';
-        }
-        if (document.body.contains(s)) document.body.removeChild(s);
-      };
-      s.src = SCRIPT_URL + '?action=getTopic&callback=_topicCallback';
-      s.onerror = function() { window._topicCallback({}); };
-      document.body.appendChild(s);
-      setTimeout(function() { window._topicCallback({}); }, 6000);
-    }
+
 
     function selectYN(field, val, btn) {
       state[field] = val;
@@ -3288,7 +3326,7 @@
       }
       if (step === 2) {
         buildConcernFields();
-        fetchTopic();
+        loadBibleTopicForForm('sps');
       }
       if (step === 3) {
         if (!state.prayerDone) { showGlobalAlert('Please answer the prayer question', 'error'); return; }
