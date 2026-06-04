@@ -1310,32 +1310,32 @@
             <!-- MC Stats Cards -->
             <div class="stat-card blue mc-stat-card">
               <div class="stat-label">MC Sessions This Week</div>
-              <div class="stat-value" id="mc-s-sessions">—</div>
+              <div class="stat-value" id="ov-mc-s-sessions">—</div>
               <div class="stat-sub">Submissions this week</div>
             </div>
             <div class="stat-card green mc-stat-card">
               <div class="stat-label">MC Shepherds Reported</div>
-              <div class="stat-value" id="mc-s-reported">—</div>
+              <div class="stat-value" id="ov-mc-s-reported">—</div>
               <div class="stat-sub">of 20 shepherds</div>
             </div>
             <div class="stat-card blue mc-stat-card">
               <div class="stat-label">MC Avg Attendance</div>
-              <div class="stat-value" id="mc-s-attendance">—</div>
+              <div class="stat-value" id="ov-mc-s-attendance">—</div>
               <div class="stat-sub">Attendance rate</div>
             </div>
             <div class="stat-card green mc-stat-card">
               <div class="stat-label">MC Prayer Sessions</div>
-              <div class="stat-value" id="mc-s-prayer">—</div>
+              <div class="stat-value" id="ov-mc-s-prayer">—</div>
               <div class="stat-sub">Covered by prayer</div>
             </div>
             <div class="stat-card gold mc-stat-card" onclick="switchTab('soul-reports', document.querySelector('.tab-btn[onclick*=\'soul-reports\']'))" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to view souls">
               <div class="stat-label">MC New Souls This Week</div>
-              <div class="stat-value" id="mc-s-souls">—</div>
+              <div class="stat-value" id="ov-mc-s-souls">—</div>
               <div class="stat-sub">Souls won this week</div>
             </div>
             <div class="stat-card blue mc-stat-card">
               <div class="stat-label">MC Bible Coverage</div>
-              <div class="stat-value" id="mc-s-bible">—</div>
+              <div class="stat-value" id="ov-mc-s-bible">—</div>
               <div class="stat-sub">Covered topic</div>
             </div>
 
@@ -3088,8 +3088,16 @@
           var cachedReports = localStorage.getItem('onc_cached_reports');
           var cachedMc = localStorage.getItem('onc_cached_mc_reports');
           if (cachedReports) {
-            allReports = JSON.parse(cachedReports);
-            allMicrochurchReports = cachedMc ? JSON.parse(cachedMc) : [];
+            try {
+              allReports = JSON.parse(cachedReports).filter(Boolean);
+            } catch(e) {
+              allReports = [];
+            }
+            try {
+              allMicrochurchReports = cachedMc ? JSON.parse(cachedMc).filter(Boolean) : [];
+            } catch(e) {
+              allMicrochurchReports = [];
+            }
             renderAll();
           }
 
@@ -3891,6 +3899,7 @@
       // ── SHIMMER HELPERS ──
       var STAT_IDS = [
         's-sessions', 's-reported', 's-avgatt', 's-prayer', 's-concerns', 's-bible',
+        'ov-mc-s-sessions', 'ov-mc-s-reported', 'ov-mc-s-attendance', 'ov-mc-s-prayer', 'ov-mc-s-souls', 'ov-mc-s-bible',
         'mc-s-sessions', 'mc-s-reported', 'mc-s-attendance', 'mc-s-prayer', 'mc-s-souls', 'mc-s-bible'
       ];
       function showShimmer() {
@@ -3926,7 +3935,7 @@
 
       window.onSpsReportsLoaded = function(data) {
         if (data && data.reports) {
-          allReports = data.reports;
+          allReports = data.reports.filter(Boolean);
           localStorage.setItem('onc_cached_reports',
             JSON.stringify(allReports));
         }
@@ -3950,7 +3959,7 @@
 
       window.onMcReportsLoaded = function(data) {
         if (data && data.reports) {
-          allMicrochurchReports = data.reports;
+          allMicrochurchReports = data.reports.filter(Boolean);
           localStorage.setItem('onc_cached_mc_reports',
             JSON.stringify(allMicrochurchReports));
         }
@@ -4015,28 +4024,47 @@
         var s = val.toString().trim();
         if (!s) return null;
         
-        // Try parsing DD/MM/YYYY or DD-MM-YYYY with optional time
         var clean = s.replace(/-/g, '/');
         var parts = clean.split('/');
+        
+        var year, month, day;
+        var hour = 0, min = 0, sec = 0;
+        
         if (parts.length >= 3) {
-          var day = parseInt(parts[0], 10);
-          var month = parseInt(parts[1], 10) - 1;
-          var yearPart = parts[2].split(' ')[0];
-          var year = parseInt(yearPart, 10);
-          if (year < 100) year += 2000;
+          var firstPart = parts[0].trim();
+          if (firstPart.length === 4) {
+            // YYYY/MM/DD format
+            year = parseInt(firstPart, 10);
+            month = parseInt(parts[1], 10) - 1;
+            day = parseInt(parts[2].split(' ')[0].split('T')[0], 10);
+          } else {
+            // DD/MM/YYYY format
+            day = parseInt(firstPart, 10);
+            month = parseInt(parts[1], 10) - 1;
+            var yearPart = parts[2].split(' ')[0].split('T')[0];
+            year = parseInt(yearPart, 10);
+            if (year < 100) year += 2000;
+          }
           
-          var hour = 0, min = 0, sec = 0;
-          var timeMatches = s.split(' ');
-          if (timeMatches.length >= 2) {
-            var timeParts = timeMatches[1].split(':');
+          // Parse time if present
+          var timeStr = '';
+          if (s.includes(' ')) {
+            timeStr = s.split(' ')[1] || '';
+          } else if (s.includes('T')) {
+            timeStr = s.split('T')[1] || '';
+          }
+          if (timeStr) {
+            var cleanTime = timeStr.split('Z')[0].split('+')[0];
+            var timeParts = cleanTime.split(':');
             if (timeParts.length >= 2) {
-              hour = parseInt(timeParts[0], 10);
-              min = parseInt(timeParts[1], 10);
+              hour = parseInt(timeParts[0], 10) || 0;
+              min = parseInt(timeParts[1], 10) || 0;
               if (timeParts.length >= 3) {
-                sec = parseInt(timeParts[2], 10);
+                sec = parseInt(parseFloat(timeParts[2]), 10) || 0;
               }
             }
           }
+          
           var parsed = new Date(year, month, day, hour, min, sec);
           if (!isNaN(parsed.getTime())) return parsed;
         }
@@ -4320,7 +4348,7 @@
         var bibleYes = weekly.filter(function (r) { return r.topicCovered === 'yes' || r.topicCovered === 'Yes'; }).length;
 
         document.getElementById('s-sessions').textContent = weekly.length;
-        document.getElementById('s-reported').textContent = shepSet.size + '/29';
+        document.getElementById('s-reported').textContent = shepSet.size + '/' + ALL_SHEPHERDS.length;
         document.getElementById('s-avgatt').textContent = avgAtt + '%';
         document.getElementById('s-prayer').textContent = prayers;
         document.getElementById('s-concerns').textContent = concerns;
@@ -4347,7 +4375,7 @@
         var highAct = ALL_SHEPHERDS.filter(function (s) { return weekly.filter(function (r) { return r.shepherd === s.name; }).length >= 3; });
         document.getElementById('alert-active').innerHTML = highAct.length ? highAct.map(function (s) { return '<li>' + s.name + '</li>'; }).join('') : '<li style="color:#64748b">None yet this week</li>';
 
-        var recent = allReports.slice().sort(function (a, b) {
+        var recent = allReports.filter(Boolean).slice().sort(function (a, b) {
           var dateA = parseRobustDate(a.submissionDate || a.sessionDate || a.date || a.timestamp) || new Date(0);
           var dateB = parseRobustDate(b.submissionDate || b.sessionDate || b.date || b.timestamp) || new Date(0);
           return dateB - dateA;
@@ -5839,7 +5867,15 @@
             'mc-s-attendance': avgAttendance + '%',
             'mc-s-prayer': prayerCount,
             'mc-s-souls': totalSouls,
-            'mc-s-bible': bibleCount + '/' + weekly.length
+            'mc-s-bible': bibleCount + '/' + weekly.length,
+            
+            // Also update duplicate IDs in General Overview tab
+            'ov-mc-s-sessions': weekly.length,
+            'ov-mc-s-reported': reportedShepherds.length + '/' + ALL_MC_SHEPHERDS.length,
+            'ov-mc-s-attendance': avgAttendance + '%',
+            'ov-mc-s-prayer': prayerCount,
+            'ov-mc-s-souls': totalSouls,
+            'ov-mc-s-bible': bibleCount + '/' + weekly.length
           };
           Object.keys(statMap).forEach(function (id) {
             var el = document.getElementById(id);
@@ -5849,7 +5885,10 @@
           var statIds = [
             'mc-s-sessions', 'mc-s-reported',
             'mc-s-attendance', 'mc-s-prayer',
-            'mc-s-souls', 'mc-s-bible'
+            'mc-s-souls', 'mc-s-bible',
+            'ov-mc-s-sessions', 'ov-mc-s-reported',
+            'ov-mc-s-attendance', 'ov-mc-s-prayer',
+            'ov-mc-s-souls', 'ov-mc-s-bible'
           ];
 
           statIds.forEach(function (id) {
@@ -5890,7 +5929,7 @@
           // Recent activity
           var activityEl = document.getElementById('mcRecentActivity');
           if (activityEl) {
-            var recent = mc.slice().sort(function (a, b) {
+            var recent = mc.filter(Boolean).slice().sort(function (a, b) {
               return new Date(b.timestamp || b.submissionDate || 0) - new Date(a.timestamp || a.submissionDate || 0);
             }).slice(0, 5);
             activityEl.innerHTML = recent.length === 0 ?
@@ -6474,7 +6513,7 @@
 
       window.onSoulReportsLoaded = function(data) {
         if (data && data.reports) {
-          _soulReportsFromScript = data.reports;
+          _soulReportsFromScript = data.reports.filter(Boolean);
         }
         renderSoulReports();
       };
@@ -6732,7 +6771,7 @@
         window.onGuestsLoaded = function(data) {
           window.onGuestsLoaded = null;
           if (data && data.guests) {
-            allGuestReports = data.guests;
+            allGuestReports = data.guests.filter(Boolean);
           }
           renderFirstTimers();
         };
@@ -7236,7 +7275,7 @@
         window.onActivityLoaded = function(data) {
           window.onActivityLoaded = null;
           if (data && data.logs) {
-            allActivityLogs = data.logs;
+            allActivityLogs = data.logs.filter(Boolean);
             renderActivityLog();
           }
         };
