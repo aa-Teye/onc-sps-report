@@ -4428,15 +4428,64 @@
         var highAct = ALL_SHEPHERDS.filter(function (s) { return weekly.filter(function (r) { return r.shepherd === s.name; }).length >= 3; });
         document.getElementById('alert-active').innerHTML = highAct.length ? highAct.map(function (s) { return '<li>' + s.name + '</li>'; }).join('') : '<li style="color:#64748b">None yet this week</li>';
 
-        var recent = allReports.filter(Boolean).slice().sort(function (a, b) {
-          var dateA = parseRobustDate(a.submissionDate || a.sessionDate || a.date || a.timestamp) || new Date(0);
-          var dateB = parseRobustDate(b.submissionDate || b.sessionDate || b.date || b.timestamp) || new Date(0);
+        var list = [];
+        var showSps = (currentRole !== 'mchead' && currentRole !== 'ftshead');
+        var showMc = (currentRole === 'superadmin' || currentRole === 'admin' || currentRole === 'mchead');
+
+        if (showSps && typeof allReports !== 'undefined' && Array.isArray(allReports)) {
+          allReports.forEach(function (r) {
+            if (!r) return;
+            list.push({
+              type: 'SPS',
+              shepherd: r.shepherd,
+              date: r.sessionDate || r.submissionDate || r.date || r.timestamp,
+              time: r.sessionTime,
+              present: toArray(r.membersPresent).length,
+              total: r.totalMembers || 4,
+              rate: getRate(r)
+            });
+          });
+        }
+
+        if (showMc && typeof allMicrochurchReports !== 'undefined' && Array.isArray(allMicrochurchReports)) {
+          allMicrochurchReports.forEach(function (r) {
+            if (!r) return;
+            var rate = parseFloat(r.attendanceRate) || 0;
+            var pct = rate > 1 ? Math.round(rate) : Math.round(rate * 100);
+            list.push({
+              type: 'MC',
+              shepherd: r.shepherd,
+              date: r.submissionDate || r.sessionDate || r.date || r.timestamp,
+              time: r.submissionTime,
+              present: toArray(r.membersPresent).length,
+              total: r.totalMembers || 4,
+              rate: pct
+            });
+          });
+        }
+
+        var recent = list.slice().sort(function (a, b) {
+          var dateA = parseRobustDate(a.date) || new Date(0);
+          var dateB = parseRobustDate(b.date) || new Date(0);
           return dateB - dateA;
         }).slice(0, 10);
-        document.getElementById('activity-count').textContent = allReports.length + ' total';
+
+        document.getElementById('activity-count').textContent = list.length + ' total';
         document.getElementById('activity-feed').innerHTML = recent.length ? recent.map(function (r) {
-          return '<div class="activity-item"><div><div class="activity-name">' + r.shepherd + '</div><div class="activity-meta">' + (r.sessionDate || r.date || '') + ' · ' + formatTime(r.sessionTime) + ' · ' + toArray(r.membersPresent).length + '/' + (r.totalMembers || 4) + ' members</div></div><div class="activity-rate">' + getRate(r) + '%</div></div>';
-        }).join('') : '<div class="empty"><div class="icon">📭</div><p>No reports yet</p></div>';
+          var badgeColor = r.type === 'SPS' ? 'background:#eff6ff;color:#3b82f6;' : 'background:#ecfdf5;color:#10b981;';
+          var typeBadge = '<span style="padding:2px 6px;border-radius:4px;font-size:10px;font-weight:800;margin-left:8px;vertical-align:middle;text-transform:uppercase;' + badgeColor + '">' + r.type + '</span>';
+
+          return '<div class="activity-item">' +
+            '<div>' +
+              '<div class="activity-name">' + r.shepherd + typeBadge + '</div>' +
+              '<div class="activity-meta">' +
+                formatReportDate(r.date) + ' · ' + (formatTime(r.time) || '—') + ' · ' +
+                r.present + '/' + r.total + ' members' +
+              '</div>' +
+            '</div>' +
+            '<div class="activity-rate">' + r.rate + '%</div>' +
+          '</div>';
+        }).join('') : '<div class="empty"><div class="icon">📭</div><p>No activity yet</p></div>';
       }
 
       window.expandSilentList = function(event) {
@@ -5983,16 +6032,19 @@
           var activityEl = document.getElementById('mcRecentActivity');
           if (activityEl) {
             var recent = mc.filter(Boolean).slice().sort(function (a, b) {
-              return new Date(b.timestamp || b.submissionDate || 0) - new Date(a.timestamp || a.submissionDate || 0);
+              var dateA = parseRobustDate(a.submissionDate || a.sessionDate || a.date || a.timestamp) || new Date(0);
+              var dateB = parseRobustDate(b.submissionDate || b.sessionDate || b.date || b.timestamp) || new Date(0);
+              return dateB - dateA;
             }).slice(0, 5);
             activityEl.innerHTML = recent.length === 0 ?
               '<p style="color:#94a3b8">No reports yet</p>' :
               recent.map(function (r) {
                 var rate = parseFloat(r.attendanceRate) || 0;
                 var pct = rate > 1 ? Math.round(rate) : Math.round(rate * 100);
+                var dateStr = r.submissionDate || r.sessionDate || r.date || r.timestamp || '';
                 return '<div class="activity-item"><div>' +
                   '<div class="activity-name">' + r.shepherd + '</div>' +
-                  '<div class="activity-meta">' + (r.submissionDate || '') + ' · ' +
+                  '<div class="activity-meta">' + formatReportDate(dateStr) + ' · ' +
                   parseSouls(r.newSouls) + ' new souls</div></div>' +
                   '<span class="activity-rate">' + pct + '%</span></div>';
               }).join('');
