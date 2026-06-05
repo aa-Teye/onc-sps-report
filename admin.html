@@ -3369,7 +3369,7 @@
         if (!select) return;
 
         var newStage = select.value;
-        if (newStage === record.CurrentStage) {
+        if (String(newStage) === String(record.CurrentStage)) {
           alert('This member is already assigned to the selected stage.');
           return;
         }
