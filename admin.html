@@ -4086,14 +4086,23 @@
 
       function isThisWeek(r) {
         if (!r) return false;
-        var dateStr = r.sessionDate || r.date || r.submissionDate || r.timestamp || '';
+        var dateStr = r.sessionDate || r.submissionDate || r.date || r.timestamp || '';
         var reportDate = parseRobustDate(dateStr);
 
         if (!reportDate || isNaN(reportDate.getTime()))
           return false;
 
         // Auto-detect if this is a Microchurch report or an SPS report
-        var isMc = !!(r.meetingType || r.weekNumber || (r.reportId && r.reportId.toString().indexOf('MC') > -1));
+        var isMc = false;
+        if (r.shepherd && typeof ALL_MC_SHEPHERDS !== 'undefined' && Array.isArray(ALL_MC_SHEPHERDS)) {
+          var nameLower = r.shepherd.toLowerCase().trim();
+          isMc = ALL_MC_SHEPHERDS.some(function (s) {
+            return s && s.name && s.name.toLowerCase().trim() === nameLower;
+          });
+        }
+        if (!isMc) {
+          isMc = !!(r.meetingType || r.weekNumber || (r.reportId && r.reportId.toString().indexOf('MC') > -1));
+        }
 
         // Default to current date
         var referenceDate = new Date();
@@ -4103,7 +4112,7 @@
           if (typeof allMicrochurchReports !== 'undefined' && Array.isArray(allMicrochurchReports)) {
             allMicrochurchReports.forEach(function (rep) {
               if (!rep) return;
-              var dStr = rep.submissionDate || rep.date || rep.timestamp || '';
+              var dStr = rep.sessionDate || rep.submissionDate || rep.date || rep.timestamp || '';
               var d = parseRobustDate(dStr);
               if (d && !isNaN(d.getTime())) {
                 if (!latest || d > latest) latest = d;
@@ -4114,7 +4123,7 @@
           if (typeof allReports !== 'undefined' && Array.isArray(allReports)) {
             allReports.forEach(function (rep) {
               if (!rep) return;
-              var dStr = rep.sessionDate || rep.date || rep.submissionDate || rep.timestamp || '';
+              var dStr = rep.sessionDate || rep.submissionDate || rep.date || rep.timestamp || '';
               var d = parseRobustDate(dStr);
               if (d && !isNaN(d.getTime())) {
                 if (!latest || d > latest) latest = d;
