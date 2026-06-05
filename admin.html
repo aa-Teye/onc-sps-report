@@ -3948,7 +3948,8 @@
         script.id = 'mcReportsScript';
         script.src = SCRIPT_URL + 
           '?action=getMicrochurchReports' +
-          '&callback=onMcReportsLoaded';
+          '&callback=onMcReportsLoaded' +
+          '&_=' + Date.now();
         script.onerror = function() {
           console.error('MC reports load failed');
           _loadAllRunning = false;
@@ -3988,7 +3989,8 @@
         script2.id = 'spsReportsScript';
         script2.src = SCRIPT_URL + 
           '?action=getReports' +
-          '&callback=onSpsReportsLoaded';
+          '&callback=onSpsReportsLoaded' +
+          '&_=' + Date.now();
         script2.onerror = function() {
           console.error('SPS reports load failed');
           _loadAllRunning = false;
@@ -5447,7 +5449,7 @@
         msg.textContent = '✅ Contacts saved locally.';
         msg.style.display = 'block';
         initSettings();
-        setTimeout(function () { msg.style.display = 'none'; }, 3000);
+        setTimeout(function () { msg.textContent = ''; }, 3000);
       }
 
       function sendReminders() {
@@ -6638,7 +6640,7 @@
 
         var script = document.createElement('script');
         script.id = 'soulReportsScript';
-        script.src = SCRIPT_URL + '?action=getSoulReports&callback=onSoulReportsLoaded';
+        script.src = SCRIPT_URL + '?action=getSoulReports&callback=onSoulReportsLoaded&_=' + Date.now();
         script.onerror = function() {
           console.warn('Direct Soul Reports from server not available, using dynamic extraction.');
           renderSoulReports();
@@ -6908,7 +6910,7 @@
         var script = document.createElement('script');
         script.id = 'guestsScript';
         script.src = SCRIPT_URL +
-          '?action=getGuests&callback=onGuestsLoaded';
+          '?action=getGuests&callback=onGuestsLoaded&_=' + Date.now();
         script.onerror = function() {
           renderFirstTimers();
         };
@@ -7414,7 +7416,8 @@
         script.id = 'activityScript';
         script.src = SCRIPT_URL +
           '?action=getActivityLog' +
-          '&callback=onActivityLoaded';
+          '&callback=onActivityLoaded' +
+          '&_=' + Date.now();
         script.onerror = function() {
           if (list) list.innerHTML = 
             '<div style="color:#ef4444;' +
@@ -7591,7 +7594,8 @@
         script.id = 'pinsAdminScript';
         script.src = SCRIPT_URL +
           '?action=getPins' +
-          '&callback=onPinsLoadedAdmin';
+          '&callback=onPinsLoadedAdmin' +
+          '&_=' + Date.now();
         script.onerror = function() {};
         document.head.appendChild(script);
       }
@@ -7693,7 +7697,8 @@
         script.id = 'annoScript';
         script.src = SCRIPT_URL +
           '?action=getAnnouncements' +
-          '&callback=onAnnouncementsLoaded';
+          '&callback=onAnnouncementsLoaded' +
+          '&_=' + Date.now();
         script.onerror = function() {
           renderAnnouncements();
         };
@@ -7733,7 +7738,7 @@
 
       function loadCurrentBibleTopic() {
         var s = document.createElement('script');
-        s.src = SCRIPT_URL + '?action=getTopic&callback=onAdminTopicLoaded';
+        s.src = SCRIPT_URL + '?action=getTopic&callback=onAdminTopicLoaded&_=' + Date.now();
         document.head.appendChild(s);
         
         window.onAdminTopicLoaded = function(d) {
@@ -7787,7 +7792,8 @@
         script.id = 'mcReportsScript';
         script.src = SCRIPT_URL + 
           '?action=getMicrochurchReports' +
-          '&callback=onMcReportsLoaded';
+          '&callback=onMcReportsLoaded' +
+          '&_=' + Date.now();
         script.onerror = function() {
           console.error('MC reports load failed');
           adminToast('❌ Failed to load MC reports');
