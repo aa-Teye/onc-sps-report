@@ -4082,36 +4082,42 @@
         if (!reportDate || isNaN(reportDate.getTime()))
           return false;
 
+        // Auto-detect if this is a Microchurch report or an SPS report
+        var isMc = !!(r.meetingType || r.weekNumber || (r.reportId && r.reportId.toString().indexOf('MC') > -1));
+
         // Default to current date
         var referenceDate = new Date();
-        
-        // Find the latest report date in the database to base "this week" on dynamically
         var latest = null;
-        if (typeof allReports !== 'undefined' && Array.isArray(allReports)) {
-          allReports.forEach(function (rep) {
-            if (!rep) return;
-            var dStr = rep.sessionDate || rep.date || rep.submissionDate || rep.timestamp || '';
-            var d = parseRobustDate(dStr);
-            if (d && !isNaN(d.getTime())) {
-              if (!latest || d > latest) latest = d;
-            }
-          });
+
+        if (isMc) {
+          if (typeof allMicrochurchReports !== 'undefined' && Array.isArray(allMicrochurchReports)) {
+            allMicrochurchReports.forEach(function (rep) {
+              if (!rep) return;
+              var dStr = rep.submissionDate || rep.date || rep.timestamp || '';
+              var d = parseRobustDate(dStr);
+              if (d && !isNaN(d.getTime())) {
+                if (!latest || d > latest) latest = d;
+              }
+            });
+          }
+        } else {
+          if (typeof allReports !== 'undefined' && Array.isArray(allReports)) {
+            allReports.forEach(function (rep) {
+              if (!rep) return;
+              var dStr = rep.sessionDate || rep.date || rep.submissionDate || rep.timestamp || '';
+              var d = parseRobustDate(dStr);
+              if (d && !isNaN(d.getTime())) {
+                if (!latest || d > latest) latest = d;
+              }
+            });
+          }
         }
-        if (typeof allMicrochurchReports !== 'undefined' && Array.isArray(allMicrochurchReports)) {
-          allMicrochurchReports.forEach(function (rep) {
-            if (!rep) return;
-            var dStr = rep.submissionDate || rep.date || rep.timestamp || '';
-            var d = parseRobustDate(dStr);
-            if (d && !isNaN(d.getTime())) {
-              if (!latest || d > latest) latest = d;
-            }
-          });
-        }
+
         if (latest) {
           referenceDate = latest;
         }
 
-        // Generous 9-day reporting window to capture late submissions from the weekend relative to the latest date
+        // Generous 9-day reporting window to capture late submissions relative to the latest date of that category
         var weekAgo = new Date(
           referenceDate.getTime() - 9 * 24 * 60 * 60 * 1000
         );
