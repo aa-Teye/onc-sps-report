@@ -4074,6 +4074,16 @@
         return null;
       }
 
+      function formatReportDate(val) {
+        if (!val) return '—';
+        var d = parseRobustDate(val);
+        if (!d || isNaN(d.getTime())) return val;
+        var day = String(d.getDate()).padStart(2, '0');
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var year = d.getFullYear();
+        return day + '/' + month + '/' + year;
+      }
+
       function isThisWeek(r) {
         if (!r) return false;
         var dateStr = r.sessionDate || r.date || r.submissionDate || r.timestamp || '';
@@ -6156,7 +6166,7 @@
 
             return '<tr>' +
               '<td>' + (i + 1) + '</td>' +
-              '<td>' + (r.submissionDate || '—') + proofHtml + '</td>' +
+              '<td>' + formatReportDate(r.submissionDate) + proofHtml + '</td>' +
               '<td>' + (r.submissionDay || '—') + '</td>' +
               '<td>' + (formatTime(r.submissionTime) || '—') + '</td>' +
               '<td><strong>' + (r.shepherd || '—') + '</strong></td>' +
