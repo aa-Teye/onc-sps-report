@@ -1060,6 +1060,25 @@
     .sidebar.collapsed .tab-section-label {
       display: none;
     }
+
+    .stage-pill, .flag-pill, .school-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .stage-pill { background: #e0f2fe; color: #1d4ed8; }
+    .flag-pill.yellow { background: #fef3c7; color: #92400e; }
+    .flag-pill.orange { background: #ffedd5; color: #c2410c; }
+    .flag-pill.red { background: #fee2e2; color: #991b1b; }
+    .flag-pill.purple { background: #ede9fe; color: #5b21b6; }
+    .flag-pill.stage-stall { background: #e0f2fe; color: #1d4ed8; }
+    .school-chip { background: #e2e8f0; color: #334155; }
+    .school-status { font-weight: 700; color: #0f2044; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1192,6 +1211,21 @@
             onclick="switchTab('membership', this)">
             <span class="icon">👥</span>
             <span class="tab-btn-label">Membership</span>
+          </button>
+          <button class="tab-btn"
+            onclick="switchTab('journey', this)">
+            <span class="icon">🚶</span>
+            <span class="tab-btn-label">Journey</span>
+          </button>
+          <button class="tab-btn"
+            onclick="switchTab('flags', this)">
+            <span class="icon">🚨</span>
+            <span class="tab-btn-label">Flags</span>
+          </button>
+          <button class="tab-btn"
+            onclick="switchTab('schools', this)">
+            <span class="icon">🏫</span>
+            <span class="tab-btn-label">Schools</span>
           </button>
           <button class="tab-btn"
             onclick="switchTab('leaderboard', this)"
@@ -2575,6 +2609,166 @@
             </div>
           </div>
 
+          <div class="tab-panel" id="panel-journey">
+            <h2 style="margin-bottom:24px;font-size:22px;font-weight:800;color:#0a1628;">
+              🚶 Discipleship Journey Tracker
+            </h2>
+
+            <div id="journeyStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px;"></div>
+
+            <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="font-size:16px;font-weight:800;color:#0a1628;">Stage Pipeline</h3>
+                <button onclick="loadJourney()" style="padding:8px 16px;background:#0f2044;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;">🔄 Refresh</button>
+              </div>
+              <div id="journeyPipeline" style="display:grid;grid-template-columns:1fr;gap:12px;"></div>
+            </div>
+
+            <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <div>
+                  <h3 style="font-size:16px;font-weight:800;color:#0a1628;">Manage Journey Stages</h3>
+                  <p style="color:#64748b;font-size:13px;margin-top:4px;">Update a member's current discipleship stage and save progress.</p>
+                </div>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:900px;">
+                  <thead>
+                    <tr style="background:#0a1628;color:white;">
+                      <th style="padding:10px;text-align:left;">Member</th>
+                      <th style="padding:10px;text-align:left;">Shepherd</th>
+                      <th style="padding:10px;text-align:center;">Phone</th>
+                      <th style="padding:10px;text-align:center;">Current Stage</th>
+                      <th style="padding:10px;text-align:center;">Update</th>
+                      <th style="padding:10px;text-align:center;">Save</th>
+                    </tr>
+                  </thead>
+                  <tbody id="journeyBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="panel-flags">
+            <h2 style="margin-bottom:24px;font-size:22px;font-weight:800;color:#0a1628;">
+              🚨 Flags & Alerts
+            </h2>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;" id="flagStats"></div>
+
+            <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="font-size:16px;font-weight:800;color:#0a1628;">Active Flags</h3>
+                <button onclick="loadFlags()" style="padding:8px 16px;background:#0f2044;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;">🔄 Refresh</button>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:1000px;">
+                  <thead>
+                    <tr style="background:#0a1628;color:white;">
+                      <th style="padding:10px;text-align:left;">Member</th>
+                      <th style="padding:10px;text-align:left;">Shepherd</th>
+                      <th style="padding:10px;text-align:left;">Flag Type</th>
+                      <th style="padding:10px;text-align:center;">Flag Date</th>
+                      <th style="padding:10px;text-align:left;">Reason</th>
+                      <th style="padding:10px;text-align:center;">Escalated</th>
+                      <th style="padding:10px;text-align:center;">Resolved</th>
+                      <th style="padding:10px;text-align:center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="flagsBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="panel-schools">
+            <h2 style="margin-bottom:24px;font-size:22px;font-weight:800;color:#0a1628;">
+              🏫 Foundations & Membership Schools
+            </h2>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:24px;">
+              <div style="background:white;border-radius:16px;padding:20px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;margin-bottom:4px;">Foundations Enrolments</div>
+                <div id="foundationsCount" style="font-size:32px;font-weight:900;color:#1d4ed8;">0</div>
+              </div>
+              <div style="background:white;border-radius:16px;padding:20px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;margin-bottom:4px;">Membership Enrolments</div>
+                <div id="membershipSchoolCount" style="font-size:32px;font-weight:900;color:#22c55e;">0</div>
+              </div>
+              <div style="background:white;border-radius:16px;padding:20px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;margin-bottom:4px;">Foundations Completed</div>
+                <div id="foundationsCompleted" style="font-size:32px;font-weight:900;color:#f59e0b;">0</div>
+              </div>
+              <div style="background:white;border-radius:16px;padding:20px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+                <div style="font-size:12px;color:#64748b;margin-bottom:4px;">Membership Completed</div>
+                <div id="membershipCompleted" style="font-size:32px;font-weight:900;color:#8b5cf6;">0</div>
+              </div>
+            </div>
+
+            <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                <div>
+                  <h3 style="font-size:16px;font-weight:800;color:#0a1628;">Foundations School</h3>
+                  <p style="color:#64748b;font-size:13px;margin-top:4px;">Track weekly attendance for Foundations School.</p>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  <button onclick="loadSchools()" style="padding:8px 16px;background:#0f2044;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;">🔄 Refresh</button>
+                  <button onclick="promptEnroll('FoundationsSchool')" style="padding:8px 16px;background:#1a3a6b;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;">➕ Enrol</button>
+                </div>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:1040px;">
+                  <thead>
+                    <tr style="background:#0a1628;color:white;">
+                      <th style="padding:10px;text-align:left;">Member</th>
+                      <th style="padding:10px;text-align:left;">Enrolled</th>
+                      <th style="padding:10px;text-align:center;">Wk1</th>
+                      <th style="padding:10px;text-align:center;">Wk2</th>
+                      <th style="padding:10px;text-align:center;">Wk3</th>
+                      <th style="padding:10px;text-align:center;">Wk4</th>
+                      <th style="padding:10px;text-align:center;">Wk5</th>
+                      <th style="padding:10px;text-align:center;">Wk6</th>
+                      <th style="padding:10px;text-align:center;">Completed</th>
+                      <th style="padding:10px;text-align:center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="foundationsBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                <div>
+                  <h3 style="font-size:16px;font-weight:800;color:#0a1628;">Membership School</h3>
+                  <p style="color:#64748b;font-size:13px;margin-top:4px;">Track sessions and commitment card status.</p>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  <button onclick="loadSchools()" style="padding:8px 16px;background:#0f2044;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;">🔄 Refresh</button>
+                  <button onclick="promptEnroll('MembershipSchool')" style="padding:8px 16px;background:#1a3a6b;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;">➕ Enrol</button>
+                </div>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:980px;">
+                  <thead>
+                    <tr style="background:#0a1628;color:white;">
+                      <th style="padding:10px;text-align:left;">Member</th>
+                      <th style="padding:10px;text-align:left;">Enrolled</th>
+                      <th style="padding:10px;text-align:center;">S1</th>
+                      <th style="padding:10px;text-align:center;">S2</th>
+                      <th style="padding:10px;text-align:center;">S3</th>
+                      <th style="padding:10px;text-align:center;">S4</th>
+                      <th style="padding:10px;text-align:center;">Card</th>
+                      <th style="padding:10px;text-align:center;">Completed</th>
+                      <th style="padding:10px;text-align:center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="membershipSchoolBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <div class="tab-panel" 
             id="panel-announcements">
             <h2 style="margin-bottom:24px;
@@ -2808,6 +3002,9 @@
       <div class="drawer-item" onclick="drawerTab('bible-study', this)"><span class="icon">📖</span>Bible Study</div>
       <div class="drawer-item" onclick="drawerTab('zones', this)"><span class="icon">🗂</span>Zones</div>
       <div class="drawer-item" onclick="drawerTab('export', this)"><span class="icon">📤</span>Export</div>
+      <div class="drawer-item" onclick="drawerTab('journey', this)"><span class="icon">🚶</span>Journey</div>
+      <div class="drawer-item" onclick="drawerTab('flags', this)"><span class="icon">🚨</span>Flags</div>
+      <div class="drawer-item" onclick="drawerTab('schools', this)"><span class="icon">🏫</span>Schools</div>
       <div class="drawer-item" onclick="drawerTab('leaderboard', this)"><span class="icon">🏆</span>Leaderboard</div>
       <div class="drawer-item" onclick="drawerTab('analytics', this)"><span class="icon">📊</span>Analytics</div>
       <div class="drawer-item" onclick="drawerTab('resources', this)"><span class="icon">📚</span>Resources</div>
@@ -3049,6 +3246,364 @@
         }, 8000);
       }
 
+      function serializeQuery(params) {
+        return Object.keys(params || {}).map(function (key) {
+          return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+        }).join('&');
+      }
+
+      function fetchDataQuery(action, params, callback) {
+        params = params || {};
+        params.action = action;
+        var query = serializeQuery(params);
+        var script = document.createElement('script');
+        var cbName = '_cb_' + Date.now();
+        var called = false;
+
+        window[cbName] = function (data) {
+          if (called) return;
+          called = true;
+          callback(data);
+          if (document.body.contains(script)) {
+            document.body.removeChild(script);
+          }
+          delete window[cbName];
+        };
+
+        script.src = SCRIPT_URL + '?' + query + '&callback=' + cbName;
+        script.onerror = function () {
+          if (!called) window[cbName]({ status: 'error' });
+        };
+        document.body.appendChild(script);
+
+        setTimeout(function () {
+          if (!called) window[cbName]({ status: 'timeout' });
+        }, 8000);
+      }
+
+      var journeyData = [];
+      var flagsData = [];
+      var schoolData = { foundations: [], membership: [] };
+
+      var STAGE_LABELS = {
+        1: 'First-Timer',
+        2: 'Follow-Up Active',
+        3: 'Foundations School',
+        4: 'Membership School',
+        5: 'Integrated',
+        6: 'Established Member'
+      };
+
+      function loadJourney() {
+        fetchData('getDiscipleshipJourney', function (data) {
+          journeyData = (data && data.records) ? data.records : [];
+          renderJourney();
+        });
+      }
+
+      function renderJourney() {
+        var stats = document.getElementById('journeyStats');
+        var pipeline = document.getElementById('journeyPipeline');
+        var body = document.getElementById('journeyBody');
+        if (!stats || !pipeline || !body) return;
+
+        var counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0};
+        journeyData.forEach(function (record) {
+          var stage = parseInt(record.CurrentStage, 10) || 1;
+          counts[stage] = (counts[stage] || 0) + 1;
+        });
+
+        stats.innerHTML = Object.keys(STAGE_LABELS).map(function (stageKey) {
+          return '<div style="background:white;border-radius:16px;padding:18px;box-shadow:0 1px 8px rgba(0,0,0,.06);">' +
+            '<div style="font-size:12px;color:#64748b;margin-bottom:8px;">' + STAGE_LABELS[stageKey] + '</div>' +
+            '<div style="font-size:32px;font-weight:900;color:#0a1628;">' + counts[stageKey] + '</div>' +
+            '</div>';
+        }).join('');
+
+        var maxCount = Math.max.apply(null, Object.values(counts));
+        pipeline.innerHTML = Object.keys(STAGE_LABELS).map(function (stageKey) {
+          var widthPercent = maxCount ? Math.max(12, Math.round((counts[stageKey] / maxCount) * 100)) : 12;
+          return '<div style="display:flex;align-items:center;gap:12px;">' +
+            '<div style="width:160px;font-weight:700;color:#0f2044;">' + stageKey + '. ' + STAGE_LABELS[stageKey] + '</div>' +
+            '<div style="flex:1;background:#e2e8f0;border-radius:999px;overflow:hidden;height:16px;">' +
+            '<div style="width:' + widthPercent + '%;height:100%;background:#0f2044;border-radius:999px;"></div>' +
+            '</div>' +
+            '<div style="width:34px;text-align:right;font-weight:700;color:#0f2044;">' + counts[stageKey] + '</div>' +
+            '</div>';
+        }).join('');
+
+        if (!journeyData.length) {
+          body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#64748b;">No discipleship journey records available.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = journeyData.map(function (record, index) {
+          var stage = parseInt(record.CurrentStage, 10) || 1;
+          var rowBg = index % 2 === 0 ? '#f8fafc' : 'white';
+          var stageSelect = Object.keys(STAGE_LABELS).map(function (stageKey) {
+            return '<option value="' + stageKey + '"' + (stageKey == stage ? ' selected' : '') + '>' + STAGE_LABELS[stageKey] + '</option>';
+          }).join('');
+
+          return '<tr style="background:' + rowBg + ';border-bottom:1px solid #e2e8f0;">' +
+            '<td style="padding:10px;font-weight:700;color:#0f2044;">' + (record.MemberName || '—') + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + (record.ShepherdAssigned || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;color:#0f2044;">' + (record.Phone || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            '<span class="stage-pill">' + STAGE_LABELS[stage] + '</span>' +
+            '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            '<select id="journeyStageSelect-' + index + '" style="padding:8px 10px;border-radius:10px;border:1px solid #e2e8f0;font-size:13px;min-width:180px;">' + stageSelect + '</select>' +
+            '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            '<button onclick="saveJourneyStage(' + index + ')" style="padding:8px 14px;background:#0f2044;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Save</button>' +
+            '</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      function saveJourneyStage(index) {
+        var record = journeyData[index];
+        if (!record) return;
+
+        var select = document.getElementById('journeyStageSelect-' + index);
+        if (!select) return;
+
+        var newStage = select.value;
+        if (newStage === record.CurrentStage) {
+          alert('This member is already assigned to the selected stage.');
+          return;
+        }
+
+        fetchDataQuery('updateMemberStage', {
+          memberId: record.MemberID || record.MemberName || '',
+          newStage: newStage,
+          updatedBy: currentRoleName || currentRole || 'Admin'
+        }, function (response) {
+          if (response && response.status === 'success') {
+            record.CurrentStage = newStage;
+            record.LastUpdated = new Date().toISOString().slice(0, 10);
+            renderJourney();
+            alert('Stage updated successfully.');
+          } else {
+            alert('Unable to update stage.');
+          }
+        });
+      }
+
+      function loadFlags() {
+        fetchData('getFlags', function (data) {
+          flagsData = (data && data.records) ? data.records : [];
+          renderFlags();
+        });
+      }
+
+      function renderFlags() {
+        var stats = document.getElementById('flagStats');
+        var body = document.getElementById('flagsBody');
+        if (!stats || !body) return;
+
+        var counts = { Yellow: 0, Orange: 0, Red: 0, Purple: 0, StageStall: 0 };
+        flagsData.forEach(function (record) {
+          var type = record.FlagType || 'Unknown';
+          if (counts.hasOwnProperty(type)) counts[type] += 1;
+        });
+
+        stats.innerHTML = Object.keys(counts).map(function (type) {
+          var color = type === 'Yellow' ? '#fde68a' : type === 'Orange' ? '#fed7aa' : type === 'Red' ? '#fecaca' : type === 'Purple' ? '#ddd6fe' : '#e2e8f0';
+          return '<div style="background:white;border-radius:16px;padding:18px;box-shadow:0 1px 8px rgba(0,0,0,.06);">' +
+            '<div style="font-size:12px;color:#64748b;margin-bottom:8px;">' + type + '</div>' +
+            '<div style="font-size:32px;font-weight:900;color:#0a1628;">' + counts[type] + '</div>' +
+            '</div>';
+        }).join('');
+
+        if (!flagsData.length) {
+          body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#64748b;">No active flags found.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = flagsData.map(function (record, index) {
+          var rowBg = index % 2 === 0 ? '#f8fafc' : 'white';
+          var resolved = record.ResolutionDate || '';
+          var flagClass = record.FlagType ? record.FlagType.toLowerCase() : 'unknown';
+
+          return '<tr style="background:' + rowBg + ';border-bottom:1px solid #e2e8f0;">' +
+            '<td style="padding:10px;font-weight:700;color:#0f2044;">' + (record.MemberName || '—') + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + (record.ShepherdName || '—') + '</td>' +
+            '<td style="padding:10px;text-align:left;"><span class="flag-pill ' + flagClass + '">' + (record.FlagType || '—') + '</span></td>' +
+            '<td style="padding:10px;text-align:center;color:#0f2044;">' + (record.FlagDate || '—') + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + (record.TriggerReason || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;color:#0f2044;">' + (record.EscalatedTo || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;color:#0f2044;">' + (resolved ? 'Yes' : 'No') + '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            (resolved ? '<span style="color:#15803d;font-weight:700;">Resolved</span>' : '<button onclick="resolveFlagAction(' + index + ')" style="padding:8px 14px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Resolve</button>') +
+            '</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      function resolveFlagAction(index) {
+        var record = flagsData[index];
+        if (!record) return;
+        if (record.ResolutionDate) {
+          alert('This flag is already resolved.');
+          return;
+        }
+
+        var notes = prompt('Enter resolution notes for this flag:');
+        if (notes === null) return;
+
+        fetchDataQuery('resolveFlag', {
+          flagId: record.flagId || record._row || index + 2,
+          resolvedBy: currentRoleName || currentRole || 'Admin',
+          notes: notes
+        }, function (response) {
+          if (response && response.status === 'success') {
+            record.ResolvedBy = currentRoleName || currentRole || 'Admin';
+            record.ResolutionDate = new Date().toISOString().slice(0, 10);
+            record.ResolutionNotes = notes;
+            renderFlags();
+            alert('Flag resolved.');
+          } else {
+            alert('Unable to resolve flag.');
+          }
+        });
+      }
+
+      function loadSchools() {
+        fetchData('getSchoolData', function (data) {
+          schoolData.foundations = (data && data.foundations) ? data.foundations : [];
+          schoolData.membership = (data && data.membership) ? data.membership : [];
+          renderSchools();
+        });
+      }
+
+      function renderSchools() {
+        var foundationsCount = document.getElementById('foundationsCount');
+        var membershipCount = document.getElementById('membershipSchoolCount');
+        var foundationsCompleted = document.getElementById('foundationsCompleted');
+        var membershipCompleted = document.getElementById('membershipCompleted');
+        var foundationsBody = document.getElementById('foundationsBody');
+        var membershipBody = document.getElementById('membershipSchoolBody');
+        if (!foundationsCount || !membershipCount || !foundationsCompleted || !membershipCompleted || !foundationsBody || !membershipBody) return;
+
+        var foundationsCompletedCount = 0;
+        schoolData.foundations.forEach(function (record) {
+          if (record.CompletedDate) foundationsCompletedCount += 1;
+        });
+
+        var membershipCompletedCount = 0;
+        schoolData.membership.forEach(function (record) {
+          if (record.CompletedDate) membershipCompletedCount += 1;
+        });
+
+        foundationsCount.textContent = schoolData.foundations.length;
+        membershipCount.textContent = schoolData.membership.length;
+        foundationsCompleted.textContent = foundationsCompletedCount;
+        membershipCompleted.textContent = membershipCompletedCount;
+
+        if (!schoolData.foundations.length) {
+          foundationsBody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#64748b;">No Foundations School enrolments yet.</td></tr>';
+        } else {
+          foundationsBody.innerHTML = schoolData.foundations.map(function (record, index) {
+            var rowBg = index % 2 === 0 ? '#f8fafc' : 'white';
+            var weekButtons = [1,2,3,4,5,6].map(function (week) {
+              var field = 'Week' + week;
+              var value = (String(record[field] || '').toUpperCase() === 'Y') ? 'Y' : 'N';
+              return '<button onclick="toggleSchoolAttendance(\'FoundationsSchool\',' + index + ',\'' + field + '\')" style="padding:6px 10px;background:' + (value === 'Y' ? '#22c55e' : '#e2e8f0') + ';color:' + (value === 'Y' ? 'white' : '#0f2044') + ';border:none;border-radius:8px;cursor:pointer;">' + value + '</button>';
+            }).join('');
+            return '<tr style="background:' + rowBg + ';border-bottom:1px solid #e2e8f0;">' +
+              '<td style="padding:10px;font-weight:700;color:#0f2044;">' + (record.MemberName || '—') + '</td>' +
+              '<td style="padding:10px;color:#64748b;">' + (record.EnrolledDate || '—') + '</td>' +
+              '<td style="padding:10px;text-align:center;">' + weekButtons.slice(0, 1).join('') + '</td>' +
+              '<td style="padding:10px;text-align:center;">' + weekButtons.slice(1, 2).join('') + '</td>' +
+              '<td style="padding:10px;text-align:center;">' + weekButtons.slice(2, 3).join('') + '</td>' +
+              '<td style="padding:10px;text-align:center;">' + weekButtons.slice(3, 4).join('') + '</td>' +
+              '<td style="padding:10px;text-align:center;">' + weekButtons.slice(4, 5).join('') + '</td>' +
+              '<td style="padding:10px;text-align:center;">' + weekButtons.slice(5, 6).join('') + '</td>' +
+              '<td style="padding:10px;text-align:center;color:#0f2044;">' + (record.CompletedDate || '—') + '</td>' +
+              '<td style="padding:10px;text-align:center;"><button onclick="promptEnroll(\'FoundationsSchool\', \'' + (record.MemberID || '') + '\', \'' + (record.MemberName || '').replace(/'/g, "\\'") + '\')" style="padding:8px 14px;background:#1a3a6b;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Edit</button></td>' +
+              '</tr>';
+          }).join('');
+        }
+
+        if (!schoolData.membership.length) {
+          membershipBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#64748b;">No Membership School enrolments yet.</td></tr>';
+        } else {
+          membershipBody.innerHTML = schoolData.membership.map(function (record, index) {
+            var rowBg = index % 2 === 0 ? '#f8fafc' : 'white';
+            var sessionButtons = [1,2,3,4].map(function (session) {
+              var field = 'Session' + session;
+              var value = (String(record[field] || '').toUpperCase() === 'Y') ? 'Y' : 'N';
+              return '<button onclick="toggleSchoolAttendance(\'MembershipSchool\',' + index + ',\'' + field + '\')" style="padding:6px 10px;background:' + (value === 'Y' ? '#22c55e' : '#e2e8f0') + ';color:' + (value === 'Y' ? 'white' : '#0f2044') + ';border:none;border-radius:8px;cursor:pointer;">' + value + '</button>';
+            }).join('');
+            var card = (String(record.CommitmentCardSigned || '').toUpperCase() === 'Y') ? 'Y' : 'N';
+            return '<tr style="background:' + rowBg + ';border-bottom:1px solid #e2e8f0;">' +
+              '<td style="padding:10px;font-weight:700;color:#0f2044;">' + (record.MemberName || '—') + '</td>' +
+              '<td style="padding:10px;color:#64748b;">' + (record.EnrolledDate || '—') + '</td>' +
+              '<td style="padding:10px;text-align:center;">' + sessionButtons.slice(0, 1).join('') + '</td>' +
+              '<td style="padding:10px;text-align:center;">' + sessionButtons.slice(1, 2).join('') + '</td>' +
+              '<td style="padding:10px;text-align:center;">' + sessionButtons.slice(2, 3).join('') + '</td>' +
+              '<td style="padding:10px;text-align:center;">' + sessionButtons.slice(3, 4).join('') + '</td>' +
+              '<td style="padding:10px;text-align:center;">' +
+                '<button onclick="toggleSchoolAttendance(\'MembershipSchool\',' + index + ',\'CommitmentCardSigned\')" style="padding:6px 10px;background:' + (card === 'Y' ? '#22c55e' : '#e2e8f0') + ';color:' + (card === 'Y' ? 'white' : '#0f2044') + ';border:none;border-radius:8px;cursor:pointer;">' + card + '</button>' +
+              '</td>' +
+              '<td style="padding:10px;text-align:center;color:#0f2044;">' + (record.CompletedDate || '—') + '</td>' +
+              '<td style="padding:10px;text-align:center;"><button onclick="promptEnroll(\'MembershipSchool\', \'' + (record.MemberID || '') + '\', \'' + (record.MemberName || '').replace(/'/g, "\\'") + '\')" style="padding:8px 14px;background:#1a3a6b;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Edit</button></td>' +
+              '</tr>';
+          }).join('');
+        }
+      }
+
+      function toggleSchoolAttendance(sheet, index, field) {
+        var record = sheet === 'FoundationsSchool' ? schoolData.foundations[index] : schoolData.membership[index];
+        if (!record) return;
+
+        var currentValue = String(record[field] || '').toUpperCase() === 'Y' ? 'Y' : 'N';
+        var nextValue = currentValue === 'Y' ? 'N' : 'Y';
+
+        fetchDataQuery('updateSchoolAttendance', {
+          sheet: sheet,
+          memberId: record.MemberID || record.MemberName || '',
+          week: field,
+          value: nextValue,
+          updatedBy: currentRoleName || currentRole || 'Admin'
+        }, function (response) {
+          if (response && response.status === 'success') {
+            record[field] = nextValue;
+            if (response.completedDate) {
+              record.CompletedDate = response.completedDate;
+            }
+            renderSchools();
+            alert('Attendance updated successfully.');
+          } else {
+            alert('Unable to update attendance.');
+          }
+        });
+      }
+
+      function promptEnroll(sheet, memberId, memberName) {
+        var id = memberId || prompt('Enter Member ID:');
+        if (!id) return;
+        var name = memberName || prompt('Enter Member Name:');
+        if (!name) return;
+        var enrolledDate = prompt('Enter Enrolment Date (YYYY-MM-DD):', new Date().toISOString().slice(0, 10));
+        if (!enrolledDate) return;
+
+        fetchDataQuery('enrolInSchool', {
+          sheet: sheet,
+          memberId: id,
+          memberName: name,
+          enrolledDate: enrolledDate
+        }, function (response) {
+          if (response && response.status === 'success') {
+            alert('Member enrolled successfully.');
+            loadSchools();
+          } else {
+            alert('Unable to enroll member.');
+          }
+        });
+      }
+
       function checkPin() {
         var pin = document.getElementById('pinInput').value;
         var selectedRole = document.getElementById('roleSelect').value;
@@ -3234,7 +3789,8 @@
             'overview','analytics','leaderboard',
             'shepherds','mc-shepherds','zones',
             'reports','mc-reports','first-timers',
-            'membership','announcements','export'
+            'membership','journey','flags','schools',
+            'announcements','export'
           ]);
         }
 
@@ -3540,6 +4096,7 @@
         'mc-overview': 'Microchurch Overview', 'mc-shepherds': 'Microchurch Shepherds', 'mc-members': 'Microchurch Members', 'mc-reports': 'Microchurch Reports Logs',
         'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings', analytics: 'Analytics Dashboard',
         'soul-reports': 'Sunday Soul Reports', 'first-timers': 'First Timers', 'membership': 'Church Membership',
+        'journey': 'Discipleship Journey', 'flags': 'Flags & Alerts', 'schools': 'School Tracking',
         'activity-log': 'Activity Log',
         'announcements': 'Announcements'
       };
@@ -3618,6 +4175,21 @@
           setTimeout(function() {
             buildMembersList();
             renderMembership();
+          }, 150);
+        }
+        if (id === 'journey') {
+          setTimeout(function() {
+            loadJourney();
+          }, 150);
+        }
+        if (id === 'flags') {
+          setTimeout(function() {
+            loadFlags();
+          }, 150);
+        }
+        if (id === 'schools') {
+          setTimeout(function() {
+            loadSchools();
           }, 150);
         }
         if (id === 'leaderboard') {
