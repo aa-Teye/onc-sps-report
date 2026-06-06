@@ -4974,9 +4974,12 @@
         }
 
         var recent = list.slice().sort(function (a, b) {
-          var dateA = parseRobustDate(a.date) || new Date(0);
-          var dateB = parseRobustDate(b.date) || new Date(0);
-          return dateB - dateA;
+          // Sort by week number first, then by time
+          var weekDiff = (parseInt(b.weekNumber) || 0) - (parseInt(a.weekNumber) || 0);
+          if (weekDiff !== 0) return weekDiff;
+          var timeA = (a.time || '').substring(0, 5);
+          var timeB = (b.time || '').substring(0, 5);
+          return timeB > timeA ? 1 : -1;
         }).slice(0, 10);
 
         document.getElementById('activity-count').textContent = list.length + ' total';

@@ -303,10 +303,10 @@ function getReports() {
   const data    = sheet.getDataRange().getValues();
   const reports = data.slice(1).map(row => ({
     reportId:        row[0],
-    submissionDate:  row[1] instanceof Date ? formatDate(row[1]) : (row[1] || ''),
+    submissionDate:  row[1] instanceof Date ? formatDate(row[1]) : String(row[1] || ''),
     submissionDay:   row[2],
     submissionTime:  row[3],
-    sessionDate:     row[4] instanceof Date ? formatDate(row[4]) : (row[4] || ''),
+    sessionDate:     row[4] instanceof Date ? formatDate(row[4]) : String(row[4] || ''),
     sessionDay:      row[5],
     sessionTime:     row[6],
     shepherd:        row[7],
@@ -394,10 +394,10 @@ function getMicrochurchReports() {
   const data    = sheet.getDataRange().getValues();
   const reports = data.slice(1).map(row => ({
     reportId:        row[0],
-    submissionDate:  row[1] instanceof Date ? formatDate(row[1]) : (row[1] || ''),
+    submissionDate:  row[1] instanceof Date ? formatDate(row[1]) : String(row[1] || ''),
     submissionDay:   row[2],
     submissionTime:  row[3],
-    sessionDate:     row[4] instanceof Date ? formatDate(row[4]) : (row[4] || ''),
+    sessionDate:     row[4] instanceof Date ? formatDate(row[4]) : String(row[4] || ''),
     sessionDay:      row[5],
     sessionTime:     row[6],
     shepherd:        row[7],
