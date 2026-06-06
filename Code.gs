@@ -303,10 +303,10 @@ function getReports() {
   const data    = sheet.getDataRange().getValues();
   const reports = data.slice(1).map(row => ({
     reportId:        row[0],
-    submissionDate:  row[1],
+    submissionDate:  row[1] instanceof Date ? formatDate(row[1]) : (row[1] || ''),
     submissionDay:   row[2],
     submissionTime:  row[3],
-    sessionDate:     row[4],
+    sessionDate:     row[4] instanceof Date ? formatDate(row[4]) : (row[4] || ''),
     sessionDay:      row[5],
     sessionTime:     row[6],
     shepherd:        row[7],
@@ -394,10 +394,10 @@ function getMicrochurchReports() {
   const data    = sheet.getDataRange().getValues();
   const reports = data.slice(1).map(row => ({
     reportId:        row[0],
-    submissionDate:  row[1],
+    submissionDate:  row[1] instanceof Date ? formatDate(row[1]) : (row[1] || ''),
     submissionDay:   row[2],
     submissionTime:  row[3],
-    sessionDate:     row[4],
+    sessionDate:     row[4] instanceof Date ? formatDate(row[4]) : (row[4] || ''),
     sessionDay:      row[5],
     sessionTime:     row[6],
     shepherd:        row[7],
@@ -477,7 +477,7 @@ function getGuests() {
   const guests = data.slice(1).map(function (row) {
     return {
       id:               row[0]  || '',
-      date:             row[1]  || '',
+      date:             row[1] instanceof Date ? formatDate(row[1]) : (row[1] || ''),
       time:             row[2]  || '',
       firstName:        row[3]  || '',
       middleName:       row[4]  || '',
@@ -909,9 +909,11 @@ function jsonResponse(data) {
 
 // Returns DD/MM/YYYY — used by all v3.6 features for display & sheet storage.
 function formatDate(date) {
-  return date.toLocaleDateString('en-GB', {
-    day: '2-digit', month: '2-digit', year: 'numeric'
-  });
+  const d = new Date(date);
+  const day   = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year  = d.getFullYear();
+  return day + '/' + month + '/' + year;
 }
 
 function formatTime(date) {

@@ -4634,71 +4634,13 @@
       }
 
       function isThisWeek(r) {
-        if (!r) return false;
-        var dateStr = r.sessionDate || r.submissionDate || r.date || r.timestamp || '';
-        var reportDate = parseRobustDate(dateStr);
-
-        if (!reportDate || isNaN(reportDate.getTime()))
-          return false;
-
-        // Auto-detect if this is a Microchurch report or an SPS report
-        var isMc = false;
-        if (r.shepherd && typeof ALL_MC_SHEPHERDS !== 'undefined' && Array.isArray(ALL_MC_SHEPHERDS)) {
-          var nameLower = r.shepherd.toLowerCase().trim();
-          isMc = ALL_MC_SHEPHERDS.some(function (s) {
-            return s && s.name && s.name.toLowerCase().trim() === nameLower;
-          });
-        }
-        if (!isMc) {
-          isMc = !!(r.meetingType || r.weekNumber || (r.reportId && r.reportId.toString().indexOf('MC') > -1));
-        }
-
-        // Default to current date
-        var referenceDate = new Date();
-        var latest = null;
-
-        if (isMc) {
-          if (typeof allMicrochurchReports !== 'undefined' && Array.isArray(allMicrochurchReports)) {
-            allMicrochurchReports.forEach(function (rep) {
-              if (!rep) return;
-              var dStr = rep.sessionDate || rep.submissionDate || rep.date || rep.timestamp || '';
-              var d = parseRobustDate(dStr);
-              if (d && !isNaN(d.getTime())) {
-                if (!latest || d > latest) latest = d;
-              }
-            });
-          }
-        } else {
-          if (typeof allReports !== 'undefined' && Array.isArray(allReports)) {
-            allReports.forEach(function (rep) {
-              if (!rep) return;
-              var dStr = rep.sessionDate || rep.submissionDate || rep.date || rep.timestamp || '';
-              var d = parseRobustDate(dStr);
-              if (d && !isNaN(d.getTime())) {
-                if (!latest || d > latest) latest = d;
-              }
-            });
-          }
-        }
-
-        if (latest) {
-          referenceDate = latest;
-        }
-
-        // Calculate strict Monday-to-Sunday week containing referenceDate (where Sunday is the last day)
-        var refDay = referenceDate.getDay();
-        var daysToMonday = (refDay === 0) ? 6 : (refDay - 1);
-        
-        var monday = new Date(referenceDate);
-        monday.setDate(referenceDate.getDate() - daysToMonday);
-        monday.setHours(0, 0, 0, 0);
-
-        var sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-        sunday.setHours(23, 59, 59, 999);
-
-        // Include any report whose date falls within this Monday-to-Sunday calendar week
-        return reportDate >= monday && reportDate <= sunday;
+        const currentWeek = getWeekNumber(new Date());
+        // Use stored weekNumber directly — most reliable
+        if (r.weekNumber) return parseInt(r.weekNumber) === currentWeek;
+        // Fallback to date parsing if weekNumber missing
+        const d = parseRobustDate(r.submissionDate || r.sessionDate);
+        if (!d || isNaN(d)) return false;
+        return getWeekNumber(d) === currentWeek;
       }
 
       function getRate(r) {
@@ -6102,20 +6044,11 @@
       // ========================================================
 
       function isMcThisWeek(r) {
-        var dateStr = r.submissionDate || r.sessionDate || r.date;
-        if (!dateStr) return false;
-        var s = dateStr.toString();
-        var parts = s.split('/');
-        var reportDate;
-        if (parts.length >= 3) {
-          reportDate = new Date(parts[2], parts[1] - 1, parts[0]);
-        } else {
-          reportDate = new Date(s);
-        }
-        if (isNaN(reportDate)) return false;
-        var now = new Date();
-        var weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        return reportDate >= weekAgo && reportDate <= now;
+        const currentWeek = getWeekNumber(new Date());
+        if (r.weekNumber) return parseInt(r.weekNumber) === currentWeek;
+        const d = parseRobustDate(r.submissionDate || r.sessionDate);
+        if (!d || isNaN(d)) return false;
+        return getWeekNumber(d) === currentWeek;
       }
 
       function getMcRate(r) {
