@@ -4634,13 +4634,20 @@
       }
 
       function isThisWeek(r) {
-        const currentWeek = getWeekNumber(new Date());
-        // Use stored weekNumber directly — most reliable
+        const now = new Date();
+        const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const currentWeek = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
         if (r.weekNumber) return parseInt(r.weekNumber) === currentWeek;
-        // Fallback to date parsing if weekNumber missing
-        const d = parseRobustDate(r.submissionDate || r.sessionDate);
-        if (!d || isNaN(d)) return false;
-        return getWeekNumber(d) === currentWeek;
+        const pd = parseRobustDate(r.submissionDate || r.sessionDate);
+        if (!pd || isNaN(pd)) return false;
+        const d2 = new Date(Date.UTC(pd.getFullYear(), pd.getMonth(), pd.getDate()));
+        const dn2 = d2.getUTCDay() || 7;
+        d2.setUTCDate(d2.getUTCDate() + 4 - dn2);
+        const ys2 = new Date(Date.UTC(d2.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d2 - ys2) / 86400000) + 1) / 7) === currentWeek;
       }
 
       function getRate(r) {
@@ -6044,11 +6051,20 @@
       // ========================================================
 
       function isMcThisWeek(r) {
-        const currentWeek = getWeekNumber(new Date());
+        const now = new Date();
+        const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const currentWeek = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
         if (r.weekNumber) return parseInt(r.weekNumber) === currentWeek;
-        const d = parseRobustDate(r.submissionDate || r.sessionDate);
-        if (!d || isNaN(d)) return false;
-        return getWeekNumber(d) === currentWeek;
+        const pd = parseRobustDate(r.submissionDate || r.sessionDate);
+        if (!pd || isNaN(pd)) return false;
+        const d2 = new Date(Date.UTC(pd.getFullYear(), pd.getMonth(), pd.getDate()));
+        const dn2 = d2.getUTCDay() || 7;
+        d2.setUTCDate(d2.getUTCDate() + 4 - dn2);
+        const ys2 = new Date(Date.UTC(d2.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d2 - ys2) / 86400000) + 1) / 7) === currentWeek;
       }
 
       function getMcRate(r) {
