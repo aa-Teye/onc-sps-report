@@ -4580,11 +4580,19 @@
 
       function formatTime(val) {
         if (!val) return '—';
-        var s = val.toString();
-        if (s.includes('T')) {
-          return new Date(val).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        // Handle Google Sheets time object returned as 1899-12-30T...
+        if (typeof val === 'string' && val.includes('T')) {
+          const d = new Date(val);
+          if (!isNaN(d)) {
+            return String(d.getUTCHours()).padStart(2,'0') + ':' +
+                   String(d.getUTCMinutes()).padStart(2,'0');
+          }
         }
-        return s.length > 5 ? s.slice(0, 5) : s;
+        // Handle HH:MM:SS string
+        if (typeof val === 'string' && val.includes(':')) {
+          return val.substring(0, 5);
+        }
+        return String(val).substring(0, 5);
       }
 
       function toArray(val) {
@@ -4595,31 +4603,24 @@
 
       function parseRobustDate(val) {
         if (!val) return null;
-
-        // Handle ISO date string from Google Sheets (e.g. '2026-03-06T00:00:00.000Z')
-        // Google Sheets returns DD/MM/YYYY but JS parses it as MM/DD/YYYY — fix by
-        // extracting parts directly from the ISO string
         if (typeof val === 'string' && val.includes('T')) {
           const parts = val.split('T')[0].split('-');
-          return new Date(
-            parseInt(parts[0]),      // year
-            parseInt(parts[1]) - 1,  // month (0-indexed)
-            parseInt(parts[2])       // day
-          );
+          return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
         }
-
-        // Handle DD/MM/YYYY string format
         if (typeof val === 'string' && val.includes('/')) {
           const parts = val.split('/');
           if (parts.length === 3) {
-            return new Date(
-              parseInt(parts[2]),      // year
-              parseInt(parts[1]) - 1,  // month (0-indexed)
-              parseInt(parts[0])       // day
-            );
+            const a = parseInt(parts[0]);
+            const b = parseInt(parts[1]);
+            const c = parseInt(parts[2]);
+            if (c > 1000) return new Date(c, b - 1, a); // DD/MM/YYYY
+            return new Date(a, b - 1, c);
           }
         }
-
+        if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const parts = val.split('-');
+          return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        }
         return new Date(val);
       }
 
