@@ -1313,7 +1313,7 @@
             <div class="stat-card green sps-stat-card">
               <div class="stat-label">Shepherds Reported</div>
               <div class="stat-value" id="s-reported">—</div>
-              <div class="stat-sub">of 29 shepherds</div>
+              <div class="stat-sub" id="s-shepherd-total">of 29 shepherds</div>
             </div>
             <div class="stat-card gold sps-stat-card">
               <div class="stat-label">Avg Attendance</div>
@@ -4909,6 +4909,7 @@
 
         document.getElementById('s-sessions').textContent = weekly.length;
         document.getElementById('s-reported').textContent = shepSet.size + '/' + ALL_SHEPHERDS.length;
+        document.getElementById('s-shepherd-total').textContent = 'of ' + ALL_SHEPHERDS.length + ' shepherds';
         document.getElementById('s-avgatt').textContent = avgAtt + '%';
         document.getElementById('s-prayer').textContent = prayers;
         document.getElementById('s-concerns').textContent = concerns;
