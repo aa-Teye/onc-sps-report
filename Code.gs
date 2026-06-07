@@ -3,13 +3,17 @@
 // Merged: Core v3.6 + Sprint 1 (Discipleship Journey, Flags, Schools)
 // ============================================================
 
-const SHEET_NAME         = 'SPS Reports';
-const SETTINGS_SHEET     = 'SPS Settings';
-const LOG_SHEET          = 'SPS Audit Log';
-const MC_SHEET_NAME      = 'Microchurch Reports';
-const FIRST_TIMERS_SHEET = 'First Timers';
-const PINS_SHEET         = 'Shepherd PINs';
-const ANNOUNCEMENTS_SHEET = 'Announcements';
+const SHEET_NAME                    = 'SPS Reports';
+const SETTINGS_SHEET                = 'SPS Settings';
+const LOG_SHEET                     = 'SPS Audit Log';
+const MC_SHEET_NAME                 = 'Microchurch Reports';
+const FIRST_TIMERS_SHEET            = 'First Timers';
+const PINS_SHEET                    = 'Shepherd PINs';
+const ANNOUNCEMENTS_SHEET           = 'Announcements';
+const PASTORAL_NOTES_SHEET          = 'PastoralNotes';
+const DISCIPLESHIP_ASSIGNMENTS_SHEET = 'DiscipleshipAssignments';
+const SHEPHERD_PIPELINE_SHEET       = 'ShepherdPipeline';
+const SHEPHERD_COHORTS_SHEET        = 'ShepherdCohorts';
 
 // ============================================================
 // HTTP HANDLERS
@@ -29,6 +33,12 @@ function doPost(e) {
     if (action === 'logActivity')             return logActivity(data);
     if (action === 'postAnnouncement')        return postAnnouncement(data);
     if (action === 'deleteAnnouncement')      return deleteAnnouncement(data);
+    // ── Members & Pipeline POST actions ──────────────────────────
+    if (action === 'addPastoralNote')         return addPastoralNote(data);
+    if (action === 'createAssignment')        return createAssignment(data);
+    if (action === 'addCandidate')            return addCandidate(data);
+    if (action === 'updateSTCModule')         return updateSTCModule(data);
+    if (action === 'createCohort')            return createCohort(data);
 
     return jsonResponse({ status: 'error', message: 'Unknown action' });
   } catch (err) {
@@ -61,6 +71,12 @@ function doGet(e) {
     else if (action === 'getSchoolData')          response = getSchoolData();
     else if (action === 'updateSchoolAttendance') response = updateSchoolAttendance(e.parameter.sheet, e.parameter.memberId, e.parameter.week, e.parameter.value, e.parameter.updatedBy);
     else if (action === 'enrolInSchool')          response = enrolInSchool(e.parameter.sheet, e.parameter.memberId, e.parameter.memberName, e.parameter.enrolledDate);
+    // ── Members & Pipeline GET actions ───────────────────────────
+    else if (action === 'getPastoralNotes')       response = getPastoralNotes(e.parameter.memberId);
+    else if (action === 'getAssignments')         response = getAssignments();
+    else if (action === 'getRetentionData')       response = getRetentionData();
+    else if (action === 'getPipeline')            response = getPipeline();
+    else if (action === 'getCohorts')             response = getCohorts();
     else                                          response = { status: 'ok', message: 'ONC SPS Backend v4.0 Running' };
   } catch (err) {
     response = { status: 'error', message: err.toString() };
@@ -895,6 +911,185 @@ function formatISODate(value) {
   var date = value instanceof Date ? value : new Date(value);
   if (isNaN(date.getTime())) return '';
   return Utilities.formatDate(date, Session.getScriptTimeZone() || 'GMT', 'yyyy-MM-dd');
+}
+
+// ============================================================
+// PASTORAL NOTES
+// ============================================================
+
+function getPastoralNotes(memberId) {
+  var headers = ['NoteID', 'MemberID', 'MemberName', 'ShepherdName', 'Date', 'Time', 'NoteType', 'Note', 'FollowUpRequired', 'FollowUpDate'];
+  var sheet   = ensureSheet(PASTORAL_NOTES_SHEET, headers);
+  var records = getSheetRecords(sheet);
+  if (memberId) {
+    records = records.filter(function (r) { return String(r.MemberID) === String(memberId); });
+  }
+  return { status: 'success', notes: records };
+}
+
+function addPastoralNote(data) {
+  var headers = ['NoteID', 'MemberID', 'MemberName', 'ShepherdName', 'Date', 'Time', 'NoteType', 'Note', 'FollowUpRequired', 'FollowUpDate'];
+  var sheet   = ensureSheet(PASTORAL_NOTES_SHEET, headers);
+  var now     = new Date();
+  sheet.appendRow([
+    'NOTE-' + now.getTime(),
+    data.memberId    || '',
+    data.memberName  || '',
+    data.shepherdName || '',
+    formatDate(now),
+    formatTime(now),
+    data.noteType    || '',
+    data.note        || '',
+    data.followUpRequired || 'No',
+    data.followUpDate || ''
+  ]);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'PASTORAL_NOTE_ADDED', data.shepherdName || 'Admin', data.memberName || '');
+  return jsonResponse({ status: 'success' });
+}
+
+// ============================================================
+// DISCIPLESHIP ASSIGNMENTS
+// ============================================================
+
+function getAssignments() {
+  var headers = ['AssignmentID', 'MemberID', 'MemberName', 'MentorName', 'StartDate', 'TargetEndDate', 'Status'];
+  var sheet   = ensureSheet(DISCIPLESHIP_ASSIGNMENTS_SHEET, headers);
+  return { status: 'success', assignments: getSheetRecords(sheet) };
+}
+
+function createAssignment(data) {
+  var headers = ['AssignmentID', 'MemberID', 'MemberName', 'MentorName', 'StartDate', 'TargetEndDate', 'Status'];
+  var sheet   = ensureSheet(DISCIPLESHIP_ASSIGNMENTS_SHEET, headers);
+  var now     = new Date();
+  sheet.appendRow([
+    'ASGN-' + now.getTime(),
+    data.memberId    || '',
+    data.memberName  || '',
+    data.mentorName  || '',
+    data.startDate   || formatDate(now),
+    data.targetEndDate || '',
+    data.status      || 'Active'
+  ]);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'ASSIGNMENT_CREATED', data.mentorName || 'Admin', data.memberName || '');
+  return jsonResponse({ status: 'success' });
+}
+
+// ============================================================
+// RETENTION DATA
+// ============================================================
+
+function getRetentionData() {
+  var ss            = SpreadsheetApp.getActiveSpreadsheet();
+  var spsSheet      = ss.getSheetByName(SHEET_NAME);
+  var mcSheet       = ss.getSheetByName(MC_SHEET_NAME);
+  var memberMap     = {};
+  var thirtyAgo     = new Date();
+  thirtyAgo.setDate(thirtyAgo.getDate() - 30);
+
+  function processSheet(sheet, stream, presentCol) {
+    if (!sheet || sheet.getLastRow() <= 1) return;
+    var rows = sheet.getDataRange().getValues().slice(1);
+    rows.forEach(function (row) {
+      var rawDate = row[4] || row[1];
+      var date    = rawDate instanceof Date ? rawDate : (rawDate ? new Date(String(rawDate).replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1')) : null);
+      var names   = String(row[presentCol] || '').split(',').map(function (n) { return n.trim(); }).filter(Boolean);
+      names.forEach(function (name) {
+        if (!memberMap[name]) memberMap[name] = { lastSeen: null, sessions30d: 0, stream: stream, weekNumbers: [] };
+        if (date && !isNaN(date.getTime())) {
+          if (!memberMap[name].lastSeen || date > memberMap[name].lastSeen) memberMap[name].lastSeen = date;
+          if (date >= thirtyAgo) memberMap[name].sessions30d++;
+        }
+      });
+    });
+  }
+
+  processSheet(spsSheet, 'SPS', 8);
+  processSheet(mcSheet,  'MC',  9);
+
+  var result = {};
+  Object.keys(memberMap).forEach(function (name) {
+    var m = memberMap[name];
+    result[name] = { lastSeen: m.lastSeen ? formatDate(m.lastSeen) : null, sessions30d: m.sessions30d, stream: m.stream };
+  });
+  return { status: 'success', retention: result };
+}
+
+// ============================================================
+// SHEPHERD PIPELINE
+// ============================================================
+
+function getPipeline() {
+  var headers = ['CandidateID', 'CandidateName', 'NominatedBy', 'NominationDate', 'CohortNumber',
+    'STC1', 'STC2', 'STC3', 'STC4', 'STC5', 'STC6', 'STC7', 'GraduationDate', 'DeployedDate', 'Status'];
+  var sheet = ensureSheet(SHEPHERD_PIPELINE_SHEET, headers);
+  return { status: 'success', pipeline: getSheetRecords(sheet) };
+}
+
+function addCandidate(data) {
+  var headers = ['CandidateID', 'CandidateName', 'NominatedBy', 'NominationDate', 'CohortNumber',
+    'STC1', 'STC2', 'STC3', 'STC4', 'STC5', 'STC6', 'STC7', 'GraduationDate', 'DeployedDate', 'Status'];
+  var sheet = ensureSheet(SHEPHERD_PIPELINE_SHEET, headers);
+  var now   = new Date();
+  sheet.appendRow([
+    'CAND-' + now.getTime(),
+    data.candidateName || '',
+    data.nominatedBy   || '',
+    formatDate(now),
+    data.cohortNumber  || '',
+    'N','N','N','N','N','N','N',
+    '', '', data.status || 'Nominated'
+  ]);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'CANDIDATE_NOMINATED', data.nominatedBy || 'Admin', data.candidateName || '');
+  return jsonResponse({ status: 'success' });
+}
+
+function updateSTCModule(data) {
+  var headers = ['CandidateID', 'CandidateName', 'NominatedBy', 'NominationDate', 'CohortNumber',
+    'STC1', 'STC2', 'STC3', 'STC4', 'STC5', 'STC6', 'STC7', 'GraduationDate', 'DeployedDate', 'Status'];
+  var sheet      = ensureSheet(SHEPHERD_PIPELINE_SHEET, headers);
+  var stcColMap  = { STC1:6, STC2:7, STC3:8, STC4:9, STC5:10, STC6:11, STC7:12 };
+  var records    = getSheetRecords(sheet);
+  var target     = records.find(function (r) { return r.CandidateID === data.candidateId; });
+  if (!target) return jsonResponse({ status: 'error', message: 'Candidate not found' });
+
+  var col = stcColMap[data.module];
+  if (!col) return jsonResponse({ status: 'error', message: 'Invalid module' });
+
+  sheet.getRange(target._row, col).setValue(data.value === 'Y' ? 'Y' : 'N');
+
+  var allDone = Object.keys(stcColMap).every(function (mod) {
+    return String(sheet.getRange(target._row, stcColMap[mod]).getValue()).toUpperCase() === 'Y';
+  });
+  if (allDone && !String(sheet.getRange(target._row, 13).getValue()).trim()) {
+    sheet.getRange(target._row, 13).setValue(formatDate(new Date()));
+    sheet.getRange(target._row, 15).setValue('Promotion Ready');
+  }
+  return jsonResponse({ status: 'success' });
+}
+
+// ============================================================
+// SHEPHERD COHORTS
+// ============================================================
+
+function getCohorts() {
+  var headers = ['CohortID', 'CohortNumber', 'StartDate', 'TargetEndDate', 'TotalCandidates', 'Graduated', 'Deployed'];
+  var sheet   = ensureSheet(SHEPHERD_COHORTS_SHEET, headers);
+  return { status: 'success', cohorts: getSheetRecords(sheet) };
+}
+
+function createCohort(data) {
+  var headers = ['CohortID', 'CohortNumber', 'StartDate', 'TargetEndDate', 'TotalCandidates', 'Graduated', 'Deployed'];
+  var sheet   = ensureSheet(SHEPHERD_COHORTS_SHEET, headers);
+  var now     = new Date();
+  sheet.appendRow([
+    'COHORT-' + now.getTime(),
+    data.cohortNumber  || '',
+    data.startDate     || formatDate(now),
+    data.targetEndDate || '',
+    0, 0, 0
+  ]);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'COHORT_CREATED', 'Admin', 'Cohort ' + (data.cohortNumber || ''));
+  return jsonResponse({ status: 'success' });
 }
 
 // ============================================================

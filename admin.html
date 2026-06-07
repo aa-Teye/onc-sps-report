@@ -1247,6 +1247,22 @@
             <span class="tab-btn-label">Announcements</span>
           </button>
 
+          <!-- INTELLIGENCE -->
+          <div class="tab-section-label" id="intelligenceLabel" style="font-size:10px;font-weight:800;
+            color:#94a3b8;letter-spacing:1px;
+            padding:16px 20px 6px;
+            text-transform:uppercase;display:none;">
+            🧠 Intelligence
+          </div>
+          <a href="members.html" id="membersLink" class="tab-btn" style="display:none;text-decoration:none;">
+            <span class="icon">👥</span>
+            <span class="tab-btn-label">Members</span>
+          </a>
+          <a href="pipeline.html" id="pipelineLink" class="tab-btn" style="display:none;text-decoration:none;">
+            <span class="icon">🔄</span>
+            <span class="tab-btn-label">Pipeline</span>
+          </a>
+
           <!-- SYSTEM -->
           <div class="tab-section-label" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
@@ -3832,6 +3848,20 @@
           }
         }
         
+        // Show Intelligence links for admin / superadmin
+        var intelligenceLabel = document.getElementById('intelligenceLabel');
+        var membersLink       = document.getElementById('membersLink');
+        var pipelineLink      = document.getElementById('pipelineLink');
+        if (role === 'superadmin' || role === 'admin') {
+          if (intelligenceLabel) intelligenceLabel.style.display = 'block';
+          if (membersLink)       membersLink.style.display       = 'flex';
+          if (pipelineLink)      pipelineLink.style.display      = 'flex';
+        } else {
+          if (intelligenceLabel) intelligenceLabel.style.display = 'none';
+          if (membersLink)       membersLink.style.display       = 'none';
+          if (pipelineLink)      pipelineLink.style.display      = 'none';
+        }
+
         // Show role badge in topbar
         var roleDisplayNames = {
           'superadmin': '👑 General Overseer',
