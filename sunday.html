@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ONC — Sunday Attendance</title>
+  <link rel="icon" href="./logo.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:   #0a1628;
+      --blue:   #1a3a6b;
+      --accent: #3b82f6;
+      --gold:   #f59e0b;
+      --green:  #22c55e;
+      --red:    #ef4444;
+      --gray:   #64748b;
+      --light:  #f1f5f9;
+      --white:  #fff;
+      --border: #e2e8f0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--navy); min-height:100vh; }
+
+    /* LOGIN */
+    #loginScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+    .login-box { background:var(--white); border-radius:24px; padding:40px 28px; width:100%; max-width:340px; text-align:center; box-shadow:0 24px 64px rgba(0,0,0,.4); }
+    .login-logo { width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg,var(--gold),#fbbf24); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-weight:800; font-size:17px; color:var(--navy); }
+    .login-box h2 { font-size:20px; font-weight:800; color:var(--navy); margin-bottom:4px; }
+    .login-box p { color:var(--gray); font-size:13px; margin-bottom:22px; }
+    .login-box input { width:100%; padding:14px; border:2px solid var(--border); border-radius:12px; font-size:18px; text-align:center; letter-spacing:6px; outline:none; color:var(--navy); font-family:inherit; transition:border-color .2s; margin-bottom:10px; }
+    .login-box input:focus { border-color:var(--accent); }
+    .login-btn { width:100%; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--blue)); color:var(--white); font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; }
+    .login-error { color:var(--red); font-size:13px; margin-top:10px; display:none; }
+
+    /* APP SHELL — mobile-first, capped width on larger screens */
+    #app { display:none; background:var(--light); min-height:100vh; }
+    .shell { max-width:480px; margin:0 auto; min-height:100vh; background:var(--light); display:flex; flex-direction:column; }
+
+    .topbar { background:var(--navy); color:var(--white); padding:16px 18px; position:sticky; top:0; z-index:50; }
+    .topbar-row { display:flex; align-items:center; justify-content:space-between; }
+    .topbar h1 { font-size:17px; font-weight:800; }
+    .back-link { color:rgba(255,255,255,.7); text-decoration:none; font-size:12px; font-weight:600; }
+    .back-link:hover { color:var(--white); }
+
+    .seg-tabs { display:flex; gap:6px; margin-top:14px; background:rgba(255,255,255,.08); border-radius:12px; padding:4px; }
+    .seg-tab { flex:1; text-align:center; padding:9px 6px; border-radius:9px; font-size:12px; font-weight:700; color:rgba(255,255,255,.7); cursor:pointer; transition:all .2s; }
+    .seg-tab.active { background:var(--white); color:var(--navy); }
+
+    .content { flex:1; padding:16px; padding-bottom:100px; }
+
+    .card { background:var(--white); border-radius:16px; padding:18px; box-shadow:0 1px 8px rgba(0,0,0,.06); margin-bottom:14px; }
+    .card-title { font-size:13px; font-weight:800; color:var(--navy); margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+
+    .field { margin-bottom:12px; }
+    .field label { display:block; font-size:11px; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+    .field select, .field input { width:100%; padding:12px; border:2px solid var(--border); border-radius:11px; font-family:inherit; font-size:14px; color:var(--navy); outline:none; background:var(--white); }
+    .field select:focus, .field input:focus { border-color:var(--accent); }
+
+    /* MEMBER LIST */
+    .shepherd-group { margin-bottom:14px; }
+    .shepherd-name { font-size:11px; font-weight:800; color:var(--gray); text-transform:uppercase; letter-spacing:.6px; padding:6px 4px; }
+    .member-row { display:flex; align-items:center; justify-content:space-between; background:var(--white); border:2px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:8px; transition:border-color .15s, background .15s; }
+    .member-row.present { border-color:#bbf7d0; background:#f0fdf4; }
+    .member-row.absent  { border-color:#fecaca; background:#fef2f2; }
+    .member-name { font-size:14px; font-weight:700; color:var(--navy); }
+    .toggle-group { display:flex; gap:6px; }
+    .toggle-btn { padding:7px 14px; border-radius:9px; font-size:12px; font-weight:700; border:2px solid var(--border); background:var(--white); color:var(--gray); cursor:pointer; transition:all .15s; }
+    .toggle-btn.on-present { background:var(--green); border-color:var(--green); color:var(--white); }
+    .toggle-btn.on-absent  { background:var(--red); border-color:var(--red); color:var(--white); }
+
+    /* SUMMARY BAR */
+    .summary-bar { position:fixed; bottom:0; left:0; right:0; z-index:60; }
+    .summary-inner { max-width:480px; margin:0 auto; background:var(--white); border-top:1px solid var(--border); padding:14px 16px; box-shadow:0 -8px 24px rgba(0,0,0,.08); display:flex; align-items:center; gap:12px; }
+    .summary-stats { flex:1; display:flex; gap:14px; font-size:12px; color:var(--gray); }
+    .summary-stats b { color:var(--navy); font-size:15px; }
+    .summary-stats .green { color:var(--green); }
+    .summary-stats .red { color:var(--red); }
+    .btn { padding:13px 22px; border:none; border-radius:12px; font-family:inherit; font-weight:700; font-size:13px; cursor:pointer; transition:all .2s; }
+    .btn-primary { background:var(--accent); color:var(--white); }
+    .btn-primary:hover { opacity:.9; }
+    .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+    .btn-outline { background:none; border:2px solid var(--accent); color:var(--accent); }
+    .btn-block { width:100%; }
+
+    /* HISTORY */
+    .hist-row { display:flex; align-items:center; justify-content:space-between; padding:13px 6px; border-bottom:1px solid var(--border); }
+    .hist-row:last-child { border-bottom:none; }
+    .hist-date { font-size:14px; font-weight:700; color:var(--navy); }
+    .hist-meta { font-size:11px; color:var(--gray); margin-top:2px; }
+    .hist-stats { display:flex; gap:10px; font-size:12px; }
+    .hist-stats .green { color:var(--green); font-weight:800; }
+    .hist-stats .red { color:var(--red); font-weight:800; }
+
+    .empty { text-align:center; padding:36px 16px; color:var(--gray); font-size:13px; }
+    .empty .icon { font-size:32px; margin-bottom:8px; }
+
+    .toast { position:fixed; bottom:96px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--navy); color:var(--white); padding:11px 20px; border-radius:12px; font-size:13px; font-weight:600; box-shadow:0 12px 32px rgba(0,0,0,.3); z-index:400; transition:transform .3s ease; max-width:90vw; text-align:center; }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .animate { animation:fadeUp .2s ease; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">ONC</div>
+    <h2>Sunday Attendance</h2>
+    <p>Zone leader access required</p>
+    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6"
+      onkeydown="if(event.key==='Enter')checkPin()">
+    <button class="login-btn" onclick="checkPin()">🔐 Enter</button>
+    <p class="login-error" id="loginError">❌ Incorrect PIN</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="shell">
+    <div class="topbar">
+      <div class="topbar-row">
+        <h1>☀️ Sunday Attendance</h1>
+        <a href="admin.html" class="back-link">← Admin</a>
+      </div>
+      <div class="seg-tabs">
+        <div class="seg-tab active" id="tabMark" onclick="switchView('mark')">Mark Attendance</div>
+        <div class="seg-tab" id="tabHistory" onclick="switchView('history')">History</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- MARK ATTENDANCE VIEW -->
+      <div id="viewMark">
+        <div class="card animate">
+          <div class="card-title">📋 Service Details</div>
+          <div class="field">
+            <label>Service Date (Sunday)</label>
+            <input type="date" id="serviceDate" onchange="onContextChange()">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Zone</label>
+            <select id="zoneSelect" onchange="onContextChange()">
+              <option value="">Select your zone…</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="memberListWrap"></div>
+      </div>
+
+      <!-- HISTORY VIEW -->
+      <div id="viewHistory" style="display:none;">
+        <div class="card animate">
+          <div class="card-title">📊 Attendance History</div>
+          <div id="historyList">
+            <div class="empty"><div class="icon">📊</div>Loading history…</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SUMMARY / SUBMIT BAR (mark view only) -->
+    <div class="summary-bar" id="summaryBar" style="display:none;">
+      <div class="summary-inner">
+        <div class="summary-stats">
+          <span><b class="green" id="presentCount">0</b><br>Present</span>
+          <span><b class="red" id="absentCount">0</b><br>Absent</span>
+        </div>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitAttendance()">✅ Submit</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="churchData.js?v=20260607"></script>
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+  const VALID_PINS = [
+    localStorage.getItem('onc_pin')            || '2500',
+    localStorage.getItem('onc_pin_admin')      || '1500',
+    localStorage.getItem('onc_pin_zoneleader') || '1000',
+    localStorage.getItem('onc_pin_spshead')    || '3000',
+    localStorage.getItem('onc_pin_mchead')     || '4000'
+  ];
+
+  var currentZone   = null;   // { name, shepherds: [...] }
+  var memberStatus  = {};     // memberName -> 'present' | 'absent'
+  var markedByName  = 'Zone Leader';
+
+  // ── AUTH ──────────────────────────────────────────────────────
+  function checkPin() {
+    var pin = document.getElementById('pinInput').value.trim();
+    if (VALID_PINS.includes(pin)) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display         = 'block';
+      init();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('pinInput').value = '';
+    }
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────
+  function init() {
+    populateZones();
+    document.getElementById('serviceDate').value = isoFromDate(getRecentSunday());
+    loadHistory();
+  }
+
+  function populateZones() {
+    var cd  = window.CHURCH_DATA;
+    var sel = document.getElementById('zoneSelect');
+    if (!cd) return;
+    cd.zones.forEach(function (z) {
+      var o = document.createElement('option');
+      o.value = z.name;
+      o.textContent = z.name;
+      sel.appendChild(o);
+    });
+  }
+
+  // ── DATE HELPERS ──────────────────────────────────────────────
+  function getRecentSunday() {
+    var d = new Date();
+    d.setDate(d.getDate() - d.getDay());
+    return d;
+  }
+  function isoFromDate(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function dmyFromIso(iso) {
+    if (!iso) return '';
+    var p = iso.split('-');
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+  function fmtDisplayDate(dmy) {
+    if (!dmy) return '—';
+    var p = String(dmy).split('/');
+    if (p.length !== 3) return dmy;
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return p[0] + ' ' + months[parseInt(p[1]) - 1] + ' ' + p[2];
+  }
+
+  // ── VIEW SWITCHING ────────────────────────────────────────────
+  function switchView(view) {
+    var isMark = view === 'mark';
+    document.getElementById('tabMark').classList.toggle('active', isMark);
+    document.getElementById('tabHistory').classList.toggle('active', !isMark);
+    document.getElementById('viewMark').style.display    = isMark ? 'block' : 'none';
+    document.getElementById('viewHistory').style.display = isMark ? 'none'  : 'block';
+    document.getElementById('summaryBar').style.display  = (isMark && currentZone) ? 'block' : 'none';
+    if (!isMark) loadHistory();
+  }
+
+  // ── CONTEXT (date + zone) ─────────────────────────────────────
+  function onContextChange() {
+    var zoneName = document.getElementById('zoneSelect').value;
+    var cd = window.CHURCH_DATA;
+    if (!zoneName || !cd) {
+      currentZone = null;
+      document.getElementById('memberListWrap').innerHTML = '';
+      document.getElementById('summaryBar').style.display = 'none';
+      return;
+    }
+    currentZone = cd.zones.find(function (z) { return z.name === zoneName; });
+    buildMemberStatus();
+    renderMemberList();
+    renderSummary();
+    document.getElementById('summaryBar').style.display = 'block';
+
+    // Pre-fill from any existing submission for this date+zone
+    var date = dmyFromIso(document.getElementById('serviceDate').value);
+    fetchData('getSundayAttendance', { date: date, zone: zoneName }, function (data) {
+      if (data && data.status === 'success' && data.attendance && data.attendance.length) {
+        var rec = data.attendance[0];
+        var present = String(rec.MembersPresent || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+        var absent  = String(rec.MembersAbsent  || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+        present.forEach(function (n) { if (memberStatus.hasOwnProperty(n)) memberStatus[n] = 'present'; });
+        absent.forEach(function (n)  { if (memberStatus.hasOwnProperty(n)) memberStatus[n] = 'absent'; });
+        renderMemberList();
+        renderSummary();
+        showToast('Loaded existing record for ' + fmtDisplayDate(date));
+      }
+    });
+  }
+
+  function buildMemberStatus() {
+    memberStatus = {};
+    if (!currentZone) return;
+    var cd = window.CHURCH_DATA;
+    cd.spsShepherds.forEach(function (s) {
+      if (currentZone.shepherds.indexOf(s.name) === -1) return;
+      (s.members || []).forEach(function (m) { memberStatus[m.name] = 'present'; });
+    });
+  }
+
+  // ── RENDER: MEMBER LIST ───────────────────────────────────────
+  function renderMemberList() {
+    var wrap = document.getElementById('memberListWrap');
+    if (!currentZone) { wrap.innerHTML = ''; return; }
+
+    var cd = window.CHURCH_DATA;
+    var groups = cd.spsShepherds.filter(function (s) {
+      return currentZone.shepherds.indexOf(s.name) !== -1 && (s.members || []).length;
+    });
+
+    if (!groups.length) {
+      wrap.innerHTML = '<div class="card"><div class="empty"><div class="icon">👥</div>No members found for this zone.</div></div>';
+      return;
+    }
+
+    wrap.innerHTML = groups.map(function (s) {
+      var rows = (s.members || []).map(function (m) {
+        var status = memberStatus[m.name] || 'present';
+        return '<div class="member-row ' + status + '">' +
+          '<span class="member-name">' + esc(m.name) + '</span>' +
+          '<div class="toggle-group">' +
+            '<button class="toggle-btn' + (status === 'present' ? ' on-present' : '') + '" onclick="setStatus(\'' + escAttr(m.name) + '\',\'present\')">✓ Present</button>' +
+            '<button class="toggle-btn' + (status === 'absent' ? ' on-absent' : '') + '" onclick="setStatus(\'' + escAttr(m.name) + '\',\'absent\')">✗ Absent</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      return '<div class="card animate"><div class="shepherd-name">🧑‍🤝‍🧑 ' + esc(s.name) + '</div>' + rows + '</div>';
+    }).join('');
+  }
+
+  function setStatus(name, status) {
+    memberStatus[name] = status;
+    renderMemberList();
+    renderSummary();
+  }
+
+  function renderSummary() {
+    var present = 0, absent = 0;
+    Object.keys(memberStatus).forEach(function (n) {
+      if (memberStatus[n] === 'present') present++; else absent++;
+    });
+    document.getElementById('presentCount').textContent = present;
+    document.getElementById('absentCount').textContent  = absent;
+    document.getElementById('submitBtn').disabled = !currentZone || (present + absent === 0);
+  }
+
+  // ── SUBMIT ────────────────────────────────────────────────────
+  function submitAttendance() {
+    if (!currentZone) return;
+    var dateIso = document.getElementById('serviceDate').value;
+    if (!dateIso) { showToast('Please select a service date'); return; }
+    var date = dmyFromIso(dateIso);
+
+    var present = [], absent = [];
+    Object.keys(memberStatus).forEach(function (n) {
+      (memberStatus[n] === 'present' ? present : absent).push(n);
+    });
+
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    fetchData('submitSundayAttendance', {
+      date: date,
+      zone: currentZone.name,
+      present: JSON.stringify(present),
+      absent:  JSON.stringify(absent),
+      markedBy: markedByName
+    }, function (data) {
+      btn.disabled = false;
+      btn.textContent = '✅ Submit';
+      if (data && data.status === 'success') {
+        showToast('Attendance submitted for ' + currentZone.name + ' — ' + fmtDisplayDate(date));
+        loadHistory();
+      } else {
+        showToast((data && data.message) || 'Submission failed — try again');
+      }
+    });
+  }
+
+  // ── HISTORY ───────────────────────────────────────────────────
+  function loadHistory() {
+    fetchData('getSundayHistory', null, function (data) {
+      var list = document.getElementById('historyList');
+      if (!data || data.status !== 'success' || !data.history || !data.history.length) {
+        list.innerHTML = '<div class="empty"><div class="icon">📊</div>No attendance records yet.</div>';
+        return;
+      }
+      list.innerHTML = data.history.map(function (h) {
+        return '<div class="hist-row">' +
+          '<div><div class="hist-date">' + fmtDisplayDate(h.date) + '</div>' +
+          '<div class="hist-meta">' + h.zonesReported + ' zone(s) reported</div></div>' +
+          '<div class="hist-stats"><span class="green">✓ ' + h.present + '</span><span class="red">✗ ' + h.absent + '</span></div>' +
+          '</div>';
+      }).join('');
+    });
+  }
+
+  // ── DATA FETCH (JSONP) ────────────────────────────────────────
+  function fetchData(action, params, callback) {
+    var cbName = '_cbsu_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    var called = false;
+    var script = document.createElement('script');
+
+    window[cbName] = function (data) {
+      if (called) return;
+      called = true;
+      callback(data);
+      if (document.body.contains(script)) document.body.removeChild(script);
+      delete window[cbName];
+    };
+
+    var query = '?action=' + encodeURIComponent(action) + '&callback=' + cbName;
+    if (params) {
+      Object.keys(params).forEach(function (k) {
+        query += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      });
+    }
+    query += '&_=' + Date.now();
+    script.src = SCRIPT_URL + query;
+    script.onerror = function () { if (!called) window[cbName]({ status: 'error' }); };
+    document.body.appendChild(script);
+    setTimeout(function () { if (!called) window[cbName]({ status: 'timeout' }); }, 10000);
+  }
+
+  // ── UTIL ──────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+  function escAttr(s) { return esc(s).replace(/\\/g, '\\\\'); }
+
+  var toastTimer = null;
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2800);
+  }
+</script>
+</body>
+</html>

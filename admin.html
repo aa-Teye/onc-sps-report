@@ -1227,6 +1227,18 @@
             <span class="icon">🏫</span>
             <span class="tab-btn-label">Schools</span>
           </button>
+          <a href="schools.html" id="schoolsPlusLink" class="tab-btn" style="display:none;text-decoration:none;">
+            <span class="icon">🏫</span>
+            <span class="tab-btn-label">Schools+</span>
+          </a>
+          <a href="sunday.html" id="sundayLink" class="tab-btn" style="display:none;text-decoration:none;">
+            <span class="icon">☀️</span>
+            <span class="tab-btn-label">Sunday</span>
+          </a>
+          <a href="visitation.html" id="visitationLink" class="tab-btn" style="display:none;text-decoration:none;">
+            <span class="icon">🚗</span>
+            <span class="tab-btn-label">Visitation</span>
+          </a>
           <button class="tab-btn"
             onclick="switchTab('leaderboard', this)"
             id="soulWinnersBtn">
@@ -3860,6 +3872,26 @@
           if (intelligenceLabel) intelligenceLabel.style.display = 'none';
           if (membersLink)       membersLink.style.display       = 'none';
           if (pipelineLink)      pipelineLink.style.display      = 'none';
+        }
+
+        // Schools+ — full standalone tracker — admin / superadmin only
+        var schoolsPlusLink = document.getElementById('schoolsPlusLink');
+        if (schoolsPlusLink) {
+          schoolsPlusLink.style.display = (role === 'superadmin' || role === 'admin') ? 'flex' : 'none';
+        }
+
+        // Sunday Attendance — zone leaders and above
+        var sundayLink = document.getElementById('sundayLink');
+        if (sundayLink) {
+          sundayLink.style.display = (role === 'superadmin' || role === 'admin' ||
+            role === 'zoneleader' || role === 'spshead' || role === 'mchead') ? 'flex' : 'none';
+        }
+
+        // Visitation — First Timers leadership and above
+        var visitationLink = document.getElementById('visitationLink');
+        if (visitationLink) {
+          visitationLink.style.display = (role === 'superadmin' || role === 'admin' ||
+            role === 'ftshead') ? 'flex' : 'none';
         }
 
         // Show role badge in topbar

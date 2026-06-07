@@ -14,6 +14,8 @@ const PASTORAL_NOTES_SHEET          = 'PastoralNotes';
 const DISCIPLESHIP_ASSIGNMENTS_SHEET = 'DiscipleshipAssignments';
 const SHEPHERD_PIPELINE_SHEET       = 'ShepherdPipeline';
 const SHEPHERD_COHORTS_SHEET        = 'ShepherdCohorts';
+const SUNDAY_ATTENDANCE_SHEET       = 'SundayAttendance';
+const VISITATIONS_SHEET             = 'Visitations';
 
 // ============================================================
 // HTTP HANDLERS
@@ -39,6 +41,11 @@ function doPost(e) {
     if (action === 'addCandidate')            return addCandidate(data);
     if (action === 'updateSTCModule')         return updateSTCModule(data);
     if (action === 'createCohort')            return createCohort(data);
+    // ── Sunday Attendance & Visitation POST actions ──────────────
+    if (action === 'submitSundayAttendance')  return submitSundayAttendance(data);
+    if (action === 'assignVisitation')        return assignVisitation(data);
+    if (action === 'updateVisitation')        return updateVisitation(data);
+    if (action === 'escalateVisitation')      return escalateVisitation(data);
 
     return jsonResponse({ status: 'error', message: 'Unknown action' });
   } catch (err) {
@@ -77,6 +84,10 @@ function doGet(e) {
     else if (action === 'getRetentionData')       response = getRetentionData();
     else if (action === 'getPipeline')            response = getPipeline();
     else if (action === 'getCohorts')             response = getCohorts();
+    // ── Sunday Attendance & Visitation GET actions ───────────────
+    else if (action === 'getSundayAttendance')    response = getSundayAttendance(e.parameter.date, e.parameter.zone);
+    else if (action === 'getSundayHistory')       response = getSundayHistory();
+    else if (action === 'getVisitations')         response = getVisitations();
     else                                          response = { status: 'ok', message: 'ONC SPS Backend v4.0 Running' };
   } catch (err) {
     response = { status: 'error', message: err.toString() };
@@ -1090,6 +1101,176 @@ function createCohort(data) {
   ]);
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'COHORT_CREATED', 'Admin', 'Cohort ' + (data.cohortNumber || ''));
   return jsonResponse({ status: 'success' });
+}
+
+// ============================================================
+// SUNDAY SERVICE ATTENDANCE
+// ============================================================
+
+function getSundayAttendance(date, zone) {
+  var headers = ['Date', 'Zone', 'MembersPresent', 'MembersAbsent', 'PresentCount', 'AbsentCount', 'MarkedBy', 'Timestamp'];
+  var sheet   = ensureSheet(SUNDAY_ATTENDANCE_SHEET, headers);
+  var records = getSheetRecords(sheet);
+  if (date) records = records.filter(function (r) { return r.Date === date; });
+  if (zone) records = records.filter(function (r) { return r.Zone === zone; });
+  return { status: 'success', attendance: records };
+}
+
+function getSundayHistory() {
+  var headers = ['Date', 'Zone', 'MembersPresent', 'MembersAbsent', 'PresentCount', 'AbsentCount', 'MarkedBy', 'Timestamp'];
+  var sheet   = ensureSheet(SUNDAY_ATTENDANCE_SHEET, headers);
+  var records = getSheetRecords(sheet);
+
+  var byDate = {};
+  records.forEach(function (r) {
+    if (!r.Date) return;
+    if (!byDate[r.Date]) byDate[r.Date] = { date: r.Date, present: 0, absent: 0, zonesReported: 0 };
+    byDate[r.Date].present       += parseInt(r.PresentCount) || 0;
+    byDate[r.Date].absent        += parseInt(r.AbsentCount)  || 0;
+    byDate[r.Date].zonesReported += 1;
+  });
+
+  var history = Object.keys(byDate).map(function (d) { return byDate[d]; });
+  history.sort(function (a, b) { return parseDMY(b.date) - parseDMY(a.date); });
+
+  return { status: 'success', history: history };
+}
+
+function submitSundayAttendance(data) {
+  var headers = ['Date', 'Zone', 'MembersPresent', 'MembersAbsent', 'PresentCount', 'AbsentCount', 'MarkedBy', 'Timestamp'];
+  var sheet   = ensureSheet(SUNDAY_ATTENDANCE_SHEET, headers);
+  var records = getSheetRecords(sheet);
+  var now     = new Date();
+  var present = data.present || [];
+  var absent  = data.absent  || [];
+
+  var rowValues = [
+    data.date || formatDate(now),
+    data.zone || '',
+    present.join(', '),
+    absent.join(', '),
+    present.length,
+    absent.length,
+    data.markedBy || 'Shepherd',
+    formatDate(now) + ' ' + formatTime(now)
+  ];
+
+  var existing = records.find(function (r) { return r.Date === data.date && r.Zone === data.zone; });
+  if (existing) {
+    sheet.getRange(existing._row, 1, 1, headers.length).setValues([rowValues]);
+  } else {
+    sheet.appendRow(rowValues);
+  }
+
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SUNDAY_ATTENDANCE_SUBMITTED', data.markedBy || 'Shepherd',
+    data.zone + ' — ' + present.length + ' present, ' + absent.length + ' absent (' + data.date + ')');
+  return jsonResponse({ status: 'success' });
+}
+
+// Parses DD/MM/YYYY strings (as stored by formatDate) for sorting purposes.
+function parseDMY(val) {
+  if (!val) return new Date(0);
+  var parts = String(val).split('/');
+  if (parts.length === 3) return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+  return new Date(val);
+}
+
+// ============================================================
+// FIRST-TIMER VISITATIONS
+// ============================================================
+
+function getVisitations() {
+  var headers = ['VisitationID', 'GuestID', 'GuestName', 'GuestPhone', 'RegistrationDate', 'DueDate', 'AssignedTo', 'ScheduledDate', 'CompletedDate', 'Outcome', 'EscalationStep', 'Notes', 'Status'];
+  var sheet   = ensureSheet(VISITATIONS_SHEET, headers);
+  var records = getSheetRecords(sheet);
+
+  // Auto-create a Pending visitation row for any guest that doesn't have one yet.
+  var guestSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(FIRST_TIMERS_SHEET);
+  if (guestSheet && guestSheet.getLastRow() > 1) {
+    var guestData = guestSheet.getDataRange().getValues();
+    var knownIds  = {};
+    records.forEach(function (r) { if (r.GuestID) knownIds[String(r.GuestID)] = true; });
+
+    for (var i = 1; i < guestData.length; i++) {
+      var guestId = String(guestData[i][0] || '');
+      if (!guestId || knownIds[guestId]) continue;
+
+      var regDateRaw = guestData[i][1];
+      var regDate    = regDateRaw instanceof Date ? formatDate(regDateRaw) : String(regDateRaw || '');
+      var dueDate    = '';
+      if (regDateRaw instanceof Date) {
+        var d = new Date(regDateRaw);
+        d.setDate(d.getDate() + 7);
+        dueDate = formatDate(d);
+      }
+
+      sheet.appendRow([
+        'VIS-' + guestId,
+        guestId,
+        guestData[i][6] || '',
+        guestData[i][7] || '',
+        regDate,
+        dueDate,
+        '', '', '', '', 1, '', 'Pending'
+      ]);
+      knownIds[guestId] = true;
+    }
+    records = getSheetRecords(sheet);
+  }
+
+  return { status: 'success', visitations: records };
+}
+
+function assignVisitation(data) {
+  var headers = ['VisitationID', 'GuestID', 'GuestName', 'GuestPhone', 'RegistrationDate', 'DueDate', 'AssignedTo', 'ScheduledDate', 'CompletedDate', 'Outcome', 'EscalationStep', 'Notes', 'Status'];
+  var sheet   = ensureSheet(VISITATIONS_SHEET, headers);
+  var records = getSheetRecords(sheet);
+  var target  = records.find(function (r) { return r.VisitationID === data.visitationId; });
+  if (!target) return jsonResponse({ status: 'error', message: 'Visitation not found' });
+
+  sheet.getRange(target._row, 7).setValue(data.assignedTo    || '');
+  sheet.getRange(target._row, 8).setValue(data.scheduledDate || '');
+  sheet.getRange(target._row, 13).setValue('Assigned');
+
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'VISITATION_ASSIGNED', data.assignedBy || 'Admin',
+    (target.GuestName || '') + ' → ' + (data.assignedTo || ''));
+  return jsonResponse({ status: 'success' });
+}
+
+function updateVisitation(data) {
+  var headers = ['VisitationID', 'GuestID', 'GuestName', 'GuestPhone', 'RegistrationDate', 'DueDate', 'AssignedTo', 'ScheduledDate', 'CompletedDate', 'Outcome', 'EscalationStep', 'Notes', 'Status'];
+  var sheet   = ensureSheet(VISITATIONS_SHEET, headers);
+  var records = getSheetRecords(sheet);
+  var target  = records.find(function (r) { return r.VisitationID === data.visitationId; });
+  if (!target) return jsonResponse({ status: 'error', message: 'Visitation not found' });
+
+  var now    = new Date();
+  var status = data.outcome === 'Connected' ? 'Closed' : 'Visited';
+
+  sheet.getRange(target._row, 9).setValue(formatDate(now));
+  sheet.getRange(target._row, 10).setValue(data.outcome || '');
+  sheet.getRange(target._row, 12).setValue(data.notes   || '');
+  sheet.getRange(target._row, 13).setValue(status);
+
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'VISITATION_UPDATED', data.updatedBy || 'Admin',
+    (target.GuestName || '') + ' — ' + (data.outcome || ''));
+  return jsonResponse({ status: 'success' });
+}
+
+function escalateVisitation(data) {
+  var headers = ['VisitationID', 'GuestID', 'GuestName', 'GuestPhone', 'RegistrationDate', 'DueDate', 'AssignedTo', 'ScheduledDate', 'CompletedDate', 'Outcome', 'EscalationStep', 'Notes', 'Status'];
+  var sheet   = ensureSheet(VISITATIONS_SHEET, headers);
+  var records = getSheetRecords(sheet);
+  var target  = records.find(function (r) { return r.VisitationID === data.visitationId; });
+  if (!target) return jsonResponse({ status: 'error', message: 'Visitation not found' });
+
+  var step = Math.min(5, (parseInt(target.EscalationStep) || 1) + 1);
+  sheet.getRange(target._row, 11).setValue(step);
+  sheet.getRange(target._row, 13).setValue('Escalated — Step ' + step);
+
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'VISITATION_ESCALATED', data.escalatedBy || 'Admin',
+    (target.GuestName || '') + ' → step ' + step);
+  return jsonResponse({ status: 'success', newStep: step });
 }
 
 // ============================================================

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ONC — Schools Tracker</title>
+  <link rel="icon" href="./logo.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:   #0a1628;
+      --blue:   #1a3a6b;
+      --accent: #3b82f6;
+      --gold:   #f59e0b;
+      --green:  #22c55e;
+      --red:    #ef4444;
+      --orange: #f97316;
+      --gray:   #64748b;
+      --light:  #f1f5f9;
+      --white:  #fff;
+      --border: #e2e8f0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--navy); min-height:100vh; }
+
+    /* LOGIN */
+    #loginScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+    .login-box { background:var(--white); border-radius:24px; padding:40px 32px; width:100%; max-width:360px; text-align:center; box-shadow:0 24px 64px rgba(0,0,0,.4); }
+    .login-logo { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,var(--gold),#fbbf24); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-weight:800; font-size:18px; color:var(--navy); }
+    .login-box h2 { font-size:22px; font-weight:800; color:var(--navy); margin-bottom:4px; }
+    .login-box p { color:var(--gray); font-size:14px; margin-bottom:24px; }
+    .login-box input { width:100%; padding:14px; border:2px solid var(--border); border-radius:12px; font-size:18px; text-align:center; letter-spacing:6px; outline:none; color:var(--navy); font-family:inherit; transition:border-color .2s; margin-bottom:10px; }
+    .login-box input:focus { border-color:var(--accent); }
+    .login-btn { width:100%; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--blue)); color:var(--white); font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; transition:opacity .2s; }
+    .login-btn:hover { opacity:.9; }
+    .login-error { color:var(--red); font-size:13px; margin-top:10px; display:none; }
+
+    /* DASHBOARD */
+    #dashboard { display:none; background:var(--light); min-height:100vh; }
+    .topbar { background:var(--white); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .topbar-left { display:flex; align-items:center; gap:14px; }
+    .back-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:2px solid var(--border); border-radius:10px; background:var(--white); color:var(--navy); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; text-decoration:none; transition:all .2s; }
+    .back-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .topbar h1 { font-size:20px; font-weight:800; color:var(--navy); }
+    .page-wrap { max-width:1200px; margin:0 auto; padding:28px; }
+
+    /* CARDS */
+    .section-card { background:var(--white); border-radius:16px; padding:24px; box-shadow:0 1px 8px rgba(0,0,0,.06); margin-bottom:24px; }
+    .section-title { font-size:16px; font-weight:800; color:var(--navy); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .pill { padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; background:var(--light); color:var(--accent); }
+
+    /* FILTER BAR */
+    .filter-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+    .filter-bar select, .filter-bar input { padding:8px 12px; border:2px solid var(--border); border-radius:10px; font-family:inherit; font-size:13px; color:var(--navy); background:var(--white); outline:none; }
+    .filter-bar select:focus, .filter-bar input:focus { border-color:var(--accent); }
+    .btn { padding:9px 18px; border:none; border-radius:10px; font-family:inherit; font-weight:700; font-size:13px; cursor:pointer; transition:all .2s; }
+    .btn-primary { background:var(--accent); color:var(--white); }
+    .btn-primary:hover { opacity:.9; }
+    .btn-outline { background:none; border:2px solid var(--accent); color:var(--accent); }
+    .btn-outline:hover { background:var(--accent); color:var(--white); }
+    .btn-gold { background:var(--gold); color:var(--navy); }
+    .btn-gold:hover { opacity:.9; }
+
+    /* TABLE */
+    .table-wrap { border-radius:12px; overflow:auto; border:1px solid var(--border); }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead tr { background:var(--navy); }
+    thead th { padding:12px 14px; text-align:left; color:rgba(255,255,255,.8); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; white-space:nowrap; }
+    tbody tr { border-bottom:1px solid var(--border); transition:background .15s; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { filter:brightness(.97); }
+    td { padding:11px 14px; color:var(--navy); white-space:nowrap; }
+    .member-cell { font-weight:700; }
+
+    /* TOGGLES */
+    .toggle { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; cursor:pointer; font-weight:800; font-size:14px; transition:all .15s; border:2px solid var(--border); background:var(--white); color:var(--gray); }
+    .toggle-y { background:#dcfce7; color:#15803d; border-color:#bbf7d0; }
+    .toggle:hover { transform:scale(1.1); border-color:var(--accent); }
+    .progress-wrap { min-width:90px; }
+    .progress-track { height:8px; background:var(--light); border-radius:6px; overflow:hidden; }
+    .progress-fill { height:100%; background:var(--accent); border-radius:6px; transition:width .3s; }
+    .progress-label { font-size:11px; color:var(--gray); margin-top:3px; }
+
+    /* BADGES */
+    .badge { display:inline-flex; align-items:center; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; }
+    .badge-green { background:#dcfce7; color:#15803d; }
+    .badge-grey  { background:#e2e8f0; color:#475569; }
+
+    /* MODAL */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--white); border-radius:20px; padding:28px; width:100%; max-width:440px; box-shadow:0 24px 64px rgba(0,0,0,.3); }
+    .modal h3 { font-size:18px; font-weight:800; color:var(--navy); margin-bottom:20px; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; font-size:12px; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+    .form-group select, .form-group textarea, .form-group input { width:100%; padding:10px 12px; border:2px solid var(--border); border-radius:10px; font-family:inherit; font-size:14px; color:var(--navy); outline:none; transition:border-color .2s; }
+    .form-group select:focus, .form-group textarea:focus, .form-group input:focus { border-color:var(--accent); }
+    .modal-actions { display:flex; gap:10px; margin-top:20px; }
+    .modal-actions .btn { flex:1; padding:12px; }
+    .btn-cancel { background:var(--light); color:var(--navy); border:none; border-radius:10px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; padding:12px; flex:1; }
+    .btn-cancel:hover { background:var(--border); }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--navy); color:var(--white); padding:12px 22px; border-radius:12px; font-size:13px; font-weight:600; box-shadow:0 12px 32px rgba(0,0,0,.3); z-index:400; transition:transform .3s ease; }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+
+    /* EMPTY */
+    .empty { text-align:center; padding:40px 20px; color:var(--gray); }
+    .empty .icon { font-size:36px; margin-bottom:10px; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .animate { animation:fadeUp .25s ease; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">ONC</div>
+    <h2>Schools Tracker</h2>
+    <p>Admin access required</p>
+    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6"
+      onkeydown="if(event.key==='Enter')checkPin()">
+    <button class="login-btn" onclick="checkPin()">🔐 Enter</button>
+    <p class="login-error" id="loginError">❌ Incorrect PIN</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="admin.html" class="back-btn">← Back to Admin</a>
+      <h1>🏫 Foundations &amp; Membership Schools</h1>
+    </div>
+    <button class="btn btn-outline" onclick="loadAll()">🔄 Refresh</button>
+  </div>
+
+  <div class="page-wrap">
+
+    <!-- FOUNDATIONS SCHOOL -->
+    <div class="section-card animate">
+      <div class="section-title">
+        🌱 Foundations School (6 Weeks)
+        <span class="pill" id="foundationsCount">Loading…</span>
+      </div>
+      <div class="filter-bar">
+        <input type="search" id="foundSearch" placeholder="Search member…" oninput="renderFoundations()" style="min-width:200px;">
+        <button class="btn btn-primary" onclick="openEnrolModal('FoundationsSchool')">+ Enrol Member</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Enrolled</th>
+              <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>W5</th><th>W6</th>
+              <th>Progress</th>
+              <th>Completed</th>
+            </tr>
+          </thead>
+          <tbody id="foundationsBody">
+            <tr><td colspan="10" class="empty">Loading school data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MEMBERSHIP SCHOOL -->
+    <div class="section-card animate">
+      <div class="section-title">
+        🎓 Membership School (4 Sessions)
+        <span class="pill" id="membershipCount">Loading…</span>
+      </div>
+      <div class="filter-bar">
+        <input type="search" id="memSearch" placeholder="Search member…" oninput="renderMembership()" style="min-width:200px;">
+        <button class="btn btn-primary" onclick="openEnrolModal('MembershipSchool')">+ Enrol Member</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Enrolled</th>
+              <th>S1</th><th>S2</th><th>S3</th><th>S4</th>
+              <th>Card Signed</th>
+              <th>Progress</th>
+              <th>Completed</th>
+            </tr>
+          </thead>
+          <tbody id="membershipBody">
+            <tr><td colspan="9" class="empty">Loading school data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ENROL MODAL -->
+<div class="modal-overlay" id="enrolModal">
+  <div class="modal">
+    <h3 id="enrolModalTitle">Enrol Member</h3>
+    <div class="form-group">
+      <label>Member</label>
+      <select id="enrolMemberSelect">
+        <option value="">Select a member…</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Enrolled Date</label>
+      <input type="date" id="enrolDate">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeEnrolModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEnrolment()">Enrol</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="churchData.js?v=20260607"></script>
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+  const VALID_PINS = [
+    localStorage.getItem('onc_pin')       || '2500',
+    localStorage.getItem('onc_pin_admin') || '1500'
+  ];
+
+  var allMembers   = [];
+  var foundations  = [];
+  var membership   = [];
+  var enrolSheet   = '';
+
+  // ── AUTH ──────────────────────────────────────────────────────
+  function checkPin() {
+    var pin = document.getElementById('pinInput').value.trim();
+    if (VALID_PINS.includes(pin)) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display   = 'block';
+      init();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('pinInput').value = '';
+    }
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────
+  function init() {
+    buildMemberList();
+    loadAll();
+  }
+
+  function buildMemberList() {
+    allMembers = [];
+    var cd = window.CHURCH_DATA;
+    if (!cd) return;
+
+    cd.spsShepherds.forEach(function (s) {
+      (s.members || []).forEach(function (m) {
+        allMembers.push({
+          name: m.name,
+          id:   m.name.toLowerCase().replace(/\s+/g, '_') + '_sps'
+        });
+      });
+    });
+    cd.mcShepherds.forEach(function (s) {
+      (s.members || []).forEach(function (m) {
+        allMembers.push({
+          name: m.name,
+          id:   m.name.toLowerCase().replace(/\s+/g, '_') + '_mc'
+        });
+      });
+    });
+  }
+
+  // ── DATA FETCH (JSONP) ────────────────────────────────────────
+  function fetchData(action, params, callback) {
+    var cbName = '_cbs_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    var called = false;
+    var script = document.createElement('script');
+
+    window[cbName] = function (data) {
+      if (called) return;
+      called = true;
+      callback(data);
+      if (document.body.contains(script)) document.body.removeChild(script);
+      delete window[cbName];
+    };
+
+    var query = '?action=' + encodeURIComponent(action) + '&callback=' + cbName;
+    if (params) {
+      Object.keys(params).forEach(function (k) {
+        query += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      });
+    }
+    query += '&_=' + Date.now();
+    script.src = SCRIPT_URL + query;
+    script.onerror = function () { if (!called) window[cbName]({ status: 'error' }); };
+    document.body.appendChild(script);
+    setTimeout(function () { if (!called) window[cbName]({ status: 'timeout' }); }, 10000);
+  }
+
+  function loadAll() {
+    fetchData('getSchoolData', null, function (data) {
+      if (data && data.status === 'success') {
+        foundations = data.foundations || [];
+        membership  = data.membership  || [];
+        renderFoundations();
+        renderMembership();
+      } else {
+        showToast('Could not load school data');
+      }
+    });
+  }
+
+  // ── DATE HELPERS ──────────────────────────────────────────────
+  function parseDate(val) {
+    if (!val) return null;
+    if (typeof val === 'string' && val.indexOf('T') !== -1) {
+      var p = val.split('T')[0].split('-');
+      return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+    }
+    if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      var p = val.split('-');
+      return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+    }
+    if (typeof val === 'string' && val.indexOf('/') !== -1) {
+      var p = val.split('/');
+      if (p.length === 3) {
+        var a = parseInt(p[0]), b = parseInt(p[1]), c = parseInt(p[2]);
+        return c > 1000 ? new Date(c, b - 1, a) : new Date(a, b - 1, c);
+      }
+    }
+    var d = new Date(val);
+    return isNaN(d) ? null : d;
+  }
+
+  function fmtDate(val) {
+    var d = parseDate(val);
+    if (!d) return '—';
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  // ── RENDER: FOUNDATIONS ───────────────────────────────────────
+  var FOUND_WEEKS = ['Week1','Week2','Week3','Week4','Week5','Week6'];
+
+  function renderFoundations() {
+    var search = (document.getElementById('foundSearch').value || '').toLowerCase();
+    var body   = document.getElementById('foundationsBody');
+    var rows   = foundations.filter(function (r) {
+      return !search || String(r.MemberName || '').toLowerCase().indexOf(search) !== -1;
+    });
+
+    document.getElementById('foundationsCount').textContent = foundations.length + ' enrolled';
+
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="10" class="empty"><div class="icon">🌱</div>No members enrolled yet.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = rows.map(function (r) {
+      var done = FOUND_WEEKS.filter(function (w) { return String(r[w]).toUpperCase() === 'Y'; }).length;
+      var pct  = Math.round((done / FOUND_WEEKS.length) * 100);
+      var weekCells = FOUND_WEEKS.map(function (w) {
+        var isY = String(r[w]).toUpperCase() === 'Y';
+        return '<td><span class="toggle' + (isY ? ' toggle-y' : '') + '" ' +
+          'onclick="toggleSchoolField(\'FoundationsSchool\',\'' + escAttr(r.MemberID) + '\',\'' + w + '\',\'' + (isY ? 'N' : 'Y') + '\')">' +
+          (isY ? '✓' : '✗') + '</span></td>';
+      }).join('');
+      var completedBadge = r.CompletedDate
+        ? '<span class="badge badge-green">✓ ' + fmtDate(r.CompletedDate) + '</span>'
+        : '<span class="badge badge-grey">In progress</span>';
+
+      return '<tr>' +
+        '<td class="member-cell">' + esc(r.MemberName) + '</td>' +
+        '<td>' + fmtDate(r.EnrolledDate) + '</td>' +
+        weekCells +
+        '<td class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:' + pct + '%;"></div></div>' +
+        '<div class="progress-label">' + done + '/6 weeks</div></td>' +
+        '<td>' + completedBadge + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // ── RENDER: MEMBERSHIP ────────────────────────────────────────
+  var MEM_SESSIONS = ['Session1','Session2','Session3','Session4'];
+
+  function renderMembership() {
+    var search = (document.getElementById('memSearch').value || '').toLowerCase();
+    var body   = document.getElementById('membershipBody');
+    var rows   = membership.filter(function (r) {
+      return !search || String(r.MemberName || '').toLowerCase().indexOf(search) !== -1;
+    });
+
+    document.getElementById('membershipCount').textContent = membership.length + ' enrolled';
+
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="9" class="empty"><div class="icon">🎓</div>No members enrolled yet.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = rows.map(function (r) {
+      var doneSessions = MEM_SESSIONS.filter(function (s) { return String(r[s]).toUpperCase() === 'Y'; }).length;
+      var cardSigned   = String(r.CommitmentCardSigned).toUpperCase() === 'Y';
+      var totalDone    = doneSessions + (cardSigned ? 1 : 0);
+      var pct          = Math.round((totalDone / 5) * 100);
+
+      var sessionCells = MEM_SESSIONS.map(function (s) {
+        var isY = String(r[s]).toUpperCase() === 'Y';
+        return '<td><span class="toggle' + (isY ? ' toggle-y' : '') + '" ' +
+          'onclick="toggleSchoolField(\'MembershipSchool\',\'' + escAttr(r.MemberID) + '\',\'' + s + '\',\'' + (isY ? 'N' : 'Y') + '\')">' +
+          (isY ? '✓' : '✗') + '</span></td>';
+      }).join('');
+
+      var cardCell = '<td><span class="toggle' + (cardSigned ? ' toggle-y' : '') + '" ' +
+        'onclick="toggleSchoolField(\'MembershipSchool\',\'' + escAttr(r.MemberID) + '\',\'CommitmentCardSigned\',\'' + (cardSigned ? 'N' : 'Y') + '\')">' +
+        (cardSigned ? '✓' : '✗') + '</span></td>';
+
+      var completedBadge = r.CompletedDate
+        ? '<span class="badge badge-green">✓ ' + fmtDate(r.CompletedDate) + '</span>'
+        : '<span class="badge badge-grey">In progress</span>';
+
+      return '<tr>' +
+        '<td class="member-cell">' + esc(r.MemberName) + '</td>' +
+        '<td>' + fmtDate(r.EnrolledDate) + '</td>' +
+        sessionCells +
+        cardCell +
+        '<td class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:' + pct + '%;"></div></div>' +
+        '<div class="progress-label">' + totalDone + '/5</div></td>' +
+        '<td>' + completedBadge + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // ── ACTIONS ───────────────────────────────────────────────────
+  function toggleSchoolField(sheet, memberId, field, newValue) {
+    fetchData('updateSchoolAttendance', {
+      sheet: sheet, memberId: memberId, week: field, value: newValue, updatedBy: 'Admin'
+    }, function (data) {
+      if (data && data.status === 'success') {
+        showToast('Updated');
+        loadAll();
+      } else {
+        showToast((data && data.message) || 'Update failed');
+      }
+    });
+  }
+
+  function openEnrolModal(sheet) {
+    enrolSheet = sheet;
+    var enrolled  = (sheet === 'FoundationsSchool' ? foundations : membership)
+      .map(function (r) { return String(r.MemberID); });
+    var available = allMembers.filter(function (m) { return enrolled.indexOf(m.id) === -1; });
+
+    document.getElementById('enrolModalTitle').textContent =
+      'Enrol Member — ' + (sheet === 'FoundationsSchool' ? 'Foundations School' : 'Membership School');
+
+    var sel = document.getElementById('enrolMemberSelect');
+    sel.innerHTML = '<option value="">Select a member…</option>' +
+      available.map(function (m) { return '<option value="' + escAttr(m.id) + '">' + esc(m.name) + '</option>'; }).join('');
+
+    var today = new Date();
+    document.getElementById('enrolDate').value =
+      today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+    document.getElementById('enrolModal').classList.add('open');
+  }
+
+  function closeEnrolModal() {
+    document.getElementById('enrolModal').classList.remove('open');
+  }
+
+  function submitEnrolment() {
+    var memberId = document.getElementById('enrolMemberSelect').value;
+    var date     = document.getElementById('enrolDate').value;
+    if (!memberId) { showToast('Please select a member'); return; }
+
+    var member = allMembers.find(function (m) { return m.id === memberId; });
+    if (!member) return;
+
+    fetchData('enrolInSchool', {
+      sheet: enrolSheet, memberId: member.id, memberName: member.name, enrolledDate: date
+    }, function (data) {
+      if (data && data.status === 'success') {
+        showToast('Member enrolled');
+        closeEnrolModal();
+        loadAll();
+      } else {
+        showToast((data && data.message) || 'Enrolment failed');
+      }
+    });
+  }
+
+  // ── UTIL ──────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+  function escAttr(s) { return esc(s).replace(/\\/g, '\\\\'); }
+
+  var toastTimer = null;
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+  }
+</script>
+</body>
+</html>
