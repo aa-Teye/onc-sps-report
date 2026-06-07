@@ -31,6 +31,7 @@ function doPost(e) {
     if (action === 'saveReminder')            return saveReminderSettings(data);
     if (action === 'submitMicrochurchReport') return submitMicrochurchReport(data);
     if (action === 'submitGuestForm')         return submitGuestForm(data);
+    if (action === 'updateGuestForm')         return updateGuestForm(data);
     if (action === 'savePinChange')           return savePinChange(data);
     if (action === 'logActivity')             return logActivity(data);
     if (action === 'postAnnouncement')        return postAnnouncement(data);
@@ -490,6 +491,38 @@ function submitGuestForm(data) {
 
   sheet.autoResizeColumns(1, 25);
   logAudit(ss, 'GUEST_REGISTERED', 'First Timers Unit', g.fullName || '');
+  return jsonResponse({ status: 'success' });
+}
+
+function updateGuestForm(data) {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(FIRST_TIMERS_SHEET);
+  const guestId = data.guestId || (data.guest && data.guest.id) || '';
+
+  if (!sheet || !guestId || sheet.getLastRow() <= 1)
+    return jsonResponse({ status: 'error', message: 'Guest not found' });
+
+  const ids = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+  let row = -1;
+  for (let i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(guestId)) { row = i + 2; break; }
+  }
+  if (row === -1) return jsonResponse({ status: 'error', message: 'Guest not found' });
+
+  const g = data.guest || {};
+  sheet.getRange(row, 4, 1, 22).setValues([[
+    g.firstName || '', g.middleName || '', g.lastName || '', g.fullName || '',
+    g.phone || '', g.email || '',
+    (g.dobDay && g.dobMonth && g.dobYear)
+      ? g.dobDay + '/' + g.dobMonth + '/' + g.dobYear : '',
+    g.gender || '', g.maritalStatus || '', g.occupation || '',
+    g.company || '', g.residence || '', g.heardFrom || '', g.invitedBy || '',
+    g.podcast || '', g.whatsapp || '', g.bornAgain || '',
+    g.belongsToChurch || '', g.churchName || '', g.contactPreference || '',
+    g.followUpStatus || 'Needs Follow Up', g.feedback || ''
+  ]]);
+
+  logAudit(ss, 'GUEST_UPDATED', 'First Timers Unit', g.fullName || '');
   return jsonResponse({ status: 'success' });
 }
 

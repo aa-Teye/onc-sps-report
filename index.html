@@ -4048,21 +4048,46 @@
       };
 
       if (ftState.editingGuestId) {
+        var editingId = ftState.editingGuestId;
         var idx = todaysGuests.findIndex(
-          function(g) { 
-            return g.id === ftState.editingGuestId; 
+          function(g) {
+            return g.id === editingId;
           });
         if (idx > -1) {
+          guest.id   = todaysGuests[idx].id;
+          guest.date = todaysGuests[idx].date;
+          guest.time = todaysGuests[idx].time;
           todaysGuests[idx] = guest;
-          todaysGuests[idx].id = ftState.editingGuestId;
           localStorage.setItem('todays_guests',
             JSON.stringify(todaysGuests));
-          ftState.editingGuestId = null;
-          showGlobalAlert('✅ Guest registered successfully!', 'success');
+        }
+        ftState.editingGuestId = null;
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'updateGuestForm',
+            guestId: editingId,
+            guest: guest
+          })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+          if (result.status === 'success') {
+            showGlobalAlert('✅ Guest details updated successfully!', 'success');
+          } else {
+            showGlobalAlert('⚠️ Saved locally but server update failed: ' +
+              (result.message || 'unknown error'), 'warning');
+          }
+        })
+        .catch(function() {
+          showGlobalAlert('⚠️ Saved locally but server update failed. Please retry when online.', 'warning');
+        })
+        .finally(function() {
           resetGuestForm();
           showSection('secFirstTimersLanding');
-          return;
-        }
+        });
+        return;
       }
       
       var submitBtn = document.querySelector(
