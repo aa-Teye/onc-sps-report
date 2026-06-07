@@ -2196,7 +2196,8 @@
       "Bernice Can-Tamakloe": { members: ["Emmanuel Nii-Lantei", "Rebecca Donkor"], pin: "0000" },
       "Ruth Dadzie": { members: ["Samuel Adama", "Hannah Akuffo France"], pin: "0000" },
       "Anita Asamoah": { members: ["Joseph Asmah", "Jeremiah Asante"], pin: "0000" },
-      "Christabel Arhin": { members: [], pin: "0000" }
+      "Christabel Arhin": { members: [], pin: "0000" },
+      "IT Service": { members: [], pin: "0000" }
     };
 
     const microchurchShepherdData = {
@@ -2219,7 +2220,8 @@
       "Samuel Opare": ["Janet Tetteh", "Jedidiah Wiafe", "Deborah Quaye", "Albert Ladi Mensah", "Daniella Ladi Mensah", "Nathaniel Ladi Mensah", "Johnathan Ladi Mensah", "Joel Wiafe", "Simon Wegah", "Francis Awuku", "Abigail Ayimbilah"],
       "Esther Doku": ["Mama Doris Otumfour", "Benjamin Justice Tandoh Arthur", "Nadia Awentemi", "Mr Ebenezer Okronipa Snr", "Alexis Nhyira Destiny", "Emmalyn Sackey", "Clifford Obeng", "Lawrencia Thompson"],
       "Samuel Oteng": ["Rebecca Quaye", "Mary Quaye", "Laudice Quaye", "Oscar Abane", "Oswell Abane", "Daniel Takan"],
-      "Sandra Boateng": ["Edmund Oteng-Mawia", "Elinam Dowetin", "Ryan Elinam Tettey", "Jacinta Quaye", "George Essel"]
+      "Sandra Boateng": ["Edmund Oteng-Mawia", "Elinam Dowetin", "Ryan Elinam Tettey", "Jacinta Quaye", "George Essel"],
+      "IT Service": []
     };
 
     const microchurchNames = {
@@ -4216,11 +4218,15 @@
     function viewTodaysGuests() {
       var list = document.getElementById(
         'todaysGuestsList');
-      
+
       if (!list) return;
-      
+
+      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray);">⏳ Loading guests...</div>';
+      showSection('secTodaysGuests');
+
+      syncGuestsFromBackend(function() {
       if (todaysGuests.length === 0) {
-        list.innerHTML = 
+        list.innerHTML =
           '<div style="text-align:center;' +
           'padding:40px;color:var(--gray);">' +
           '<div style="font-size:40px;' +
@@ -4261,8 +4267,7 @@
           }
         ).join('');
       }
-      
-      showSection('secTodaysGuests');
+      });
     }
 
     function editTodaysGuest(guestId) {
@@ -4375,6 +4380,47 @@
       loadFollowUpList();
     }
 
+    // ── Sync guest records from backend database ──────────────
+    function syncGuestsFromBackend(onDone) {
+      var cbName = 'onGuestsSynced_' + Date.now();
+      var script = document.createElement('script');
+
+      function cleanup() {
+        delete window[cbName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+      }
+
+      window[cbName] = function(response) {
+        var backendGuests = (response && response.guests) || [];
+        var backendIds = {};
+        backendGuests.forEach(function(g) { backendIds[g.id] = true; });
+
+        var pendingUnsynced = [];
+        try {
+          JSON.parse(localStorage.getItem('ft_pending_backup') || '[]')
+            .forEach(function(b) {
+              if (b && b.data && b.data.id && !backendIds[b.data.id]) {
+                pendingUnsynced.push(b.data);
+              }
+            });
+        } catch (e) {}
+
+        todaysGuests = backendGuests.concat(pendingUnsynced);
+        localStorage.setItem('todays_guests', JSON.stringify(todaysGuests));
+
+        cleanup();
+        if (onDone) onDone();
+      };
+
+      script.onerror = function() {
+        cleanup();
+        if (onDone) onDone();
+      };
+
+      script.src = SCRIPT_URL + '?action=getGuests&callback=' + cbName;
+      document.head.appendChild(script);
+    }
+
     // ── Helper: deduplicated guest list ──────────────────────────
     function getGuests() {
       var combined = todaysGuests.concat(
@@ -4421,6 +4467,7 @@
       var list = document.getElementById('followUpList');
       if (!list) return;
 
+      syncGuestsFromBackend(function() {
       var guests   = getGuests();
       var filtered = filterGuestsByTab(guests);
 
@@ -4503,6 +4550,7 @@
           'font-size:13px;">📝 Record</button>' +
           '</div></div>';
       }).join('');
+      });
     }
 
     // ── CHANGE 2: Helper functions ─────────────────────────────
