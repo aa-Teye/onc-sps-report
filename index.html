@@ -8,6 +8,7 @@
   <link rel="icon" href="./logo.png" type="image/png">
   <link rel="shortcut icon" href="./logo.png" type="image/png">
   <link rel="apple-touch-icon" href="./logo.png">
+  <link rel="manifest" href="./manifest.json">
   <link
     href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -1546,6 +1547,19 @@
             👥 Know Your Members
           </button>
 
+          <button onclick="openClusterModal()"
+            style="width:100%;padding:18px;
+            border-radius:16px;
+            background:linear-gradient(135deg,#25D366,#128C7E);
+            color:white;border:none;
+            font-size:16px;font-weight:700;
+            cursor:pointer;display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;margin-top:8px;">
+            💬 Message My Cluster
+          </button>
+
         </div>
         
         <div style="display:flex;justify-content:center;
@@ -2163,6 +2177,52 @@
     <div class="footer">ONC SPS System — Overcomers Nation Church</div>
   </div>
   <div class="toast" id="toast"></div>
+
+  <!-- Add to Home Screen banner (mobile only, dismissable) -->
+  <div id="pwaInstallBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--navy);color:#fff;padding:14px 16px;z-index:9999;border-top:2px solid var(--gold);">
+    <div style="max-width:480px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;">
+        <span style="font-size:24px;">📱</span>
+        <div>
+          <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#fff;">Add ONC Shepherd App to your home screen</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">for the best experience</div>
+        </div>
+      </div>
+      <button onclick="dismissPwaBanner()" style="background:none;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">Dismiss</button>
+    </div>
+  </div>
+
+  <!-- Cluster Messaging Modal -->
+  <div id="clusterMsgModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.8);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);">
+    <div style="background:#fff;border-radius:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;position:relative;">
+      <button onclick="closeClusterModal()" style="position:absolute;top:16px;right:16px;background:rgba(15,32,68,.08);border:none;color:var(--navy);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;">✕</button>
+      <h3 style="font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);margin:0 0 4px;">💬 Message My Cluster</h3>
+      <p style="font-size:12px;color:var(--gray);margin:0 0 16px;" id="clusterMsgSubtitle"></p>
+      <div id="clusterMemberList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:220px;overflow-y:auto;"></div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Your Message</label>
+        <textarea id="clusterMsgText" rows="4" placeholder="Type your message here…"
+          style="width:100%;padding:12px;border:2px solid var(--border);border-radius:12px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--navy);resize:vertical;outline:none;box-sizing:border-box;"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button onclick="sendClusterIndividually()"
+          style="flex:1;padding:14px;background:linear-gradient(135deg,#25D366,#128C7E);color:white;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;">
+          💬 Send Individually
+        </button>
+        <button onclick="copyClusterMessage()"
+          style="flex:1;padding:14px;background:linear-gradient(135deg,var(--accent),#1a5fc4);color:white;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;">
+          📋 Copy Message
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Register service worker for PWA offline support
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(function () {});
+    }
+  </script>
 
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
@@ -5224,6 +5284,128 @@
       }).join('');
       
       showSection('secKnowYourMembers');
+    }
+
+    // ── PWA: Add to Home Screen banner ──────────────────────────
+    (function () {
+      var dismissed = localStorage.getItem('onc_pwa_dismissed') === '1';
+      var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+      if (!dismissed && isMobile && !isStandalone) {
+        setTimeout(function () {
+          var banner = document.getElementById('pwaInstallBanner');
+          if (banner) banner.style.display = 'block';
+        }, 3000);
+      }
+    })();
+
+    function dismissPwaBanner() {
+      localStorage.setItem('onc_pwa_dismissed', '1');
+      var banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.style.display = 'none';
+    }
+
+    // ── Cluster Messaging ────────────────────────────────────────
+    function openClusterModal() {
+      if (!state.shepherd) {
+        showGlobalAlert('Please log in first', 'error');
+        return;
+      }
+      var cd = window.CHURCH_DATA || {};
+      var allShepherds = (cd.spsShepherds || []).concat(cd.mcShepherds || []);
+      var myData = allShepherds.find(function (s) { return s.name === state.shepherd; });
+      var members = (myData && myData.members) ? myData.members : [];
+
+      var subtitle = document.getElementById('clusterMsgSubtitle');
+      if (subtitle) subtitle.textContent = state.shepherd + ' · ' + members.length + ' member' + (members.length !== 1 ? 's' : '');
+
+      var list = document.getElementById('clusterMemberList');
+      if (list) {
+        list.innerHTML = members.length ? members.map(function (m) {
+          var num = (m.contact || '').replace(/\D/g, '');
+          var hasNum = num.length > 0;
+          return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--light);border-radius:10px;">' +
+            '<div><div style="font-weight:700;font-size:13px;color:var(--navy);">' + escapeHtml(m.name) + '</div>' +
+            '<div style="font-size:11px;color:var(--gray);">' + (hasNum ? m.contact : 'No contact') + '</div></div>' +
+            (hasNum ? '<span style="font-size:10px;background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:10px;font-weight:700;">📱</span>' : '<span style="font-size:10px;color:#94a3b8;">—</span>') +
+            '</div>';
+        }).join('') : '<div style="text-align:center;padding:20px;color:var(--gray);font-size:13px;">No members in cluster yet.</div>';
+      }
+
+      document.getElementById('clusterMsgText').value = '';
+      var modal = document.getElementById('clusterMsgModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeClusterModal() {
+      var modal = document.getElementById('clusterMsgModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function sendClusterIndividually() {
+      var message = document.getElementById('clusterMsgText').value.trim();
+      if (!message) { showGlobalAlert('Please type a message first', 'error'); return; }
+
+      var cd = window.CHURCH_DATA || {};
+      var allShepherds = (cd.spsShepherds || []).concat(cd.mcShepherds || []);
+      var myData = allShepherds.find(function (s) { return s.name === state.shepherd; });
+      var members = (myData && myData.members) ? myData.members.filter(function (m) { return m.contact; }) : [];
+
+      if (!members.length) { showGlobalAlert('No members with contact numbers', 'error'); return; }
+
+      var text = encodeURIComponent(message);
+      var i = 0;
+      closeClusterModal();
+
+      function openNext() {
+        if (i >= members.length) return;
+        var m = members[i++];
+        var num = (m.contact || '').replace(/\D/g, '');
+        if (num.charAt(0) === '0') num = '233' + num.slice(1);
+        window.open('https://wa.me/' + num + '?text=' + text, '_blank');
+        if (i < members.length) setTimeout(openNext, 1500);
+      }
+      openNext();
+      showGlobalAlert('Opening WhatsApp for ' + members.length + ' member(s)…', 'info');
+    }
+
+    function copyClusterMessage() {
+      var message = document.getElementById('clusterMsgText').value.trim();
+      if (!message) { showGlobalAlert('Please type a message first', 'error'); return; }
+
+      var cd = window.CHURCH_DATA || {};
+      var allShepherds = (cd.spsShepherds || []).concat(cd.mcShepherds || []);
+      var myData = allShepherds.find(function (s) { return s.name === state.shepherd; });
+      var members = (myData && myData.members) ? myData.members : [];
+
+      var formatted = '📢 *Message from ' + (state.shepherd || 'Your Shepherd') + '*\n\n' + message;
+      if (members.length) {
+        formatted += '\n\n👥 *Members: ' + members.map(function (m) { return m.name; }).join(', ') + '*';
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(formatted).then(function () {
+          showGlobalAlert('✅ Message copied to clipboard!', 'success');
+          closeClusterModal();
+        }).catch(function () { fallbackCopy(formatted); });
+      } else {
+        fallbackCopy(formatted);
+      }
+    }
+
+    function fallbackCopy(text) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); showGlobalAlert('✅ Message copied!', 'success'); } catch (e) { showGlobalAlert('Copy failed — please copy manually', 'error'); }
+      document.body.removeChild(ta);
+      closeClusterModal();
     }
   </script>
 

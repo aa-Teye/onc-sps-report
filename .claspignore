@@ -7,6 +7,8 @@ sunday.html
 visitation.html
 go-dashboard.html
 churchData.js
+manifest.json
+sw.js
 logo.png
 README.md
 .gitignore

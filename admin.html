@@ -1176,6 +1176,11 @@
             <span class="icon">🗺</span>
             <span class="tab-btn-label">Zones</span>
           </button>
+          <button class="tab-btn"
+            onclick="switchTab('scores', this)" id="scoresTabBtn">
+            <span class="icon">📊</span>
+            <span class="tab-btn-label">Scores</span>
+          </button>
 
           <!-- REPORTS -->
           <div class="tab-section-label" style="font-size:10px;font-weight:800;
@@ -1613,6 +1618,64 @@
             <div id="zone-health-grid"
               style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
           </div>
+          <!-- SECTION 3: Zone Trend -->
+          <div class="export-section" style="margin-top:20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+              <h3 style="margin:0;">📈 Zone Performance Trends (Last 8 Weeks)</h3>
+              <button onclick="loadZoneSnapshots()"
+                style="padding:8px 16px;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;border:none;border-radius:8px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;">
+                🔄 Load Trends
+              </button>
+            </div>
+            <div id="zone-trend-grid" style="display:flex;flex-direction:column;gap:16px;">
+              <div style="text-align:center;padding:32px;color:var(--gray);font-size:13px;">Click "Load Trends" to see historical snapshot data.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCORES TAB -->
+        <div class="tab-panel" id="panel-scores">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+            <h2 style="font-size:22px;font-weight:800;color:var(--navy);">📊 Shepherd Performance Scores</h2>
+            <button onclick="triggerCalculateScores()"
+              style="padding:10px 20px;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;">
+              🔄 Calculate Scores
+            </button>
+          </div>
+          <p style="color:var(--gray);font-size:13px;margin-bottom:20px;">Composite score: 40% reporting consistency · 30% attendance rate · 20% new souls · 10% flag resolution</p>
+          <div class="filter-bar" style="margin-bottom:16px;">
+            <select id="filtScoresStream" onchange="renderScoresTable()">
+              <option value="">All Streams</option>
+              <option value="SPS">SPS</option>
+              <option value="MC">MC</option>
+            </select>
+            <select id="filtScoresGrade" onchange="renderScoresTable()">
+              <option value="">All Grades</option>
+              <option value="A">Grade A (80–100%)</option>
+              <option value="B">Grade B (60–79%)</option>
+              <option value="C">Grade C (40–59%)</option>
+              <option value="D">Grade D (&lt;40%)</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Shepherd</th>
+                  <th>Stream</th>
+                  <th style="text-align:center;">Reporting<br><span style="font-size:10px;opacity:.7">40%</span></th>
+                  <th style="text-align:center;">Attendance<br><span style="font-size:10px;opacity:.7">30%</span></th>
+                  <th style="text-align:center;">Souls<br><span style="font-size:10px;opacity:.7">20%</span></th>
+                  <th style="text-align:center;">Flags<br><span style="font-size:10px;opacity:.7">10%</span></th>
+                  <th style="text-align:center;">Total</th>
+                  <th style="text-align:center;">Grade</th>
+                </tr>
+              </thead>
+              <tbody id="scoresTableBody">
+                <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--gray);">Click "Calculate Scores" to generate performance data</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- TAB 7: EXPORT -->
@@ -1998,6 +2061,30 @@
               🔄 Load PIN Changes
             </button>
             <div id="pinChangesList"></div>
+          </div>
+
+          <!-- Bulk Member Import -->
+          <div class="export-section" id="bulkImportSection" style="margin-top:20px;">
+            <h3>📥 Bulk Member Import</h3>
+            <p style="color:var(--gray);font-size:13px;margin-bottom:16px;">Upload a CSV file to import members in bulk. Required columns: <strong>Name, Phone, Shepherd, Zone, Stream</strong></p>
+            <div style="display:flex;flex-direction:column;gap:12px;max-width:540px;">
+              <input type="file" id="bulkCsvFile" accept=".csv"
+                onchange="previewBulkImport(this)"
+                style="padding:10px;border:2px dashed var(--border);border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;">
+              <div id="bulkPreviewWrap" style="display:none;">
+                <div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
+                  Preview (first 5 rows)
+                </div>
+                <div class="table-wrap" style="max-height:220px;overflow-y:auto;">
+                  <table id="bulkPreviewTable" style="font-size:12px;"></table>
+                </div>
+                <div id="bulkRowCount" style="font-size:13px;color:var(--gray);margin-top:8px;"></div>
+              </div>
+              <button id="bulkConfirmBtn" onclick="confirmBulkImport()" style="display:none;padding:12px 24px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">
+                ✅ Confirm Import
+              </button>
+              <div id="bulkImportMsg" style="font-size:13px;font-weight:600;"></div>
+            </div>
           </div>
 
         </div><!-- end panel-settings -->
@@ -2987,6 +3074,22 @@
                 cursor:pointer;">
                 📢 Post Announcement
               </button>
+
+              <!-- WhatsApp share — shown after posting -->
+              <div id="annoWhatsAppContainer" style="display:none;margin-top:16px;padding:14px;background:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0;">
+                <div style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:10px;">📲 Share via WhatsApp</div>
+                <select id="annoWaAudience"
+                  style="width:100%;padding:10px;border:2px solid #bbf7d0;border-radius:8px;font-size:14px;margin-bottom:10px;box-sizing:border-box;font-family:inherit;">
+                  <option value="all">All Shepherds</option>
+                  <option value="sps">SPS Only</option>
+                  <option value="mc">MC Only</option>
+                  <option value="firsttimers">First Timers Unit</option>
+                </select>
+                <button onclick="openAnnoWhatsApp()"
+                  style="width:100%;padding:12px;background:#25D366;color:white;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;">
+                  📲 Open WhatsApp with Message
+                </button>
+              </div>
             </div>
 
             <div style="background:white;
@@ -3706,6 +3809,7 @@
           setInterval(loadAll, 120000);
           setInterval(keepWarm, 4 * 60 * 1000);
           applyRoleRestrictions();
+          loadShepherdScores();
         } else {
           document.getElementById('loginError').style.display = 'block';
           document.getElementById('pinInput').value = '';
@@ -3913,6 +4017,12 @@
         var goDashboardLink = document.getElementById('goDashboardLink');
         if (goDashboardLink) {
           goDashboardLink.style.display = role === 'superadmin' ? 'flex' : 'none';
+        }
+
+        // Scores tab — admin and superadmin only
+        var scoresTabBtn = document.getElementById('scoresTabBtn');
+        if (scoresTabBtn) {
+          scoresTabBtn.style.display = (role === 'superadmin' || role === 'admin') ? 'flex' : 'none';
         }
 
         // Show role badge in topbar
@@ -5233,7 +5343,7 @@
             : '<div style="color:#94a3b8;font-size:12px;' +
             'margin-top:8px;">No contact number</div>';
 
-          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? (lastRep.sessionDate || lastRep.date || '') : 'Never') + '</div></div>' + badge + '</div>' + contactBtns + '<div class="shepherd-details">' + repsHtml + '</div></div>';
+          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? (lastRep.sessionDate || lastRep.date || '') : 'Never') + '</div></div>' + badge + '</div>' + contactBtns + '<div class="shepherd-details">' + repsHtml + '</div></div>';
         });
         grid.innerHTML = html || '<div class="empty"><div class="icon">👥</div><p>No shepherds found</p></div>';
       }
@@ -5969,11 +6079,237 @@
           zoneConfig[idx].shepherds.push(cb.dataset.shep);
         });
         localStorage.setItem('onc_zones', JSON.stringify(zoneConfig));
+        // Sync zone config to backend so saveZoneSnapshot trigger can read it
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'saveZoneConfig', zones: zoneConfig })
+        }).catch(function () {});
         var msg = document.getElementById('zone-save-msg');
         msg.textContent = '✅ All zone configurations saved.';
         msg.style.display = 'block';
         setTimeout(function () { msg.style.display = 'none'; }, 3000);
         renderZoneHealth();
+      }
+
+      // ── Zone Trend ──────────────────────────────────────────────
+      function loadZoneSnapshots() {
+        var grid = document.getElementById('zone-trend-grid');
+        grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);">Loading...</div>';
+        fetchData('getZoneSnapshots', function (data) {
+          if (!data || !data.snapshots || !data.snapshots.length) {
+            grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--gray);font-size:13px;">No snapshot data yet. Data is saved automatically each Monday. You can also trigger it manually via Apps Script.</div>';
+            return;
+          }
+          renderZoneTrend(data.snapshots);
+        });
+      }
+
+      function renderZoneTrend(snapshots) {
+        var grid = document.getElementById('zone-trend-grid');
+        // Group by zone
+        var byZone = {};
+        snapshots.forEach(function (s) {
+          var key = s.ZoneName || s.ZoneID;
+          if (!byZone[key]) byZone[key] = [];
+          byZone[key].push(s);
+        });
+
+        var cards = Object.keys(byZone).map(function (zoneName) {
+          var rows = byZone[zoneName].slice(-8).sort(function (a, b) { return parseInt(a.WeekNumber) - parseInt(b.WeekNumber); });
+          var maxRate = 100;
+          var bars = rows.map(function (r) {
+            var rate = parseInt(r.ReportingRate) || 0;
+            var color = rate >= 80 ? '#22c55e' : rate >= 50 ? '#f59e0b' : '#ef4444';
+            return '<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px;">' +
+              '<div style="height:60px;display:flex;align-items:flex-end;width:100%;">' +
+              '<div style="width:100%;background:' + color + ';border-radius:3px 3px 0 0;height:' + rate + '%;min-height:4px;transition:height .4s;"></div>' +
+              '</div>' +
+              '<div style="font-size:10px;color:#64748b;white-space:nowrap;">Wk ' + (r.WeekNumber || '') + '</div>' +
+              '<div style="font-size:10px;font-weight:700;color:' + color + ';">' + rate + '%</div>' +
+              '</div>';
+          }).join('');
+
+          var latest = rows[rows.length - 1] || {};
+          return '<div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);">' +
+            '<div style="font-weight:800;font-size:14px;color:var(--navy);margin-bottom:12px;">' + zoneName + '</div>' +
+            '<div style="display:flex;gap:4px;align-items:flex-end;height:80px;margin-bottom:8px;">' + bars + '</div>' +
+            '<div style="display:flex;gap:12px;font-size:11px;color:var(--gray);">' +
+            '<span>Latest: <strong>' + (latest.ReportingRate || '—') + '%</strong> reporting</span>' +
+            '<span>Avg att: <strong>' + (latest.AvgAttendance || '—') + '%</strong></span>' +
+            '<span>Souls: <strong>' + (latest.NewSouls || 0) + '</strong></span>' +
+            '</div></div>';
+        });
+
+        grid.innerHTML = cards.length
+          ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">' + cards.join('') + '</div>'
+          : '<div style="text-align:center;padding:32px;color:var(--gray);">No snapshot data available.</div>';
+      }
+
+      // ── Shepherd Scores ─────────────────────────────────────────
+      var allShepherdScores = [];
+
+      function triggerCalculateScores() {
+        adminToast('⏳ Calculating scores…');
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'calculateShepherdScores' })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          adminToast('✅ Scores calculated for ' + (res.count || 0) + ' shepherds');
+          loadShepherdScores();
+        })
+        .catch(function () {
+          adminToast('⚠ Calculation may have succeeded — loading scores…');
+          loadShepherdScores();
+        });
+      }
+
+      function loadShepherdScores() {
+        fetchData('getShepherdScores', function (data) {
+          allShepherdScores = (data && data.scores) ? data.scores : [];
+          renderScoresTable();
+          // Re-render shepherd cards so badges update
+          renderShepherds();
+          renderMcShepherds();
+        });
+      }
+
+      function getScoreBadge(shepherdName) {
+        var sc = allShepherdScores.find(function (s) { return s.ShepherdName === shepherdName; });
+        if (!sc) return '';
+        var grade = sc.Grade || '';
+        var total = parseInt(sc.TotalScore) || 0;
+        var colors = { A: { bg: '#dcfce7', color: '#15803d' }, B: { bg: '#dbeafe', color: '#1e40af' }, C: { bg: '#fef9c3', color: '#854d0e' }, D: { bg: '#fee2e2', color: '#991b1b' } };
+        var c = colors[grade] || { bg: '#f1f5f9', color: '#64748b' };
+        return '<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:' + c.bg + ';color:' + c.color + ';margin-left:6px;" title="Score: ' + total + '%">Grade ' + grade + '</span>';
+      }
+
+      function renderScoresTable() {
+        var tbody = document.getElementById('scoresTableBody');
+        if (!tbody) return;
+        var streamF = document.getElementById('filtScoresStream') ? document.getElementById('filtScoresStream').value : '';
+        var gradeF  = document.getElementById('filtScoresGrade')  ? document.getElementById('filtScoresGrade').value  : '';
+
+        var rows = allShepherdScores.filter(function (s) {
+          if (streamF && s.Stream !== streamF) return false;
+          if (gradeF  && s.Grade  !== gradeF)  return false;
+          return true;
+        }).sort(function (a, b) { return (parseInt(b.TotalScore) || 0) - (parseInt(a.TotalScore) || 0); });
+
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--gray);">No scores found. Click "Calculate Scores" to generate data.</td></tr>';
+          return;
+        }
+
+        var gradeColors = { A: '#15803d', B: '#1e40af', C: '#854d0e', D: '#991b1b' };
+        var gradeBackgrounds = { A: '#dcfce7', B: '#dbeafe', C: '#fef9c3', D: '#fee2e2' };
+
+        tbody.innerHTML = rows.map(function (s) {
+          var grade   = s.Grade || '—';
+          var total   = parseInt(s.TotalScore) || 0;
+          var gc      = gradeColors[grade] || '#64748b';
+          var gb      = gradeBackgrounds[grade] || '#f1f5f9';
+          return '<tr>' +
+            '<td style="font-weight:700;">' + escHtml(s.ShepherdName || '') + '</td>' +
+            '<td><span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:' + (s.Stream === 'MC' ? '#ede9fe' : '#eff6ff') + ';color:' + (s.Stream === 'MC' ? '#6d28d9' : '#1d4ed8') + ';">' + (s.Stream || '') + '</span></td>' +
+            '<td style="text-align:center;font-weight:700;">' + (parseInt(s.ReportingScore) || 0) + '%</td>' +
+            '<td style="text-align:center;font-weight:700;">' + (parseInt(s.AttendanceScore) || 0) + '%</td>' +
+            '<td style="text-align:center;font-weight:700;">' + (parseInt(s.SoulsScore) || 0) + '%</td>' +
+            '<td style="text-align:center;font-weight:700;">' + (parseInt(s.FlagScore) || 0) + '%</td>' +
+            '<td style="text-align:center;font-weight:800;font-size:15px;">' + total + '%</td>' +
+            '<td style="text-align:center;"><span style="padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800;background:' + gb + ';color:' + gc + ';">' + grade + '</span></td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      // ── Bulk Member Import ──────────────────────────────────────
+      var _bulkImportRows = [];
+
+      function previewBulkImport(input) {
+        var file = input.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          var lines = e.target.result.split(/\r?\n/).filter(function (l) { return l.trim(); });
+          if (lines.length < 2) { adminToast('CSV has no data rows'); return; }
+
+          var headers = lines[0].split(',').map(function (h) { return h.trim().replace(/^"|"$/g, ''); });
+          var nameIdx     = headers.findIndex(function (h) { return /^name$/i.test(h); });
+          var phoneIdx    = headers.findIndex(function (h) { return /^phone$/i.test(h); });
+          var shepherdIdx = headers.findIndex(function (h) { return /^shepherd$/i.test(h); });
+          var zoneIdx     = headers.findIndex(function (h) { return /^zone$/i.test(h); });
+          var streamIdx   = headers.findIndex(function (h) { return /^stream$/i.test(h); });
+
+          if (nameIdx < 0 || shepherdIdx < 0) {
+            adminToast('CSV must have "Name" and "Shepherd" columns');
+            return;
+          }
+
+          _bulkImportRows = [];
+          for (var i = 1; i < lines.length; i++) {
+            var cols = lines[i].split(',').map(function (c) { return c.trim().replace(/^"|"$/g, ''); });
+            if (!cols[nameIdx]) continue;
+            _bulkImportRows.push({
+              name:     cols[nameIdx]     || '',
+              phone:    phoneIdx    >= 0  ? (cols[phoneIdx]    || '') : '',
+              shepherd: cols[shepherdIdx] || '',
+              zone:     zoneIdx     >= 0  ? (cols[zoneIdx]     || '') : '',
+              stream:   streamIdx   >= 0  ? (cols[streamIdx]   || 'SPS') : 'SPS'
+            });
+          }
+
+          // Preview first 5 rows
+          var preview = _bulkImportRows.slice(0, 5);
+          var previewHeaders = ['Name', 'Phone', 'Shepherd', 'Zone', 'Stream'];
+          var tableHtml = '<thead><tr>' + previewHeaders.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
+            preview.map(function (r) {
+              return '<tr><td>' + escHtml(r.name) + '</td><td>' + escHtml(r.phone) + '</td><td>' + escHtml(r.shepherd) + '</td><td>' + escHtml(r.zone) + '</td><td>' + escHtml(r.stream) + '</td></tr>';
+            }).join('') + '</tbody>';
+
+          document.getElementById('bulkPreviewTable').innerHTML = tableHtml;
+          document.getElementById('bulkRowCount').textContent = _bulkImportRows.length + ' members ready to import';
+          document.getElementById('bulkPreviewWrap').style.display = 'block';
+          document.getElementById('bulkConfirmBtn').style.display = 'block';
+          document.getElementById('bulkImportMsg').textContent = '';
+        };
+        reader.readAsText(file);
+      }
+
+      function confirmBulkImport() {
+        if (!_bulkImportRows.length) { adminToast('No data to import'); return; }
+        document.getElementById('bulkConfirmBtn').disabled = true;
+        document.getElementById('bulkImportMsg').textContent = '⏳ Importing…';
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'bulkImportMembers',
+            members: _bulkImportRows,
+            importedBy: currentRole === 'superadmin' ? 'General Overseer' : 'Admin'
+          })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res.status === 'success') {
+            document.getElementById('bulkImportMsg').style.color = '#15803d';
+            document.getElementById('bulkImportMsg').textContent = '✅ ' + res.count + ' members imported successfully (ID: ' + res.importId + ')';
+            adminToast('✅ ' + res.count + ' members imported!');
+            _bulkImportRows = [];
+            document.getElementById('bulkPreviewWrap').style.display = 'none';
+            document.getElementById('bulkConfirmBtn').style.display = 'none';
+            document.getElementById('bulkCsvFile').value = '';
+          } else {
+            document.getElementById('bulkImportMsg').style.color = '#ef4444';
+            document.getElementById('bulkImportMsg').textContent = '❌ Import failed: ' + (res.message || 'Unknown error');
+          }
+          document.getElementById('bulkConfirmBtn').disabled = false;
+        })
+        .catch(function () {
+          document.getElementById('bulkImportMsg').style.color = '#ef4444';
+          document.getElementById('bulkImportMsg').textContent = '❌ Network error. Please try again.';
+          document.getElementById('bulkConfirmBtn').disabled = false;
+        });
       }
 
       function renderZoneHealth() {
@@ -6783,7 +7119,7 @@
               'margin-top:8px;">No contact number</div>';
 
             return '<div class="shepherd-card" style="border-left:4px solid ' + statusColor + '">' +
-              '<div class="shepherd-name">' + s.name + '</div>' +
+              '<div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div>' +
               '<div style="font-size:12px;color:#3b82f6;margin-bottom:8px">' + s.microchurch + '</div>' +
               '<div class="shepherd-meta">Sessions this week: ' + sWeekly.length + '</div>' +
               '<div class="shepherd-meta">Avg attendance: ' + avgRate + '%</div>' +
@@ -8324,6 +8660,8 @@
               hour:'2-digit', minute:'2-digit'})
         };
         
+        window._lastPostedAnnouncement = announcement;
+
         fetch(SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify({
@@ -8334,22 +8672,54 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
           adminToast('📢 Announcement posted!');
-          document.getElementById(
-            'annoTitle').value = '';
-          document.getElementById(
-            'annoMessage').value = '';
-          document.getElementById(
-            'annoExpiry').value = '';
+          document.getElementById('annoTitle').value = '';
+          document.getElementById('annoMessage').value = '';
+          document.getElementById('annoExpiry').value = '';
+          var waBox = document.getElementById('annoWhatsAppContainer');
+          if (waBox) waBox.style.display = 'block';
           loadAnnouncements();
         })
         .catch(function() {
           adminToast('📢 Announcement posted!');
-          document.getElementById(
-            'annoTitle').value = '';
-          document.getElementById(
-            'annoMessage').value = '';
+          document.getElementById('annoTitle').value = '';
+          document.getElementById('annoMessage').value = '';
+          var waBox = document.getElementById('annoWhatsAppContainer');
+          if (waBox) waBox.style.display = 'block';
           loadAnnouncements();
         });
+      }
+
+      function openAnnoWhatsApp() {
+        var ann = window._lastPostedAnnouncement;
+        if (!ann) { adminToast('No announcement to share'); return; }
+        var audienceSel = document.getElementById('annoWaAudience');
+        var audienceKey = audienceSel ? audienceSel.value : 'all';
+
+        var cd = window.CHURCH_DATA || {};
+        var numbers = [];
+        if (audienceKey === 'all' || audienceKey === 'sps') {
+          (cd.spsShepherds || []).forEach(function(s) {
+            var n = (s.contact || '').replace(/\D/g,'');
+            if (n) { if (n.charAt(0) === '0') n = '233' + n.slice(1); numbers.push(n); }
+          });
+        }
+        if (audienceKey === 'all' || audienceKey === 'mc') {
+          (cd.mcShepherds || []).forEach(function(s) {
+            var n = (s.contact || '').replace(/\D/g,'');
+            if (n) { if (n.charAt(0) === '0') n = '233' + n.slice(1); numbers.push(n); }
+          });
+        }
+
+        var text = encodeURIComponent('📢 *' + ann.title + '*\n\n' + ann.message + (ann.expiry ? '\n\nExpiry: ' + ann.expiry : ''));
+
+        if (numbers.length > 0) {
+          var url = 'https://wa.me/' + numbers[0] + '?text=' + text;
+          window.open(url, '_blank');
+          adminToast('Opening WhatsApp for ' + numbers.length + ' contact(s)');
+        } else {
+          var url = 'https://wa.me/?text=' + text;
+          window.open(url, '_blank');
+        }
       }
 
       function loadAnnouncements() {

@@ -54,6 +54,10 @@ function doPost(e) {
     // ── Baptism Tracking POST actions ────────────────────────────
     if (action === 'updateBaptismStatus')     return updateBaptismStatus(data);
     if (action === 'createBaptismCohort')     return createBaptismCohort(data);
+    // ── Sprint 5 POST actions ─────────────────────────────────
+    if (action === 'saveZoneConfig')          return saveZoneConfig(data);
+    if (action === 'bulkImportMembers')       return bulkImportMembers(data);
+    if (action === 'calculateShepherdScores') return calculateShepherdScores(data);
 
     return jsonResponse({ status: 'error', message: 'Unknown action' });
   } catch (err) {
@@ -103,6 +107,9 @@ function doGet(e) {
     else if (action === 'getGODashboardData')     response = getGODashboardData();
     // ── Baptism Tracking GET action ──────────────────────────────
     else if (action === 'getBaptismRecords')      response = getBaptismRecords();
+    // ── Sprint 5 GET actions ─────────────────────────────────────
+    else if (action === 'getZoneSnapshots')       response = getZoneSnapshots();
+    else if (action === 'getShepherdScores')      response = getShepherdScores();
     else                                          response = { status: 'ok', message: 'ONC SPS Backend v4.0 Running' };
   } catch (err) {
     response = { status: 'error', message: err.toString() };
@@ -1554,6 +1561,237 @@ function _inWeek(dateValue, weekNum) {
   if (!dateValue) return false;
   var d = new Date(dateValue);
   return !isNaN(d.getTime()) && getWeekNumber(d) === weekNum;
+}
+
+// ============================================================
+// ZONE WEEKLY SNAPSHOTS
+// ============================================================
+
+function saveZoneConfig(data) {
+  var headers = ['ZoneID', 'ZoneName', 'Supershepherd', 'Shepherds', 'UpdatedAt'];
+  var sheet   = ensureSheet('ZoneConfig', headers);
+  var now     = new Date();
+  if (sheet.getLastRow() > 1) sheet.deleteRows(2, sheet.getLastRow() - 1);
+  (data.zones || []).forEach(function (zone, i) {
+    sheet.appendRow([
+      'ZONE-' + (i + 1),
+      zone.name        || 'Zone ' + (i + 1),
+      zone.supershepherd || '',
+      (zone.shepherds  || []).join(','),
+      formatDate(now)  + ' ' + formatTime(now)
+    ]);
+  });
+  return jsonResponse({ status: 'success' });
+}
+
+function getZoneSnapshots() {
+  var headers = ['ZoneID', 'ZoneName', 'WeekNumber', 'WeekStartDate', 'ReportingRate', 'AvgAttendance', 'FlagsRaised', 'NewSouls', 'Timestamp'];
+  var sheet   = ensureSheet('ZoneWeeklySnapshot', headers);
+  return { status: 'success', snapshots: getSheetRecords(sheet) };
+}
+
+function saveZoneSnapshot() {
+  var ss          = SpreadsheetApp.getActiveSpreadsheet();
+  var now         = new Date();
+  var currentWeek = getWeekNumber(now);
+
+  var configSheet = ss.getSheetByName('ZoneConfig');
+  if (!configSheet || configSheet.getLastRow() <= 1) {
+    Logger.log('saveZoneSnapshot: No ZoneConfig sheet found');
+    return;
+  }
+  var zones   = getSheetRecords(configSheet);
+  var spsRows = (function () {
+    var s = ss.getSheetByName(SHEET_NAME);
+    return (s && s.getLastRow() > 1) ? s.getDataRange().getValues().slice(1) : [];
+  })();
+  var mcRows  = (function () {
+    var s = ss.getSheetByName(MC_SHEET_NAME);
+    return (s && s.getLastRow() > 1) ? s.getDataRange().getValues().slice(1) : [];
+  })();
+  var flags        = getFlags().records;
+  var flagsWeek    = flags.filter(function (f) { return _inWeek(f.FlagDate, currentWeek); });
+  var spsWeek      = spsRows.filter(function (r) { return r[18] == currentWeek; });
+  var mcWeek       = mcRows.filter(function (r)  { return r[22] == currentWeek; });
+
+  var d = new Date(now);
+  var day = d.getDay() || 7;
+  d.setDate(d.getDate() - day + 1);
+  var weekStart = formatDate(d);
+
+  var sheet = ensureSheet('ZoneWeeklySnapshot',
+    ['ZoneID', 'ZoneName', 'WeekNumber', 'WeekStartDate', 'ReportingRate', 'AvgAttendance', 'FlagsRaised', 'NewSouls', 'Timestamp']);
+
+  zones.forEach(function (zone) {
+    var shepherds = String(zone.Shepherds || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    if (!shepherds.length) return;
+
+    var zSps     = spsWeek.filter(function (r) { return shepherds.indexOf(String(r[7] || '')) > -1; });
+    var zMc      = mcWeek.filter(function  (r) { return shepherds.indexOf(String(r[7] || '')) > -1; });
+    var allZone  = zSps.concat(zMc);
+    var reported = new Set(allZone.map(function (r) { return r[7]; }));
+
+    var reportingRate = Math.round(reported.size / shepherds.length * 100);
+    var avgAttendance = allZone.length ? Math.round(
+      allZone.reduce(function (sum, r) {
+        return sum + (parseInt(String(r[12] || r[13] || '').replace('%', '')) || 0);
+      }, 0) / allZone.length
+    ) : 0;
+    var flagsRaised = flagsWeek.filter(function (f) {
+      return shepherds.indexOf(String(f.ShepherdName || '')) > -1;
+    }).length;
+    var newSouls = zMc.reduce(function (sum, r) { return sum + (parseInt(r[18]) || 0); }, 0);
+
+    sheet.appendRow([
+      zone.ZoneID || '',
+      zone.ZoneName || '',
+      currentWeek,
+      weekStart,
+      reportingRate,
+      avgAttendance,
+      flagsRaised,
+      newSouls,
+      formatDate(now) + ' ' + formatTime(now)
+    ]);
+  });
+
+  Logger.log('Zone snapshots saved for week ' + currentWeek);
+}
+
+function setupZoneSnapshotTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'saveZoneSnapshot') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('saveZoneSnapshot')
+    .timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(6).create();
+  Logger.log('Zone snapshot trigger set for every Monday at 6am');
+}
+
+// ============================================================
+// SHEPHERD PERFORMANCE SCORING
+// ============================================================
+
+function getShepherdScores() {
+  var headers = ['ShepherdName', 'Stream', 'ReportingScore', 'AttendanceScore', 'SoulsScore', 'FlagScore', 'TotalScore', 'Grade', 'WeekNumber'];
+  var sheet   = ensureSheet('ShepherdScores', headers);
+  return { status: 'success', scores: getSheetRecords(sheet) };
+}
+
+function calculateShepherdScores() {
+  var ss          = SpreadsheetApp.getActiveSpreadsheet();
+  var now         = new Date();
+  var currentWeek = getWeekNumber(now);
+  var curMonth    = now.getMonth();
+  var curYear     = now.getFullYear();
+
+  var spsRows = (function () {
+    var s = ss.getSheetByName(SHEET_NAME);
+    return (s && s.getLastRow() > 1) ? s.getDataRange().getValues().slice(1) : [];
+  })();
+  var mcRows  = (function () {
+    var s = ss.getSheetByName(MC_SHEET_NAME);
+    return (s && s.getLastRow() > 1) ? s.getDataRange().getValues().slice(1) : [];
+  })();
+
+  var flags = getFlags().records;
+
+  var shepherdMap = {};
+  spsRows.forEach(function (r) {
+    var name = String(r[7] || ''); if (!name) return;
+    if (!shepherdMap[name]) shepherdMap[name] = { stream: 'SPS', spsRows: [], mcRows: [] };
+    shepherdMap[name].spsRows.push(r);
+  });
+  mcRows.forEach(function (r) {
+    var name = String(r[7] || ''); if (!name) return;
+    if (!shepherdMap[name]) shepherdMap[name] = { stream: 'MC', spsRows: [], mcRows: [] };
+    shepherdMap[name].stream = 'MC';
+    shepherdMap[name].mcRows.push(r);
+  });
+
+  var weeks8 = [];
+  for (var i = 0; i < 8; i++) { var wk = currentWeek - i; if (wk > 0) weeks8.push(wk); }
+
+  var headers = ['ShepherdName', 'Stream', 'ReportingScore', 'AttendanceScore', 'SoulsScore', 'FlagScore', 'TotalScore', 'Grade', 'WeekNumber'];
+  var sheet   = ensureSheet('ShepherdScores', headers);
+  if (sheet.getLastRow() > 1) sheet.deleteRows(2, sheet.getLastRow() - 1);
+
+  Object.keys(shepherdMap).forEach(function (name) {
+    var info    = shepherdMap[name];
+    var allRows = info.spsRows.concat(info.mcRows);
+
+    var weeksReported = weeks8.filter(function (wk) {
+      return allRows.some(function (r) {
+        return parseInt(r[18]) === wk || parseInt(r[22]) === wk;
+      });
+    }).length;
+    var reportingScore = Math.round(weeksReported / 8 * 100);
+
+    var recentRows = allRows.filter(function (r) {
+      return weeks8.indexOf(parseInt(r[18]) || parseInt(r[22])) > -1;
+    });
+    var attendanceScore = recentRows.length ? Math.round(
+      recentRows.reduce(function (sum, r) {
+        return sum + (parseInt(String(r[12] || r[13] || '').replace('%', '')) || 0);
+      }, 0) / recentRows.length
+    ) : 0;
+
+    var soulsThisMonth = info.mcRows.filter(function (r) {
+      var raw = r[1];
+      var d   = raw instanceof Date ? raw : (raw ? new Date(String(raw).replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1')) : null);
+      return d && !isNaN(d.getTime()) && d.getMonth() === curMonth && d.getFullYear() === curYear;
+    }).reduce(function (sum, r) { return sum + (parseInt(r[18]) || 0); }, 0);
+    var soulsScore = Math.min(100, Math.round(soulsThisMonth / 5 * 100));
+
+    var sFlags   = flags.filter(function (f) { return f.ShepherdName === name; });
+    var raised   = sFlags.length;
+    var resolved = sFlags.filter(function (f) { return f.ResolutionDate; }).length;
+    var flagScore = raised > 0 ? Math.round(resolved / raised * 100) : 100;
+
+    var total = Math.round(reportingScore * 0.4 + attendanceScore * 0.3 + soulsScore * 0.2 + flagScore * 0.1);
+    var grade = total >= 80 ? 'A' : total >= 60 ? 'B' : total >= 40 ? 'C' : 'D';
+
+    sheet.appendRow([name, info.stream, reportingScore, attendanceScore, soulsScore, flagScore, total, grade, currentWeek]);
+  });
+
+  logAudit(ss, 'SCORES_CALCULATED', 'System', 'Week ' + currentWeek + ' — ' + Object.keys(shepherdMap).length + ' shepherds');
+  return jsonResponse({ status: 'success', count: Object.keys(shepherdMap).length });
+}
+
+// ============================================================
+// BULK MEMBER IMPORT
+// ============================================================
+
+function bulkImportMembers(data) {
+  if (!Array.isArray(data.members) || !data.members.length)
+    return jsonResponse({ status: 'error', message: 'No members provided' });
+
+  var membersHeaders = ['MemberID', 'Name', 'Phone', 'Shepherd', 'Zone', 'Stream', 'ImportDate'];
+  var membersSheet   = ensureSheet('Members', membersHeaders);
+  var importHeaders  = ['ImportID', 'Date', 'ImportedBy', 'RowCount', 'Status'];
+  var importSheet    = ensureSheet('BulkImports', importHeaders);
+
+  var now      = new Date();
+  var importId = 'IMP-' + now.getTime();
+  var count    = 0;
+
+  data.members.forEach(function (m, i) {
+    if (!m.name) return;
+    membersSheet.appendRow([
+      importId + '-' + (i + 1),
+      m.name     || '',
+      m.phone    || '',
+      m.shepherd || '',
+      m.zone     || '',
+      m.stream   || 'SPS',
+      formatDate(now)
+    ]);
+    count++;
+  });
+
+  importSheet.appendRow([importId, formatDate(now), data.importedBy || 'Admin', count, 'Completed']);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'BULK_IMPORT', data.importedBy || 'Admin',
+    count + ' members imported (' + importId + ')');
+  return jsonResponse({ status: 'success', importId: importId, count: count });
 }
 
 // ============================================================
