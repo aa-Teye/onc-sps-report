@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Install ONC Shepherd App</title>
+  <link rel="icon" href="./logo.png" type="image/png">
+  <link rel="shortcut icon" href="./logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="./logo.png">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0f2044;
+      --blue: #1a3a6b;
+      --accent: #2e80e8;
+      --gold: #f0a500;
+      --green: #22c55e;
+      --light: #f0f5ff;
+      --white: #ffffff;
+      --gray: #64748b;
+      --border: #dce7f7;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(160deg, #0f2044 0%, #1a3a6b 50%, #0f2044 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px 16px 40px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 28px 0 24px;
+      animation: fadeDown 0.6s ease;
+    }
+
+    .logo-ring {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #f5c842);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      box-shadow: 0 8px 24px rgba(240, 165, 0, 0.35);
+    }
+
+    .logo-ring img {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .header h1 {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 22px;
+      color: var(--white);
+      letter-spacing: 0.5px;
+    }
+
+    .header p {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 4px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 28px 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+
+    .card h2 {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 19px;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .card .sub {
+      font-size: 13px;
+      color: var(--gray);
+      margin-bottom: 24px;
+    }
+
+    /* iOS steps */
+    .step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .step:last-child {
+      border-bottom: none;
+    }
+
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .step-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      font-size: 14px;
+      color: var(--navy);
+      font-weight: 600;
+      line-height: 1.5;
+      padding-top: 4px;
+    }
+
+    /* Buttons */
+    .btn-install {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--gold), #f5c842);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--navy);
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(240, 165, 0, 0.35);
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn-install:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(240, 165, 0, 0.45);
+    }
+
+    /* QR / desktop */
+    .qr-wrap {
+      text-align: center;
+      padding: 12px 0 4px;
+    }
+
+    .qr-wrap img {
+      width: 200px;
+      height: 200px;
+      border: 8px solid var(--light);
+      border-radius: 16px;
+    }
+
+    .qr-wrap p {
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--navy);
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
+    .qr-wrap .url {
+      font-size: 12px;
+      color: var(--gray);
+      margin-top: 6px;
+      word-break: break-all;
+      font-weight: 400;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--light);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 12px;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="logo-ring"><img src="logo.png" alt="ONC Logo"></div>
+      <h1>Install ONC Shepherd App</h1>
+      <p>Overcomers Nation Church</p>
+    </div>
+
+    <div class="card">
+      <!-- Android -->
+      <div id="secAndroid" style="display:none;">
+        <span class="badge">🤖 Android</span>
+        <h2>Install the app</h2>
+        <p class="sub">Add the ONC Shepherd App to your home screen for quick, app-like access.</p>
+        <button class="btn-install" id="androidInstallBtn" onclick="installAndroid()">⬇ Install App</button>
+        <p class="sub" id="androidFallback" style="display:none;margin-top:14px;">
+          If the install button doesn't appear, open the browser menu (⋮) and tap "Add to Home screen" or "Install app".
+        </p>
+      </div>
+
+      <!-- iOS -->
+      <div id="secIOS" style="display:none;">
+        <span class="badge">🍎 iPhone / iPad</span>
+        <h2>Add to Home Screen</h2>
+        <p class="sub">Follow these steps in Safari to install the app:</p>
+
+        <div class="step">
+          <div class="step-icon">📤</div>
+          <div class="step-text">Tap the <b>Share</b> button at the bottom (or top) of Safari</div>
+        </div>
+        <div class="step">
+          <div class="step-icon">➕</div>
+          <div class="step-text">Scroll down and tap <b>"Add to Home Screen"</b></div>
+        </div>
+        <div class="step">
+          <div class="step-icon">✅</div>
+          <div class="step-text">Tap <b>"Add"</b> in the top-right corner to confirm</div>
+        </div>
+      </div>
+
+      <!-- Desktop -->
+      <div id="secDesktop" style="display:none;">
+        <span class="badge">💻 Desktop</span>
+        <h2>Install on your phone</h2>
+        <p class="sub">Scan this QR code with your phone's camera to open the app and install it.</p>
+        <div class="qr-wrap">
+          <img id="qrImage" src="" alt="QR code to install ONC Shepherd App">
+          <p>Open this page on your phone to install</p>
+          <div class="url" id="siteUrl"></div>
+        </div>
+        <button class="btn-install" id="desktopInstallBtn" style="display:none;" onclick="installAndroid()">⬇ Install on this device</button>
+      </div>
+    </div>
+
+    <div class="footer">ONC SPS System — Overcomers Nation Church</div>
+  </div>
+
+  <script>
+    var deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      var androidBtn = document.getElementById('androidInstallBtn');
+      var androidFallback = document.getElementById('androidFallback');
+      var desktopBtn = document.getElementById('desktopInstallBtn');
+      if (androidBtn) { androidBtn.style.display = 'block'; }
+      if (androidFallback) { androidFallback.style.display = 'none'; }
+      if (desktopBtn) { desktopBtn.style.display = 'block'; }
+    });
+
+    window.addEventListener('appinstalled', function () {
+      localStorage.setItem('onc_pwa_installed', '1');
+    });
+
+    function installAndroid() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function () {
+        deferredPrompt = null;
+      });
+    }
+
+    (function () {
+      var ua = navigator.userAgent;
+      var isIOS = /iPad|iPhone|iPod/i.test(ua) && !window.MSStream;
+      var isAndroid = /Android/i.test(ua);
+      var isMobile = isIOS || isAndroid || /Mobi/i.test(ua);
+
+      if (isIOS) {
+        document.getElementById('secIOS').style.display = 'block';
+      } else if (isAndroid || isMobile) {
+        document.getElementById('secAndroid').style.display = 'block';
+        // Show fallback instructions if the install prompt doesn't fire shortly
+        setTimeout(function () {
+          if (!deferredPrompt) {
+            document.getElementById('androidInstallBtn').style.display = 'none';
+            document.getElementById('androidFallback').style.display = 'block';
+          }
+        }, 1500);
+      } else {
+        var siteUrl = window.location.origin + window.location.pathname.replace(/install\.html$/, 'index.html');
+        document.getElementById('siteUrl').textContent = siteUrl;
+        document.getElementById('qrImage').src =
+          'https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=0f2044&bgcolor=ffffff&data=' + encodeURIComponent(siteUrl);
+        document.getElementById('secDesktop').style.display = 'block';
+      }
+    })();
+  </script>
+</body>
+
+</html>

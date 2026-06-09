@@ -13,3 +13,4 @@ logo.png
 README.md
 .gitignore
 node_modules/**
+install.html

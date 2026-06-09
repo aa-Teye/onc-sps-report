@@ -2184,11 +2184,14 @@
       <div style="display:flex;align-items:center;gap:10px;flex:1;">
         <span style="font-size:24px;">📱</span>
         <div>
-          <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#fff;">Add ONC Shepherd App to your home screen</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">for the best experience</div>
+          <div id="pwaBannerTitle" style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#fff;">Add ONC Shepherd App to your home screen</div>
+          <div id="pwaBannerSubtitle" style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">for the best experience</div>
         </div>
       </div>
-      <button onclick="dismissPwaBanner()" style="background:none;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">Dismiss</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <button id="pwaInstallBtn" onclick="triggerPwaInstall()" style="display:none;background:var(--gold);border:none;color:var(--navy);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">Install</button>
+        <button onclick="dismissPwaBanner()" style="background:none;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">Dismiss</button>
+      </div>
     </div>
   </div>
 
@@ -5288,21 +5291,78 @@
 
     // ── PWA: Add to Home Screen banner ──────────────────────────
     (function () {
-      var dismissed = localStorage.getItem('onc_pwa_dismissed') === '1';
+      var INSTALLED_KEY = 'onc_pwa_installed';
+      var SHOWN_AT_KEY = 'onc_pwa_last_shown';
+      var REPROMPT_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
       var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-      var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-      if (!dismissed && isMobile && !isStandalone) {
-        setTimeout(function () {
-          var banner = document.getElementById('pwaInstallBanner');
-          if (banner) banner.style.display = 'block';
-        }, 3000);
+      var isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
+      var isAndroid = /Android/i.test(navigator.userAgent);
+      var isMobile = isIOS || isAndroid || /Mobi/i.test(navigator.userAgent);
+
+      if (isStandalone) {
+        localStorage.setItem(INSTALLED_KEY, '1');
       }
+
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        window.__oncDeferredPrompt = e;
+        maybeShowBanner();
+      });
+
+      window.addEventListener('appinstalled', function () {
+        localStorage.setItem(INSTALLED_KEY, '1');
+        var banner = document.getElementById('pwaInstallBanner');
+        if (banner) banner.style.display = 'none';
+      });
+
+      function maybeShowBanner() {
+        if (localStorage.getItem(INSTALLED_KEY) === '1') return;
+        if (isStandalone || !isMobile) return;
+
+        var lastShown = parseInt(localStorage.getItem(SHOWN_AT_KEY) || '0', 10);
+        if (Date.now() - lastShown < REPROMPT_MS) return;
+
+        var banner = document.getElementById('pwaInstallBanner');
+        var titleEl = document.getElementById('pwaBannerTitle');
+        var subtitleEl = document.getElementById('pwaBannerSubtitle');
+        var installBtn = document.getElementById('pwaInstallBtn');
+        if (!banner) return;
+
+        if (isIOS) {
+          titleEl.textContent = 'Add ONC Shepherd App to your Home Screen';
+          subtitleEl.textContent = 'Tap the Share button ⬆ then tap "Add to Home Screen"';
+          installBtn.style.display = 'none';
+        } else if (isAndroid) {
+          if (!window.__oncDeferredPrompt) return;
+          titleEl.textContent = 'Add ONC Shepherd App to your home screen';
+          subtitleEl.textContent = 'for the best experience';
+          installBtn.style.display = 'inline-block';
+        } else {
+          return;
+        }
+
+        banner.style.display = 'block';
+        localStorage.setItem(SHOWN_AT_KEY, String(Date.now()));
+      }
+
+      setTimeout(maybeShowBanner, 3000);
     })();
 
     function dismissPwaBanner() {
-      localStorage.setItem('onc_pwa_dismissed', '1');
       var banner = document.getElementById('pwaInstallBanner');
       if (banner) banner.style.display = 'none';
+    }
+
+    function triggerPwaInstall() {
+      var promptEvent = window.__oncDeferredPrompt;
+      if (!promptEvent) return;
+      promptEvent.prompt();
+      promptEvent.userChoice.then(function () {
+        window.__oncDeferredPrompt = null;
+        var banner = document.getElementById('pwaInstallBanner');
+        if (banner) banner.style.display = 'none';
+      });
     }
 
     // ── Cluster Messaging ────────────────────────────────────────
