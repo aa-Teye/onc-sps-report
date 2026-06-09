@@ -1282,6 +1282,10 @@
             text-transform:uppercase;">
             ⚙️ System
           </div>
+          <a href="go-dashboard.html" id="goDashboardLink" class="tab-btn" style="display:none;text-decoration:none;">
+            <span class="icon">👑</span>
+            <span class="tab-btn-label">GO Dashboard</span>
+          </a>
           <button class="tab-btn"
             onclick="switchTab('settings', this)">
             <span class="icon">⚙️</span>
@@ -1793,6 +1797,18 @@
                     style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical;"
                     onfocus="this.style.borderColor='var(--accent)'"
                     onblur="this.style.borderColor='var(--border)'"></textarea>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--light);border-radius:10px;border:1px solid var(--border);">
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--navy);">📌 Make Mandatory</div>
+                    <div style="font-size:11px;color:var(--gray);margin-top:2px;">Shepherds must acknowledge reading</div>
+                  </div>
+                  <label style="position:relative;display:inline-block;width:42px;height:24px;cursor:pointer;">
+                    <input type="checkbox" id="resMandatory" style="opacity:0;width:0;height:0;position:absolute;">
+                    <span id="resMandatoryTrack" onclick="toggleMandatoryTrack()" style="position:absolute;inset:0;border-radius:24px;background:#cbd5e1;transition:background .2s;cursor:pointer;"></span>
+                    <span id="resMandatoryThumb" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.2);"></span>
+                  </label>
                 </div>
 
                 <button onclick="addResource()"
@@ -3894,6 +3910,11 @@
             role === 'ftshead') ? 'flex' : 'none';
         }
 
+        var goDashboardLink = document.getElementById('goDashboardLink');
+        if (goDashboardLink) {
+          goDashboardLink.style.display = role === 'superadmin' ? 'flex' : 'none';
+        }
+
         // Show role badge in topbar
         var roleDisplayNames = {
           'superadmin': '👑 General Overseer',
@@ -4377,46 +4398,96 @@
       // ========================================================
       // RESOURCE LIBRARY MANAGEMENT SYSTEM
       // ========================================================
-      var allResources = [];
+      var allResources  = [];
+      var mandatoryReads = [];
+
+      function toggleMandatoryTrack() {
+        var cb    = document.getElementById('resMandatory');
+        var track = document.getElementById('resMandatoryTrack');
+        var thumb = document.getElementById('resMandatoryThumb');
+        cb.checked = !cb.checked;
+        track.style.background = cb.checked ? 'var(--accent)' : '#cbd5e1';
+        thumb.style.left = cb.checked ? '21px' : '3px';
+      }
+
+      function resetMandatoryToggle() {
+        var cb    = document.getElementById('resMandatory');
+        var track = document.getElementById('resMandatoryTrack');
+        var thumb = document.getElementById('resMandatoryThumb');
+        if (cb) cb.checked = false;
+        if (track) track.style.background = '#cbd5e1';
+        if (thumb) thumb.style.left = '3px';
+      }
+
+      function getShepherdNamesForAudience(audience) {
+        var cd = window.CHURCH_DATA;
+        if (!cd) return [];
+        var names = [];
+        if (audience === 'All Shepherds' || audience === 'SPS Shepherds' || audience === 'Both') {
+          cd.spsShepherds.forEach(function (s) { names.push(s.name); });
+        }
+        if (audience === 'All Shepherds' || audience === 'Microchurch Shepherds' || audience === 'Both') {
+          cd.mcShepherds.forEach(function (s) { names.push(s.name); });
+        }
+        return names;
+      }
 
       function initResources() {
         var cached = localStorage.getItem('onc_resources');
         if (cached) {
-          try {
-            allResources = JSON.parse(cached);
-          } catch (e) {
-            allResources = [];
-          }
+          try { allResources = JSON.parse(cached); } catch (e) { allResources = []; }
         } else {
-          // Default initial guide so it's not blank
-          allResources = [
-            {
-              title: "SPS Follow-Up Best Practices Guide",
-              category: "Guide",
-              audience: "SPS Shepherds",
-              url: "https://drive.google.com",
-              desc: "Best practices, calling strategies, and spiritual outlines for SPS Shepherds.",
-              dateAdded: new Date().toISOString()
-            }
-          ];
+          allResources = [{
+            resourceId: 'RES-default-1',
+            title: "SPS Follow-Up Best Practices Guide",
+            category: "Guide",
+            audience: "SPS Shepherds",
+            url: "https://drive.google.com",
+            desc: "Best practices, calling strategies, and spiritual outlines for SPS Shepherds.",
+            mandatory: false,
+            dateAdded: new Date().toISOString()
+          }];
         }
-        
-        // Filter out sensitive manual
-        allResources = allResources.filter(function(r) {
-          return r.title !== "ONC Shepherd General Handbook";
-        });
+        allResources = allResources.filter(function (r) { return r.title !== "ONC Shepherd General Handbook"; });
         localStorage.setItem('onc_resources', JSON.stringify(allResources));
-        
         renderResources();
+
+        fetchData('getResources', function (data) {
+          if (data && data.resources && data.resources.length) {
+            allResources = data.resources.map(function (r) {
+              return {
+                resourceId: r.ResourceID || r.resourceId || ('RES-' + Date.now()),
+                title:    r.Title    || r.title    || '',
+                category: r.Category || r.category || 'Other',
+                audience: r.Audience || r.audience || 'All Shepherds',
+                url:      r.URL      || r.url      || '',
+                desc:     r.Description || r.desc  || '',
+                mandatory: (r.Mandatory || r.mandatory) === 'Y' || r.mandatory === true,
+                dateAdded: r.DateAdded  || r.dateAdded || new Date().toISOString()
+              };
+            });
+            allResources = allResources.filter(function (r) { return r.title !== "ONC Shepherd General Handbook"; });
+            localStorage.setItem('onc_resources', JSON.stringify(allResources));
+            renderResources();
+          }
+        });
+
+        fetchData('getMandatoryReads', function (data) {
+          if (data && data.records) {
+            mandatoryReads = data.records;
+            renderResources();
+          }
+        });
       }
 
       function addResource() {
-        var title = document.getElementById('resTitle').value.trim();
-        var cat = document.getElementById('resCategory').value;
-        var aud = document.getElementById('resAudience').value;
-        var url = document.getElementById('resUrl').value.trim();
-        var desc = document.getElementById('resDesc').value.trim();
-        var status = document.getElementById('resFormStatus');
+        var title   = document.getElementById('resTitle').value.trim();
+        var cat     = document.getElementById('resCategory').value;
+        var aud     = document.getElementById('resAudience').value;
+        var url     = document.getElementById('resUrl').value.trim();
+        var desc    = document.getElementById('resDesc').value.trim();
+        var mandatory = document.getElementById('resMandatory').checked;
+        var status  = document.getElementById('resFormStatus');
 
         if (!title || !url) {
           status.textContent = '❌ Please fill in Title and URL.';
@@ -4424,111 +4495,149 @@
           return;
         }
 
+        var resourceId = 'RES-' + Date.now();
+        var shepherdNames = mandatory ? getShepherdNamesForAudience(aud) : [];
         var res = {
-          title: title,
-          category: cat,
-          audience: aud,
-          url: url,
-          desc: desc,
-          dateAdded: new Date().toISOString()
+          resourceId: resourceId,
+          title: title, category: cat, audience: aud, url: url, desc: desc,
+          mandatory: mandatory, dateAdded: new Date().toISOString()
         };
 
         allResources.push(res);
         localStorage.setItem('onc_resources', JSON.stringify(allResources));
 
-        // Reset inputs
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'saveResource', resourceId: resourceId,
+            title: title, category: cat, audience: aud, url: url, desc: desc,
+            mandatory: mandatory, shepherdNames: shepherdNames, addedBy: currentRoleName || 'Admin'
+          })
+        }).catch(function () {});
+
         document.getElementById('resTitle').value = '';
-        document.getElementById('resUrl').value = '';
-        document.getElementById('resDesc').value = '';
+        document.getElementById('resUrl').value   = '';
+        document.getElementById('resDesc').value  = '';
+        resetMandatoryToggle();
 
-        status.textContent = '✅ Resource published!';
+        status.textContent = mandatory
+          ? '✅ Mandatory resource published! Shepherd read-receipts created.'
+          : '✅ Resource published!';
         status.style.color = '#16a34a';
-        setTimeout(function () { status.textContent = ''; }, 3000);
+        setTimeout(function () { status.textContent = ''; }, 4000);
 
+        if (mandatory) {
+          shepherdNames.forEach(function (name) {
+            mandatoryReads.push({ ResourceID: resourceId, ResourceTitle: title, ShepherdName: name, Status: 'Pending', ReadDate: '', ReadTime: '' });
+          });
+        }
         renderResources();
       }
 
-      function deleteResource(idx) {
+      function deleteResource(resourceId) {
         if (confirm('Are you sure you want to delete this resource?')) {
-          allResources.splice(idx, 1);
+          allResources = allResources.filter(function (r) { return r.resourceId !== resourceId; });
           localStorage.setItem('onc_resources', JSON.stringify(allResources));
+          fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'deleteResourceRecord', resourceId: resourceId })
+          }).catch(function () {});
           renderResources();
         }
       }
 
-      // Filter colors mapping
       var catColors = {
-        Manual: { bg: '#e0f2fe', text: '#0369a1' },
-        Syllabus: { bg: '#f3e8ff', text: '#6b21a8' },
-        Guide: { bg: '#ecfdf5', text: '#047857' },
-        Media: { bg: '#fff1f2', text: '#be123c' },
-        Other: { bg: '#f1f5f9', text: '#475569' }
+        Manual:  { bg: '#e0f2fe', text: '#0369a1', icon: '📘' },
+        Syllabus:{ bg: '#f3e8ff', text: '#6b21a8', icon: '📖' },
+        Guide:   { bg: '#ecfdf5', text: '#047857', icon: '🧭' },
+        Media:   { bg: '#fff1f2', text: '#be123c', icon: '🎥' },
+        Other:   { bg: '#f1f5f9', text: '#475569', icon: '📄' }
       };
 
       function renderResources() {
         var list = document.getElementById('resourcesList');
         if (!list) return;
 
-        var q = document.getElementById('resSearch').value.toLowerCase().trim();
+        var q    = document.getElementById('resSearch').value.toLowerCase().trim();
         var fCat = document.getElementById('filtResCategory').value;
         var fAud = document.getElementById('filtResAudience').value;
 
-        var filtered = allResources.map(function (r, i) { return { r: r, idx: i }; }).filter(function (item) {
-          var r = item.r;
+        var filtered = allResources.filter(function (r) {
           if (fCat && r.category !== fCat) return false;
           if (fAud && r.audience !== fAud) return false;
           if (q) {
-            var matchTitle = r.title.toLowerCase().indexOf(q) > -1;
-            var matchDesc = r.desc.toLowerCase().indexOf(q) > -1;
+            var matchTitle = (r.title || '').toLowerCase().indexOf(q) > -1;
+            var matchDesc  = (r.desc  || '').toLowerCase().indexOf(q) > -1;
             if (!matchTitle && !matchDesc) return false;
           }
           return true;
         });
 
         var countTag = document.getElementById('resCountTag');
-        if (countTag) {
-          countTag.textContent = filtered.length + ' Document' + (filtered.length === 1 ? '' : 's');
-        }
+        if (countTag) countTag.textContent = filtered.length + ' Document' + (filtered.length === 1 ? '' : 's');
 
         list.innerHTML = '';
-        if (filtered.length === 0) {
+        if (!filtered.length) {
           list.innerHTML = '<div style="text-align:center;color:var(--gray);padding:40px 20px;font-size:14px;">No resources found.</div>';
           return;
         }
 
-        filtered.forEach(function (item) {
-          var r = item.r;
-          var idx = item.idx;
+        filtered.forEach(function (r) {
+          var rid   = r.resourceId || '';
           var badge = catColors[r.category] || catColors.Other;
-          var card = document.createElement('div');
+          var card  = document.createElement('div');
 
-          card.style.cssText = 'background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border);transition:all 0.2s;display:flex;flex-direction:column;gap:8px;';
+          card.style.cssText = 'background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border);transition:all 0.2s;display:flex;flex-direction:column;gap:8px;' +
+            (r.mandatory ? 'border-top:3px solid var(--gold);' : '');
+          card.onmouseenter = function () { card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; };
+          card.onmouseleave = function () { card.style.boxShadow = 'none'; };
 
-          card.onmouseenter = function () { card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; card.style.borderColor = 'rgba(0,0,0,0.15)'; };
-          card.onmouseleave = function () { card.style.boxShadow = 'none'; card.style.borderColor = 'var(--border)'; };
+          var formattedDate = '';
+          try { formattedDate = new Date(r.dateAdded).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }); } catch (e) {}
 
-          var formattedDate = new Date(r.dateAdded).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+          var readCount = 0; var totalCount = 0;
+          if (r.mandatory && rid) {
+            var rows = mandatoryReads.filter(function (mr) { return String(mr.ResourceID) === String(rid); });
+            totalCount = rows.length;
+            readCount  = rows.filter(function (mr) { return mr.Status === 'Read'; }).length;
+          }
+
+          var mandatoryBadge = r.mandatory
+            ? '<span style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;background:#fef9c3;color:#92400e;border:1px solid #fde68a;">📌 Mandatory</span>'
+            : '';
+          var receiptHtml = (r.mandatory && totalCount > 0)
+            ? '<div style="font-size:11px;color:var(--gray);margin-top:4px;font-weight:600;">📋 Read receipts: <strong style="color:var(--navy);">' + readCount + ' / ' + totalCount + '</strong> shepherds' +
+              ' <span style="color:' + (readCount === totalCount ? '#16a34a' : '#ef4444') + ';font-size:10px;font-weight:700;">' +
+              (readCount === totalCount ? '✓ All read' : (totalCount - readCount) + ' pending') + '</span></div>'
+            : '';
 
           card.innerHTML =
             '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">' +
-            '<div style="font-weight:800;font-size:14px;color:var(--navy);line-height:1.4;">' + r.title + '</div>' +
-            '<button onclick="deleteResource(' + idx + ')" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:2px;display:flex;align-items:center;" title="Delete Resource">🗑️</button>' +
+              '<div style="font-weight:800;font-size:14px;color:var(--navy);line-height:1.4;">' + badge.icon + ' ' + escHtml(r.title) + '</div>' +
+              '<button onclick="deleteResource(\'' + escAttrAdmin(rid) + '\')" style="background:none;border:none;color:#ef4444;font-size:16px;cursor:pointer;padding:2px;" title="Delete">🗑️</button>' +
             '</div>' +
-            (r.desc ? '<div style="font-size:12px;color:var(--gray);line-height:1.5;">' + r.desc + '</div>' : '') +
+            (r.desc ? '<div style="font-size:12px;color:var(--gray);line-height:1.5;">' + escHtml(r.desc) + '</div>' : '') +
+            receiptHtml +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;flex-wrap:wrap;gap:8px;">' +
-            '<div style="display:flex;gap:6px;align-items:center;">' +
-            '<span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:4px 8px;border-radius:6px;background:' + badge.bg + ';color:' + badge.text + ';">' + r.category + '</span>' +
-            '<span style="font-size:10px;font-weight:700;color:#475569;background:#e2e8f0;padding:4px 8px;border-radius:6px;">' + r.audience + '</span>' +
-            '</div>' +
-            '<div style="display:flex;align-items:center;gap:12px;">' +
-            '<span style="font-size:11px;color:var(--gray);">' + formattedDate + '</span>' +
-            '<a href="' + r.url + '" target="_blank" style="text-decoration:none;font-weight:700;font-size:12px;color:#fff;background:var(--accent);padding:6px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;transition:background 0.2s;">Open ↗</a>' +
-            '</div>' +
+              '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' +
+                '<span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:4px 8px;border-radius:6px;background:' + badge.bg + ';color:' + badge.text + ';">' + escHtml(r.category) + '</span>' +
+                '<span style="font-size:10px;font-weight:700;color:#475569;background:#e2e8f0;padding:4px 8px;border-radius:6px;">' + escHtml(r.audience) + '</span>' +
+                mandatoryBadge +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:10px;">' +
+                '<span style="font-size:11px;color:var(--gray);">' + formattedDate + '</span>' +
+                '<a href="' + escHtml(r.url) + '" target="_blank" style="text-decoration:none;font-weight:700;font-size:12px;color:#fff;background:var(--accent);padding:6px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;">Open ↗</a>' +
+              '</div>' +
             '</div>';
 
           list.appendChild(card);
         });
       }
+
+      function escHtml(s) {
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+      function escAttrAdmin(s) { return String(s || '').replace(/'/g, "\\'"); }
 
       // ── SHIMMER HELPERS ──
       var STAT_IDS = [

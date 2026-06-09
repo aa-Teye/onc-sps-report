@@ -1528,8 +1528,9 @@
             font-size:16px;font-weight:700;
             cursor:pointer;display:flex;
             align-items:center;justify-content:center;
-            gap:10px;">
+            gap:10px;position:relative;">
             📚 Resources
+            <span id="resourcesBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;font-size:10px;font-weight:800;width:20px;height:20px;border-radius:50%;align-items:center;justify-content:center;border:2px solid white;"></span>
           </button>
           
           <button onclick="showKnowYourMembers()"
@@ -2252,6 +2253,11 @@
       attendance: {}, topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', concerns: {},
       newMember: { name: '', contact: '' }, newMembersCount: 0, newMembers: [], meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: ''
     };
+
+    var indexResourcesList  = [];
+    var indexMandatoryReads = {};
+    var indexLocalReads     = {};
+    try { indexLocalReads = JSON.parse(localStorage.getItem('onc_local_reads') || '{}'); } catch (e) {}
     let currentStep = 1;
 
     // --- INTRO VIDEOS FLOW ---
@@ -2396,6 +2402,7 @@
     // Auto-run: Restore session if valid, otherwise run intro
     document.addEventListener("DOMContentLoaded", function() {
       loadPinsFromBackend();
+      syncResourcesAndReads();
       // CHANGE 4 — Retry any failed FT submissions on app load
       retryFailedFTSubmissions();
       // Init SPS dropdown
@@ -2594,6 +2601,9 @@
 
         // Update welcome message
         document.getElementById('welcomeMsg').textContent = 'Welcome, ' + state.shepherd.split(' ')[0] + '! 👋';
+
+        // Load mandatory reads for this shepherd
+        loadMandatoryReadsForShepherd();
 
         // Go to landing page
         checkAnnouncements();
@@ -3557,15 +3567,122 @@
     function openResources() {
       renderResourcesList();
       var modal = document.getElementById('resourcesModal');
-      if (modal) {
-        modal.style.display = 'flex';
-      }
+      if (modal) modal.style.display = 'flex';
     }
 
     function closeResources() {
       var modal = document.getElementById('resourcesModal');
-      if (modal) {
-        modal.style.display = 'none';
+      if (modal) modal.style.display = 'none';
+    }
+
+    function syncResourcesAndReads() {
+      var cbRes = 'onResLoaded_' + Date.now();
+      var sRes  = document.createElement('script');
+      window[cbRes] = function (data) {
+        delete window[cbRes];
+        if (sRes.parentNode) sRes.parentNode.removeChild(sRes);
+        if (data && data.resources && data.resources.length) {
+          indexResourcesList = data.resources.map(function (r) {
+            return {
+              resourceId: r.ResourceID || r.resourceId,
+              title:    r.Title    || r.title    || '',
+              category: r.Category || r.category || 'Other',
+              audience: r.Audience || r.audience || 'All Shepherds',
+              url:      r.URL      || r.url      || '',
+              desc:     r.Description || r.desc  || '',
+              mandatory: (r.Mandatory || r.mandatory) === 'Y' || r.mandatory === true
+            };
+          });
+          localStorage.setItem('onc_resources', JSON.stringify(indexResourcesList));
+        } else {
+          var cached = localStorage.getItem('onc_resources');
+          if (cached) {
+            try { indexResourcesList = JSON.parse(cached); } catch (e) { indexResourcesList = []; }
+          }
+        }
+        if (state.shepherd) loadMandatoryReadsForShepherd();
+        else updateResourcesBadge();
+      };
+      sRes.onerror = function () { delete window[cbRes]; };
+      sRes.src = SCRIPT_URL + '?action=getResources&callback=' + cbRes + '&_=' + Date.now();
+      document.head.appendChild(sRes);
+    }
+
+    function loadMandatoryReadsForShepherd() {
+      if (!state.shepherd) return;
+      var cbMr = 'onMrLoaded_' + Date.now();
+      var sMr  = document.createElement('script');
+      window[cbMr] = function (data) {
+        delete window[cbMr];
+        if (sMr.parentNode) sMr.parentNode.removeChild(sMr);
+        indexMandatoryReads = {};
+        if (data && data.records) {
+          data.records.forEach(function (r) {
+            if (r.ShepherdName === state.shepherd) {
+              indexMandatoryReads[String(r.ResourceID)] = r.Status === 'Read';
+            }
+          });
+        }
+        updateResourcesBadge();
+        renderResourcesList();
+      };
+      sMr.onerror = function () { delete window[cbMr]; };
+      sMr.src = SCRIPT_URL + '?action=getMandatoryReads&callback=' + cbMr + '&_=' + Date.now();
+      document.head.appendChild(sMr);
+    }
+
+    function updateResourcesBadge() {
+      var badge = document.getElementById('resourcesBadge');
+      if (!badge) return;
+      var shepherd = state.shepherd;
+      var unreadCount = 0;
+      indexResourcesList.forEach(function (r) {
+        if (!r.mandatory) return;
+        if (!audienceMatchesShepherd(r.audience)) return;
+        var rid = String(r.resourceId || '');
+        var readLocally = indexLocalReads[rid];
+        var readBackend = indexMandatoryReads[rid];
+        if (!readLocally && !readBackend) unreadCount++;
+      });
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    function audienceMatchesShepherd(audience) {
+      var t = state.shepherdType;
+      if (!t) return true;
+      if (t === 'sps') return audience === 'Both' || audience === 'SPS Shepherds' || audience === 'All Shepherds';
+      if (t === 'microchurch' || t === 'mc') return audience === 'Both' || audience === 'Microchurch Shepherds' || audience === 'All Shepherds';
+      return true;
+    }
+
+    function markAsRead(resourceId, resourceTitle, btn) {
+      resourceId = String(resourceId || '');
+      indexLocalReads[resourceId] = true;
+      localStorage.setItem('onc_local_reads', JSON.stringify(indexLocalReads));
+      indexMandatoryReads[resourceId] = true;
+      if (btn) {
+        btn.textContent = '✅ Read';
+        btn.disabled = true;
+        btn.style.background = '#dcfce7';
+        btn.style.color = '#15803d';
+        btn.style.border = '2px solid #bbf7d0';
+      }
+      updateResourcesBadge();
+      if (state.shepherd) {
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'markResourceRead',
+            resourceId: resourceId,
+            resourceTitle: resourceTitle,
+            shepherdName: state.shepherd
+          })
+        }).catch(function () {});
       }
     }
 
@@ -3683,90 +3800,93 @@
       var container = document.getElementById('resourcesListContainer');
       if (!container) return;
 
-      var cached = localStorage.getItem('onc_resources');
-      var list = [];
-      if (cached) {
-        try {
-          list = JSON.parse(cached);
-        } catch (e) {
-          list = [];
-        }
+      var list = indexResourcesList.length ? indexResourcesList : [];
+
+      if (!list.length) {
+        var cached = localStorage.getItem('onc_resources');
+        if (cached) { try { list = JSON.parse(cached); } catch (e) { list = []; } }
       }
-      
-      // Fallback defaults if list is empty
-      if (!list || list.length === 0) {
+
+      if (!list.length) {
         list = [
-          {
-            title: "SPS Follow-Up Best Practices Guide",
-            category: "Guide",
-            audience: "SPS Shepherds",
-            url: "https://drive.google.com",
-            desc: "Best practices, calling strategies, and spiritual outlines for SPS Shepherds."
-          },
-          {
-            title: "Microchurch Outline & Study Handbook",
-            category: "Outline",
-            audience: "Microchurch Shepherds",
-            url: "https://drive.google.com",
-            desc: "Central Bible study outlines, group management rules, and leader tools for MC Shepherds."
-          }
+          { resourceId: 'default-sps', title: "SPS Follow-Up Best Practices Guide", category: "Guide", audience: "SPS Shepherds", url: "https://drive.google.com", desc: "Best practices, calling strategies, and spiritual outlines for SPS Shepherds.", mandatory: false },
+          { resourceId: 'default-mc',  title: "Microchurch Outline & Study Handbook", category: "Syllabus", audience: "Microchurch Shepherds", url: "https://drive.google.com", desc: "Central Bible study outlines, group management rules, and leader tools for MC Shepherds.", mandatory: false }
         ];
       }
 
-      // Prepend weekly resource so it is always up to date and shown at the top
       var weeklyResource = {
-        title: "Weekly Bible Study Resources & Material",
-        category: "Weekly Material",
-        audience: "Both",
+        resourceId: 'weekly-bible', title: "Weekly Bible Study Resources & Material",
+        category: "Weekly Material", audience: "Both", mandatory: false,
         url: "https://drive.google.com/drive/folders/1OCXX6iN_cdok0h-mI10fP_cEHNcKegI_?usp=drive_link",
         desc: "Access study outlines, discussion sheets, media files, and tools for this week's meetings."
       };
-      
-      // Filter out any older weekly resource to avoid duplicates, and filter out sensitive handbook
-      list = list.filter(function(item) {
-        return item.title !== "Weekly Bible Study Resources & Material" &&
-               item.title !== "ONC Shepherd General Handbook";
+
+      list = list.filter(function (item) {
+        return item.title !== "Weekly Bible Study Resources & Material" && item.title !== "ONC Shepherd General Handbook";
       });
       list.unshift(weeklyResource);
 
-      // Filter by flow stream context
-      var currentFlow = state.shepherdType; // 'sps' or 'microchurch' or empty
-      var filtered = list.filter(function(item) {
-        if (!currentFlow) return true; // Show all on landing page
-        if (currentFlow === 'sps') {
-          return item.audience === 'Both' || item.audience === 'SPS Shepherds' || item.audience === 'All Shepherds';
-        }
-        if (currentFlow === 'microchurch') {
-          return item.audience === 'Both' || item.audience === 'Microchurch Shepherds' || item.audience === 'All Shepherds';
-        }
-        return true;
+      var currentFlow = state.shepherdType;
+      var filtered = list.filter(function (item) {
+        if (!currentFlow) return true;
+        return audienceMatchesShepherd(item.audience);
       });
 
-      if (filtered.length === 0) {
-        container.innerHTML = 
+      if (!filtered.length) {
+        container.innerHTML =
           '<div style="text-align:center;padding:32px 10px;color:#64748b;">' +
-            '<div style="font-size:32px;margin-bottom:8px;">📚</div>' +
-            '<p style="font-size:14px;font-weight:600;margin:0;">No resources available yet.</p>' +
-            '<p style="font-size:12px;color:#94a3b8;margin:4px 0 0;">Please check back later or contact admin.</p>' +
+          '<div style="font-size:32px;margin-bottom:8px;">📚</div>' +
+          '<p style="font-size:14px;font-weight:600;margin:0;">No resources available yet.</p>' +
+          '<p style="font-size:12px;color:#94a3b8;margin:4px 0 0;">Please check back later or contact admin.</p>' +
           '</div>';
         return;
       }
 
-      container.innerHTML = filtered.map(function(item) {
-        var audienceBadgeColor = '#f0f5ff;color:#2e80e8';
-        if (item.audience === 'SPS Shepherds') audienceBadgeColor = '#f0fdf4;color:#15803d';
-        else if (item.audience === 'Microchurch Shepherds') audienceBadgeColor = '#fff7ed;color:#c2410c';
+      var catIconMap = { Manual:'📘', Syllabus:'📖', Guide:'🧭', Media:'🎥', 'Weekly Material':'📅' };
 
-        return '<div style="background:#f8fafc;border:2px solid #e2e8f0;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:all 0.2s;">' +
+      container.innerHTML = filtered.map(function (item) {
+        var rid = String(item.resourceId || '');
+        var isRead = indexLocalReads[rid] || indexMandatoryReads[rid];
+        var isMandatory = item.mandatory === true || item.mandatory === 'Y';
+
+        var audienceBadgeCss = 'background:#f0f5ff;color:#2e80e8';
+        if (item.audience === 'SPS Shepherds') audienceBadgeCss = 'background:#f0fdf4;color:#15803d';
+        else if (item.audience === 'Microchurch Shepherds') audienceBadgeCss = 'background:#fff7ed;color:#c2410c';
+
+        var catIcon = catIconMap[item.category] || '📄';
+        var topBanner = isMandatory && !isRead
+          ? '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#b91c1c;">' +
+            '<span style="font-size:16px;">📌</span><span>Required Reading — Please read and acknowledge below</span></div>'
+          : (isMandatory && isRead
+            ? '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#15803d;">' +
+              '<span>✅</span><span>You have read this mandatory resource</span></div>'
+            : '');
+
+        var readBtn = isMandatory && !isRead
+          ? '<button onclick="markAsRead(\'' + rid.replace(/'/g,"\\'") + '\',\'' + (item.title||'').replace(/'/g,"\\'") + '\',this)" ' +
+            'style="width:100%;padding:10px;background:#fef2f2;color:#b91c1c;border:2px solid #fecaca;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:2px;">📌 Mark as Read</button>'
+          : (isMandatory && isRead
+            ? '<button disabled style="width:100%;padding:10px;background:#dcfce7;color:#15803d;border:2px solid #bbf7d0;border-radius:10px;font-size:13px;font-weight:700;cursor:default;margin-top:2px;">✅ Read</button>'
+            : '');
+
+        var borderStyle = isMandatory && !isRead ? 'border:2px solid #fecaca;' : 'border:2px solid #e2e8f0;';
+
+        return '<div style="background:#f8fafc;' + borderStyle + 'border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;">' +
+          topBanner +
           '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">' +
-            '<span style="padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;background:#f0a500;color:#0f2044;">' + (item.category || 'Manual') + '</span>' +
-            '<span style="padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;background:' + audienceBadgeColor + '">' + (item.audience || 'All Shepherds') + '</span>' +
+            '<span style="padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;background:#f0a500;color:#0f2044;">' + catIcon + ' ' + escRes(item.category || 'Other') + '</span>' +
+            '<span style="padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;' + audienceBadgeCss + '">' + escRes(item.audience || 'All') + '</span>' +
           '</div>' +
-          '<div style="font-size:15px;font-weight:800;color:#0f2044;line-height:1.3;">' + item.title + '</div>' +
-          '<div style="font-size:12px;color:#64748b;line-height:1.4;">' + (item.desc || 'No description provided.') + '</div>' +
-          '<a href="' + (item.url || 'https://drive.google.com') + '" target="_blank" style="margin-top:4px;padding:10px;background:#0f2044;color:#fff;border-radius:10px;text-align:center;text-decoration:none;font-size:13px;font-weight:700;display:block;transition:background 0.2s;">📖 Open Resource</a>' +
-        '</div>';
+          '<div style="font-size:15px;font-weight:800;color:#0f2044;line-height:1.3;">' + escRes(item.title) + '</div>' +
+          '<div style="font-size:12px;color:#64748b;line-height:1.4;">' + escRes(item.desc || 'No description provided.') + '</div>' +
+          '<a href="' + escRes(item.url || 'https://drive.google.com') + '" target="_blank" style="padding:10px;background:#0f2044;color:#fff;border-radius:10px;text-align:center;text-decoration:none;font-size:13px;font-weight:700;display:block;transition:background 0.2s;">📖 Open Resource</a>' +
+          readBtn +
+          '</div>';
       }).join('');
+    }
+
+    function escRes(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     function showSection(id) {

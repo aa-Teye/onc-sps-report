@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+  <title>ONC — General Overseer Dashboard</title>
+  <link rel="icon" href="./logo.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --navy:   #0f2044;
+      --blue:   #1a3a6b;
+      --accent: #2e80e8;
+      --gold:   #f0a500;
+      --green:  #22c55e;
+      --red:    #ef4444;
+      --orange: #f97316;
+      --purple: #8b5cf6;
+      --light:  #f0f5ff;
+      --white:  #ffffff;
+      --gray:   #64748b;
+      --border: #dce7f7;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:linear-gradient(160deg,#0f2044 0%,#1a3a6b 50%,#0f2044 100%); min-height:100vh; }
+
+    /* ── LOGIN ─────────────────────────────────────── */
+    #loginScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+    .login-box { background:var(--white); border-radius:24px; border:3px solid var(--gold); padding:44px 36px; width:100%; max-width:380px; text-align:center; box-shadow:0 24px 64px rgba(0,0,0,.4); }
+    .login-logo { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,var(--gold),#fbbf24); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-family:'Nunito',sans-serif; font-weight:900; font-size:20px; color:var(--navy); }
+    .login-box h2 { font-family:'Nunito',sans-serif; font-size:24px; font-weight:900; color:var(--navy); margin-bottom:4px; }
+    .login-box p { color:var(--gray); font-size:14px; margin-bottom:28px; }
+    .login-box input { width:100%; padding:14px; border:2px solid var(--border); border-radius:12px; font-family:'Outfit',sans-serif; font-size:22px; text-align:center; letter-spacing:8px; outline:none; color:var(--navy); transition:border-color .2s; margin-bottom:12px; }
+    .login-box input:focus { border-color:var(--gold); }
+    .login-btn { width:100%; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--blue)); color:var(--white); font-family:'Outfit',sans-serif; font-weight:700; font-size:15px; cursor:pointer; transition:opacity .2s; }
+    .login-btn:hover { opacity:.9; }
+    .login-error { color:var(--red); font-size:13px; margin-top:10px; display:none; }
+
+    /* ── DASHBOARD ─────────────────────────────────── */
+    #dashboard { display:none; background:var(--light); min-height:100vh; }
+    .topbar { background:var(--white); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; box-shadow:0 1px 6px rgba(0,0,0,.07); }
+    .topbar-left { display:flex; align-items:center; gap:14px; }
+    .back-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:2px solid var(--border); border-radius:10px; background:var(--white); color:var(--navy); font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; cursor:pointer; text-decoration:none; transition:all .2s; }
+    .back-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .topbar h1 { font-family:'Nunito',sans-serif; font-size:20px; font-weight:900; color:var(--navy); }
+    .topbar-right { display:flex; align-items:center; gap:12px; }
+    .last-updated { font-size:12px; color:var(--gray); font-weight:600; }
+    .btn-refresh { padding:9px 16px; border:none; border-radius:10px; background:var(--navy); color:var(--white); font-family:'Outfit',sans-serif; font-weight:700; font-size:13px; cursor:pointer; transition:opacity .2s; }
+    .btn-refresh:hover { opacity:.85; }
+
+    .page-wrap { max-width:1400px; margin:0 auto; padding:28px; }
+
+    /* ── CARDS ─────────────────────────────────────── */
+    .section-card { background:var(--white); border-radius:20px; padding:28px; box-shadow:0 2px 12px rgba(15,32,68,.07); margin-bottom:28px; }
+    .section-title { font-family:'Nunito',sans-serif; font-size:17px; font-weight:900; color:var(--navy); margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+    .pill { padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; background:var(--light); color:var(--accent); }
+
+    /* ── PROGRESS BARS (SCOREBOARD) ─────────────────── */
+    .scoreboard-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .score-block { background:var(--light); border-radius:16px; padding:24px; }
+    .score-block h3 { font-family:'Nunito',sans-serif; font-size:20px; font-weight:900; color:var(--navy); margin-bottom:4px; text-align:center; }
+    .score-subtitle { font-size:13px; color:var(--gray); text-align:center; margin-bottom:20px; }
+    .progress-track { background:#e2e8f0; border-radius:999px; height:32px; overflow:hidden; position:relative; margin-bottom:14px; }
+    .progress-fill { height:100%; border-radius:999px; transition:width 1s ease; display:flex; align-items:center; justify-content:flex-end; padding-right:14px; }
+    .progress-fill.gold-bar { background:linear-gradient(90deg,#f59e0b,var(--gold)); }
+    .progress-fill.blue-bar { background:linear-gradient(90deg,var(--accent),#60a5fa); }
+    .progress-fill span { font-size:13px; font-weight:800; color:var(--white); white-space:nowrap; }
+    .progress-stats { display:flex; justify-content:center; gap:28px; flex-wrap:wrap; }
+    .pstat { text-align:center; }
+    .pstat-val { font-size:30px; font-weight:900; color:var(--navy); font-family:'Nunito',sans-serif; }
+    .pstat-lbl { font-size:11px; color:var(--gray); margin-top:2px; font-weight:600; }
+    .timeline { display:flex; justify-content:space-between; margin-top:20px; position:relative; }
+    .timeline::before { content:''; position:absolute; top:12px; left:0; right:0; height:2px; background:var(--border); z-index:0; }
+    .tm-step { text-align:center; flex:1; position:relative; z-index:1; }
+    .tm-dot { width:24px; height:24px; border-radius:50%; background:var(--border); border:3px solid var(--white); margin:0 auto 6px; box-shadow:0 0 0 2px var(--border); }
+    .tm-dot.done   { background:var(--green); box-shadow:0 0 0 2px var(--green); }
+    .tm-dot.active { background:var(--gold);  box-shadow:0 0 0 2px var(--gold); }
+    .tm-lbl { font-size:11px; font-weight:700; color:var(--gray); }
+    .tm-lbl.active { color:var(--gold); }
+
+    /* ── STAT GRID ──────────────────────────────────── */
+    .stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .stat-card { background:var(--light); border-radius:16px; padding:20px; border-left:4px solid transparent; }
+    .stat-card.blue  { border-left-color:var(--accent); }
+    .stat-card.gold  { border-left-color:var(--gold); }
+    .stat-card.green { border-left-color:var(--green); }
+    .stat-card.red   { border-left-color:var(--red); }
+    .stat-card.purple{ border-left-color:var(--purple); }
+    .stat-card.orange{ border-left-color:var(--orange); }
+    .stat-val { font-family:'Nunito',sans-serif; font-size:36px; font-weight:900; color:var(--navy); line-height:1; }
+    .stat-lbl { font-size:13px; color:var(--gray); font-weight:600; margin-top:6px; line-height:1.4; }
+
+    /* ── ZONE GRID ──────────────────────────────────── */
+    .zone-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+    .zone-card { background:var(--light); border-radius:14px; padding:18px; border-left:5px solid var(--border); }
+    .zone-card.healthy { border-left-color:var(--green); }
+    .zone-card.warning { border-left-color:var(--orange); }
+    .zone-card.danger  { border-left-color:var(--red); }
+    .zone-name { font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; color:var(--navy); margin-bottom:10px; }
+    .zone-meta { display:flex; flex-direction:column; gap:5px; }
+    .zone-row { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--gray); font-weight:600; }
+    .zone-row span:last-child { font-weight:800; color:var(--navy); }
+    .zone-badge { display:inline-flex; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:800; margin-top:8px; }
+    .badge-green  { background:#dcfce7; color:#15803d; }
+    .badge-amber  { background:#fef9c3; color:#92400e; }
+    .badge-red    { background:#fee2e2; color:#991b1b; }
+
+    /* ── ALERTS ─────────────────────────────────────── */
+    .alerts-list { display:flex; flex-direction:column; gap:12px; }
+    .alert-item { display:flex; align-items:center; gap:14px; background:var(--light); border-radius:14px; padding:16px 20px; border-left:4px solid var(--red); transition:box-shadow .2s; }
+    .alert-item.purple { border-left-color:var(--purple); }
+    .alert-item.stall  { border-left-color:var(--orange); }
+    .alert-item.visit  { border-left-color:var(--blue); }
+    .alert-icon { font-size:24px; flex-shrink:0; }
+    .alert-body { flex:1; min-width:0; }
+    .alert-title { font-size:14px; font-weight:800; color:var(--navy); margin-bottom:2px; }
+    .alert-sub { font-size:12px; color:var(--gray); }
+    .alert-age { font-size:12px; font-weight:700; color:var(--red); white-space:nowrap; }
+    .alert-item.purple .alert-age { color:var(--purple); }
+    .alert-item.stall  .alert-age { color:var(--orange); }
+    .alert-item.visit  .alert-age { color:var(--blue); }
+    .wa-btn { flex-shrink:0; display:inline-flex; align-items:center; gap:5px; padding:7px 12px; background:#25d366; color:#fff; border-radius:10px; text-decoration:none; font-size:12px; font-weight:700; transition:opacity .2s; }
+    .wa-btn:hover { opacity:.85; }
+    .empty-alerts { text-align:center; padding:40px; color:var(--gray); }
+    .empty-alerts .icon { font-size:40px; margin-bottom:8px; }
+
+    /* ── CHART ──────────────────────────────────────── */
+    .chart-wrap { position:relative; height:300px; }
+
+    /* ── TOAST ──────────────────────────────────────── */
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--navy); color:var(--white); padding:12px 24px; border-radius:12px; font-size:13px; font-weight:700; box-shadow:0 12px 32px rgba(0,0,0,.3); z-index:400; transition:transform .3s ease; }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+
+    /* ── RESPONSIVE ─────────────────────────────────── */
+    @media (max-width:900px) {
+      .scoreboard-grid { grid-template-columns:1fr; }
+      .stat-grid { grid-template-columns:repeat(2,1fr); }
+      .zone-grid { grid-template-columns:repeat(2,1fr); }
+    }
+    @media (max-width:560px) {
+      .topbar { padding:12px 16px; }
+      .topbar h1 { font-size:16px; }
+      .page-wrap { padding:16px; }
+      .section-card { padding:18px; }
+      .stat-grid { grid-template-columns:1fr 1fr; }
+      .zone-grid { grid-template-columns:1fr 1fr; }
+      .progress-stats { gap:16px; }
+      .pstat-val { font-size:24px; }
+    }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .animate { animation:fadeUp .3s ease both; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">👑</div>
+    <h2>Executive Dashboard</h2>
+    <p>General Overseer access only</p>
+    <input type="password" id="pinInput" placeholder="• • • •" maxlength="6"
+      onkeydown="if(event.key==='Enter')checkPin()">
+    <button class="login-btn" onclick="checkPin()">🔐 Access Dashboard</button>
+    <p class="login-error" id="loginError">❌ Incorrect PIN. GO access required.</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="admin.html" class="back-btn">← Admin</a>
+      <h1>👑 General Overseer Executive Dashboard</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="last-updated" id="lastUpdated">Loading…</span>
+      <button class="btn-refresh" onclick="loadAll()">🔄 Refresh</button>
+    </div>
+  </div>
+
+  <div class="page-wrap">
+
+    <!-- SECTION 1: FIVE MONTH TARGET SCOREBOARD -->
+    <div class="section-card animate">
+      <div class="section-title">🎯 Five Month Target Scoreboard</div>
+      <div class="scoreboard-grid">
+
+        <!-- Adults Target -->
+        <div class="score-block">
+          <h3 id="adultsHeadline">— → 600 Adults</h3>
+          <p class="score-subtitle">ONC Adult Members Growth Initiative · Target: 600 adults</p>
+          <div class="progress-track">
+            <div class="progress-fill gold-bar" id="adultsFill" style="width:0%">
+              <span id="adultsPct">0%</span>
+            </div>
+          </div>
+          <div class="progress-stats">
+            <div class="pstat">
+              <div class="pstat-val" id="adultsCount">—</div>
+              <div class="pstat-lbl">Current Adults</div>
+            </div>
+            <div class="pstat">
+              <div class="pstat-val" style="color:var(--gold)">600</div>
+              <div class="pstat-lbl">Target</div>
+            </div>
+            <div class="pstat">
+              <div class="pstat-val" id="adultsNeeded">—</div>
+              <div class="pstat-lbl">Still Needed</div>
+            </div>
+            <div class="pstat">
+              <div class="pstat-val" id="adultsOnTrack">—</div>
+              <div class="pstat-lbl">On Track</div>
+            </div>
+          </div>
+          <div class="timeline" id="adultsTimeline"></div>
+        </div>
+
+        <!-- Shepherds Target -->
+        <div class="score-block">
+          <h3 id="shepsHeadline">— → 200 Shepherds</h3>
+          <p class="score-subtitle">ONC Shepherd Growth Initiative · Target: 200 active shepherds</p>
+          <div class="progress-track">
+            <div class="progress-fill blue-bar" id="shepsFill" style="width:0%">
+              <span id="shepsPct">0%</span>
+            </div>
+          </div>
+          <div class="progress-stats">
+            <div class="pstat">
+              <div class="pstat-val" id="shepsCount">—</div>
+              <div class="pstat-lbl">Current Shepherds</div>
+            </div>
+            <div class="pstat">
+              <div class="pstat-val" style="color:var(--accent)">200</div>
+              <div class="pstat-lbl">Target</div>
+            </div>
+            <div class="pstat">
+              <div class="pstat-val" id="shepsNeeded">—</div>
+              <div class="pstat-lbl">Still Needed</div>
+            </div>
+            <div class="pstat">
+              <div class="pstat-val" id="shepsOnTrack">—</div>
+              <div class="pstat-lbl">On Track</div>
+            </div>
+          </div>
+          <div class="timeline" id="shepsTimeline"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SECTION 2: WEEKLY HEALTH GRID -->
+    <div class="section-card animate" style="animation-delay:.05s;">
+      <div class="section-title">📊 Weekly Health Grid
+        <span class="pill" id="weekLabel">Wk —</span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card blue">
+          <div class="stat-val" id="kpiTotalReports">—</div>
+          <div class="stat-lbl">Total Reports Submitted<br>This Week (SPS + MC)</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-val" id="kpiShepherdsReported">—</div>
+          <div class="stat-lbl">Shepherds Who Reported<br>This Week</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-val" id="kpiNewSouls">—</div>
+          <div class="stat-lbl">New Souls Won<br>This Week</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-val" id="kpiFlagsRaised">—</div>
+          <div class="stat-lbl">Flags Raised<br>This Week</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-val" id="kpiFlagsResolved">—</div>
+          <div class="stat-lbl">Flags Resolved<br>This Week</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-val" id="kpiSchoolEnrolments">—</div>
+          <div class="stat-lbl">Foundations School<br>Enrolments This Month</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: ZONE HEALTH GRID -->
+    <div class="section-card animate" style="animation-delay:.1s;">
+      <div class="section-title">🗺️ Zone Health Grid</div>
+      <div class="zone-grid" id="zoneGrid">
+        <div style="color:var(--gray);font-size:13px;">Loading zone data…</div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: CRITICAL ALERTS -->
+    <div class="section-card animate" style="animation-delay:.15s;">
+      <div class="section-title">🚨 Critical Alerts
+        <span class="pill" id="alertCount">0</span>
+      </div>
+      <div class="alerts-list" id="alertsList">
+        <div class="empty-alerts">
+          <div class="icon">✅</div>
+          <p style="font-weight:700;color:var(--navy);">No critical alerts</p>
+          <p style="font-size:13px;">All clear — keep up the good work!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 5: TREND CHART -->
+    <div class="section-card animate" style="animation-delay:.2s;">
+      <div class="section-title">📈 Weekly Activity Trend
+        <span class="pill">Last 8 Weeks</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /page-wrap -->
+</div><!-- /dashboard -->
+
+<div class="toast" id="toast"></div>
+
+<script src="churchData.js?v=20260607"></script>
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+  const VALID_PIN  = localStorage.getItem('onc_pin') || '2500';
+  const ADULTS_TARGET   = 600;
+  const SHEPHERDS_TARGET = 200;
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  var trendChart = null;
+
+  function checkPin() {
+    var pin = document.getElementById('pinInput').value.trim();
+    if (pin === VALID_PIN) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display   = 'block';
+      init();
+    } else {
+      var err = document.getElementById('loginError');
+      err.style.display = 'block';
+      document.getElementById('pinInput').value = '';
+      setTimeout(function () { err.style.display = 'none'; }, 3000);
+    }
+  }
+
+  function init() {
+    renderScoreboard();
+    loadAll();
+    setInterval(loadAll, 5 * 60 * 1000);
+  }
+
+  // ── JSONP data fetch ────────────────────────────────────────
+  function fetchData(action, params, callback) {
+    var cbName = '_cbgo_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    var called  = false;
+    var script  = document.createElement('script');
+    window[cbName] = function (data) {
+      if (called) return; called = true;
+      callback(data);
+      if (document.body.contains(script)) document.body.removeChild(script);
+      delete window[cbName];
+    };
+    var q = '?action=' + encodeURIComponent(action) + '&callback=' + cbName + '&_=' + Date.now();
+    if (params) Object.keys(params).forEach(function (k) {
+      q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    });
+    script.src = SCRIPT_URL + q;
+    script.onerror = function () { if (!called) window[cbName]({ status: 'error' }); };
+    document.body.appendChild(script);
+    setTimeout(function () { if (!called) window[cbName]({ status: 'timeout' }); }, 15000);
+  }
+
+  function loadAll() {
+    fetchData('getGODashboardData', null, function (data) {
+      if (!data || data.status !== 'success') {
+        showToast('⚠ Dashboard data unavailable — showing cached view');
+        return;
+      }
+      renderWeeklyHealth(data.weekly);
+      renderZoneHealth(data.weekly, data.shepherdAttendance, data.flags);
+      renderCriticalAlerts(data.flags, data.visitations, data.journey);
+      renderTrendChart(data.trend);
+      var now = new Date();
+      document.getElementById('lastUpdated').textContent =
+        'Updated ' + now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+    });
+  }
+
+  // ── SECTION 1: SCOREBOARD ───────────────────────────────────
+  function renderScoreboard() {
+    var cd = window.CHURCH_DATA;
+    if (!cd) return;
+
+    var adults    = cd.spsShepherds.reduce(function (s, sh) { return s + (sh.members ? sh.members.length : 0); }, 0) +
+                    cd.mcShepherds.reduce(function (s, sh)  { return s + (sh.members ? sh.members.length : 0); }, 0);
+    var shepherds = cd.spsShepherds.length + cd.mcShepherds.length;
+
+    renderBar('adults', adults, ADULTS_TARGET, 'adultsHeadline', 'Adults', 'adultsFill', 'adultsPct',
+              'adultsCount', 'adultsNeeded', 'adultsOnTrack', 'adultsTimeline', 40);
+    renderBar('sheps',  shepherds, SHEPHERDS_TARGET, 'shepsHeadline', 'Shepherds', 'shepsFill', 'shepsPct',
+              'shepsCount', 'shepsNeeded', 'shepsOnTrack', 'shepsTimeline', 50);
+  }
+
+  function renderBar(prefix, current, target, headlineId, label, fillId, pctId, countId, neededId, trackId, timelineId, trackThreshold) {
+    var pct    = Math.min(100, Math.round((current / target) * 100));
+    var needed = Math.max(0, target - current);
+
+    document.getElementById(headlineId).textContent = current + ' → ' + target + ' ' + label;
+    document.getElementById(countId).textContent    = current;
+    document.getElementById(neededId).textContent   = needed;
+    document.getElementById(trackId).innerHTML = pct >= trackThreshold
+      ? '<span style="color:var(--green);font-size:18px;">✓ On Track</span>'
+      : '<span style="color:var(--orange);font-size:18px;">⚠ Needs Push</span>';
+
+    setTimeout(function () {
+      document.getElementById(fillId).style.width  = pct + '%';
+      document.getElementById(pctId).textContent   = pct + '%';
+    }, 300);
+
+    var now = new Date(); var html = '';
+    for (var i = 0; i < 5; i++) {
+      var d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      var isNow = (i === 0);
+      html += '<div class="tm-step">' +
+        '<div class="tm-dot ' + (i === 0 ? 'done' : '') + '"></div>' +
+        '<div class="tm-lbl' + (isNow ? ' active' : '') + '">' + MONTHS[d.getMonth()] + ' ' + d.getFullYear() + '</div>' +
+        '</div>';
+    }
+    document.getElementById(timelineId).innerHTML = html;
+  }
+
+  // ── SECTION 2: WEEKLY HEALTH ────────────────────────────────
+  function renderWeeklyHealth(weekly) {
+    if (!weekly) return;
+    var cd = window.CHURCH_DATA;
+    var totalShepherds = cd ? (cd.spsShepherds.length + cd.mcShepherds.length) : 0;
+    var reportedCount  = (weekly.reportedShepherds || []).length;
+    var pct = totalShepherds ? Math.round((reportedCount / totalShepherds) * 100) : 0;
+
+    document.getElementById('weekLabel').textContent    = 'Week ' + (weekly.currentWeek || '—');
+    document.getElementById('kpiTotalReports').textContent     = weekly.totalReports || 0;
+    document.getElementById('kpiShepherdsReported').textContent = reportedCount + ' / ' + totalShepherds + ' (' + pct + '%)';
+    document.getElementById('kpiNewSouls').textContent         = weekly.newSouls || 0;
+    document.getElementById('kpiFlagsRaised').textContent      = weekly.flagsRaised || 0;
+    document.getElementById('kpiFlagsResolved').textContent    = weekly.flagsResolved || 0;
+    document.getElementById('kpiSchoolEnrolments').textContent = weekly.foundationsEnrolments || 0;
+  }
+
+  // ── SECTION 3: ZONE HEALTH ──────────────────────────────────
+  function renderZoneHealth(weekly, shepherdAttendance, flags) {
+    var cd = window.CHURCH_DATA;
+    if (!cd || !cd.zones) return;
+    var reportedSet = {};
+    (weekly && weekly.reportedShepherds || []).forEach(function (n) { reportedSet[n] = true; });
+    var openFlags = (flags || []).filter(function (f) { return !f.ResolutionDate; });
+
+    var html = '';
+    cd.zones.forEach(function (zone) {
+      var sheps = zone.shepherds || [];
+      var reported = sheps.filter(function (s) { return reportedSet[s]; }).length;
+      var reportRate = sheps.length ? Math.round((reported / sheps.length) * 100) : 0;
+
+      var rates = sheps.filter(function (s) { return shepherdAttendance && shepherdAttendance[s] != null; })
+                       .map(function (s) { return shepherdAttendance[s]; });
+      var avgAtt = rates.length ? Math.round(rates.reduce(function (a, b) { return a + b; }, 0) / rates.length) : 0;
+
+      var flagCount = openFlags.filter(function (f) { return sheps.indexOf(f.ShepherdName) !== -1; }).length;
+
+      var cls = reportRate >= 80 ? 'healthy' : (reportRate >= 50 ? 'warning' : 'danger');
+      var badgeCls = reportRate >= 80 ? 'badge-green' : (reportRate >= 50 ? 'badge-amber' : 'badge-red');
+      var badgeTxt = reportRate >= 80 ? '✓ Healthy' : (reportRate >= 50 ? '⚠ At Risk' : '✕ Critical');
+
+      html += '<div class="zone-card ' + cls + '">' +
+        '<div class="zone-name">' + esc(zone.name) + '</div>' +
+        '<div class="zone-meta">' +
+          '<div class="zone-row"><span>Reporting Rate</span><span>' + reportRate + '%</span></div>' +
+          '<div class="zone-row"><span>Avg Attendance</span><span>' + avgAtt + '%</span></div>' +
+          '<div class="zone-row"><span>Open Flags</span><span>' + flagCount + '</span></div>' +
+          '<div class="zone-row"><span>Shepherds</span><span>' + sheps.length + '</span></div>' +
+        '</div>' +
+        '<span class="zone-badge ' + badgeCls + '">' + badgeTxt + '</span>' +
+        '</div>';
+    });
+    document.getElementById('zoneGrid').innerHTML = html;
+  }
+
+  // ── SECTION 4: CRITICAL ALERTS ──────────────────────────────
+  function renderCriticalAlerts(flags, visitations, journey) {
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var alerts = [];
+
+    // Red/Purple flags unresolved 5+ days
+    (flags || []).forEach(function (f) {
+      if (f.ResolutionDate) return;
+      if (f.FlagType !== 'Red' && f.FlagType !== 'Purple') return;
+      var flagDate = parseDate(f.FlagDate);
+      if (!flagDate) return;
+      var days = Math.floor((today - flagDate) / 86400000);
+      if (days < 5) return;
+      var contact = findShepherdContact(f.ShepherdName);
+      alerts.push({
+        type:      f.FlagType === 'Purple' ? 'purple' : 'red',
+        icon:      f.FlagType === 'Purple' ? '🟣' : '🔴',
+        title:     esc(f.MemberName || 'Unknown Member'),
+        sub:       esc(f.ShepherdName || '') + ' · ' + esc(f.FlagType || '') + ' Flag · ' + esc(f.TriggerReason || ''),
+        days:      days + 'd unresolved',
+        contact:   contact,
+        shepherd:  f.ShepherdName,
+        urgency:   days + (f.FlagType === 'Purple' ? 0 : 5)
+      });
+    });
+
+    // Visitations overdue 7+ days
+    (visitations || []).forEach(function (v) {
+      if (v.Status === 'Closed' || v.Status === 'Visited') return;
+      var due = parseDate(v.DueDate);
+      if (!due) return;
+      var days = Math.floor((today - due) / 86400000);
+      if (days < 7) return;
+      var contact = findShepherdContact(v.AssignedTo);
+      alerts.push({
+        type:     'visit',
+        icon:     '🚗',
+        title:    esc(v.GuestName || 'Unknown Guest'),
+        sub:      'Assigned: ' + esc(v.AssignedTo || 'Unassigned') + ' · Due: ' + fmtDate(v.DueDate),
+        days:     days + 'd overdue',
+        contact:  contact,
+        shepherd: v.AssignedTo,
+        urgency:  days - 100
+      });
+    });
+
+    // Members at Stage Stall 30+ days
+    (journey || []).forEach(function (rec) {
+      if (!rec.StageEntryDate) return;
+      var entryDate = new Date(rec.StageEntryDate);
+      if (isNaN(entryDate)) return;
+      var days = Math.floor((today - entryDate) / 86400000);
+      if (days < 30) return;
+      var contact = findShepherdContact(rec.ShepherdAssigned);
+      alerts.push({
+        type:     'stall',
+        icon:     '⏸',
+        title:    esc(rec.MemberName || 'Unknown Member'),
+        sub:      'Shepherd: ' + esc(rec.ShepherdAssigned || '') + ' · Stage ' + esc(String(rec.CurrentStage || '')) + ' stalled',
+        days:     days + 'd in stage',
+        contact:  contact,
+        shepherd: rec.ShepherdAssigned,
+        urgency:  days - 200
+      });
+    });
+
+    alerts.sort(function (a, b) { return b.urgency - a.urgency; });
+
+    document.getElementById('alertCount').textContent = alerts.length;
+
+    if (!alerts.length) {
+      document.getElementById('alertsList').innerHTML =
+        '<div class="empty-alerts"><div class="icon">✅</div>' +
+        '<p style="font-weight:700;color:var(--navy);">No critical alerts</p>' +
+        '<p style="font-size:13px;">All clear — keep up the good work!</p></div>';
+      return;
+    }
+
+    document.getElementById('alertsList').innerHTML = alerts.map(function (a) {
+      var waHtml = '';
+      if (a.contact) {
+        var phone   = a.contact.replace(/\D/g, '');
+        if (phone.startsWith('0')) phone = '233' + phone.slice(1);
+        var message = encodeURIComponent('Hi ' + (a.shepherd ? a.shepherd.split(' ')[0] : '') +
+          ', please attend to ' + (a.title || 'this member') + ' urgently. — ONC');
+        waHtml = '<a class="wa-btn" href="https://wa.me/' + phone + '?text=' + message + '" target="_blank">💬 WhatsApp</a>';
+      }
+      return '<div class="alert-item ' + a.type + '">' +
+        '<span class="alert-icon">' + a.icon + '</span>' +
+        '<div class="alert-body">' +
+          '<div class="alert-title">' + a.title + '</div>' +
+          '<div class="alert-sub">' + a.sub + '</div>' +
+        '</div>' +
+        '<span class="alert-age">' + a.days + '</span>' +
+        (waHtml || '') +
+        '</div>';
+    }).join('');
+  }
+
+  // ── SECTION 5: TREND CHART ──────────────────────────────────
+  function renderTrendChart(trend) {
+    if (!trend || !trend.length) return;
+    var labels   = trend.map(function (t) { return t.label; });
+    var members  = trend.map(function (t) { return t.activeMembers || 0; });
+    var sheps    = trend.map(function (t) { return t.activeShepherds || 0; });
+
+    if (trendChart) { trendChart.destroy(); trendChart = null; }
+    var ctx = document.getElementById('trendChart').getContext('2d');
+    trendChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Active Members',
+            data: members,
+            borderColor: '#f0a500',
+            backgroundColor: 'rgba(240,165,0,.1)',
+            pointBackgroundColor: '#f0a500',
+            borderWidth: 3,
+            tension: .3,
+            fill: true
+          },
+          {
+            label: 'Active Shepherds',
+            data: sheps,
+            borderColor: '#2e80e8',
+            backgroundColor: 'rgba(46,128,232,.08)',
+            pointBackgroundColor: '#2e80e8',
+            borderWidth: 3,
+            tension: .3,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { font: { family:'Outfit', size:13, weight:700 }, color:'#0f2044' }
+          },
+          tooltip: {
+            backgroundColor:'#0f2044',
+            titleColor:'#fff',
+            bodyColor:'rgba(255,255,255,.85)',
+            padding:12,
+            cornerRadius:10,
+            titleFont: { family:'Outfit', weight:700 },
+            bodyFont:  { family:'Outfit' }
+          }
+        },
+        scales: {
+          x: { grid: { color:'rgba(220,231,247,.6)' }, ticks: { color:'#64748b', font:{ family:'Outfit', size:12 } } },
+          y: { grid: { color:'rgba(220,231,247,.6)' }, ticks: { color:'#64748b', font:{ family:'Outfit', size:12 } }, beginAtZero:true }
+        }
+      }
+    });
+  }
+
+  // ── UTILITIES ───────────────────────────────────────────────
+  function findShepherdContact(name) {
+    if (!name) return '';
+    var cd = window.CHURCH_DATA;
+    if (!cd) return '';
+    var shep = null;
+    cd.spsShepherds.forEach(function (s) { if (s.name === name) shep = s; });
+    cd.mcShepherds.forEach(function (s)  { if (s.name === name) shep = s; });
+    return shep ? (shep.contact || '') : '';
+  }
+
+  function parseDate(val) {
+    if (!val) return null;
+    if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      var p = val.split('-');
+      return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+    }
+    if (typeof val === 'string' && val.indexOf('/') !== -1) {
+      var p = val.split('/');
+      if (p.length === 3) {
+        var a = parseInt(p[0]), b = parseInt(p[1]), c = parseInt(p[2]);
+        return c > 1000 ? new Date(c, b - 1, a) : new Date(a, b - 1, c);
+      }
+    }
+    var d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function fmtDate(val) {
+    var d = parseDate(val);
+    if (!d) return '—';
+    return d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function () { t.classList.remove('show'); }, 3000);
+  }
+</script>
+</body>
+</html>

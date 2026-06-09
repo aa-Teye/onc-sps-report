@@ -47,6 +47,13 @@ function doPost(e) {
     if (action === 'assignVisitation')        return assignVisitation(data);
     if (action === 'updateVisitation')        return updateVisitation(data);
     if (action === 'escalateVisitation')      return escalateVisitation(data);
+    // ── Resource Library & Mandatory Reads POST actions ──────────
+    if (action === 'saveResource')            return saveResource(data);
+    if (action === 'deleteResourceRecord')    return deleteResourceRecord(data);
+    if (action === 'markResourceRead')        return markResourceRead(data);
+    // ── Baptism Tracking POST actions ────────────────────────────
+    if (action === 'updateBaptismStatus')     return updateBaptismStatus(data);
+    if (action === 'createBaptismCohort')     return createBaptismCohort(data);
 
     return jsonResponse({ status: 'error', message: 'Unknown action' });
   } catch (err) {
@@ -89,6 +96,13 @@ function doGet(e) {
     else if (action === 'getSundayAttendance')    response = getSundayAttendance(e.parameter.date, e.parameter.zone);
     else if (action === 'getSundayHistory')       response = getSundayHistory();
     else if (action === 'getVisitations')         response = getVisitations();
+    // ── Resource Library & Mandatory Reads GET actions ───────────
+    else if (action === 'getResources')           response = getResources();
+    else if (action === 'getMandatoryReads')       response = getMandatoryReads();
+    // ── GO Dashboard GET action ──────────────────────────────────
+    else if (action === 'getGODashboardData')     response = getGODashboardData();
+    // ── Baptism Tracking GET action ──────────────────────────────
+    else if (action === 'getBaptismRecords')      response = getBaptismRecords();
     else                                          response = { status: 'ok', message: 'ONC SPS Backend v4.0 Running' };
   } catch (err) {
     response = { status: 'error', message: err.toString() };
@@ -1304,6 +1318,242 @@ function escalateVisitation(data) {
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'VISITATION_ESCALATED', data.escalatedBy || 'Admin',
     (target.GuestName || '') + ' → step ' + step);
   return jsonResponse({ status: 'success', newStep: step });
+}
+
+// ============================================================
+// RESOURCE LIBRARY & MANDATORY READS
+// ============================================================
+
+function getResources() {
+  var headers = ['ResourceID','Title','Category','Audience','URL','Description','Mandatory','DateAdded','AddedBy'];
+  var sheet = ensureSheet('Resources', headers);
+  return { status: 'success', resources: getSheetRecords(sheet) };
+}
+
+function saveResource(data) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var headers = ['ResourceID','Title','Category','Audience','URL','Description','Mandatory','DateAdded','AddedBy'];
+  var sheet = ensureSheet('Resources', headers);
+  var now = new Date();
+  var resourceId = data.resourceId || ('RES-' + now.getTime());
+  var mandatory = data.mandatory ? 'Y' : 'N';
+
+  sheet.appendRow([
+    resourceId,
+    data.title || '',
+    data.category || 'Other',
+    data.audience || 'All Shepherds',
+    data.url || '',
+    data.desc || '',
+    mandatory,
+    formatDate(now) + ' ' + formatTime(now),
+    data.addedBy || 'Admin'
+  ]);
+
+  if (mandatory === 'Y') {
+    seedMandatoryReads(resourceId, data.title || '', data.shepherdNames || []);
+  }
+
+  logAudit(ss, 'RESOURCE_PUBLISHED', data.addedBy || 'Admin', data.title || resourceId);
+  return jsonResponse({ status: 'success', resourceId: resourceId });
+}
+
+function deleteResourceRecord(data) {
+  if (!data.resourceId) return jsonResponse({ status: 'error', message: 'Missing resourceId' });
+  var headers = ['ResourceID','Title','Category','Audience','URL','Description','Mandatory','DateAdded','AddedBy'];
+  var sheet = ensureSheet('Resources', headers);
+  var records = getSheetRecords(sheet);
+  var target = records.find(function (r) { return String(r.ResourceID) === String(data.resourceId); });
+  if (target) sheet.deleteRow(target._row);
+  return jsonResponse({ status: 'success' });
+}
+
+function seedMandatoryReads(resourceId, title, shepherdNames) {
+  var headers = ['ResourceID','ResourceTitle','ShepherdName','Status','ReadDate','ReadTime'];
+  var sheet = ensureSheet('MandatoryReads', headers);
+  var existing = getSheetRecords(sheet);
+  var known = {};
+  existing.forEach(function (r) { known[r.ResourceID + '||' + r.ShepherdName] = true; });
+  (shepherdNames || []).forEach(function (name) {
+    if (!name) return;
+    var key = resourceId + '||' + name;
+    if (known[key]) return;
+    sheet.appendRow([resourceId, title, name, 'Pending', '', '']);
+  });
+}
+
+function getMandatoryReads() {
+  var headers = ['ResourceID','ResourceTitle','ShepherdName','Status','ReadDate','ReadTime'];
+  var sheet = ensureSheet('MandatoryReads', headers);
+  return { status: 'success', records: getSheetRecords(sheet) };
+}
+
+function markResourceRead(data) {
+  if (!data.resourceId || !data.shepherdName)
+    return jsonResponse({ status: 'error', message: 'Missing resourceId or shepherdName' });
+  var headers = ['ResourceID','ResourceTitle','ShepherdName','Status','ReadDate','ReadTime'];
+  var sheet = ensureSheet('MandatoryReads', headers);
+  var records = getSheetRecords(sheet);
+  var now = new Date();
+  var target = records.find(function (r) {
+    return String(r.ResourceID) === String(data.resourceId) && r.ShepherdName === data.shepherdName;
+  });
+  if (target) {
+    sheet.getRange(target._row, 4).setValue('Read');
+    sheet.getRange(target._row, 5).setValue(formatDate(now));
+    sheet.getRange(target._row, 6).setValue(formatTime(now));
+  } else {
+    sheet.appendRow([data.resourceId, data.resourceTitle || '', data.shepherdName, 'Read', formatDate(now), formatTime(now)]);
+  }
+  return jsonResponse({ status: 'success' });
+}
+
+// ============================================================
+// BAPTISM TRACKING
+// ============================================================
+
+function getBaptismRecords() {
+  var headers = ['MemberID','MemberName','ShepherdName','Status','BaptismDate','CohortName','Notes'];
+  var sheet = ensureSheet('BaptismRecords', headers);
+  return { status: 'success', records: getSheetRecords(sheet) };
+}
+
+function updateBaptismStatus(data) {
+  if (!data.memberId || !data.status) return jsonResponse({ status: 'error', message: 'Missing memberId or status' });
+  var headers = ['MemberID','MemberName','ShepherdName','Status','BaptismDate','CohortName','Notes'];
+  var sheet = ensureSheet('BaptismRecords', headers);
+  var records = getSheetRecords(sheet);
+  var target = records.find(function (r) { return r.MemberID.toString() === data.memberId.toString(); });
+  if (target) {
+    sheet.getRange(target._row, 4).setValue(data.status);
+    if (data.baptismDate) sheet.getRange(target._row, 5).setValue(data.baptismDate);
+  } else {
+    sheet.appendRow([data.memberId, data.memberName || '', data.shepherdName || '', data.status, data.baptismDate || '', '', '']);
+  }
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'BAPTISM_STATUS_UPDATED', data.updatedBy || 'Admin',
+    (data.memberName || data.memberId) + ' → ' + data.status);
+  return jsonResponse({ status: 'success' });
+}
+
+function createBaptismCohort(data) {
+  if (!data.cohortName || !Array.isArray(data.members) || !data.members.length)
+    return jsonResponse({ status: 'error', message: 'Missing cohort name or members' });
+  var headers = ['MemberID','MemberName','ShepherdName','Status','BaptismDate','CohortName','Notes'];
+  var sheet = ensureSheet('BaptismRecords', headers);
+  var records = getSheetRecords(sheet);
+  var addedRows = [];
+  data.members.forEach(function (m) {
+    var target = records.find(function (r) { return r.MemberID.toString() === m.memberId.toString(); });
+    if (target) {
+      sheet.getRange(target._row, 5).setValue(data.baptismDate || '');
+      sheet.getRange(target._row, 6).setValue(data.cohortName);
+      if (!target.Status || target.Status === 'Not Started')
+        sheet.getRange(target._row, 4).setValue('Preparing');
+    } else {
+      sheet.appendRow([m.memberId, m.memberName || '', m.shepherdName || '', 'Preparing', data.baptismDate || '', data.cohortName, '']);
+      addedRows.push({ _row: sheet.getLastRow(), MemberID: m.memberId, Status: 'Preparing' });
+    }
+  });
+  records = records.concat(addedRows);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'BAPTISM_COHORT_CREATED', data.createdBy || 'Admin',
+    data.cohortName + ' (' + data.members.length + ' members)');
+  return jsonResponse({ status: 'success', cohort: data.cohortName });
+}
+
+// ============================================================
+// GO DASHBOARD DATA
+// ============================================================
+
+function getGODashboardData() {
+  var ss          = SpreadsheetApp.getActiveSpreadsheet();
+  var now         = new Date();
+  var currentWeek = getWeekNumber(now);
+  var currentMonth = now.getMonth();
+  var currentYear  = now.getFullYear();
+
+  var spsSheet = ss.getSheetByName(SHEET_NAME);
+  var spsRows  = (spsSheet && spsSheet.getLastRow() > 1) ? spsSheet.getDataRange().getValues().slice(1) : [];
+  var mcSheet  = ss.getSheetByName(MC_SHEET_NAME);
+  var mcRows   = (mcSheet && mcSheet.getLastRow() > 1) ? mcSheet.getDataRange().getValues().slice(1) : [];
+
+  var spsThisWeek = spsRows.filter(function (r) { return r[18] == currentWeek; });
+  var mcThisWeek  = mcRows.filter(function (r) { return r[22] == currentWeek; });
+
+  var reportedSet        = {};
+  var shepherdAttendance = {};
+  spsThisWeek.forEach(function (r) {
+    var name = String(r[7] || ''); if (!name) return;
+    reportedSet[name] = true;
+    shepherdAttendance[name] = parseInt(String(r[12]).replace('%', '')) || 0;
+  });
+  mcThisWeek.forEach(function (r) {
+    var name = String(r[7] || ''); if (!name) return;
+    reportedSet[name] = true;
+    shepherdAttendance[name] = parseInt(String(r[13]).replace('%', '')) || 0;
+  });
+
+  var newSouls = mcThisWeek.reduce(function (sum, r) { return sum + (parseInt(r[18]) || 0); }, 0);
+
+  var flags = getFlags().records;
+  var flagsRaised   = flags.filter(function (f) { return _inWeek(f.FlagDate,   currentWeek); }).length;
+  var flagsResolved = flags.filter(function (f) { return f.ResolutionDate && _inWeek(f.ResolutionDate, currentWeek); }).length;
+
+  var foundationsSheet = ensureSheet('FoundationsSchool', ['MemberID','MemberName','EnrolledDate','Week1','Week2','Week3','Week4','Week5','Week6','CompletedDate']);
+  var foundations = getSheetRecords(foundationsSheet);
+  var foundationsEnrolments = foundations.filter(function (r) {
+    if (!r.EnrolledDate) return false;
+    var d = new Date(r.EnrolledDate);
+    return !isNaN(d.getTime()) && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  }).length;
+
+  var visitations = getVisitations().visitations;
+  var journey     = getDiscipleshipJourney().records;
+
+  var trend = [];
+  for (var i = 7; i >= 0; i--) {
+    var wk = currentWeek - i;
+    if (wk <= 0) continue;
+    var swk = spsRows.filter(function (r) { return r[18] == wk; });
+    var mwk = mcRows.filter(function  (r) { return r[22] == wk; });
+    var mset = {}; var sset = {};
+    swk.forEach(function (r) {
+      if (r[7]) sset[r[7]] = true;
+      String(r[8] || '').split(',').forEach(function (n) { n = n.trim(); if (n) mset[n] = true; });
+    });
+    mwk.forEach(function (r) {
+      if (r[7]) sset[r[7]] = true;
+      String(r[9] || '').split(',').forEach(function (n) { n = n.trim(); if (n) mset[n] = true; });
+    });
+    trend.push({
+      week: wk, label: 'Wk ' + wk,
+      activeMembers:   Object.keys(mset).length,
+      activeShepherds: Object.keys(sset).length
+    });
+  }
+
+  return {
+    status: 'success',
+    weekly: {
+      currentWeek:            currentWeek,
+      totalReports:           spsThisWeek.length + mcThisWeek.length,
+      reportedShepherds:      Object.keys(reportedSet),
+      newSouls:               newSouls,
+      flagsRaised:            flagsRaised,
+      flagsResolved:          flagsResolved,
+      foundationsEnrolments:  foundationsEnrolments
+    },
+    shepherdAttendance: shepherdAttendance,
+    flags:       flags,
+    visitations: visitations,
+    journey:     journey,
+    trend:       trend
+  };
+}
+
+function _inWeek(dateValue, weekNum) {
+  if (!dateValue) return false;
+  var d = new Date(dateValue);
+  return !isNaN(d.getTime()) && getWeekNumber(d) === weekNum;
 }
 
 // ============================================================

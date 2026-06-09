@@ -232,6 +232,69 @@
       <div class="search-results" id="searchResults"></div>
     </div>
 
+    <!-- SECTION 3: BAPTISM TRACKING -->
+    <div class="section-card animate" id="baptismSection">
+      <div class="section-title">
+        🕊️ Baptism Tracking
+        <span class="pill" id="baptismCount">Loading…</span>
+        <button class="btn btn-primary" onclick="openCreateCohortModal()" style="margin-left:auto;font-size:12px;padding:7px 14px;">+ Create Cohort</button>
+      </div>
+
+      <!-- Summary Bar -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;" id="baptismSummary">
+        <div style="background:var(--light);border-radius:12px;padding:14px;text-align:center;border-left:4px solid var(--accent);">
+          <div style="font-size:24px;font-weight:900;color:var(--navy);" id="bapTotal">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray);margin-top:3px;">Total Tracked</div>
+        </div>
+        <div style="background:var(--light);border-radius:12px;padding:14px;text-align:center;border-left:4px solid var(--green);">
+          <div style="font-size:24px;font-weight:900;color:var(--navy);" id="bapCompleted">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray);margin-top:3px;">Baptised</div>
+        </div>
+        <div style="background:var(--light);border-radius:12px;padding:14px;text-align:center;border-left:4px solid #f59e0b;">
+          <div style="font-size:24px;font-weight:900;color:var(--navy);" id="bapPreparing">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray);margin-top:3px;">Preparing</div>
+        </div>
+        <div style="background:var(--light);border-radius:12px;padding:14px;text-align:center;border-left:4px solid var(--gray);">
+          <div style="font-size:24px;font-weight:900;color:var(--navy);" id="bapNotStarted">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray);margin-top:3px;">Not Started</div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <select id="filtBapStatus" onchange="renderBaptismTable()">
+          <option value="">All Statuses</option>
+          <option value="Not Started">Not Started</option>
+          <option value="Preparing">Preparing</option>
+          <option value="Ready">Ready</option>
+          <option value="Completed">Completed</option>
+        </select>
+        <select id="filtBapShepherd" onchange="renderBaptismTable()">
+          <option value="">All Shepherds</option>
+        </select>
+        <input type="search" id="bapSearch" placeholder="Search member…" oninput="renderBaptismTable()" style="min-width:160px;">
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px;"><input type="checkbox" id="bapSelectAll" onchange="toggleSelectAll(this)"></th>
+              <th>Member Name</th>
+              <th>Shepherd</th>
+              <th>Stream</th>
+              <th>Baptism Status</th>
+              <th>Baptism Date</th>
+              <th>Cohort</th>
+              <th>Update</th>
+            </tr>
+          </thead>
+          <tbody id="baptismBody">
+            <tr><td colspan="8" class="empty">Loading baptism data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div><!-- /page-wrap -->
 </div><!-- /dashboard -->
 
@@ -325,6 +388,55 @@
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('stageModal')">Cancel</button>
       <button class="btn btn-primary" onclick="submitStage()">Update Stage</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPDATE BAPTISM STATUS MODAL -->
+<div class="modal-overlay" id="baptismStatusModal">
+  <div class="modal">
+    <h3>🕊️ Update Baptism Status</h3>
+    <p id="baptismMemberLabel" style="font-size:13px;color:var(--gray);margin-bottom:14px;font-weight:600;"></p>
+    <div class="form-group">
+      <label>Baptism Status</label>
+      <select id="baptismStatusSelect">
+        <option value="Not Started">Not Started</option>
+        <option value="Preparing">Preparing</option>
+        <option value="Ready">Ready</option>
+        <option value="Completed">Completed</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Baptism Date (if applicable)</label>
+      <input type="date" id="baptismDateInput">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('baptismStatusModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitBaptismStatus()">Update</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE BAPTISM COHORT MODAL -->
+<div class="modal-overlay" id="createCohortModal">
+  <div class="modal" style="max-width:520px;">
+    <h3>✝️ Create Baptism Cohort</h3>
+    <div class="form-group">
+      <label>Cohort Name</label>
+      <input type="text" id="cohortName" placeholder="e.g. Pentecost 2026 Baptism Class">
+    </div>
+    <div class="form-group">
+      <label>Baptism Date</label>
+      <input type="date" id="cohortDate">
+    </div>
+    <div class="form-group">
+      <label>Selected Members (<span id="selectedMembersCount">0</span>)</label>
+      <p style="font-size:12px;color:var(--gray);margin-bottom:6px;">Check members in the table first, then create cohort.</p>
+      <div id="selectedMembersList" style="max-height:160px;overflow-y:auto;background:var(--light);border-radius:8px;padding:10px;font-size:12px;color:var(--gray);">No members selected</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('createCohortModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCreateCohort()">Create Cohort</button>
     </div>
   </div>
 </div>
@@ -470,6 +582,7 @@
     fetchData('getDiscipleshipJourney', null, function (data) {
       if (data && data.records) journeyData = data.records;
     });
+    loadBaptism();
   }
 
   // ── RETENTION TABLE ───────────────────────────────────────────
@@ -767,6 +880,185 @@
           if (data && data.records) { journeyData = data.records; renderPanelBase(activeMember); }
         });
       }).catch(function () { closeModal('stageModal'); });
+  }
+
+  // ── BAPTISM TRACKING ──────────────────────────────────────────
+  var baptismData      = [];
+  var activeBapMember  = null;
+  var selectedBapIds   = {};
+
+  function loadBaptism() {
+    fetchData('getBaptismRecords', null, function (data) {
+      if (data && data.records) {
+        baptismData = data.records;
+        populateBapShepherdFilter();
+        renderBaptismTable();
+      }
+    });
+  }
+
+  function populateBapShepherdFilter() {
+    var sel = document.getElementById('filtBapShepherd');
+    var sheps = {};
+    allMembers.forEach(function (m) { sheps[m.shepherd] = true; });
+    Object.keys(sheps).sort().forEach(function (n) {
+      var o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
+    });
+  }
+
+  function getBapStatus(memberId) {
+    var rec = baptismData.find(function (r) { return r.MemberID.toString() === memberId; });
+    return rec || { Status: 'Not Started', BaptismDate: '', CohortName: '' };
+  }
+
+  var statusBadgeBap = {
+    'Not Started': '<span class="badge badge-grey">Not Started</span>',
+    'Preparing':   '<span class="badge badge-amber">Preparing</span>',
+    'Ready':       '<span class="badge badge-blue">Ready</span>',
+    'Completed':   '<span class="badge badge-green">Completed</span>'
+  };
+
+  function renderBaptismTable() {
+    var statusFil = document.getElementById('filtBapStatus').value;
+    var shepFil   = document.getElementById('filtBapShepherd').value;
+    var search    = (document.getElementById('bapSearch').value || '').toLowerCase();
+
+    var rows = allMembers.filter(function (m) {
+      if (shepFil && m.shepherd !== shepFil) return false;
+      if (search && !m.name.toLowerCase().includes(search)) return false;
+      var bap = getBapStatus(m.id);
+      if (statusFil && bap.Status !== statusFil) return false;
+      return true;
+    });
+
+    var total       = allMembers.length;
+    var completed   = baptismData.filter(function (r) { return r.Status === 'Completed'; }).length;
+    var preparing   = baptismData.filter(function (r) { return r.Status === 'Preparing' || r.Status === 'Ready'; }).length;
+    var notStarted  = total - completed - preparing;
+
+    document.getElementById('baptismCount').textContent  = rows.length + ' members';
+    document.getElementById('bapTotal').textContent      = total;
+    document.getElementById('bapCompleted').textContent  = completed;
+    document.getElementById('bapPreparing').textContent  = preparing;
+    document.getElementById('bapNotStarted').textContent = Math.max(0, notStarted);
+
+    if (!rows.length) {
+      document.getElementById('baptismBody').innerHTML =
+        '<tr><td colspan="8"><div class="empty"><div class="icon">🔍</div><p>No members match filters</p></div></td></tr>';
+      return;
+    }
+
+    document.getElementById('baptismBody').innerHTML = rows.map(function (m) {
+      var bap = getBapStatus(m.id);
+      var checked = selectedBapIds[m.id] ? 'checked' : '';
+      var badgeHtml = statusBadgeBap[bap.Status] || statusBadgeBap['Not Started'];
+      var streamBadge = m.stream === 'SPS' ? '<span class="badge badge-sps">SPS</span>' : '<span class="badge badge-mc">MC</span>';
+      return '<tr>' +
+        '<td><input type="checkbox" ' + checked + ' onchange="toggleBapSelect(\'' + m.id.replace(/'/g,"\\'") + '\',this)"></td>' +
+        '<td style="font-weight:700;">' + m.name + '</td>' +
+        '<td>' + m.shepherd + '</td>' +
+        '<td>' + streamBadge + '</td>' +
+        '<td>' + badgeHtml + '</td>' +
+        '<td>' + (bap.BaptismDate || '—') + '</td>' +
+        '<td style="font-size:12px;color:var(--gray);">' + (bap.CohortName || '—') + '</td>' +
+        '<td><button class="btn btn-outline" style="font-size:11px;padding:5px 10px;" onclick="openBaptismStatusModal(' +
+          JSON.stringify(m).replace(/"/g,'&quot;') + ')">Edit</button></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function toggleSelectAll(cb) {
+    var rows = document.querySelectorAll('#baptismBody input[type="checkbox"]');
+    rows.forEach(function (r) { r.checked = cb.checked; });
+    selectedBapIds = {};
+    if (cb.checked) {
+      allMembers.forEach(function (m) { selectedBapIds[m.id] = m; });
+    }
+  }
+
+  function toggleBapSelect(memberId, cb) {
+    var m = allMembers.find(function (x) { return x.id === memberId; });
+    if (cb.checked && m) selectedBapIds[memberId] = m;
+    else delete selectedBapIds[memberId];
+  }
+
+  function openBaptismStatusModal(member) {
+    activeBapMember = member;
+    var bap = getBapStatus(member.id);
+    document.getElementById('baptismMemberLabel').textContent = member.name + ' · ' + member.shepherd;
+    document.getElementById('baptismStatusSelect').value = bap.Status || 'Not Started';
+    document.getElementById('baptismDateInput').value = bap.BaptismDate || '';
+    document.getElementById('baptismStatusModal').classList.add('open');
+  }
+
+  function submitBaptismStatus() {
+    if (!activeBapMember) return;
+    var status      = document.getElementById('baptismStatusSelect').value;
+    var baptismDate = document.getElementById('baptismDateInput').value;
+    var payload = {
+      action:      'updateBaptismStatus',
+      memberId:    activeBapMember.id,
+      memberName:  activeBapMember.name,
+      shepherdName: activeBapMember.shepherd,
+      status:      status,
+      baptismDate: baptismDate,
+      updatedBy:   'Admin'
+    };
+    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+      .then(function () {
+        closeModal('baptismStatusModal');
+        var existing = baptismData.find(function (r) { return r.MemberID.toString() === activeBapMember.id; });
+        if (existing) { existing.Status = status; if (baptismDate) existing.BaptismDate = baptismDate; }
+        else baptismData.push({ MemberID: activeBapMember.id, MemberName: activeBapMember.name, ShepherdName: activeBapMember.shepherd, Status: status, BaptismDate: baptismDate, CohortName: '' });
+        renderBaptismTable();
+      }).catch(function () { closeModal('baptismStatusModal'); });
+  }
+
+  function openCreateCohortModal() {
+    var selected = Object.values(selectedBapIds);
+    document.getElementById('selectedMembersCount').textContent = selected.length;
+    var listEl = document.getElementById('selectedMembersList');
+    if (!selected.length) {
+      listEl.textContent = 'No members selected. Check the checkboxes in the table first.';
+    } else {
+      listEl.innerHTML = selected.map(function (m) {
+        return '<div style="padding:3px 0;border-bottom:1px solid var(--border);">✓ ' + m.name + ' <span style="color:var(--gray);">(' + m.shepherd + ')</span></div>';
+      }).join('');
+    }
+    document.getElementById('cohortName').value = '';
+    document.getElementById('cohortDate').value = '';
+    document.getElementById('createCohortModal').classList.add('open');
+  }
+
+  function submitCreateCohort() {
+    var cohortName = document.getElementById('cohortName').value.trim();
+    var cohortDate = document.getElementById('cohortDate').value;
+    var selected   = Object.values(selectedBapIds);
+    if (!cohortName) { alert('Please enter a cohort name.'); return; }
+    if (!selected.length) { alert('Please select at least one member.'); return; }
+    var payload = {
+      action:      'createBaptismCohort',
+      cohortName:  cohortName,
+      baptismDate: cohortDate,
+      createdBy:   'Admin',
+      members:     selected.map(function (m) {
+        return { memberId: m.id, memberName: m.name, shepherdName: m.shepherd };
+      })
+    };
+    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+      .then(function () {
+        closeModal('createCohortModal');
+        selectedBapIds = {};
+        var allCheck = document.getElementById('bapSelectAll');
+        if (allCheck) allCheck.checked = false;
+        selected.forEach(function (m) {
+          var existing = baptismData.find(function (r) { return r.MemberID.toString() === m.id; });
+          if (existing) { existing.CohortName = cohortName; existing.BaptismDate = cohortDate; if (!existing.Status || existing.Status === 'Not Started') existing.Status = 'Preparing'; }
+          else baptismData.push({ MemberID: m.id, MemberName: m.name, ShepherdName: m.shepherd, Status: 'Preparing', BaptismDate: cohortDate, CohortName: cohortName });
+        });
+        renderBaptismTable();
+        alert('✅ Cohort "' + cohortName + '" created for ' + selected.length + ' member(s)!');
+      }).catch(function () { closeModal('createCohortModal'); });
   }
 
   // ── EXPORT CSV ────────────────────────────────────────────────
