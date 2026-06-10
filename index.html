@@ -2178,20 +2178,18 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <!-- Add to Home Screen banner (mobile only, dismissable) -->
-  <div id="pwaInstallBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--navy);color:#fff;padding:14px 16px;z-index:9999;border-top:2px solid var(--gold);">
-    <div style="max-width:480px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-      <div style="display:flex;align-items:center;gap:10px;flex:1;">
-        <span style="font-size:24px;">📱</span>
-        <div>
-          <div id="pwaBannerTitle" style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#fff;">Add ONC Shepherd App to your home screen</div>
-          <div id="pwaBannerSubtitle" style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">for the best experience</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-        <button id="pwaInstallBtn" onclick="triggerPwaInstall()" style="display:none;background:var(--gold);border:none;color:var(--navy);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">Install</button>
-        <button onclick="dismissPwaBanner()" style="background:none;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">Dismiss</button>
-      </div>
+  <!-- Add to Home Screen / Install App modal -->
+  <div id="pwaInstallModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.85);z-index:10000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);">
+    <div style="background:#fff;border-radius:24px;width:100%;max-width:420px;padding:28px 24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#f5c842);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;box-shadow:0 8px 24px rgba(240,165,0,.35);">📲</div>
+      <h2 id="pwaModalTitle" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:19px;color:var(--navy);margin-bottom:8px;">Install ONC Shepherd App</h2>
+      <p id="pwaModalSubtitle" style="font-size:13px;color:var(--gray);margin-bottom:20px;line-height:1.6;">Get quick access from your home screen — works just like a real app.</p>
+
+      <div id="pwaModalSteps" style="display:none;text-align:left;margin-bottom:20px;"></div>
+
+      <button id="pwaModalInstallBtn" onclick="installFromModal()" style="display:none;width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--gold),#f5c842);font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);cursor:pointer;box-shadow:0 4px 16px rgba(240,165,0,.35);margin-bottom:10px;">⬇ Install App Now</button>
+
+      <button onclick="closePwaInstallModal()" style="width:100%;padding:14px;border:2px solid var(--border);border-radius:12px;background:transparent;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:var(--gray);cursor:pointer;">Maybe Later</button>
     </div>
   </div>
 
@@ -2456,9 +2454,11 @@
       if (iframe2) iframe2.src = '';
 
       localStorage.setItem('onc_intro_watched', 'true');
-      
+
       document.getElementById('secIntro').classList.remove('active');
       document.getElementById('secWhoAreYou').classList.add('active');
+
+      setTimeout(function () { if (window.maybeShowInstallPrompt) window.maybeShowInstallPrompt(); }, 600);
     }
 
 
@@ -2510,6 +2510,7 @@
         
         // Show landing directly
         document.getElementById('secLanding').classList.add('active');
+        setTimeout(function () { if (window.maybeShowInstallPrompt) window.maybeShowInstallPrompt(); }, 1000);
       } else {
         // No session active, watch intro video
         document.getElementById('secIntro').classList.add('active');
@@ -5289,7 +5290,7 @@
       showSection('secKnowYourMembers');
     }
 
-    // ── PWA: Add to Home Screen banner ──────────────────────────
+    // ── PWA: Install App modal ──────────────────────────────────
     (function () {
       var INSTALLED_KEY = 'onc_pwa_installed';
       var SHOWN_AT_KEY = 'onc_pwa_last_shown';
@@ -5307,61 +5308,82 @@
       window.addEventListener('beforeinstallprompt', function (e) {
         e.preventDefault();
         window.__oncDeferredPrompt = e;
-        maybeShowBanner();
       });
 
       window.addEventListener('appinstalled', function () {
         localStorage.setItem(INSTALLED_KEY, '1');
-        var banner = document.getElementById('pwaInstallBanner');
-        if (banner) banner.style.display = 'none';
+        closePwaInstallModal();
       });
 
-      function maybeShowBanner() {
+      window.maybeShowInstallPrompt = function () {
         if (localStorage.getItem(INSTALLED_KEY) === '1') return;
         if (isStandalone || !isMobile) return;
 
         var lastShown = parseInt(localStorage.getItem(SHOWN_AT_KEY) || '0', 10);
         if (Date.now() - lastShown < REPROMPT_MS) return;
 
-        var banner = document.getElementById('pwaInstallBanner');
-        var titleEl = document.getElementById('pwaBannerTitle');
-        var subtitleEl = document.getElementById('pwaBannerSubtitle');
-        var installBtn = document.getElementById('pwaInstallBtn');
-        if (!banner) return;
+        var modal = document.getElementById('pwaInstallModal');
+        var titleEl = document.getElementById('pwaModalTitle');
+        var subtitleEl = document.getElementById('pwaModalSubtitle');
+        var stepsEl = document.getElementById('pwaModalSteps');
+        var installBtn = document.getElementById('pwaModalInstallBtn');
+        if (!modal) return;
 
         if (isIOS) {
-          titleEl.textContent = 'Add ONC Shepherd App to your Home Screen';
-          subtitleEl.textContent = 'Tap the Share button ⬆ then tap "Add to Home Screen"';
+          titleEl.textContent = 'Add ONC Shepherd App to Home Screen';
+          subtitleEl.textContent = 'Follow these steps in Safari:';
+          stepsEl.innerHTML =
+            '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);">' +
+              '<span style="font-size:22px;">📤</span>' +
+              '<span style="font-size:13px;font-weight:600;color:var(--navy);padding-top:3px;">Tap the <b>Share</b> button at the bottom of Safari</span>' +
+            '</div>' +
+            '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);">' +
+              '<span style="font-size:22px;">➕</span>' +
+              '<span style="font-size:13px;font-weight:600;color:var(--navy);padding-top:3px;">Scroll down and tap <b>"Add to Home Screen"</b></span>' +
+            '</div>' +
+            '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;">' +
+              '<span style="font-size:22px;">✅</span>' +
+              '<span style="font-size:13px;font-weight:600;color:var(--navy);padding-top:3px;">Tap <b>"Add"</b> in the top-right corner</span>' +
+            '</div>';
+          stepsEl.style.display = 'block';
           installBtn.style.display = 'none';
         } else if (isAndroid) {
-          if (!window.__oncDeferredPrompt) return;
-          titleEl.textContent = 'Add ONC Shepherd App to your home screen';
-          subtitleEl.textContent = 'for the best experience';
-          installBtn.style.display = 'inline-block';
+          titleEl.textContent = 'Install ONC Shepherd App';
+          subtitleEl.textContent = 'Add it to your home screen for quick, app-like access.';
+          if (window.__oncDeferredPrompt) {
+            stepsEl.style.display = 'none';
+            installBtn.style.display = 'block';
+          } else {
+            stepsEl.innerHTML =
+              '<div style="font-size:13px;font-weight:600;color:var(--navy);padding:10px 0;">' +
+              'Open the browser menu (⋮) and tap <b>"Add to Home screen"</b> or <b>"Install app"</b>.</div>';
+            stepsEl.style.display = 'block';
+            installBtn.style.display = 'none';
+          }
         } else {
           return;
         }
 
-        banner.style.display = 'block';
+        modal.style.display = 'flex';
         localStorage.setItem(SHOWN_AT_KEY, String(Date.now()));
-      }
-
-      setTimeout(maybeShowBanner, 3000);
+      };
     })();
 
-    function dismissPwaBanner() {
-      var banner = document.getElementById('pwaInstallBanner');
-      if (banner) banner.style.display = 'none';
+    function closePwaInstallModal() {
+      var modal = document.getElementById('pwaInstallModal');
+      if (modal) modal.style.display = 'none';
     }
 
-    function triggerPwaInstall() {
+    function installFromModal() {
       var promptEvent = window.__oncDeferredPrompt;
       if (!promptEvent) return;
       promptEvent.prompt();
-      promptEvent.userChoice.then(function () {
+      promptEvent.userChoice.then(function (choice) {
         window.__oncDeferredPrompt = null;
-        var banner = document.getElementById('pwaInstallBanner');
-        if (banner) banner.style.display = 'none';
+        if (choice.outcome === 'accepted') {
+          localStorage.setItem('onc_pwa_installed', '1');
+        }
+        closePwaInstallModal();
       });
     }
 
