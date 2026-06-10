@@ -3944,7 +3944,7 @@
           '</div>' +
           '<div style="font-size:15px;font-weight:800;color:#0f2044;line-height:1.3;">' + escRes(item.title) + '</div>' +
           '<div style="font-size:12px;color:#64748b;line-height:1.4;">' + escRes(item.desc || 'No description provided.') + '</div>' +
-          '<a href="' + escRes(item.url || 'https://drive.google.com') + '" target="_blank" style="padding:10px;background:#0f2044;color:#fff;border-radius:10px;text-align:center;text-decoration:none;font-size:13px;font-weight:700;display:block;transition:background 0.2s;">📖 Open Resource</a>' +
+          getResourceLinkBtn(item.url) +
           readBtn +
           '</div>';
       }).join('');
@@ -3952,6 +3952,20 @@
 
     function escRes(s) {
       return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Convert a Google Drive "view" link into a direct-download link so that
+    // tapping the resource downloads the file straight to the phone instead
+    // of opening Drive's preview page. Falls back to a normal "Open" link
+    // for folders or non-Drive URLs (folders can't be direct-downloaded).
+    function getResourceLinkBtn(url) {
+      url = url || 'https://drive.google.com';
+      var m = String(url).match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || String(url).match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (m && m[1] && url.indexOf('/folders/') === -1) {
+        var dlUrl = 'https://drive.google.com/uc?export=download&id=' + m[1];
+        return '<a href="' + escRes(dlUrl) + '" download target="_blank" rel="noopener" style="padding:10px;background:#0f2044;color:#fff;border-radius:10px;text-align:center;text-decoration:none;font-size:13px;font-weight:700;display:block;transition:background 0.2s;">⬇ Download Resource</a>';
+      }
+      return '<a href="' + escRes(url) + '" target="_blank" rel="noopener" style="padding:10px;background:#0f2044;color:#fff;border-radius:10px;text-align:center;text-decoration:none;font-size:13px;font-weight:700;display:block;transition:background 0.2s;">📖 Open Resource</a>';
     }
 
     function showSection(id) {
