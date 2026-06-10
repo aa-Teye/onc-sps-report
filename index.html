@@ -965,6 +965,54 @@
               border-radius:8px;font-size:14px;
               margin-bottom:10px;box-sizing:border-box;">
 
+            <label style="display:flex;align-items:center;gap:8px;
+              font-weight:700;font-size:13px;color:var(--navy);
+              margin-bottom:10px;cursor:pointer;">
+              <input type="checkbox" id="guestNoContact"
+                onchange="toggleReferralFields()"
+                style="width:18px;height:18px;accent-color:var(--gold);">
+              I don't have my own contact number
+            </label>
+
+            <div id="referralFields" style="display:none;
+              background:#f8fafc;border:2px solid var(--border);
+              border-radius:10px;padding:12px;margin-bottom:10px;">
+              <div style="font-weight:800;font-size:13px;
+                color:var(--navy);margin-bottom:8px;">
+                📇 Referral Contact Details
+              </div>
+
+              <label style="font-weight:700;font-size:13px;
+                color:var(--navy);display:block;
+                margin-bottom:4px;">Referral Person's Name</label>
+              <input type="text" id="referralName"
+                placeholder="Enter referral person's name"
+                style="width:100%;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                margin-bottom:10px;box-sizing:border-box;">
+
+              <label style="font-weight:700;font-size:13px;
+                color:var(--navy);display:block;
+                margin-bottom:4px;">Relation to Guest</label>
+              <input type="text" id="referralRelation"
+                placeholder="e.g. Friend, Sibling, Spouse"
+                style="width:100%;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                margin-bottom:10px;box-sizing:border-box;">
+
+              <label style="font-weight:700;font-size:13px;
+                color:var(--navy);display:block;
+                margin-bottom:4px;">Referral Person's Phone Number</label>
+              <input type="tel" id="referralPhone"
+                placeholder="Enter referral person's phone number"
+                style="width:100%;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                margin-bottom:10px;box-sizing:border-box;">
+            </div>
+
             <label style="font-weight:700;font-size:13px;
               color:var(--navy);display:block;
               margin-bottom:4px;">Email Address</label>
@@ -4177,6 +4225,25 @@
       return sources.join(', ');
     }
 
+    function toggleReferralFields() {
+      var checked = document.getElementById('guestNoContact').checked;
+      var fields = document.getElementById('referralFields');
+      var phoneInput = document.getElementById('guestPhone');
+      if (fields) fields.style.display = checked ? 'block' : 'none';
+      if (phoneInput) {
+        phoneInput.disabled = checked;
+        if (checked) phoneInput.value = '';
+      }
+      if (!checked) {
+        var rn = document.getElementById('referralName');
+        var rr = document.getElementById('referralRelation');
+        var rp = document.getElementById('referralPhone');
+        if (rn) rn.value = '';
+        if (rr) rr.value = '';
+        if (rp) rp.value = '';
+      }
+    }
+
     function reviewGuestForm() {
       var firstName = document.getElementById(
         'guestFirstName').value.trim();
@@ -4187,6 +4254,19 @@
 
       if (!firstName || !lastName) {
         showGlobalAlert('Please fill First Name and Last Name', 'error');
+        return;
+      }
+
+      var noContact = document.getElementById('guestNoContact').checked;
+      if (noContact) {
+        var refName = document.getElementById('referralName').value.trim();
+        var refPhone = document.getElementById('referralPhone').value.trim();
+        if (!refName || !refPhone) {
+          showGlobalAlert('Please provide the referral person\'s name and phone number', 'error');
+          return;
+        }
+      } else if (!phone) {
+        showGlobalAlert('Please enter a contact number, or check "I don\'t have my own contact number"', 'error');
         return;
       }
 
@@ -4223,6 +4303,11 @@
           document.getElementById('guestMiddleName')
             .value.trim() + ' ' + lastName) +
         reviewRow('Phone', phone) +
+        (noContact ?
+          reviewRow('Referral Person', document.getElementById('referralName').value.trim()) +
+          reviewRow('Relation to Guest', document.getElementById('referralRelation').value.trim()) +
+          reviewRow('Referral Phone', document.getElementById('referralPhone').value.trim())
+          : '') +
         reviewRow('Email', document.getElementById(
           'guestEmail').value.trim()) +
         reviewRow('Date of Birth', dob) +
@@ -4267,6 +4352,21 @@
         return;
       }
 
+      var noContact = document.getElementById('guestNoContact').checked;
+      var referralName = '', referralRelation = '', referralPhone = '';
+      if (noContact) {
+        referralName = document.getElementById('referralName').value.trim();
+        referralRelation = document.getElementById('referralRelation').value.trim();
+        referralPhone = document.getElementById('referralPhone').value.trim();
+        if (!referralName || !referralPhone) {
+          showGlobalAlert('Please provide the referral person\'s name and phone number', 'error');
+          return;
+        }
+      } else if (!phone) {
+        showGlobalAlert('Please enter a contact number, or check "I don\'t have my own contact number"', 'error');
+        return;
+      }
+
       var guest = {
         id: 'G' + Date.now(),
         date: new Date().toLocaleDateString('en-GB'),
@@ -4277,6 +4377,10 @@
         lastName: lastName,
         fullName: firstName + ' ' + lastName,
         phone: phone,
+        hasOwnContact: !noContact,
+        referralName: referralName,
+        referralRelation: referralRelation,
+        referralPhone: referralPhone,
         email: document.getElementById(
           'guestEmail').value.trim(),
         dobDay: document.getElementById(
@@ -4501,6 +4605,11 @@
       var churchEl = document.getElementById(
         'guestChurchName');
       if (churchEl) churchEl.style.display = 'none';
+
+      var phoneEl = document.getElementById('guestPhone');
+      if (phoneEl) phoneEl.disabled = false;
+      var referralEl = document.getElementById('referralFields');
+      if (referralEl) referralEl.style.display = 'none';
     }
 
     function viewTodaysGuests() {
@@ -4531,8 +4640,10 @@
               'color:var(--navy);font-size:15px;">' +
               g.fullName + '</div>' +
               '<div style="color:var(--gray);' +
-              'font-size:13px;margin:4px 0;">📞 ' +
-              g.phone + '</div>' +
+              'font-size:13px;margin:4px 0;">' + ICON_CALL + ' ' +
+              (g.hasOwnContact === false ?
+                'Referral: ' + (g.referralName || '—') + ' (' + (g.referralRelation || 'N/A') + ') — ' + (g.referralPhone || '—') :
+                (g.phone || '—')) + '</div>' +
               '<div style="color:var(--gray);' +
               'font-size:12px;">Invited by: ' +
               (g.invitedBy || 'Not specified') + 
@@ -4598,6 +4709,13 @@
       if (churchNameInput) {
         churchNameInput.value = guest.churchName || '';
       }
+
+      var noContact = guest.hasOwnContact === false;
+      document.getElementById('guestNoContact').checked = noContact;
+      document.getElementById('referralName').value = guest.referralName || '';
+      document.getElementById('referralRelation').value = guest.referralRelation || '';
+      document.getElementById('referralPhone').value = guest.referralPhone || '';
+      toggleReferralFields();
 
       var ids = ['srcFriend','srcMember','srcFacebook',
         'srcWhatsApp','srcPodbean','srcWebsite',
@@ -4811,7 +4929,11 @@
           (g.fullName || g.firstName + ' ' + g.lastName) + '</div>' +
 
           '<div style="font-size:13px;color:var(--gray);margin-bottom:4px;">' +
-          '📞 ' + (g.phone || '—') + '</div>' +
+          ICON_CALL + ' ' + (g.hasOwnContact === false ? (g.referralPhone || '—') : (g.phone || '—')) + '</div>' +
+          (g.hasOwnContact === false ?
+            '<div style="font-size:12px;color:#c2410c;font-weight:700;margin-bottom:4px;">' +
+            '📇 Referral: ' + (g.referralName || '—') + ' (' + (g.referralRelation || 'N/A') + ')</div>'
+            : '') +
           '<div style="font-size:12px;color:var(--gray);margin-bottom:4px;">' +
           '👤 Invited by: ' + (g.invitedBy || '—') + '</div>' +
           '<div style="font-size:12px;color:var(--gray);margin-bottom:4px;">' +
@@ -4822,11 +4944,11 @@
           statusHtml +
 
           '<div style="display:flex;gap:8px;margin-top:12px;">' +
-          '<a href="tel:' + g.phone + '" style="flex:1;padding:10px;' +
+          '<a href="tel:' + (g.hasOwnContact === false ? (g.referralPhone||'') : (g.phone||'')) + '" style="flex:1;padding:10px;' +
           'background:#22c55e;color:white;border-radius:8px;text-align:center;' +
           'text-decoration:none;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;">' + ICON_CALL + ' Call</a>' +
 
-          '<a href="https://wa.me/233' + (g.phone||'').replace(/^0/,'') + '"' +
+          '<a href="https://wa.me/233' + (g.hasOwnContact === false ? (g.referralPhone||'') : (g.phone||'')).replace(/^0/,'') + '"' +
           ' target="_blank" style="flex:1;padding:10px;background:#25D366;' +
           'color:white;border-radius:8px;text-align:center;text-decoration:none;' +
           'font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;">' + ICON_WHATSAPP + ' WhatsApp</a>' +

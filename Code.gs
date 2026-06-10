@@ -487,9 +487,10 @@ function submitGuestForm(data) {
       'Occupation', 'Company/School', 'Residence',
       'How Heard About ONC', 'Invited By', 'Faith Academy Podcasts',
       'WhatsApp Number', 'Born Again', 'Belongs to Church', 'Church Name',
-      'Contact Preference', 'Follow Up Status', 'Feedback'
+      'Contact Preference', 'Follow Up Status', 'Feedback',
+      'Has Own Contact', 'Referral Name', 'Referral Relation', 'Referral Phone'
     ]);
-    styleHeaders(sheet, 25);
+    styleHeaders(sheet, 29);
   }
 
   const g   = data.guest || {};
@@ -507,10 +508,12 @@ function submitGuestForm(data) {
     g.company || '', g.residence || '', g.heardFrom || '', g.invitedBy || '',
     g.podcast || '', g.whatsapp || '', g.bornAgain || '',
     g.belongsToChurch || '', g.churchName || '', g.contactPreference || '',
-    g.followUpStatus || 'Needs Follow Up', g.feedback || ''
+    g.followUpStatus || 'Needs Follow Up', g.feedback || '',
+    g.hasOwnContact === false ? 'No' : 'Yes',
+    g.referralName || '', g.referralRelation || '', g.referralPhone || ''
   ]);
 
-  sheet.autoResizeColumns(1, 25);
+  sheet.autoResizeColumns(1, 29);
   logAudit(ss, 'GUEST_REGISTERED', 'First Timers Unit', g.fullName || '');
   return jsonResponse({ status: 'success' });
 }
@@ -531,7 +534,7 @@ function updateGuestForm(data) {
   if (row === -1) return jsonResponse({ status: 'error', message: 'Guest not found' });
 
   const g = data.guest || {};
-  sheet.getRange(row, 4, 1, 22).setValues([[
+  sheet.getRange(row, 4, 1, 26).setValues([[
     g.firstName || '', g.middleName || '', g.lastName || '', g.fullName || '',
     g.phone || '', g.email || '',
     (g.dobDay && g.dobMonth && g.dobYear)
@@ -540,7 +543,9 @@ function updateGuestForm(data) {
     g.company || '', g.residence || '', g.heardFrom || '', g.invitedBy || '',
     g.podcast || '', g.whatsapp || '', g.bornAgain || '',
     g.belongsToChurch || '', g.churchName || '', g.contactPreference || '',
-    g.followUpStatus || 'Needs Follow Up', g.feedback || ''
+    g.followUpStatus || 'Needs Follow Up', g.feedback || '',
+    g.hasOwnContact === false ? 'No' : 'Yes',
+    g.referralName || '', g.referralRelation || '', g.referralPhone || ''
   ]]);
 
   logAudit(ss, 'GUEST_UPDATED', 'First Timers Unit', g.fullName || '');
@@ -581,7 +586,11 @@ function getGuests() {
       churchName:       row[21] || '',
       contactPreference: row[22] || '',
       followUpStatus:   row[23] || 'Needs Follow Up',
-      feedback:         row[24] || ''
+      feedback:         row[24] || '',
+      hasOwnContact:    row[25] !== 'No',
+      referralName:     row[26] || '',
+      referralRelation: row[27] || '',
+      referralPhone:    row[28] || ''
     };
   });
 
