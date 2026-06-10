@@ -5293,8 +5293,6 @@
     // ── PWA: Install App modal ──────────────────────────────────
     (function () {
       var INSTALLED_KEY = 'onc_pwa_installed';
-      var SHOWN_AT_KEY = 'onc_pwa_last_shown';
-      var REPROMPT_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
 
       var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
       var isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
@@ -5318,9 +5316,6 @@
       window.maybeShowInstallPrompt = function () {
         if (localStorage.getItem(INSTALLED_KEY) === '1') return;
         if (isStandalone || !isMobile) return;
-
-        var lastShown = parseInt(localStorage.getItem(SHOWN_AT_KEY) || '0', 10);
-        if (Date.now() - lastShown < REPROMPT_MS) return;
 
         var modal = document.getElementById('pwaInstallModal');
         var titleEl = document.getElementById('pwaModalTitle');
@@ -5365,7 +5360,6 @@
         }
 
         modal.style.display = 'flex';
-        localStorage.setItem(SHOWN_AT_KEY, String(Date.now()));
       };
     })();
 
