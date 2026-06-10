@@ -5153,7 +5153,7 @@
           if (shepherd && shepherd.members) {
             members = shepherd.members;
           }
-        } else if (state.shepherdType === 'mc') {
+        } else if (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') {
           var mcShepherd = null;
 
           if (window.CHURCH_DATA && 
@@ -5197,7 +5197,7 @@
       }
       
       if (members.length === 0) {
-        var msg = state.shepherdType === 'mc' ?
+        var msg = (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ?
           'No members listed for this microchurch' :
           'No members assigned yet.';
         
