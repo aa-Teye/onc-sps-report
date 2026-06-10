@@ -272,6 +272,15 @@ window.CHURCH_DATA = {
       "contact": "0530415531",
       "zone": "Zone 7",
       "members": []
+    },
+    {
+      "name": "IT User",
+      "contact": "0000000000",
+      "zone": "IT Zone",
+      "members": [
+        { "name": "Test Member One", "contact": "0000000001" },
+        { "name": "Test Member Two", "contact": "0000000002" }
+      ]
     }
   ],
   mcShepherds: [
@@ -610,6 +619,15 @@ window.CHURCH_DATA = {
         { "name": "Jacinta Quaye", "contact": "0555502151" },
         { "name": "George Essel", "contact": "0572113371" }
       ]
+    },
+    {
+      "name": "IT User",
+      "microchurch": "IT Test",
+      "contact": "0000000000",
+      "members": [
+        { "name": "Test Member One", "contact": "0000000001" },
+        { "name": "Test Member Two", "contact": "0000000002" }
+      ]
     }
   ],
   zones: [
@@ -651,6 +669,10 @@ window.CHURCH_DATA = {
       "shepherds": ["Loretta Owusu", "Melchizedek Ofori",
         "Bernice Can-Tamakloe", "Ruth Dadzie",
         "Anita Asamoah", "Christabel Arhin"]
+    },
+    {
+      "name": "IT Zone",
+      "shepherds": ["IT User"]
     }
   ]
 };

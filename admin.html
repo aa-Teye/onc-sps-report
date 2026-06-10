@@ -1104,6 +1104,7 @@
           font-size:14px;color:var(--navy);
           background:white;outline:none;">
           <option value="superadmin">👑 General Overseer</option>
+          <option value="ituser">🧪 IT User (Full Access)</option>
           <option value="admin">🔐 Admin</option>
           <option value="zoneleader">🗂 Zone Leader</option>
           <option value="spshead">🙏 SPS Head</option>
@@ -3766,6 +3767,9 @@
         if (selectedRole === 'superadmin') {
           expectedPin = localStorage.getItem('onc_pin') || '2500';
           roleName = '👑 General Overseer';
+        } else if (selectedRole === 'ituser') {
+          expectedPin = localStorage.getItem('onc_pin_ituser') || '9999';
+          roleName = '🧪 IT User (Full Access)';
         } else if (selectedRole === 'admin') {
           expectedPin = localStorage.getItem('onc_pin_admin') || '1500';
           roleName = '🔐 Admin';
@@ -3784,7 +3788,8 @@
         }
 
         if (pin === expectedPin) {
-          currentRole = selectedRole;
+          // IT User gets identical permissions to General Overseer (superadmin)
+          currentRole = (selectedRole === 'ituser') ? 'superadmin' : selectedRole;
           currentRoleName = roleName;
           currentPIN = pin;
           
