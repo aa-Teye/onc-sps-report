@@ -313,6 +313,14 @@
       localStorage.setItem('onc_pwa_installed', '1');
     });
 
+    // On Android, the first tap anywhere on the page (outside the share
+    // buttons) triggers the native install prompt — browsers require a
+    // user gesture to call prompt(), so a link alone cannot auto-install.
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('#shareWhatsAppBtn, #shareLinkBtn')) return;
+      if (deferredPrompt) installAndroid();
+    });
+
     function installAndroid() {
       if (!deferredPrompt) return;
       deferredPrompt.prompt();
