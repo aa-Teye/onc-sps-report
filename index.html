@@ -2177,6 +2177,7 @@
     <div class="footer">ONC SPS System — Overcomers Nation Church</div>
   </div>
   <div class="toast" id="toast"></div>
+  <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;display:none;"></canvas>
 
   <!-- Add to Home Screen / Install App modal -->
   <div id="pwaInstallModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.85);z-index:10000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);">
@@ -3244,6 +3245,7 @@
       document.getElementById('progressSteps').style.display = 'none';
       btn.disabled = false;
       clearProofPhoto();
+      launchConfetti();
     }
 
     function selectNewMemberJoin(val, btn) {
@@ -3507,6 +3509,7 @@
       document.getElementById('progressSteps').style.display = 'none';
       btn.disabled = false;
       clearProofPhoto();
+      launchConfetti();
     }
 
     function resetForm() {
@@ -3546,6 +3549,60 @@
       var t = document.getElementById('toast');
       t.textContent = msg; t.classList.add('show');
       setTimeout(function(){ t.classList.remove('show'); }, 2500);
+    }
+
+    // ── Celebration confetti burst — fired on successful report/registration submissions ──
+    function launchConfetti() {
+      var canvas = document.getElementById('confettiCanvas');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      canvas.style.display = 'block';
+
+      var colors = ['#f0a500', '#1a3a6b', '#2e80e8', '#22c55e', '#ef4444', '#f5c842'];
+      var pieces = [];
+      var count = 140;
+      for (var i = 0; i < count; i++) {
+        pieces.push({
+          x: Math.random() * canvas.width,
+          y: -20 - Math.random() * canvas.height * 0.5,
+          w: 6 + Math.random() * 6,
+          h: 8 + Math.random() * 10,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotSpeed: -8 + Math.random() * 16,
+          vy: 2 + Math.random() * 3,
+          vx: -2 + Math.random() * 4,
+          tilt: Math.random() * Math.PI
+        });
+      }
+
+      var startTime = Date.now();
+      var duration = 3000;
+
+      function frame() {
+        var elapsed = Date.now() - startTime;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(function (p) {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rotation += p.rotSpeed;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation * Math.PI / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+        if (elapsed < duration) {
+          window.requestAnimationFrame(frame);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          canvas.style.display = 'none';
+        }
+      }
+      window.requestAnimationFrame(frame);
     }
 
     function showGlobalAlert(message, type) {
@@ -4335,6 +4392,7 @@
           'ft_pending_backup', JSON.stringify(backups));
 
         showGlobalAlert('✅ Guest registered successfully!', 'success');
+        launchConfetti();
         resetGuestForm();
         showSection('secFirstTimersLanding');
       })
