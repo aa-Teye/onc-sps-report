@@ -2515,6 +2515,7 @@
         // No session active, watch intro video
         document.getElementById('secIntro').classList.add('active');
         initIntroFlow();
+        setTimeout(function () { if (window.maybeShowInstallPrompt) window.maybeShowInstallPrompt(); }, 4000);
       }
     });
 
