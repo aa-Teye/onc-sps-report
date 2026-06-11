@@ -58,6 +58,9 @@ function doPost(e) {
     if (action === 'saveZoneConfig')          return saveZoneConfig(data);
     if (action === 'bulkImportMembers')       return bulkImportMembers(data);
     if (action === 'calculateShepherdScores') return calculateShepherdScores(data);
+    // ── FCM Push Notifications ────────────────────────────────
+    if (action === 'saveFCMToken')            return saveFCMToken(data);
+    if (action === 'sendAnnouncementNotification') return sendAnnouncementNotification(data);
 
     return jsonResponse({ status: 'error', message: 'Unknown action' });
   } catch (err) {
@@ -1996,4 +1999,132 @@ function sendScheduledReminders() {
       Logger.log('Failed: ' + s.name);
     }
   });
+}
+
+// ============================================================
+// FCM PUSH NOTIFICATIONS
+// ============================================================
+
+const FCM_TOKENS_SHEET = 'FCMTokens';
+
+// Returns an OAuth2 access token for the Firebase service account using
+// the JWT bearer flow. Credentials come from Script Properties — never
+// hardcode them.
+function getFCMAccessToken() {
+  const props      = PropertiesService.getScriptProperties();
+  const clientEmail = props.getProperty('FIREBASE_CLIENT_EMAIL');
+  const privateKey  = props.getProperty('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n');
+
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const now    = Math.floor(Date.now() / 1000);
+  const claimSet = {
+    iss:   clientEmail,
+    scope: 'https://www.googleapis.com/auth/firebase.messaging',
+    aud:   'https://oauth2.googleapis.com/token',
+    exp:   now + 3600,
+    iat:   now
+  };
+
+  const base64url = function (obj) {
+    return Utilities.base64EncodeWebSafe(JSON.stringify(obj)).replace(/=+$/, '');
+  };
+
+  const toSign = base64url(header) + '.' + base64url(claimSet);
+  const signatureBytes = Utilities.computeRsaSha256Signature(toSign, privateKey);
+  const signature = Utilities.base64EncodeWebSafe(signatureBytes).replace(/=+$/, '');
+  const jwt = toSign + '.' + signature;
+
+  const response = UrlFetchApp.fetch('https://oauth2.googleapis.com/token', {
+    method: 'post',
+    contentType: 'application/x-www-form-urlencoded',
+    payload: {
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: jwt
+    },
+    muteHttpExceptions: true
+  });
+
+  const result = JSON.parse(response.getContentText());
+  if (!result.access_token) throw new Error('Failed to get FCM access token: ' + response.getContentText());
+  return result.access_token;
+}
+
+// Saves (or refreshes) a shepherd's FCM token and subscribes it to topics.
+function saveFCMToken(data) {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ensureSheet(FCM_TOKENS_SHEET, ['ShepherdName', 'Role', 'Token', 'Platform', 'SavedDate', 'LastUpdated']);
+
+  const shepherdName = data.shepherdName || '';
+  const role         = data.role || '';
+  const token        = data.token || '';
+  const platform     = data.platform || '';
+  const now          = new Date();
+  const nowStr       = formatDate(now) + ' ' + formatTime(now);
+
+  if (!token) return jsonResponse({ status: 'error', message: 'Missing token' });
+
+  const records  = getSheetRecords(sheet);
+  const existing = records.find(function (r) { return r.ShepherdName === shepherdName; });
+
+  if (existing) {
+    sheet.getRange(existing._row, 3, 1, 4).setValues([[token, platform, existing.SavedDate || nowStr, nowStr]]);
+  } else {
+    sheet.appendRow([shepherdName, role, token, platform, nowStr, nowStr]);
+  }
+
+  // Subscribe this token to the requested topics
+  const topics = Array.isArray(data.topics) ? data.topics : [];
+  if (topics.length > 0) {
+    try {
+      const accessToken = getFCMAccessToken();
+      topics.forEach(function (topic) {
+        UrlFetchApp.fetch('https://iid.googleapis.com/iid/v1:batchAdd', {
+          method: 'post',
+          contentType: 'application/json',
+          headers: { Authorization: 'Bearer ' + accessToken },
+          payload: JSON.stringify({
+            to: '/topics/' + topic,
+            registration_tokens: [token]
+          }),
+          muteHttpExceptions: true
+        });
+      });
+    } catch (e) {
+      logAudit(ss, 'FCM_TOPIC_SUBSCRIBE_FAILED', shepherdName, e.toString());
+    }
+  }
+
+  return jsonResponse({ status: 'success' });
+}
+
+// Sends a push notification to a topic via the FCM HTTP v1 API.
+function sendAnnouncementNotification(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  try {
+    const projectId = PropertiesService.getScriptProperties().getProperty('FIREBASE_PROJECT_ID');
+    const accessToken = getFCMAccessToken();
+
+    const title = data.title || 'New Announcement';
+    const body  = (data.message || '').substring(0, 100);
+    const topic = data.audience || 'all-shepherds';
+
+    const response = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: 'Bearer ' + accessToken },
+      payload: JSON.stringify({
+        message: {
+          topic: topic,
+          notification: { title: title, body: body }
+        }
+      }),
+      muteHttpExceptions: true
+    });
+
+    logAudit(ss, 'FCM_NOTIFICATION_SENT', topic, title + ' — ' + response.getResponseCode());
+    return jsonResponse({ status: 'success' });
+  } catch (e) {
+    logAudit(ss, 'FCM_NOTIFICATION_FAILED', data.audience || '', e.toString());
+    return jsonResponse({ status: 'error', message: e.toString() });
+  }
 }

@@ -1085,6 +1085,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <script src="churchData.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 </head>
 
 <body>
@@ -3072,6 +3074,14 @@
                 margin-bottom:16px;
                 box-sizing:border-box;">
               
+              <label style="display:flex;align-items:center;gap:10px;
+                font-weight:700;font-size:13px;color:#0a1628;
+                margin-bottom:16px;cursor:pointer;">
+                <input type="checkbox" id="annoSendPush" checked
+                  style="width:18px;height:18px;cursor:pointer;">
+                🔔 Send Push Notification
+              </label>
+
               <button onclick="postAnnouncement()"
                 style="width:100%;padding:14px;
                 background:#0a1628;color:white;
@@ -8681,6 +8691,25 @@
         };
         
         window._lastPostedAnnouncement = announcement;
+
+        var sendPush = document.getElementById('annoSendPush');
+        if (sendPush && sendPush.checked) {
+          var audienceTopics = {
+            all: 'all-shepherds',
+            sps: 'sps-shepherds',
+            mc: 'mc-shepherds',
+            firsttimers: 'first-timers-unit'
+          };
+          fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'sendAnnouncementNotification',
+              title: title,
+              message: message.substring(0, 100),
+              audience: audienceTopics[audience] || 'all-shepherds'
+            })
+          }).catch(function() {});
+        }
 
         fetch(SCRIPT_URL, {
           method: 'POST',
