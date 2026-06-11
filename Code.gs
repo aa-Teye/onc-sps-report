@@ -508,7 +508,15 @@ function submitGuestForm(data) {
     }
   }
 
-  sheet.appendRow([
+  // Write the Date (col B) and DOB (col J) as plain text so Sheets
+  // doesn't auto-convert dd/mm/yyyy strings into locale-dependent
+  // date serials (which can silently swap day/month and break the
+  // "this month" follow-up filters on the frontend).
+  const newRow = sheet.getLastRow() + 1;
+  sheet.getRange(newRow, 2).setNumberFormat('@');
+  sheet.getRange(newRow, 10).setNumberFormat('@');
+
+  sheet.getRange(newRow, 1, 1, 29).setValues([[
     g.id || 'G' + now.getTime(),
     g.date || formatDate(now),
     formatTime(now),
@@ -523,7 +531,7 @@ function submitGuestForm(data) {
     g.followUpStatus || 'Needs Follow Up', g.feedback || '',
     g.hasOwnContact === false ? 'No' : 'Yes',
     g.referralName || '', g.referralRelation || '', g.referralPhone || ''
-  ]);
+  ]]);
 
   sheet.autoResizeColumns(1, 29);
   logAudit(ss, 'GUEST_REGISTERED', 'First Timers Unit', g.fullName || '');
