@@ -5329,10 +5329,11 @@
         var type = state.shepherdType || 'sps';
         var relevant = data.announcements.filter(
           function(a) {
-            if (a.expiry && 
-              new Date(a.expiry) < new Date()) 
+            if (a.paused) return false;
+            if (a.expiry &&
+              new Date(a.expiry) < new Date())
               return false;
-            return a.audience === 'all' || 
+            return a.audience === 'all' ||
               a.audience === type;
           }
         );

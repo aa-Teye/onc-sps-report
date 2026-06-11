@@ -8431,37 +8431,22 @@
         var list = document.getElementById(
           'activityLogList');
         if (list) {
-          list.innerHTML = 
+          list.innerHTML =
             '<div style="text-align:center;' +
             'padding:40px;">⏳ Loading...</div>';
         }
-        
-        window.onActivityLoaded = function(data) {
-          window.onActivityLoaded = null;
+
+        fetchData('getActivityLog', function(data) {
           if (data && data.logs) {
             allActivityLogs = data.logs.filter(Boolean);
             renderActivityLog();
+          } else if (list) {
+            list.innerHTML =
+              '<div style="color:#ef4444;' +
+              'text-align:center;padding:20px;">' +
+              'Failed to load. Try again.</div>';
           }
-        };
-        
-        var old = document.getElementById(
-          'activityScript');
-        if (old && old.parentNode)
-          old.parentNode.removeChild(old);
-        
-        var script = document.createElement('script');
-        script.id = 'activityScript';
-        script.src = SCRIPT_URL +
-          '?action=getActivityLog' +
-          '&callback=onActivityLoaded' +
-          '&_=' + Date.now();
-        script.onerror = function() {
-          if (list) list.innerHTML = 
-            '<div style="color:#ef4444;' +
-            'text-align:center;padding:20px;">' +
-            'Failed to load. Try again.</div>';
-        };
-        document.head.appendChild(script);
+        });
       }
 
       function renderActivityLog() {
@@ -8913,15 +8898,38 @@
         
         list.innerHTML = allAnnouncements
           .map(function(a) {
-            var isExpired = a.expiry && 
+            var isExpired = a.expiry &&
               new Date(a.expiry) < new Date();
-            var border = isExpired ? 
+            var border = isExpired ?
               '#e2e8f0' : '#0a1628';
             var bg = isExpired ? '#f8fafc' : 'white';
-            
+
+            var statusBadge;
+            if (isExpired) {
+              statusBadge = '<span style="background:#fee2e2;'+
+                'color:#b91c1c;padding:2px 8px;'+
+                'border-radius:20px;font-size:11px;'+
+                'font-weight:700;">Expired</span>';
+            } else if (a.paused) {
+              statusBadge = '<span onclick="toggleAnnouncementActive(\''+
+                a.id+'\')" title="Click to reactivate" '+
+                'style="cursor:pointer;background:#fef3c7;'+
+                'color:#92400e;padding:2px 8px;'+
+                'border-radius:20px;font-size:11px;'+
+                'font-weight:700;">Inactive</span>';
+            } else {
+              statusBadge = '<span onclick="toggleAnnouncementActive(\''+
+                a.id+'\')" title="Click to deactivate" '+
+                'style="cursor:pointer;background:#dcfce7;'+
+                'color:#15803d;padding:2px 8px;'+
+                'border-radius:20px;font-size:11px;'+
+                'font-weight:700;">Active</span>';
+            }
+
             return '<div style="border-left:4px solid '+
               border+';padding:16px;margin-bottom:12px;'+
-              'background:'+bg+';border-radius:8px;">' +
+              'background:'+bg+';border-radius:8px;'+
+              (a.paused ? 'opacity:0.6;' : '')+'">' +
               '<div style="display:flex;' +
               'justify-content:space-between;' +
               'align-items:flex-start;' +
@@ -8929,15 +8937,7 @@
               '<div style="font-weight:800;' +
               'font-size:15px;color:#0a1628;">' +
               (a.title||'') + '</div>' +
-              (isExpired ?
-                '<span style="background:#fee2e2;'+
-                'color:#b91c1c;padding:2px 8px;'+
-                'border-radius:20px;font-size:11px;'+
-                'font-weight:700;">Expired</span>' :
-                '<span style="background:#dcfce7;'+
-                'color:#15803d;padding:2px 8px;'+
-                'border-radius:20px;font-size:11px;'+
-                'font-weight:700;">Active</span>') +
+              statusBadge +
               '</div>' +
               '<div style="color:#374151;font-size:14px;'+
               'margin-bottom:10px;">' +
@@ -8962,6 +8962,26 @@
               'font-weight:700;">🗑 Delete</button>'+
               '</div>';
           }).join('');
+      }
+
+      function toggleAnnouncementActive(id) {
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'toggleAnnouncementStatus',
+            id: id
+          })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var ann = allAnnouncements.find(function(a) { return a.id === id; });
+          if (ann) ann.paused = data.newStatus === 'PAUSED';
+          renderAnnouncements();
+          adminToast(ann && ann.paused ? '⏸ Announcement paused' : '▶ Announcement reactivated');
+        })
+        .catch(function() {
+          adminToast('❌ Failed to update status');
+        });
       }
 
       function deleteAnnouncement(id) {

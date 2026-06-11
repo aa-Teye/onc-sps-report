@@ -36,6 +36,7 @@ function doPost(e) {
     if (action === 'logActivity')             return logActivity(data);
     if (action === 'postAnnouncement')        return postAnnouncement(data);
     if (action === 'deleteAnnouncement')      return deleteAnnouncement(data);
+    if (action === 'toggleAnnouncementStatus') return toggleAnnouncementStatus(data);
     // ── Members & Pipeline POST actions ──────────────────────────
     if (action === 'addPastoralNote')         return addPastoralNote(data);
     if (action === 'createAssignment')        return createAssignment(data);
@@ -227,8 +228,10 @@ function postAnnouncement(data) {
 
   if (!sheet) {
     sheet = ss.insertSheet(ANNOUNCEMENTS_SHEET);
-    sheet.appendRow(['ID', 'Title', 'Message', 'Audience', 'Posted By', 'Posted Date', 'Posted Time', 'Expiry', 'Active']);
-    styleHeaders(sheet, 9);
+    sheet.appendRow(['ID', 'Title', 'Message', 'Audience', 'Posted By', 'Posted Date', 'Posted Time', 'Expiry', 'Active', 'Status']);
+    styleHeaders(sheet, 10);
+  } else if (sheet.getLastColumn() < 10) {
+    sheet.getRange(1, 10).setValue('Status');
   }
 
   const a   = data.announcement || {};
@@ -243,10 +246,11 @@ function postAnnouncement(data) {
     a.postedDate || formatDate(now),
     a.postedTime || formatTime(now),
     a.expiry   || '',
-    'YES'
+    'YES',
+    'ACTIVE'
   ]);
 
-  sheet.autoResizeColumns(1, 9);
+  sheet.autoResizeColumns(1, 10);
   logAudit(ss, 'ANNOUNCEMENT_POSTED', a.postedBy || 'Admin', a.title || '');
   return jsonResponse({ status: 'success' });
 }
@@ -270,7 +274,8 @@ function getAnnouncements() {
         postedBy:   row[4] || '',
         postedDate: row[5] || '',
         postedTime: row[6] || '',
-        expiry:     row[7] || ''
+        expiry:     row[7] || '',
+        paused:     row[9] === 'PAUSED'
       };
     });
 
@@ -293,6 +298,28 @@ function deleteAnnouncement(data) {
 
   logAudit(ss, 'ANNOUNCEMENT_DELETED', 'Admin', data.id || '');
   return jsonResponse({ status: 'success' });
+}
+
+// Toggles an announcement between ACTIVE and PAUSED without deleting it.
+// Paused announcements stay in the admin list but are hidden from shepherds.
+function toggleAnnouncementStatus(data) {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(ANNOUNCEMENTS_SHEET);
+
+  if (!sheet) return jsonResponse({ status: 'error', message: 'No announcements' });
+
+  const sheetData = sheet.getDataRange().getValues();
+  let newStatus = 'ACTIVE';
+  for (let i = 1; i < sheetData.length; i++) {
+    if (sheetData[i][0] === data.id) {
+      newStatus = sheetData[i][9] === 'PAUSED' ? 'ACTIVE' : 'PAUSED';
+      sheet.getRange(i + 1, 10).setValue(newStatus);
+      break;
+    }
+  }
+
+  logAudit(ss, 'ANNOUNCEMENT_' + newStatus, 'Admin', data.id || '');
+  return jsonResponse({ status: 'success', newStatus: newStatus });
 }
 
 // ============================================================
