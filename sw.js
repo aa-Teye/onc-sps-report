@@ -1,4 +1,4 @@
-const CACHE_NAME = 'onc-sps-v14';
+const CACHE_NAME = 'onc-sps-v15';
 const CACHE_URLS = [
   '/onc-sps-report/',
   '/onc-sps-report/index.html',
@@ -17,14 +17,23 @@ self.addEventListener('install', function (event) {
 
 self.addEventListener('activate', function (event) {
   event.waitUntil(
-    caches.keys().then(function (keys) {
-      return Promise.all(
+    (async function () {
+      var keys = await caches.keys();
+      await Promise.all(
         keys.filter(function (k) { return k !== CACHE_NAME; })
             .map(function (k) { return caches.delete(k); })
       );
-    })
+      await self.clients.claim();
+
+      // Force any already-open app windows (running old cached JS that
+      // doesn't know to reload itself) to navigate to fresh content now
+      // that this new service worker is in control.
+      var allClients = await self.clients.matchAll({ type: 'window' });
+      allClients.forEach(function (client) {
+        client.navigate(client.url);
+      });
+    })()
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', function (event) {
