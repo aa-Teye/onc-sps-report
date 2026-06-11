@@ -2093,7 +2093,10 @@ function saveFCMToken(data) {
         UrlFetchApp.fetch('https://iid.googleapis.com/iid/v1:batchAdd', {
           method: 'post',
           contentType: 'application/json',
-          headers: { Authorization: 'Bearer ' + accessToken },
+          headers: {
+            Authorization: 'Bearer ' + accessToken,
+            access_token_auth: 'true'
+          },
           payload: JSON.stringify({
             to: '/topics/' + topic,
             registration_tokens: [token]
