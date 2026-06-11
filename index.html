@@ -4064,17 +4064,11 @@
       return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // Convert a Google Drive "view" link into a direct-download link so that
-    // tapping the resource downloads the file straight to the phone instead
-    // of opening Drive's preview page. Falls back to a normal "Open" link
-    // for folders or non-Drive URLs (folders can't be direct-downloaded).
+    // Link straight to Drive's preview page. Drive's own Download button
+    // there reliably handles the "can't scan for viruses" interstitial for
+    // large files, which the uc?export=download rewrite did not.
     function getResourceLinkBtn(url) {
       url = url || 'https://drive.google.com';
-      var m = String(url).match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || String(url).match(/[?&]id=([a-zA-Z0-9_-]+)/);
-      if (m && m[1] && url.indexOf('/folders/') === -1) {
-        var dlUrl = 'https://drive.google.com/uc?export=download&id=' + m[1];
-        return '<a href="' + escRes(dlUrl) + '" download target="_blank" rel="noopener" style="padding:10px;background:#0f2044;color:#fff;border-radius:10px;text-align:center;text-decoration:none;font-size:13px;font-weight:700;display:block;transition:background 0.2s;">⬇ Download Resource</a>';
-      }
       return '<a href="' + escRes(url) + '" target="_blank" rel="noopener" style="padding:10px;background:#0f2044;color:#fff;border-radius:10px;text-align:center;text-decoration:none;font-size:13px;font-weight:700;display:block;transition:background 0.2s;">📖 Open Resource</a>';
     }
 
