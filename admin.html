@@ -3372,10 +3372,11 @@
 
       var refreshTimer = null;
       var silentShowCount = 3;
+      var fetchDataCounter = 0;
 
       function fetchData(action, callback) {
         var script = document.createElement('script');
-        var cbName = '_cb_' + Date.now();
+        var cbName = '_cb_' + Date.now() + '_' + (++fetchDataCounter);
         var called = false;
 
         window[cbName] = function (data) {
@@ -3410,7 +3411,7 @@
         params.action = action;
         var query = serializeQuery(params);
         var script = document.createElement('script');
-        var cbName = '_cb_' + Date.now();
+        var cbName = '_cb_' + Date.now() + '_' + (++fetchDataCounter);
         var called = false;
 
         window[cbName] = function (data) {
