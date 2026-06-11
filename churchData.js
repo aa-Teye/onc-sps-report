@@ -114,7 +114,7 @@ window.CHURCH_DATA = {
       ]
     },
     {
-      "name": "Mr. Ebenezer Okronipa",
+      "name": "IT User",
       "contact": "0243310124",
       "zone": "Zone 4",
       "members": [
@@ -272,15 +272,6 @@ window.CHURCH_DATA = {
       "contact": "0530415531",
       "zone": "Zone 7",
       "members": []
-    },
-    {
-      "name": "IT User",
-      "contact": "0000000000",
-      "zone": "IT Zone",
-      "members": [
-        { "name": "Test Member One", "contact": "0000000001" },
-        { "name": "Test Member Two", "contact": "0000000002" }
-      ]
     }
   ],
   mcShepherds: [
@@ -450,13 +441,13 @@ window.CHURCH_DATA = {
       ]
     },
     {
-      "name": "Harriet Ampofo",
+      "name": "Rev Dr Ebenezer Okronipa",
       "microchurch": "Afropa 2",
       "contact": "0208533288",
       "members": [
         { "name": "Wilhelmina Komesour", "contact": "0592284829" },
         { "name": "Aisha Mohammed", "contact": "0539139623" },
-        { "name": "Rev Dr Ebenezer Okronipa", "contact": "" },
+        { "name": "Harriet Ampofo", "contact": "0208533288" },
         { "name": "Akpene Anatsui-Kemedo", "contact": "0574776380" },
         { "name": "Christiana Akosua Latibea", "contact": "0534123309" },
         { "name": "Celestine Baatu", "contact": "0240972631" },
@@ -649,7 +640,7 @@ window.CHURCH_DATA = {
     },
     {
       "name": "Zone 4",
-      "shepherds": ["Mr. Ebenezer Okronipa",
+      "shepherds": ["IT User",
         "Solomon Aziakah", "Deborah Otumfuor",
         "Patience Addo"]
     },
@@ -669,10 +660,6 @@ window.CHURCH_DATA = {
       "shepherds": ["Loretta Owusu", "Melchizedek Ofori",
         "Bernice Can-Tamakloe", "Ruth Dadzie",
         "Anita Asamoah", "Christabel Arhin"]
-    },
-    {
-      "name": "IT Zone",
-      "shepherds": ["IT User"]
     }
   ]
 };

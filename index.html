@@ -2295,7 +2295,7 @@
       "LP. Sophia Korkor": { members: ["Janelle Kekeli Dartey", "Emmanuel Kwaku Amon", "Francis Kweku Opoku Ivan"], pin: "0000" },
       "Wisdom Akakpo": { members: ["Dorcas Janssen", "Lawrence Gbeku"], pin: "0000" },
       "Cyril Amevor": { members: ["Princess Gyamfuaa", "Philip Boateng"], pin: "0000" },
-      "Mr. Ebenezer Okronipa": { members: ["Christabel Arhin", "Abena Achia"], pin: "0000" },
+      "IT User": { members: ["Christabel Arhin", "Abena Achia"], pin: "0000" },
       "Solomon Aziakah": { members: ["Mrs. Elizabeth Agbedo", "Shirley Williams"], pin: "0000" },
       "Deborah Otumfuor": { members: ["George Sarfo Mensah", "Madam Paulina Mansa Atiase"], pin: "0000" },
       "Patience Addo": { members: ["Janet Oye", "Maame Efua Owusu Boateng"], pin: "0000" },
@@ -2312,8 +2312,7 @@
       "Bernice Can-Tamakloe": { members: ["Emmanuel Nii-Lantei", "Rebecca Donkor"], pin: "0000" },
       "Ruth Dadzie": { members: ["Samuel Adama", "Hannah Akuffo France"], pin: "0000" },
       "Anita Asamoah": { members: ["Joseph Asmah", "Jeremiah Asante"], pin: "0000" },
-      "Christabel Arhin": { members: [], pin: "0000" },
-      "IT User": { members: ["Test Member One", "Test Member Two"], pin: "0000" }
+      "Christabel Arhin": { members: [], pin: "0000" }
     };
 
     const microchurchShepherdData = {
@@ -2327,7 +2326,7 @@
       "Emmanuel Mensah": ["Valerie Ofooley", "Jehoshaphat Mills", "Christian Koomson", "Aaron Ofori", "Reginald Ofori", "Prince Acquah", "Kelvin Aryeetey", "Bismark Duker", "Esther Opare", "George Otabil", "Kwaku Baah", "Theodora Mills", "Miriam Opare", "Hanson Dzebu", "Karen Bonsu"],
       "Eric Appiah": ["Louisa Ashong", "Robert Ansah", "Precious Mmeso", "Princess Izubge", "Annabelle Forson", "Alexander Mantey", "Ameyaw Mehra", "Arnold Doe", "Regina Kwardefio", "Jackline Odoi", "Lilian Amoh", "Raymond Agbosu", "Abena Owusu", "Michelin Gyampoh"],
       "Alex Teye Ametepey": ["Samuel Amon Kotey", "Jeffrey Kleku", "Millicent Kudawoo", "Destiny Akadu", "Mabel Sena Okyere"],
-      "Harriet Ampofo": ["Wilhelmina Komesour", "Aisha Mohammed", "Akpene Anatsui-Kemedo", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Philip Ofosuhene", "Louisa Nutakor", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah", "Nadia Okine", "Favour Okine", "Harriet Ampofo", "Ruth Dadzie"],
+      "Rev Dr Ebenezer Okronipa": ["Wilhelmina Komesour", "Aisha Mohammed", "Akpene Anatsui-Kemedo", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Philip Ofosuhene", "Louisa Nutakor", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah", "Nadia Okine", "Favour Okine", "Harriet Ampofo", "Ruth Dadzie"],
       "Bernice Amuzu": ["Justina Ackon", "Rashida Alhassan", "Abel Nego", "Gentle Sordji", "Christabel", "Winnifred Ndobo", "Latifa", "Bernice Amuzu", "Carol Nkansah", "Nhyira Antwi", "Abigail Antwi", "Gloria Antwi"],
       "Rosemond Quaicoe": ["Lydia Odame Antwi", "Mrs Priscilla Effah", "Edna Asare"],
       "Henry Mensah": ["Patience Mensah", "Bryan Mensah", "Brielle Mensah", "Fredrick", "Cisse Quaye"],
@@ -2351,7 +2350,7 @@
       "Emmanuel Mensah": "Bubiashie",
       "Eric Appiah": "North Kaneshie Online",
       "Alex Teye Ametepey": "UG Legon",
-      "Harriet Ampofo": "Afropa 2",
+      "Rev Dr Ebenezer Okronipa": "Afropa 2",
       "Bernice Amuzu": "Manasseh",
       "Rosemond Quaicoe": "Nyamekye",
       "Henry Mensah": "Gbawe",
@@ -4110,11 +4109,19 @@
     var todaysGuests = JSON.parse(
       localStorage.getItem('todays_guests') || '[]');
 
+    // First Timers Unit — additional authorized users (all share full access)
+    var FT_VALID_PINS = {
+      '2500': 'Lady Sharon',
+      '0000': 'Akwaaba Members',
+      '3000': 'Haven Pastor',
+      '4000': 'Other Haven Executive'
+    };
+
     function checkFirstTimersPin() {
       var pin = document.getElementById(
         'ftPinInput').value;
-      
-      if (pin === ftState.pin) {
+
+      if (pin === ftState.pin || FT_VALID_PINS.hasOwnProperty(pin)) {
         document.getElementById('ftPinInput').value = '';
         
         var today = new Date().toLocaleDateString(
@@ -4812,6 +4819,14 @@
         } catch (e) {}
 
         todaysGuests = backendGuests.concat(pendingUnsynced);
+
+        // Most recent registrations first
+        todaysGuests.sort(function(a, b) {
+          var idA = parseInt(String(a.id).replace(/\D/g, ''), 10) || 0;
+          var idB = parseInt(String(b.id).replace(/\D/g, ''), 10) || 0;
+          return idB - idA;
+        });
+
         localStorage.setItem('todays_guests', JSON.stringify(todaysGuests));
 
         cleanup();
@@ -5149,7 +5164,24 @@
         if (tgIdx > -1) { todaysGuests[tgIdx].assignedShepherd = shepherd; localStorage.setItem('todays_guests', JSON.stringify(todaysGuests)); }
         if (agIdx > -1) { allG[agIdx].assignedShepherd = shepherd; localStorage.setItem('all_guests', JSON.stringify(allG)); }
       }
-      
+
+      // Push the updated record to the backend so the change
+      // is reflected in the First Timers sheet (database)
+      var guestRecord = (tgIdx > -1 && todaysGuests[tgIdx]) ||
+        (agIdx > -1 && allG[agIdx]);
+      if (guestRecord) {
+        guestRecord.followUpStatus = newStatus;
+        guestRecord.feedback = notes || guestRecord.feedback || '';
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'updateGuestForm',
+            guestId: guestId,
+            guest: guestRecord
+          })
+        }).catch(function() {});
+      }
+
       closeFollowUpModal();
       showGlobalAlert('✅ Follow up recorded!', 'success');
       loadFollowUpList();

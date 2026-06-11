@@ -3208,7 +3208,7 @@
         { name: "Emmanuel Mensah", microchurch: "Bubiashie", contact: "530291764" },
         { name: "Eric Appiah", microchurch: "North Kaneshie Online", contact: "556319369" },
         { name: "Alex Teye Ametepey", microchurch: "UG Legon", contact: "549044977" },
-        { name: "Harriet Ampofo", microchurch: "Afropa 2", contact: "208533288" },
+        { name: "Rev Dr Ebenezer Okronipa", microchurch: "Afropa 2", contact: "208533288" },
         { name: "Bernice Amuzu", microchurch: "Manasseh", contact: "241503359" },
         { name: "Rosemond Quaicoe", microchurch: "Nyamekye", contact: "556413103" },
         { name: "Henry Mensah", microchurch: "Gbawe", contact: "202009492" },
@@ -3231,7 +3231,7 @@
         "Emmanuel Mensah": ["Valerie Ofooley", "Jehoshaphat Mills", "Christian Koomson", "Aaron Ofori", "Reginald Ofori", "Prince Acquah", "Kelvin Aryeetey", "Bismark Duker", "Esther Opare", "George Otabil", "Kwaku Baah", "Theodora Mills", "Miriam Opare", "Hanson Dzebu", "Karen Bonsu"],
         "Eric Appiah": ["Louisa Ashong", "Robert Ansah", "Precious Mmeso", "Princess Izubge", "Annabelle Forson", "Alexander Mantey", "Ameyaw Mehra", "Arnold Doe", "Regina Kwardefio", "Jackline Odoi", "Lilian Amoh", "Raymond Agbosu", "Abena Owusu", "Michelin Gyampoh"],
         "Alex Teye Ametepey": ["Samuel Amon Kotey", "Jeffrey Kleku", "Millicent Kudawoo", "Destiny Akadu", "Mabel Sena Okyere"],
-        "Harriet Ampofo": ["Wilhelmina Komesour", "Aisha Mohammed", "Akpene Anatsui-Kemedo", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Philip Ofosuhene", "Louisa Nutakor", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah", "Nadia Okine", "Favour Okine", "Harriet Ampofo", "Ruth Dadzie"],
+        "Rev Dr Ebenezer Okronipa": ["Wilhelmina Komesour", "Aisha Mohammed", "Akpene Anatsui-Kemedo", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Philip Ofosuhene", "Louisa Nutakor", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah", "Nadia Okine", "Favour Okine", "Harriet Ampofo", "Ruth Dadzie"],
         "Bernice Amuzu": ["Justina Ackon", "Rashida Alhassan", "Abel Nego", "Gentle Sordji", "Christabel", "Winnifred Ndobo", "Latifa", "Bernice Amuzu", "Carol Nkansah", "Nhyira Antwi", "Abigail Antwi", "Gloria Antwi"],
         "Rosemond Quaicoe": ["Lydia Odame Antwi", "Mrs Priscilla Effah", "Edna Asare"],
         "Henry Mensah": ["Patience Mensah", "Bryan Mensah", "Brielle Mensah", "Fredrick", "Cisse Quaye"],
@@ -3263,7 +3263,7 @@
         { name: "LP. Sophia Korkor", contact: "0236929939" },
         { name: "Wisdom Akakpo", contact: "0246461508" },
         { name: "Cyril Amevor", contact: "0246038534" },
-        { name: "Mr. Ebenezer Okronipa", contact: "0243310124" },
+        { name: "IT User", contact: "0243310124" },
         { name: "Solomon Aziakah", contact: "0245775546" },
         { name: "Deborah Otumfuor", contact: "0203219321" },
         { name: "Patience Addo", contact: "0247816836" },
@@ -3313,8 +3313,8 @@
         "Victoria Amuzu": "Wisdom Akakpo",
         "Abraham Delove": "Cyril Amevor",
         "Julianna Owusu Ansah": "Cyril Amevor",
-        "Williams Asomaning Ameyaw": "Mr. Ebenezer Okronipa",
-        "Mr. Abraham Can-Tamakloe": "Mr. Ebenezer Okronipa",
+        "Williams Asomaning Ameyaw": "IT User",
+        "Mr. Abraham Can-Tamakloe": "IT User",
         "Mrs. Elizabeth Agbedo": "Solomon Aziakah",
         "Shirley Williams": "Solomon Aziakah",
         "George Sarfo Mensah": "Deborah Otumfuor",
@@ -7958,8 +7958,8 @@
       function getFilteredGuests() {
         var today = new Date();
         today.setHours(0,0,0,0);
-        
-        return allGuestReports.filter(function(g) {
+
+        var filtered = allGuestReports.filter(function(g) {
           if (currentFTPeriod === 'today') {
             var gDate = new Date(g.date);
             gDate.setHours(0,0,0,0);
@@ -7974,6 +7974,15 @@
           }
           return true;
         });
+
+        // Most recent registrations first
+        filtered.sort(function(a, b) {
+          var idA = parseInt(String(a.id).replace(/\D/g, ''), 10) || 0;
+          var idB = parseInt(String(b.id).replace(/\D/g, ''), 10) || 0;
+          return idB - idA;
+        });
+
+        return filtered;
       }
 
       function renderFirstTimers() {

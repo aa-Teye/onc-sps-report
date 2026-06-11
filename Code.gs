@@ -496,6 +496,18 @@ function submitGuestForm(data) {
   const g   = data.guest || {};
   const now = new Date();
 
+  // Avoid creating a duplicate row if this guest was already
+  // submitted (e.g. retried after a network/CORS error even
+  // though the original submission succeeded).
+  if (g.id && sheet.getLastRow() > 1) {
+    const ids = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+    for (let i = 0; i < ids.length; i++) {
+      if (String(ids[i][0]) === String(g.id)) {
+        return jsonResponse({ status: 'success' });
+      }
+    }
+  }
+
   sheet.appendRow([
     g.id || 'G' + now.getTime(),
     g.date || formatDate(now),
@@ -1940,7 +1952,7 @@ function sendScheduledReminders() {
     {name:"LP. Sophia Korkor",              contact:"236929939"},
     {name:"Wisdom Akakpo",                  contact:"246461508"},
     {name:"Cyril Amevor",                   contact:"246038534"},
-    {name:"Mr. Ebenezer Okronipa",          contact:"243310124"},
+    {name:"IT User",                        contact:"243310124"},
     {name:"Solomon Aziakah",                contact:"245775546"},
     {name:"Deborah Otumfuor",               contact:"203219321"},
     {name:"Patience Addo",                  contact:"247816836"},
