@@ -7291,18 +7291,28 @@
         var currentYear = new Date().getFullYear();
 
         return reports.filter(function (r) {
-          var dateStr = r.sessionDate || r.date;
-          if (!dateStr) return false;
-          var parts = dateStr.split('/');
-          var rDate;
-          if (parts.length >= 3) {
-            rDate = new Date(parts[2], parts[1] - 1, parts[0]);
-          } else {
-            rDate = new Date(dateStr);
-          }
-          if (isNaN(rDate)) return false;
+          var rDate = parseRobustDate(r.sessionDate || r.submissionDate || r.date);
+          if (!rDate || isNaN(rDate)) return false;
           return rDate.getMonth() === currentMonth && rDate.getFullYear() === currentYear;
         });
+      }
+
+      // Counts new souls recorded on a report — handles array, JSON string,
+      // comma-separated names, or a plain numeric count.
+      function countNewSouls(val) {
+        if (!val) return 0;
+        if (typeof val === 'number') return val;
+        if (Array.isArray(val)) return val.length;
+        var str = val.toString().trim();
+        if (!str) return 0;
+        if (str.startsWith('[')) {
+          try {
+            var arr = JSON.parse(str);
+            return Array.isArray(arr) ? arr.length : 0;
+          } catch (e) { return 0; }
+        }
+        if (/^\d+$/.test(str)) return parseInt(str, 10);
+        return str.split(',').filter(function (n) { return n.trim(); }).length;
       }
 
       function getGradeDetails(score) {
@@ -7325,28 +7335,19 @@
         var spsMonthReps = getCurrentMonthReports(allReports);
         var spsLeaders = ALL_SHEPHERDS.map(function (s) {
           var shepReps = spsMonthReps.filter(function (r) { return r.shepherd === s.name; });
-          var reportRate = Math.min(100, Math.round((shepReps.length / 4) * 100));
+          var reportPts = Math.min(50, Math.round((shepReps.length / 4) * 50));
 
-          var avgAtt = 0;
-          if (shepReps.length) {
-            var totalRate = shepReps.reduce(function (a, r) {
-              if (r.attendanceRate !== undefined && r.attendanceRate !== null && r.attendanceRate !== '') {
-                var rate = parseFloat(r.attendanceRate);
-                return a + (rate <= 1 ? Math.round(rate * 100) : Math.round(rate));
-              }
-              return a + getRate(r);
-            }, 0);
-            avgAtt = Math.round(totalRate / shepReps.length);
-          }
+          var soulsCount = shepReps.reduce(function (a, r) { return a + countNewSouls(r.newMembers); }, 0);
+          var soulsPts = Math.min(50, soulsCount * 25);
 
-          var finalScore = Math.round((reportRate + avgAtt) / 2);
+          var finalScore = reportPts + soulsPts;
           var details = getGradeDetails(finalScore);
 
           return {
             name: s.name,
             score: finalScore,
-            repRate: reportRate,
-            attRate: avgAtt,
+            reportsCount: shepReps.length,
+            soulsCount: soulsCount,
             details: details
           };
         }).sort(function (a, b) { return b.score - a.score; });
@@ -7363,7 +7364,7 @@
               '<div style="display:flex;align-items:center;gap:12px;">' +
               '<div style="font-size:16px;font-weight:900;color:var(--gray);width:30px;">' + (medal || ('#' + (idx + 1))) + '</div>' +
               '<div><div style="font-weight:800;color:var(--navy);">' + s.name + '</div>' +
-              '<div style="font-size:11px;color:var(--gray);">Reporting: ' + s.repRate + '% | Attendance: ' + s.attRate + '%</div></div></div>' +
+              '<div style="font-size:11px;color:var(--gray);">Reports: ' + s.reportsCount + '/4 this month · Souls Won: ' + s.soulsCount + '</div></div></div>' +
               '<div style="text-align:right;display:flex;align-items:center;gap:10px;">' +
               '<div><div style="font-size:16px;font-weight:900;color:' + s.details.color + ';">' + s.score + ' pts</div>' +
               '<div style="font-size:10px;color:var(--gray);">' + s.details.stars + '</div></div>' +
@@ -7376,21 +7377,19 @@
         var mcMonthReps = getCurrentMonthReports(allMicrochurchReports);
         var mcLeaders = ALL_MC_SHEPHERDS.map(function (s) {
           var shepReps = mcMonthReps.filter(function (r) { return r.shepherd === s.name; });
-          var reportRate = Math.min(100, Math.round((shepReps.length / 4) * 100));
+          var reportPts = Math.min(50, Math.round((shepReps.length / 4) * 50));
 
-          var avgAtt = 0;
-          if (shepReps.length) {
-            avgAtt = Math.round(shepReps.reduce(function (a, r) { return a + getMcRate(r); }, 0) / shepReps.length);
-          }
+          var soulsCount = shepReps.reduce(function (a, r) { return a + countNewSouls(r.newSouls); }, 0);
+          var soulsPts = Math.min(50, soulsCount * 25);
 
-          var finalScore = Math.round((reportRate + avgAtt) / 2);
+          var finalScore = reportPts + soulsPts;
           var details = getGradeDetails(finalScore);
 
           return {
             name: s.name,
             score: finalScore,
-            repRate: reportRate,
-            attRate: avgAtt,
+            reportsCount: shepReps.length,
+            soulsCount: soulsCount,
             details: details
           };
         }).sort(function (a, b) { return b.score - a.score; });
@@ -7407,7 +7406,7 @@
               '<div style="display:flex;align-items:center;gap:12px;">' +
               '<div style="font-size:16px;font-weight:900;color:var(--gray);width:30px;">' + (medal || ('#' + (idx + 1))) + '</div>' +
               '<div><div style="font-weight:800;color:var(--navy);">' + s.name + '</div>' +
-              '<div style="font-size:11px;color:var(--gray);">Reporting: ' + s.repRate + '% | Attendance: ' + s.attRate + '%</div></div></div>' +
+              '<div style="font-size:11px;color:var(--gray);">Reports: ' + s.reportsCount + '/4 this month · Souls Won: ' + s.soulsCount + '</div></div></div>' +
               '<div style="text-align:right;display:flex;align-items:center;gap:10px;">' +
               '<div><div style="font-size:16px;font-weight:900;color:' + s.details.color + ';">' + s.score + ' pts</div>' +
               '<div style="font-size:10px;color:var(--gray);">' + s.details.stars + '</div></div>' +
