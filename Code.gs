@@ -332,6 +332,12 @@ function submitReport(data) {
   const attendanceRate = Math.round((attendanceCount / totalMembers) * 100) + '%';
   const concerns       = formatConcerns(data.concerns || {});
 
+  // Force date/time/percentage columns to plain text BEFORE writing so
+  // Sheets doesn't auto-convert these strings into Date/Number values
+  // (which silently swaps day/month and turns "50%" into 0.5).
+  const nextRow = sheet.getLastRow() + 1;
+  [2, 4, 5, 7, 13].forEach(col => sheet.getRange(nextRow, col).setNumberFormat('@'));
+
   sheet.appendRow([
     reportId, submissionDate, submissionDay, submissionTime,
     sessionDate, sessionDay, sessionTime, data.shepherd || '',
@@ -420,6 +426,12 @@ function submitMicrochurchReport(data) {
   const newSoulNamesValue = Array.isArray(data.newSouls)
     ? data.newSouls.map(s => s.name || s).filter(Boolean).join(', ')
     : (data.newSoulNames || '');
+
+  // Force date/time/percentage columns to plain text BEFORE writing so
+  // Sheets doesn't auto-convert these strings into Date/Number values
+  // (which silently swaps day/month and turns "50%" into 0.5).
+  const nextRow = sheet.getLastRow() + 1;
+  [2, 4, 5, 7, 14].forEach(col => sheet.getRange(nextRow, col).setNumberFormat('@'));
 
   sheet.appendRow([
     reportId, submissionDate, submissionDay, submissionTime,
