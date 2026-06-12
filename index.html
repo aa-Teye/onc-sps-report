@@ -1486,7 +1486,11 @@
           🔓 Verify & Enter Portal
         </button>
 
-        <p style="font-size: 12px; color: #64748b; margin-top: 16px; font-weight: 600;">
+        <button type="button" onclick="forgotPin()" style="width: 100%; padding: 10px; background: none; border: none; color: var(--accent); font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 8px;">
+          Forgot PIN?
+        </button>
+
+        <p style="font-size: 12px; color: #64748b; margin-top: 8px; font-weight: 600;">
           💡 First time? Use default PIN: <span style="color: var(--accent); font-weight: 800;">0000</span>
         </p>
 
@@ -2712,6 +2716,45 @@
         secLogin.style.display = 'block';
         secLogin.classList.add('active');
       }
+    }
+
+    function forgotPin() {
+      var select = document.getElementById('loginShepherdSelect');
+      if (!select || !select.value) {
+        showGlobalAlert('Please select your name first', 'error');
+        return;
+      }
+
+      var shepherdName = select.value;
+      if (!confirm('Reset your PIN now? A new PIN will be sent to your device.')) return;
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'forgotPin', shepherdName: shepherdName })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.status === 'success' && data.pin) {
+          localStorage.setItem('onc_pin_' + shepherdName, data.pin);
+
+          var customPins = {};
+          try {
+            customPins = JSON.parse(localStorage.getItem('onc_shepherd_pins') || '{}');
+          } catch (e) {}
+          customPins[shepherdName] = data.pin;
+          localStorage.setItem('onc_shepherd_pins', JSON.stringify(customPins));
+
+          var pinEl = document.getElementById('loginPinInput');
+          if (pinEl) pinEl.value = data.pin;
+
+          showGlobalAlert('✅ Your new PIN is ' + data.pin + ' (also sent to your device)', 'success');
+        } else {
+          showGlobalAlert(data.message || '❌ Could not reset PIN. Please contact an admin.', 'error');
+        }
+      })
+      .catch(function() {
+        showGlobalAlert('❌ Could not reset PIN. Please contact an admin.', 'error');
+      });
     }
 
     function verifyShepherdLogin() {

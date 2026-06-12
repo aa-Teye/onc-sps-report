@@ -62,6 +62,7 @@ function doPost(e) {
     // ── FCM Push Notifications ────────────────────────────────
     if (action === 'saveFCMToken')            return saveFCMToken(data);
     if (action === 'sendAnnouncementNotification') return sendAnnouncementNotification(data);
+    if (action === 'forgotPin')               return forgotPin(data);
 
     return jsonResponse({ status: 'error', message: 'Unknown action' });
   } catch (err) {
@@ -2169,4 +2170,84 @@ function sendAnnouncementNotification(data) {
     logAudit(ss, 'FCM_NOTIFICATION_FAILED', data.audience || '', e.toString());
     return jsonResponse({ status: 'error', message: e.toString() });
   }
+}
+
+// Sends a push notification directly to a single device token via the FCM HTTP v1 API.
+function sendPushToToken(token, title, body) {
+  const projectId   = PropertiesService.getScriptProperties().getProperty('FIREBASE_PROJECT_ID');
+  const accessToken = getFCMAccessToken();
+
+  const response = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + accessToken },
+    payload: JSON.stringify({
+      message: {
+        token: token,
+        notification: { title: title, body: body }
+      }
+    }),
+    muteHttpExceptions: true
+  });
+
+  return response.getResponseCode();
+}
+
+// ============================================================
+// FORGOT PIN
+// ============================================================
+
+// Resets a shepherd's PIN to a new random 4-digit code and pushes it
+// directly to their registered device. Falls back to an error if no
+// FCM token is on file, so the UI can tell the user to contact an admin.
+function forgotPin(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const shepherdName = data.shepherdName || '';
+
+  if (!shepherdName) {
+    return jsonResponse({ status: 'error', message: 'Missing shepherd name' });
+  }
+
+  const tokenSheet = ss.getSheetByName(FCM_TOKENS_SHEET);
+  const tokenRecords = tokenSheet ? getSheetRecords(tokenSheet) : [];
+  const tokenRecord  = tokenRecords.find(function (r) { return r.ShepherdName === shepherdName; });
+
+  if (!tokenRecord || !tokenRecord.Token) {
+    return jsonResponse({ status: 'error', message: 'No device registered for notifications. Please ask an admin to reset your PIN.' });
+  }
+
+  const newPin = String(Math.floor(1000 + Math.random() * 9000));
+  const now    = new Date();
+
+  let sheet = ss.getSheetByName(PINS_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(PINS_SHEET);
+    sheet.appendRow(['Name', 'Role', 'PIN', 'Changed Date', 'Changed Time']);
+    styleHeaders(sheet, 5);
+  }
+
+  const sheetData = sheet.getDataRange().getValues();
+  let found = false;
+  for (let i = 1; i < sheetData.length; i++) {
+    if (sheetData[i][0] === shepherdName) {
+      sheet.getRange(i + 1, 3).setValue(newPin);
+      sheet.getRange(i + 1, 4).setValue(formatDate(now));
+      sheet.getRange(i + 1, 5).setValue(formatTime(now));
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    sheet.appendRow([shepherdName, tokenRecord.Role || 'Shepherd', newPin, formatDate(now), formatTime(now)]);
+  }
+
+  try {
+    sendPushToToken(tokenRecord.Token, 'PIN Reset', 'Your new ONC SPS PIN is: ' + newPin);
+  } catch (e) {
+    logAudit(ss, 'PIN_RESET_PUSH_FAILED', shepherdName, e.toString());
+    return jsonResponse({ status: 'error', message: 'Could not send notification. Please ask an admin to reset your PIN.' });
+  }
+
+  logAudit(ss, 'PIN_RESET', shepherdName, 'PIN reset and sent via push notification');
+  return jsonResponse({ status: 'success', message: 'A new PIN has been sent to your device', pin: newPin });
 }
