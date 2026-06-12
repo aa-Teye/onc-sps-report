@@ -3260,6 +3260,11 @@
       const FT_HEAD_PIN = '5000';
       const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
 
+      // Professional outline-style action icons (Call / WhatsApp / SMS)
+      const ICON_CALL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg>';
+      const ICON_WHATSAPP = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M17.47 14.38c-.29-.15-1.7-.84-1.96-.93-.26-.1-.46-.15-.65.15-.2.29-.75.93-.92 1.12-.17.2-.34.22-.63.07-.29-.15-1.22-.45-2.32-1.43-.86-.76-1.44-1.71-1.6-2-.17-.29-.02-.45.13-.6.13-.13.29-.34.43-.51.15-.17.2-.29.29-.48.1-.2.05-.36-.02-.51-.07-.15-.65-1.58-.9-2.16-.24-.58-.48-.5-.65-.5-.17-.01-.36-.01-.56-.01-.2 0-.51.07-.78.36-.27.29-1.02 1-1.02 2.43 0 1.43 1.04 2.82 1.18 3.01.15.2 2.05 3.13 4.96 4.39.69.3 1.23.48 1.65.61.69.22 1.32.19 1.82.11.55-.08 1.7-.7 1.94-1.37.24-.68.24-1.26.17-1.38-.07-.12-.26-.2-.55-.34z"/><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.85.5 3.58 1.36 5.07L2 22l5.18-1.46a9.84 9.84 0 0 0 4.86 1.27h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.51 2 12.04 2zm0 18.06h-.01c-1.62 0-3.21-.43-4.6-1.26l-.33-.2-3.07.86.82-2.99-.21-.31a8.25 8.25 0 0 1-1.31-4.45c0-4.55 3.7-8.25 8.26-8.25 2.21 0 4.28.86 5.84 2.42a8.18 8.18 0 0 1 2.42 5.84c0 4.55-3.71 8.34-8.81 8.34z"/></svg>';
+      const ICON_SMS = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>';
+
       const ALL_SHEPHERDS = [
         { name: "Frank Armah", contact: "0558150432" },
         { name: "Bright Mamene", contact: "0546024584" },
@@ -5353,14 +5358,16 @@
             '<a href="' + formatCall(phone) + '" style="' +
             'flex:1;padding:6px;background:#22c55e;color:white;' +
             'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-size:12px;font-weight:700;">' +
-            '📞 Call</a>' +
+            'text-decoration:none;font-size:12px;font-weight:700;' +
+            'display:flex;align-items:center;justify-content:center;gap:6px;">' +
+            ICON_CALL + ' Call</a>' +
             '<a href="' + formatWhatsApp(phone) + '" ' +
             'target="_blank" style="' +
             'flex:1;padding:6px;background:#25D366;color:white;' +
             'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-size:12px;font-weight:700;">' +
-            '💬 WhatsApp</a></div>'
+            'text-decoration:none;font-size:12px;font-weight:700;' +
+            'display:flex;align-items:center;justify-content:center;gap:6px;">' +
+            ICON_WHATSAPP + ' WhatsApp</a></div>'
             : '<div style="color:#94a3b8;font-size:12px;' +
             'margin-top:8px;">No contact number</div>';
 
@@ -7129,13 +7136,13 @@
               'flex:1;padding:6px;background:#22c55e;color:white;' +
               'border-radius:8px;text-align:center;' +
               'text-decoration:none;font-size:12px;font-weight:700;">' +
-              '📞 Call</a>' +
+              ICON_CALL + ' Call</a>' +
               '<a href="' + formatWhatsApp(phone) + '" ' +
               'target="_blank" style="' +
               'flex:1;padding:6px;background:#25D366;color:white;' +
               'border-radius:8px;text-align:center;' +
               'text-decoration:none;font-size:12px;font-weight:700;">' +
-              '💬 WhatsApp</a></div>'
+              ICON_WHATSAPP + ' WhatsApp</a></div>'
               : '<div style="color:#94a3b8;font-size:12px;' +
               'margin-top:8px;">No contact number</div>';
 
@@ -8339,14 +8346,14 @@
             'style="padding:4px 8px;background:#22c55e;' +
             'color:white;border-radius:6px;' +
             'text-decoration:none;font-size:11px;' +
-            'font-weight:700;margin-right:4px;">📞</a>' +
+            'font-weight:700;margin-right:4px;display:inline-flex;align-items:center;justify-content:center;">' + ICON_CALL + '</a>' +
             '<a href="https://wa.me/233' + 
               (m.phone||'').replace(/^0/,'') + '" ' +
             'target="_blank" ' +
             'style="padding:4px 8px;background:#25D366;' +
             'color:white;border-radius:6px;' +
             'text-decoration:none;font-size:11px;' +
-            'font-weight:700;">💬</a>' +
+            'font-weight:700;display:inline-flex;align-items:center;justify-content:center;">' + ICON_WHATSAPP + '</a>' +
             '</td>' +
             '</tr>';
         }).join('');
