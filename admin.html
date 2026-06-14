@@ -3,11 +3,17 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,viewport-fit=cover">
   <title>ONC SPS — Admin Dashboard</title>
   <link rel="icon" href="./logo.png" type="image/png">
   <link rel="shortcut icon" href="./logo.png" type="image/png">
   <link rel="apple-touch-icon" href="./logo.png">
+  <link rel="manifest" href="./admin-manifest.json">
+  <meta name="theme-color" content="#0a1628">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SPS Admin">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
   <style>
@@ -869,16 +875,23 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: var(--navy);
-      border-top: 1px solid rgba(255, 255, 255, .1);
+      background: rgba(10, 22, 40, .82);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-top: 1px solid rgba(255, 255, 255, .08);
       z-index: 1010;
       /* high z-index above drawer overlay */
-      padding: 6px 0 env(safe-area-inset-bottom);
+      padding: 8px 6px calc(6px + env(safe-area-inset-bottom));
+      box-shadow: 0 -6px 24px rgba(0, 0, 0, .25);
     }
 
     .bottom-tab-inner {
       display: flex;
       justify-content: space-around;
+      align-items: center;
+      max-width: 520px;
+      margin: 0 auto;
+      gap: 4px;
     }
 
     .btab-btn {
@@ -886,25 +899,38 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
-      padding: 6px 2px;
+      justify-content: center;
+      gap: 3px;
+      padding: 8px 4px;
+      border-radius: 14px;
       background: none;
       border: none;
       cursor: pointer;
       color: rgba(255, 255, 255, .5);
       font-family: inherit;
-      font-size: 10px;
-      font-weight: 500;
-      transition: color .2s;
+      font-size: 11px;
+      font-weight: 600;
+      transition: color .25s ease, background .25s ease, transform .15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btab-btn:active {
+      transform: scale(.92);
     }
 
     .btab-btn .icon {
-      font-size: 20px;
+      font-size: 22px;
+      transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
     }
 
     .btab-btn.active {
       color: #f0a500;
       /* gold highlight active item */
+      background: rgba(240, 165, 0, .14);
+    }
+
+    .btab-btn.active .icon {
+      transform: translateY(-2px) scale(1.12);
     }
 
     /* MOBILE DRAWER & OVERLAY */
@@ -912,7 +938,7 @@
       display: none;
       /* hidden by default */
       position: fixed;
-      bottom: 60px;
+      bottom: 64px;
       left: 0;
       right: 0;
       background: #0f2044;
@@ -994,7 +1020,7 @@
       .content-area {
         margin-left: 0;
         padding: 16px;
-        padding-bottom: 80px;
+        padding-bottom: 92px;
       }
 
       .bottom-tab {
@@ -1027,6 +1053,15 @@
       .topbar {
         flex-wrap: wrap;
         gap: 8px;
+        position: sticky;
+        top: 0;
+        z-index: 200;
+        margin: -16px -16px 16px;
+        padding: calc(env(safe-area-inset-top) + 14px) 16px 14px;
+        background: rgba(241, 245, 249, .85);
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
+        border-bottom: 1px solid rgba(15, 23, 42, .06);
       }
 
       .topbar h1 {
@@ -3264,6 +3299,22 @@
     </div>
 
     <script>
+      // Register service worker for PWA offline support
+      // (shares sw.js / cache with index.html — same scope, can't register a separate worker)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(function () {});
+
+        // When a new service worker takes control (new CACHE_NAME deployed),
+        // reload once so the page picks up the freshly cached files instead
+        // of the stale ones already in memory.
+        var adminSwRefreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+          if (adminSwRefreshing) return;
+          adminSwRefreshing = true;
+          window.location.reload();
+        });
+      }
+
       var _loadAllRunning = false;
       var allReports = [];
       var allMicrochurchReports = [];
