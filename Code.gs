@@ -1499,7 +1499,45 @@ function saveResource(data) {
   }
 
   logAudit(ss, 'RESOURCE_PUBLISHED', data.addedBy || 'Admin', data.title || resourceId);
+  notifyNewResource(ss, data, mandatory === 'Y');
   return jsonResponse({ status: 'success', resourceId: resourceId });
+}
+
+// Sends a push notification to the relevant audience when a new resource is
+// published. Wrapped in its own try/catch so a notification failure never
+// blocks the resource itself from saving.
+function notifyNewResource(ss, data, mandatory) {
+  try {
+    const topics = {
+      'SPS Shepherds':          'sps-shepherds',
+      'Microchurch Shepherds':  'mc-shepherds',
+      'All Shepherds':          'all-shepherds',
+      'Members':                'all-shepherds'
+    };
+    const topic      = topics[data.audience || 'All Shepherds'] || 'all-shepherds';
+    const projectId   = PropertiesService.getScriptProperties().getProperty('FIREBASE_PROJECT_ID');
+    const accessToken = getFCMAccessToken();
+
+    const response = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: 'Bearer ' + accessToken },
+      payload: JSON.stringify({
+        message: {
+          topic: topic,
+          notification: {
+            title: '📚 New Resource: ' + (data.title || ''),
+            body: (mandatory ? '📌 Mandatory read — ' : '') + (data.desc || 'Tap to view it in the Resource Library')
+          }
+        }
+      }),
+      muteHttpExceptions: true
+    });
+
+    logAudit(ss, 'RESOURCE_NOTIFICATION_SENT', topic, (data.title || '') + ' — ' + response.getResponseCode());
+  } catch (e) {
+    logAudit(ss, 'RESOURCE_NOTIFICATION_FAILED', data.addedBy || 'Admin', e.toString());
+  }
 }
 
 function deleteResourceRecord(data) {
