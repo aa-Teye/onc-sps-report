@@ -1194,6 +1194,21 @@
     </div>
   </div>
 
+  <!-- PWA Install Modal -->
+  <div id="pwaInstallModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.85);z-index:10000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);">
+    <div style="background:#fff;border-radius:24px;width:100%;max-width:420px;padding:28px 24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#fbbf24);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;box-shadow:0 8px 24px rgba(245,158,11,.35);">📲</div>
+      <h2 id="pwaModalTitle" style="font-weight:900;font-size:19px;color:var(--navy);margin-bottom:8px;">Install SPS Admin App</h2>
+      <p id="pwaModalSubtitle" style="font-size:13px;color:var(--gray);margin-bottom:20px;line-height:1.6;">Get quick access from your home screen — works just like a real app.</p>
+
+      <div id="pwaModalSteps" style="display:none;text-align:left;margin-bottom:20px;"></div>
+
+      <button id="pwaModalInstallBtn" onclick="installFromModal()" style="display:none;width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--gold),#fbbf24);font-weight:800;font-size:15px;color:var(--navy);cursor:pointer;box-shadow:0 4px 16px rgba(245,158,11,.35);margin-bottom:10px;">⬇ Install App Now</button>
+
+      <button onclick="closePwaInstallModal()" style="width:100%;padding:14px;border:2px solid var(--border);border-radius:12px;background:transparent;font-weight:700;font-size:14px;color:var(--gray);cursor:pointer;">Maybe Later</button>
+    </div>
+  </div>
+
   <!-- DASHBOARD -->
   <div id="dashboard">
     <div class="dash-shell">
@@ -3315,6 +3330,97 @@
         });
       }
 
+      // ── PWA: Install App modal ──────────────────────────────────
+      (function () {
+        var INSTALLED_KEY = 'onc_admin_pwa_installed';
+
+        var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        var isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
+        var isAndroid = /Android/i.test(navigator.userAgent);
+        var isMobile = isIOS || isAndroid || /Mobi/i.test(navigator.userAgent);
+
+        if (isStandalone) {
+          localStorage.setItem(INSTALLED_KEY, '1');
+        }
+
+        window.addEventListener('beforeinstallprompt', function (e) {
+          e.preventDefault();
+          window.__oncAdminDeferredPrompt = e;
+        });
+
+        window.addEventListener('appinstalled', function () {
+          localStorage.setItem(INSTALLED_KEY, '1');
+          closePwaInstallModal();
+        });
+
+        window.maybeShowInstallPrompt = function () {
+          if (localStorage.getItem(INSTALLED_KEY) === '1') return;
+          if (isStandalone || !isMobile) return;
+
+          var modal = document.getElementById('pwaInstallModal');
+          var titleEl = document.getElementById('pwaModalTitle');
+          var subtitleEl = document.getElementById('pwaModalSubtitle');
+          var stepsEl = document.getElementById('pwaModalSteps');
+          var installBtn = document.getElementById('pwaModalInstallBtn');
+          if (!modal) return;
+
+          if (isIOS) {
+            titleEl.textContent = 'Add SPS Admin App to Home Screen';
+            subtitleEl.textContent = 'Follow these steps in Safari:';
+            stepsEl.innerHTML =
+              '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);">' +
+                '<span style="font-size:22px;">📤</span>' +
+                '<span style="font-size:13px;font-weight:600;color:var(--navy);padding-top:3px;">Tap the <b>Share</b> button at the bottom of Safari</span>' +
+              '</div>' +
+              '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);">' +
+                '<span style="font-size:22px;">➕</span>' +
+                '<span style="font-size:13px;font-weight:600;color:var(--navy);padding-top:3px;">Scroll down and tap <b>"Add to Home Screen"</b></span>' +
+              '</div>' +
+              '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;">' +
+                '<span style="font-size:22px;">✅</span>' +
+                '<span style="font-size:13px;font-weight:600;color:var(--navy);padding-top:3px;">Tap <b>"Add"</b> in the top-right corner</span>' +
+              '</div>';
+            stepsEl.style.display = 'block';
+            installBtn.style.display = 'none';
+          } else if (isAndroid) {
+            titleEl.textContent = 'Install SPS Admin App';
+            subtitleEl.textContent = 'Add it to your home screen for quick, app-like access.';
+            if (window.__oncAdminDeferredPrompt) {
+              stepsEl.style.display = 'none';
+              installBtn.style.display = 'block';
+            } else {
+              stepsEl.innerHTML =
+                '<div style="font-size:13px;font-weight:600;color:var(--navy);padding:10px 0;">' +
+                'Open the browser menu (⋮) and tap <b>"Add to Home screen"</b> or <b>"Install app"</b>.</div>';
+              stepsEl.style.display = 'block';
+              installBtn.style.display = 'none';
+            }
+          } else {
+            return;
+          }
+
+          modal.style.display = 'flex';
+        };
+      })();
+
+      function closePwaInstallModal() {
+        var modal = document.getElementById('pwaInstallModal');
+        if (modal) modal.style.display = 'none';
+      }
+
+      function installFromModal() {
+        var promptEvent = window.__oncAdminDeferredPrompt;
+        if (!promptEvent) return;
+        promptEvent.prompt();
+        promptEvent.userChoice.then(function (choice) {
+          window.__oncAdminDeferredPrompt = null;
+          if (choice.outcome === 'accepted') {
+            localStorage.setItem('onc_admin_pwa_installed', '1');
+          }
+          closePwaInstallModal();
+        });
+      }
+
       var _loadAllRunning = false;
       var allReports = [];
       var allMicrochurchReports = [];
@@ -3930,6 +4036,8 @@
           
           document.getElementById('loginScreen').style.display = 'none';
           document.getElementById('dashboard').style.display = 'block';
+
+          setTimeout(function () { if (window.maybeShowInstallPrompt) window.maybeShowInstallPrompt(); }, 1000);
 
           // Load cached data instantly
           var cachedReports = localStorage.getItem('onc_cached_reports');
