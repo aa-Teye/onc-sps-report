@@ -1,8 +1,9 @@
 {
+  "id": "/onc-sps-report/admin.html",
   "name": "ONC SPS Admin Dashboard",
   "short_name": "SPS Admin",
   "start_url": "/onc-sps-report/admin.html",
-  "scope": "/onc-sps-report/",
+  "scope": "/onc-sps-report/admin.html",
   "display": "standalone",
   "background_color": "#0a1628",
   "theme_color": "#0a1628",

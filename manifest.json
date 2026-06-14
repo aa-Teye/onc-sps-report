@@ -1,7 +1,9 @@
 {
+  "id": "/onc-sps-report/",
   "name": "ONC Shepherd Portal",
   "short_name": "ONC SPS",
   "start_url": "/onc-sps-report/",
+  "scope": "/onc-sps-report/",
   "display": "standalone",
   "background_color": "#0f2044",
   "theme_color": "#0f2044",
