@@ -1,4 +1,4 @@
-const CACHE_NAME = 'onc-sps-v24';
+const CACHE_NAME = 'onc-sps-v25';
 const CACHE_URLS = [
   '/onc-sps-report/',
   '/onc-sps-report/index.html',
