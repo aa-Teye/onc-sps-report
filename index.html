@@ -647,23 +647,37 @@
           </h2>
           <p style="color:var(--gray);font-size:14px;
             margin-bottom:32px;">
-            Enter your PIN to access the portal
+            Select your name and enter your PIN to access the portal
           </p>
         </div>
-
-
 
         <div style="background:white;
           border-radius:16px;padding:24px;
           box-shadow:0 2px 12px rgba(0,0,0,0.06);
           margin-bottom:24px;">
-          
+
+          <label style="font-weight:700;
+            color:var(--navy);font-size:14px;
+            display:block;margin-bottom:8px;">
+            SELECT YOUR NAME
+          </label>
+          <div class="select-wrap" style="margin-bottom:20px;">
+            <select id="ftUserSelect"
+              style="width:100%;padding:14px;
+              border:2px solid var(--border);
+              border-radius:10px;font-size:15px;
+              font-family:Outfit,sans-serif;
+              color:var(--navy);box-sizing:border-box;">
+              <option value="">— Choose your name —</option>
+            </select>
+          </div>
+
           <label style="font-weight:700;
             color:var(--navy);font-size:14px;
             display:block;margin-bottom:8px;">
             ENTER 4-DIGIT PIN
           </label>
-          <input type="password" 
+          <input type="password"
             id="ftPinInput"
             maxlength="4"
             placeholder="••••"
@@ -674,7 +688,7 @@
             box-sizing:border-box;">
         </div>
 
-        <button onclick="checkFirstTimersPin()"
+        <button onclick="verifyFirstTimersLogin()"
           style="width:100%;padding:16px;
           background:var(--navy);color:white;
           border:none;border-radius:12px;
@@ -2693,6 +2707,7 @@
         return;
       }
       if (type === 'firsttimers') {
+        populateFTUserSelect();
         showSection('secFirstTimersLogin');
       }
     }
@@ -4285,7 +4300,6 @@
 
     // First Timers Unit flow JS functions
     var ftState = {
-      pin: localStorage.getItem('ft_pin') || '0000',
       gender: '',
       marital: '',
       podcast: '',
@@ -4297,29 +4311,53 @@
     var todaysGuests = JSON.parse(
       localStorage.getItem('todays_guests') || '[]');
 
-    // First Timers Unit — additional authorized users (all share full access)
-    var FT_VALID_PINS = {
-      '2500': 'Lady Sharon',
-      '0000': 'Akwaaba Members',
-      '3000': 'Haven Pastor',
-      '4000': 'Other Haven Executive',
-      '1111': 'Lady Sharon',
-      '2222': 'Pastor Sophia',
-      '3333': 'Akwba Ladies'
-    };
+    // First Timers Unit — authorized users, each with their own PIN (default 0000)
+    var FT_USERS = [
+      'Lady Sharon',
+      'Pastor Sophia',
+      'Akwaaba Members',
+      'Akwba Ladies',
+      'Haven Pastor',
+      'Other Haven Executive'
+    ].sort();
 
     var ftLoggedInName = localStorage.getItem('ft_logged_in_name') || 'First Timers Unit';
 
-    function checkFirstTimersPin() {
-      var pin = document.getElementById(
-        'ftPinInput').value;
+    function populateFTUserSelect() {
+      var select = document.getElementById('ftUserSelect');
+      if (!select) return;
+      select.innerHTML = '<option value="">— Choose your name —</option>';
+      FT_USERS.forEach(function(name) {
+        var opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
+    }
 
-      if (pin === ftState.pin || FT_VALID_PINS.hasOwnProperty(pin)) {
-        document.getElementById('ftPinInput').value = '';
+    function verifyFirstTimersLogin() {
+      var select = document.getElementById('ftUserSelect');
+      var pinEl = document.getElementById('ftPinInput');
+      if (!select || !pinEl) return;
 
-        ftLoggedInName = FT_VALID_PINS.hasOwnProperty(pin)
-          ? FT_VALID_PINS[pin]
-          : (localStorage.getItem('ft_logged_in_name') || 'First Timers Unit');
+      var name = select.value;
+      if (!name) {
+        showGlobalAlert('Please select your name first', 'error');
+        return;
+      }
+
+      var pin = pinEl.value;
+      if (!pin) {
+        showGlobalAlert('Please enter your 4-digit PIN', 'error');
+        return;
+      }
+
+      var expectedPin = localStorage.getItem('ft_pin_' + name) || '0000';
+
+      if (pin === expectedPin) {
+        pinEl.value = '';
+
+        ftLoggedInName = name;
         localStorage.setItem('ft_logged_in_name', ftLoggedInName);
         var ftNameEl = document.getElementById('ftPortalUserName');
         if (ftNameEl) ftNameEl.textContent = '👋 Logged in as ' + ftLoggedInName;
@@ -4337,7 +4375,7 @@
         checkFTPendingSync();
       } else {
         showGlobalAlert('❌ Incorrect PIN. Please try again.', 'error');
-        document.getElementById('ftPinInput').value = '';
+        pinEl.value = '';
       }
     }
 
@@ -4960,11 +4998,10 @@
 
     function openChangePinModalFT() {
       var newPin = prompt('Enter new 4-digit PIN:');
-      if (newPin && newPin.length === 4 && 
+      if (newPin && newPin.length === 4 &&
           !isNaN(newPin)) {
         var paddedPin = String(newPin).padStart(4, '0');
-        ftState.pin = paddedPin;
-        localStorage.setItem('ft_pin', paddedPin);
+        localStorage.setItem('ft_pin_' + ftLoggedInName, paddedPin);
         showGlobalAlert('✅ PIN changed successfully!', 'success');
       } else if (newPin) {
         showGlobalAlert('PIN must be exactly 4 digits', 'error');
