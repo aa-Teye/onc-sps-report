@@ -5549,7 +5549,8 @@
           }
           var proofHtml = showProofImg ? ' <span onclick="event.stopPropagation(); showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
 
-          var photoCell = r.photoUrl ? '<button type="button" onclick="event.stopPropagation(); showProofPhotoModal(\'' + r.photoUrl + '\', ' + JSON.stringify(r.shepherd + ' — ' + (r.sessionDate || r.date || '')) + ')" style="background:none;border:none;cursor:pointer;font-size:18px;" title="View Proof of Meeting Photo">📷</button>' : '--';
+          var photoCaption = (r.shepherd + ' — ' + (r.sessionDate || r.date || '')).replace(/'/g, "\\'");
+          var photoCell = r.photoUrl ? '<button type="button" onclick="event.stopPropagation(); showProofPhotoModal(\'' + r.photoUrl + '\', \'' + photoCaption + '\')" style="background:none;border:none;cursor:pointer;font-size:18px;" title="View Proof of Meeting Photo">📷</button>' : '--';
 
           var mainRow = '<tr style="cursor:pointer;" onclick="toggleReportRow(' + i + ')"><td>' + (i + 1) + '</td><td>' + (r.sessionDate || r.date || '') + proofHtml + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.offeringGiven === 'yes' ? 'green' : 'red') + '">' + (r.offeringGiven || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td><td>' + photoCell + '</td></tr>';
 
@@ -7320,7 +7321,8 @@
             }
             var proofHtml = showProofImg ? ' <span onclick="showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
 
-            var photoCell = r.photoUrl ? '<button type="button" onclick="event.stopPropagation(); showProofPhotoModal(\'' + r.photoUrl + '\', ' + JSON.stringify((r.shepherd || '—') + ' — ' + formatReportDate(r.submissionDate)) + ')" style="background:none;border:none;cursor:pointer;font-size:18px;" title="View Proof of Meeting Photo">📷</button>' : '--';
+            var photoCaption = ((r.shepherd || '—') + ' — ' + formatReportDate(r.submissionDate)).replace(/'/g, "\\'");
+            var photoCell = r.photoUrl ? '<button type="button" onclick="event.stopPropagation(); showProofPhotoModal(\'' + r.photoUrl + '\', \'' + photoCaption + '\')" style="background:none;border:none;cursor:pointer;font-size:18px;" title="View Proof of Meeting Photo">📷</button>' : '--';
 
             return '<tr>' +
               '<td>' + (i + 1) + '</td>' +
