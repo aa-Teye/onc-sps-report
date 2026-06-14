@@ -1802,6 +1802,13 @@
             <button class="yn-btn no" onclick="selectYN('prayerDone','no',this)">❌ No</button>
           </div>
         </div>
+        <div class="field">
+          <label>Was an Offering Given?</label>
+          <div class="yn-group">
+            <button class="yn-btn yes" onclick="selectYN('offeringGiven','yes',this)">✅ Yes</button>
+            <button class="yn-btn no" onclick="selectYN('offeringGiven','no',this)">❌ No</button>
+          </div>
+        </div>
 
         <div class="form-group" style="margin-top: 14px;">
           <div style="margin-bottom:12px;">
@@ -2104,6 +2111,15 @@
           <div class="yn-group">
             <button type="button" class="yn-btn yes" id="mcPrayerYes" onclick="selectMCPrayerDone('yes', this)">✅ Yes</button>
             <button type="button" class="yn-btn no" id="mcPrayerNo" onclick="selectMCPrayerDone('no', this)">❌ No</button>
+          </div>
+        </div>
+
+        <!-- Offering Given -->
+        <div class="field">
+          <label>Was an Offering Given?</label>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" id="mcOfferingYes" onclick="selectMCOfferingGiven('yes', this)">✅ Yes</button>
+            <button type="button" class="yn-btn no" id="mcOfferingNo" onclick="selectMCOfferingGiven('no', this)">❌ No</button>
           </div>
         </div>
 
@@ -2443,7 +2459,7 @@
 
     let state = {
       shepherdType: '', shepherd: '', sessionDate: '', sessionDay: '', sessionTime: '',
-      attendance: {}, topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', concerns: {},
+      attendance: {}, topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', offeringGiven: '', concerns: {},
       newMember: { name: '', contact: '' }, newMembersCount: 0, newMembers: [], meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: ''
     };
 
@@ -2930,7 +2946,7 @@
       // Reset state
       state = {
         shepherdType: '', shepherd: '', sessionDate: '', sessionDay: '', sessionTime: '',
-        attendance: {}, topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', concerns: {},
+        attendance: {}, topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', offeringGiven: '', concerns: {},
         newMember: { name: '', contact: '' }, newMembersCount: 0, newMembers: [], meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: ''
       };
       
@@ -3214,6 +3230,12 @@
       btn.classList.add('selected');
     }
 
+    function selectMCOfferingGiven(val, btn) {
+      state.offeringGiven = val;
+      btn.closest('.yn-group').querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
     function selectMCNewSouls(val, btn) {
       btn.closest('.yn-group').querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
@@ -3316,6 +3338,7 @@
         '<div class="review-item"><span class="review-label">Topic Covered</span><span class="review-value"><span class="badge ' + (state.topicCovered||'no') + '">' + (state.topicCovered||'N/A').toUpperCase() + '</span></span></div>' +
         '<div class="review-item"><span class="review-label">Actual Topic</span><span class="review-value">' + (state.actualTopic||'—') + '</span></div>' +
         '<div class="review-item"><span class="review-label">Prayer Done</span><span class="review-value"><span class="badge ' + (state.prayerDone||'no') + '">' + (state.prayerDone||'N/A').toUpperCase() + '</span></span></div>' +
+        '<div class="review-item"><span class="review-label">Offering Given</span><span class="review-value"><span class="badge ' + (state.offeringGiven||'no') + '">' + (state.offeringGiven||'N/A').toUpperCase() + '</span></span></div>' +
         '<div class="review-item"><span class="review-label">New Souls Won</span><span class="review-value">' + (state.newSoulsCount > 0 ? state.newSoulsCount + ' (' + (state.newSouls.map(s => s.name).filter(Boolean).join(', ') || 'No names yet') + ')' : 'No') + '</span></div>';
       present.forEach(m => {
         if (state.concerns[m]) {
@@ -3339,6 +3362,7 @@
       }
       if (step === 4) {
         if (!state.prayerDone) { showGlobalAlert('Please answer the prayer question', 'error'); return; }
+        if (!state.offeringGiven) { showGlobalAlert('Please specify whether an offering was given', 'error'); return; }
         const soulsYesBtn = document.getElementById('mcNewSoulsYes');
         if (soulsYesBtn && soulsYesBtn.classList.contains('selected')) {
           if (!state.newSouls || state.newSouls < 1) {
@@ -3396,6 +3420,7 @@
         topicCovered: state.topicCovered,
         actualTopic: state.actualTopic,
         prayerDone: state.prayerDone,
+        offeringGiven: state.offeringGiven,
         newSoulsCount: state.newSoulsCount || 0,
         newSouls: Array.isArray(state.newSouls) ? state.newSouls.map(function(s) {
           return Object.assign({}, s, {
@@ -3561,7 +3586,8 @@
         '<div class="review-item"><span class="review-label">Bible Topic</span><span class="review-value">' + (state.bibleTopic||'None') + '</span></div>' +
         '<div class="review-item"><span class="review-label">Topic Covered</span><span class="review-value"><span class="badge ' + (state.topicCovered||'no') + '">' + (state.topicCovered||'N/A').toUpperCase() + '</span></span></div>' +
         '<div class="review-item"><span class="review-label">Actual Topic</span><span class="review-value">' + (state.actualTopic||'—') + '</span></div>' +
-        '<div class="review-item"><span class="review-label">Prayer Done</span><span class="review-value"><span class="badge ' + (state.prayerDone||'no') + '">' + (state.prayerDone||'N/A').toUpperCase() + '</span></span></div>';
+        '<div class="review-item"><span class="review-label">Prayer Done</span><span class="review-value"><span class="badge ' + (state.prayerDone||'no') + '">' + (state.prayerDone||'N/A').toUpperCase() + '</span></span></div>' +
+        '<div class="review-item"><span class="review-label">Offering Given</span><span class="review-value"><span class="badge ' + (state.offeringGiven||'no') + '">' + (state.offeringGiven||'N/A').toUpperCase() + '</span></span></div>';
       var newMembersLabel = 'No';
       if (state.newMembersCount > 0) {
         var names = state.newMembers.map(m => m.name).join(', ');
@@ -3587,6 +3613,7 @@
       }
       if (step === 3) {
         if (!state.prayerDone) { showGlobalAlert('Please answer the prayer question', 'error'); return; }
+        if (!state.offeringGiven) { showGlobalAlert('Please specify whether an offering was given', 'error'); return; }
         const yesBtn = document.getElementById('newMemberYesBtn');
         if (yesBtn && yesBtn.classList.contains('selected')) {
           const n = parseInt(document.getElementById('newMembersCountInput').value) || 0;
@@ -3664,6 +3691,7 @@
         topicCovered: state.topicCovered,
         actualTopic: state.actualTopic,
         prayerDone: state.prayerDone,
+        offeringGiven: state.offeringGiven,
         concerns: state.concerns,
         newMembersCount: state.newMembersCount || 0,
         newMembers: Array.isArray(state.newMembers) ? state.newMembers.map(function(m) {
@@ -3695,7 +3723,7 @@
     function resetForm() {
       state = { 
         shepherdType: '', shepherd: '', sessionDate: '', sessionDay: '', sessionTime: '', attendance: {}, 
-        topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', concerns: {},
+        topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', offeringGiven: '', concerns: {},
         newMember: { name: '', contact: '' }, newMembersCount: 0, newMembers: [], meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: ''
       };
       currentStep = 1;

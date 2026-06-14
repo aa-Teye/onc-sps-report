@@ -339,7 +339,7 @@ function submitReport(data) {
       'Session Date', 'Session Day', 'Session Time', 'Shepherd',
       'Members Present', 'Members Absent', 'Attendance Count', 'Total Members',
       'Attendance Rate', 'Bible Study Topic', 'Topic Covered', 'Prayer Done',
-      'Concerns', 'Notes', 'Week Number', 'Photo URL'
+      'Concerns', 'Notes', 'Week Number', 'Photo URL', 'Offering Given'
     ];
     sheet.appendRow(headers);
     styleHeaders(sheet, headers.length);
@@ -372,10 +372,10 @@ function submitReport(data) {
     sessionDate, sessionDay, sessionTime, data.shepherd || '',
     membersPresent, membersAbsent, attendanceCount, totalMembers,
     attendanceRate, data.bibleTopic || '', data.topicCovered || '',
-    data.prayerDone || '', concerns, data.notes || '', weekNumber, data.photoUrl || ''
+    data.prayerDone || '', concerns, data.notes || '', weekNumber, data.photoUrl || '', data.offeringGiven || ''
   ]);
 
-  sheet.autoResizeColumns(1, 20);
+  sheet.autoResizeColumns(1, 21);
   logAudit(ss, 'REPORT_SUBMITTED', data.shepherd, reportId);
   return jsonResponse({ status: 'success', reportId });
 }
@@ -408,7 +408,8 @@ function getReports() {
     concerns:        row[16],
     notes:           row[17],
     weekNumber:      row[18],
-    photoUrl:        row[19]
+    photoUrl:        row[19],
+    offeringGiven:   row[20]
   }));
 
   return { status: 'success', reports };
@@ -429,7 +430,7 @@ function submitMicrochurchReport(data) {
       'Session Date', 'Session Day', 'Session Time', 'Shepherd', 'Meeting Type',
       'Members Present', 'Members Absent', 'Attendance Count', 'Total Members',
       'Attendance Rate', 'Bible Study Topic', 'Topic Covered', 'Actual Topic',
-      'Prayer Done', 'New Souls', 'New Soul Names', 'Concerns', 'Notes', 'Week Number', 'Photo URL'
+      'Prayer Done', 'New Souls', 'New Soul Names', 'Concerns', 'Notes', 'Week Number', 'Photo URL', 'Offering Given'
     ];
     sheet.appendRow(headers);
     styleHeaders(sheet, headers.length);
@@ -470,10 +471,10 @@ function submitMicrochurchReport(data) {
     attendanceCount, totalMembers, attendanceRate,
     data.bibleTopic || '', data.topicCovered || '', data.actualTopic || '',
     data.prayerDone || '', newSoulsValue, newSoulNamesValue,
-    concerns, data.notes || '', weekNumber, data.photoUrl || ''
+    concerns, data.notes || '', weekNumber, data.photoUrl || '', data.offeringGiven || ''
   ]);
 
-  sheet.autoResizeColumns(1, 24);
+  sheet.autoResizeColumns(1, 25);
   logAudit(ss, 'MC_REPORT_SUBMITTED', data.shepherd, reportId);
   return jsonResponse({ status: 'success', reportId });
 }
@@ -510,7 +511,8 @@ function getMicrochurchReports() {
     concerns:        row[20],
     notes:           row[21],
     weekNumber:      row[22],
-    photoUrl:        row[23]
+    photoUrl:        row[23],
+    offeringGiven:   row[24]
   }));
 
   return { status: 'success', reports };
