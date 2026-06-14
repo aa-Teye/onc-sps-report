@@ -23,6 +23,12 @@ const VISITATIONS_SHEET             = 'Visitations';
 
 function doPost(e) {
   try {
+    // Telegram webhook updates are posted with our action in the query
+    // string (Telegram controls the POST body format, not us).
+    if (e.parameter && e.parameter.action === 'telegramWebhook') {
+      return handleTelegramWebhook(JSON.parse(e.postData.contents));
+    }
+
     const data   = JSON.parse(e.postData.contents);
     const action = data.action || 'submitReport';
 
@@ -63,6 +69,10 @@ function doPost(e) {
     if (action === 'saveFCMToken')            return saveFCMToken(data);
     if (action === 'sendAnnouncementNotification') return sendAnnouncementNotification(data);
     if (action === 'forgotPin')               return forgotPin(data);
+    // ── Telegram & SMS Notifications ──────────────────────────
+    if (action === 'requestTelegramLink')     return requestTelegramLink(data);
+    if (action === 'checkTelegramLink')       return checkTelegramLink(data);
+    if (action === 'sendEmergencySMS')        return sendEmergencySMS(data);
 
     return jsonResponse({ status: 'error', message: 'Unknown action' });
   } catch (err) {
@@ -2045,40 +2055,7 @@ function sendScheduledReminders() {
     'Hi {name}! Please submit your SPS report today. Link: https://aa-teye.github.io/onc-sps-report/';
   var contacts = JSON.parse(settings['SHEPHERD_CONTACTS'] || '{}');
 
-  var shepherds = [
-    {name:"Frank Armah",                    contact:"558150432"},
-    {name:"Bright Mamene",                  contact:"546024584"},
-    {name:"Christiana Konzondong",          contact:"549722727"},
-    {name:"Gloria Owusu Ansah",             contact:"598427368"},
-    {name:"Linda Neequaye",                 contact:"204752124"},
-    {name:"Getrude Abena Owusu Achiaa",     contact:"242384662"},
-    {name:"Gloria Lartey",                  contact:"532458862"},
-    {name:"Priscilla Sedi Anatsui",         contact:"552365696"},
-    {name:"Abigail Akakpo",                 contact:"246807808"},
-    {name:"LP. Sophia Korkor",              contact:"236929939"},
-    {name:"Wisdom Akakpo",                  contact:"246461508"},
-    {name:"Cyril Amevor",                   contact:"246038534"},
-    {name:"IT User",                        contact:"243310124"},
-    {name:"Solomon Aziakah",                contact:"245775546"},
-    {name:"Deborah Otumfuor",               contact:"203219321"},
-    {name:"Patience Addo",                  contact:"247816836"},
-    {name:"Benjamin Armah Agyeman",         contact:"204027587"},
-    {name:"Martha Asinyo",                  contact:"542365036"},
-    {name:"Shine Asinyo",                   contact:"594742093"},
-    {name:"Patience Mensah",                contact:"208003701"},
-    {name:"Ruth Yeboah",                    contact:"242972177"},
-    {name:"Sharon Tricia Amanu",            contact:"246505610"},
-    {name:"Mrs Petrina Gyane",              contact:"261199972"},
-    {name:"Samuel Tortor",                  contact:"248665544"},
-    {name:"Loretta Owusu",                  contact:"548216348"},
-    {name:"Melchizedek Ofori",              contact:"549051818"},
-    {name:"Bernice Can-Tamakloe",           contact:"547912591"},
-    {name:"Ruth Dadzie",                    contact:"249872507"},
-    {name:"Anita Asamoah",                  contact:"545201849"},
-    {name:"Christabel Arhin",               contact:"530415531"}
-  ];
-
-  shepherds.forEach(function (s) {
+  SHEPHERD_DIRECTORY.forEach(function (s) {
     var contact = contacts[s.name] || {};
     var number  = (typeof contact === 'string') ? contact : (contact.number || s.contact);
     var apiKey  = (typeof contact === 'object') ? (contact.apiKey || '') : '';
@@ -2195,31 +2172,43 @@ function saveFCMToken(data) {
   return jsonResponse({ status: 'success' });
 }
 
-// Sends a push notification to a topic via the FCM HTTP v1 API.
+// Sends a push notification to a topic via the FCM HTTP v1 API, and
+// optionally relays the announcement to Telegram.
 function sendAnnouncementNotification(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   try {
-    const projectId = PropertiesService.getScriptProperties().getProperty('FIREBASE_PROJECT_ID');
-    const accessToken = getFCMAccessToken();
-
     const title = data.title || 'New Announcement';
-    const body  = (data.message || '').substring(0, 100);
     const topic = data.audience || 'all-shepherds';
 
-    const response = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
-      method: 'post',
-      contentType: 'application/json',
-      headers: { Authorization: 'Bearer ' + accessToken },
-      payload: JSON.stringify({
-        message: {
-          topic: topic,
-          notification: { title: title, body: body }
-        }
-      }),
-      muteHttpExceptions: true
-    });
+    if (data.sendPush !== false) {
+      const projectId   = PropertiesService.getScriptProperties().getProperty('FIREBASE_PROJECT_ID');
+      const accessToken = getFCMAccessToken();
+      const body        = (data.message || '').substring(0, 100);
 
-    logAudit(ss, 'FCM_NOTIFICATION_SENT', topic, title + ' — ' + response.getResponseCode());
+      const response = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
+        method: 'post',
+        contentType: 'application/json',
+        headers: { Authorization: 'Bearer ' + accessToken },
+        payload: JSON.stringify({
+          message: {
+            topic: topic,
+            notification: { title: title, body: body }
+          }
+        }),
+        muteHttpExceptions: true
+      });
+
+      logAudit(ss, 'FCM_NOTIFICATION_SENT', topic, title + ' — ' + response.getResponseCode());
+    }
+
+    if (data.sendTelegram) {
+      sendTelegramAnnouncement({
+        title: title,
+        message: data.message || '',
+        audience: data.rawAudience || 'all'
+      });
+    }
+
     return jsonResponse({ status: 'success' });
   } catch (e) {
     logAudit(ss, 'FCM_NOTIFICATION_FAILED', data.audience || '', e.toString());
@@ -2246,6 +2235,216 @@ function sendPushToToken(token, title, body) {
   });
 
   return response.getResponseCode();
+}
+
+// ============================================================
+// TELEGRAM NOTIFICATIONS
+// ============================================================
+
+const TELEGRAM_LINK_CODES_SHEET = 'TelegramLinkCodes';
+const TELEGRAM_CHAT_IDS_SHEET   = 'TelegramChatIDs';
+
+// Generates a one-time link code for a shepherd to connect their Telegram
+// account. The shepherd opens a deep link to the bot with this code as the
+// /start parameter; handleTelegramWebhook() resolves it once they tap Start.
+function requestTelegramLink(data) {
+  const sheet = ensureSheet(TELEGRAM_LINK_CODES_SHEET, ['Code', 'ShepherdName', 'Role', 'ChatID', 'Status', 'CreatedDate']);
+
+  const shepherdName = data.shepherdName || '';
+  const role         = data.role || '';
+  if (!shepherdName) return jsonResponse({ status: 'error', message: 'Missing shepherd name' });
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const now  = new Date();
+  sheet.appendRow([code, shepherdName, role, '', 'pending', formatDate(now) + ' ' + formatTime(now)]);
+
+  const botUsername = PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_USERNAME') || '';
+  return jsonResponse({ status: 'success', code: code, botUsername: botUsername });
+}
+
+// Checks whether a link code has been confirmed via the Telegram webhook.
+// If so, upserts the chat ID into TelegramChatIDs (overwriting any previous
+// link for this shepherd so re-linking just works).
+function checkTelegramLink(data) {
+  const codesSheet = ensureSheet(TELEGRAM_LINK_CODES_SHEET, ['Code', 'ShepherdName', 'Role', 'ChatID', 'Status', 'CreatedDate']);
+  const code        = data.code || '';
+
+  const records = getSheetRecords(codesSheet);
+  const record  = records.find(function (r) { return String(r.Code) === String(code); });
+
+  if (!record || record.Status !== 'linked' || !record.ChatID) {
+    return jsonResponse({ status: 'success', linked: false });
+  }
+
+  const chatSheet   = ensureSheet(TELEGRAM_CHAT_IDS_SHEET, ['ShepherdName', 'Role', 'ChatID', 'LinkedDate']);
+  const chatRecords = getSheetRecords(chatSheet);
+  const existing    = chatRecords.find(function (r) { return r.ShepherdName === record.ShepherdName; });
+  const now         = formatDate(new Date()) + ' ' + formatTime(new Date());
+
+  if (existing) {
+    chatSheet.getRange(existing._row, 1, 1, 4).setValues([[record.ShepherdName, record.Role, record.ChatID, now]]);
+  } else {
+    chatSheet.appendRow([record.ShepherdName, record.Role, record.ChatID, now]);
+  }
+
+  return jsonResponse({ status: 'success', linked: true });
+}
+
+// Handles incoming Telegram webhook updates. Expects "/start <code>" sent
+// when a shepherd taps the bot's deep link, resolves the pending code, and
+// sends a confirmation message back to the chat.
+function handleTelegramWebhook(update) {
+  try {
+    const message = update.message;
+    if (!message || !message.text) return jsonResponse({ status: 'ignored' });
+
+    const match = message.text.match(/\/start\s+(\d+)/);
+    if (!match) return jsonResponse({ status: 'ignored' });
+
+    const code   = match[1];
+    const chatId = message.chat.id;
+
+    const codesSheet = ensureSheet(TELEGRAM_LINK_CODES_SHEET, ['Code', 'ShepherdName', 'Role', 'ChatID', 'Status', 'CreatedDate']);
+    const records    = getSheetRecords(codesSheet);
+    const record     = records.find(function (r) { return String(r.Code) === String(code); });
+
+    if (record) {
+      codesSheet.getRange(record._row, 4, 1, 2).setValues([[chatId, 'linked']]);
+      sendTelegramMessage(chatId, '✅ Connected! You\'ll now receive ONC SPS announcements here.');
+    } else {
+      sendTelegramMessage(chatId, '⚠️ That link code is invalid or expired. Please go back to the SPS app and try connecting again.');
+    }
+
+    return jsonResponse({ status: 'success' });
+  } catch (e) {
+    return jsonResponse({ status: 'error', message: e.toString() });
+  }
+}
+
+// Sends a single Telegram message via the Bot API.
+function sendTelegramMessage(chatId, text) {
+  const token = PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN');
+  if (!token) return;
+
+  UrlFetchApp.fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify({ chat_id: chatId, text: text }),
+    muteHttpExceptions: true
+  });
+}
+
+// Sends an announcement to all linked Telegram chats matching the audience.
+function sendTelegramAnnouncement(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  try {
+    const chatSheet = ensureSheet(TELEGRAM_CHAT_IDS_SHEET, ['ShepherdName', 'Role', 'ChatID', 'LinkedDate']);
+    const records   = getSheetRecords(chatSheet);
+    const audience  = data.audience || 'all';
+
+    const recipients = records.filter(function (r) {
+      if (audience === 'all') return true;
+      return r.Role === audience;
+    });
+
+    const text = (data.title ? data.title + '\n\n' : '') + (data.message || '');
+    recipients.forEach(function (r) {
+      sendTelegramMessage(r.ChatID, text);
+    });
+
+    logAudit(ss, 'TELEGRAM_ANNOUNCEMENT_SENT', audience, recipients.length + ' recipient(s)');
+  } catch (e) {
+    logAudit(ss, 'TELEGRAM_ANNOUNCEMENT_FAILED', data.audience || '', e.toString());
+  }
+}
+
+// One-off setup: run manually from the Apps Script editor after setting
+// TELEGRAM_BOT_TOKEN, to point Telegram's webhook at this web app.
+function setTelegramWebhook() {
+  const token     = PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN');
+  const webAppUrl = ScriptApp.getService().getUrl();
+  const hookUrl   = webAppUrl + '?action=telegramWebhook';
+
+  const response = UrlFetchApp.fetch('https://api.telegram.org/bot' + token + '/setWebhook?url=' + encodeURIComponent(hookUrl), {
+    muteHttpExceptions: true
+  });
+  Logger.log(response.getContentText());
+}
+
+// ============================================================
+// EMERGENCY SMS (via textbee.dev)
+// ============================================================
+
+// Shared directory of shepherd phone numbers (Ghana local format, no
+// leading 0/country code) used for WhatsApp reminders and emergency SMS.
+const SHEPHERD_DIRECTORY = [
+  {name:"Frank Armah",                    contact:"558150432"},
+  {name:"Bright Mamene",                  contact:"546024584"},
+  {name:"Christiana Konzondong",          contact:"549722727"},
+  {name:"Gloria Owusu Ansah",             contact:"598427368"},
+  {name:"Linda Neequaye",                 contact:"204752124"},
+  {name:"Getrude Abena Owusu Achiaa",     contact:"242384662"},
+  {name:"Gloria Lartey",                  contact:"532458862"},
+  {name:"Priscilla Sedi Anatsui",         contact:"552365696"},
+  {name:"Abigail Akakpo",                 contact:"246807808"},
+  {name:"LP. Sophia Korkor",              contact:"236929939"},
+  {name:"Wisdom Akakpo",                  contact:"246461508"},
+  {name:"Cyril Amevor",                   contact:"246038534"},
+  {name:"IT User",                        contact:"243310124"},
+  {name:"Solomon Aziakah",                contact:"245775546"},
+  {name:"Deborah Otumfuor",               contact:"203219321"},
+  {name:"Patience Addo",                  contact:"247816836"},
+  {name:"Benjamin Armah Agyeman",         contact:"204027587"},
+  {name:"Martha Asinyo",                  contact:"542365036"},
+  {name:"Shine Asinyo",                   contact:"594742093"},
+  {name:"Patience Mensah",                contact:"208003701"},
+  {name:"Ruth Yeboah",                    contact:"242972177"},
+  {name:"Sharon Tricia Amanu",            contact:"246505610"},
+  {name:"Mrs Petrina Gyane",              contact:"261199972"},
+  {name:"Samuel Tortor",                  contact:"248665544"},
+  {name:"Loretta Owusu",                  contact:"548216348"},
+  {name:"Melchizedek Ofori",              contact:"549051818"},
+  {name:"Bernice Can-Tamakloe",           contact:"547912591"},
+  {name:"Ruth Dadzie",                    contact:"249872507"},
+  {name:"Anita Asamoah",                  contact:"545201849"},
+  {name:"Christabel Arhin",               contact:"530415531"}
+];
+
+// Normalizes a Ghana phone number to E.164 format (+233XXXXXXXXX).
+function toE164Ghana(number) {
+  var digits = String(number).replace(/\D/g, '');
+  if (digits.charAt(0) === '0') digits = digits.substring(1);
+  return '+233' + digits;
+}
+
+// Sends an emergency SMS to every shepherd in SHEPHERD_DIRECTORY via the
+// textbee.dev SMS gateway. Reserved for urgent, infrequent use only.
+function sendEmergencySMS(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  try {
+    const apiKey   = PropertiesService.getScriptProperties().getProperty('TEXTBEE_API_KEY');
+    const deviceId = PropertiesService.getScriptProperties().getProperty('TEXTBEE_DEVICE_ID');
+    if (!apiKey || !deviceId) {
+      return jsonResponse({ status: 'error', message: 'SMS gateway is not configured yet.' });
+    }
+
+    const message    = (data.title ? data.title + '\n\n' : '') + (data.message || '');
+    const recipients = SHEPHERD_DIRECTORY.map(function (s) { return toE164Ghana(s.contact); });
+
+    const response = UrlFetchApp.fetch('https://api.textbee.dev/api/v1/gateway/devices/' + deviceId + '/send-sms', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { 'x-api-key': apiKey },
+      payload: JSON.stringify({ recipients: recipients, message: message }),
+      muteHttpExceptions: true
+    });
+
+    logAudit(ss, 'EMERGENCY_SMS_SENT', '', recipients.length + ' recipient(s) — ' + response.getResponseCode());
+    return jsonResponse({ status: 'success', recipients: recipients.length });
+  } catch (e) {
+    logAudit(ss, 'EMERGENCY_SMS_FAILED', '', e.toString());
+    return jsonResponse({ status: 'error', message: e.toString() });
+  }
 }
 
 // ============================================================

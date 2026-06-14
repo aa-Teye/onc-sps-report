@@ -3189,10 +3189,18 @@
               
               <label style="display:flex;align-items:center;gap:10px;
                 font-weight:700;font-size:13px;color:#0a1628;
-                margin-bottom:16px;cursor:pointer;">
+                margin-bottom:12px;cursor:pointer;">
                 <input type="checkbox" id="annoSendPush" checked
                   style="width:18px;height:18px;cursor:pointer;">
                 🔔 Send Push Notification
+              </label>
+
+              <label style="display:flex;align-items:center;gap:10px;
+                font-weight:700;font-size:13px;color:#0a1628;
+                margin-bottom:16px;cursor:pointer;">
+                <input type="checkbox" id="annoSendTelegram" checked
+                  style="width:18px;height:18px;cursor:pointer;">
+                📨 Send via Telegram
               </label>
 
               <button onclick="postAnnouncement()"
@@ -3219,6 +3227,58 @@
                   📲 Open WhatsApp with Message
                 </button>
               </div>
+            </div>
+
+            <div style="background:white;
+              border-radius:16px;padding:24px;
+              box-shadow:0 1px 8px rgba(0,0,0,.06);
+              margin-bottom:24px;
+              border:2px solid #fecaca;">
+              <h3 style="font-size:16px;
+                font-weight:800;color:#b91c1c;
+                margin-bottom:8px;">
+                🚨 Emergency SMS
+              </h3>
+              <p style="font-size:12px;color:var(--gray);margin-bottom:16px;">
+                Sends a text message to all shepherds' phones. Uses SMS credit — use only for urgent situations that can't wait for push/Telegram.
+              </p>
+
+              <label style="font-weight:700;
+                font-size:13px;color:#0a1628;
+                display:block;margin-bottom:6px;">
+                Title
+              </label>
+              <input type="text" id="smsTitle"
+                placeholder="Emergency title..."
+                style="width:100%;padding:10px;
+                border:2px solid #e2e8f0;
+                border-radius:8px;font-size:14px;
+                margin-bottom:12px;
+                box-sizing:border-box;">
+
+              <label style="font-weight:700;
+                font-size:13px;color:#0a1628;
+                display:block;margin-bottom:6px;">
+                Message
+              </label>
+              <textarea id="smsMessage"
+                placeholder="Type emergency message here..."
+                rows="3"
+                style="width:100%;padding:10px;
+                border:2px solid #e2e8f0;
+                border-radius:8px;font-size:14px;
+                resize:none;margin-bottom:16px;
+                box-sizing:border-box;">
+              </textarea>
+
+              <button onclick="sendEmergencySMS()"
+                style="width:100%;padding:14px;
+                background:#b91c1c;color:white;
+                border:none;border-radius:10px;
+                font-weight:800;font-size:15px;
+                cursor:pointer;">
+                🚨 Send Emergency SMS to All Shepherds
+              </button>
             </div>
 
             <div style="background:white;
@@ -9013,7 +9073,8 @@
         window._lastPostedAnnouncement = announcement;
 
         var sendPush = document.getElementById('annoSendPush');
-        if (sendPush && sendPush.checked) {
+        var sendTelegram = document.getElementById('annoSendTelegram');
+        if ((sendPush && sendPush.checked) || (sendTelegram && sendTelegram.checked)) {
           var audienceTopics = {
             all: 'all-shepherds',
             sps: 'sps-shepherds',
@@ -9026,7 +9087,10 @@
               action: 'sendAnnouncementNotification',
               title: title,
               message: message.substring(0, 100),
-              audience: audienceTopics[audience] || 'all-shepherds'
+              audience: audienceTopics[audience] || 'all-shepherds',
+              rawAudience: audience,
+              sendPush: !!(sendPush && sendPush.checked),
+              sendTelegram: !!(sendTelegram && sendTelegram.checked)
             })
           }).catch(function() {});
         }
@@ -9056,6 +9120,42 @@
           if (waBox) waBox.style.display = 'block';
           loadAnnouncements();
         });
+      }
+
+      function sendEmergencySMS() {
+        var title = document.getElementById('smsTitle').value.trim();
+        var message = document.getElementById('smsMessage').value.trim();
+
+        if (!title || !message) {
+          alert('Please enter a title and message');
+          return;
+        }
+
+        if (!confirm('Send this as an SMS to ALL shepherds\' phones? This uses SMS credit and should only be used for emergencies.')) {
+          return;
+        }
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'sendEmergencySMS',
+            title: title,
+            message: message
+          })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.status === 'success') {
+              adminToast('🚨 Emergency SMS sent to ' + data.recipients + ' shepherd(s)');
+              document.getElementById('smsTitle').value = '';
+              document.getElementById('smsMessage').value = '';
+            } else {
+              adminToast('❌ ' + (data.message || 'Failed to send SMS'));
+            }
+          })
+          .catch(function() {
+            adminToast('❌ Failed to send SMS');
+          });
       }
 
       function openAnnoWhatsApp() {
