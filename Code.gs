@@ -83,6 +83,7 @@ function doGet(e) {
     else if (action === 'getStats')               response = getStats();
     else if (action === 'getMicrochurchReports')  response = getMicrochurchReports();
     else if (action === 'getGuests')              response = getGuests();
+    else if (action === 'fixFirstTimerDateSwap')  response = fixFirstTimerDateSwap();
     else if (action === 'getPins')                response = getPins();
     else if (action === 'getActivityLog')         response = getActivityLog();
     else if (action === 'getAnnouncements')       response = getAnnouncements();
@@ -658,6 +659,56 @@ function getGuests() {
   });
 
   return { status: 'success', guests };
+}
+
+// ============================================================
+// ONE-TIME FIX: repair guest dates corrupted by Sheets locale
+// auto-conversion (day/month swapped) before the 11 Jun 2026
+// plain-text fix. Swaps day/month back on any Date/DOB cell that
+// is still stored as an actual Date object, then re-writes it as
+// plain text so it can't be re-corrupted.
+// ============================================================
+function fixFirstTimerDateSwap() {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(FIRST_TIMERS_SHEET);
+
+  if (!sheet || sheet.getLastRow() <= 1)
+    return { status: 'success', fixed: 0, skipped: 0 };
+
+  const lastRow = sheet.getLastRow();
+  const dateCol = 2;  // column B
+  const dobCol  = 10; // column J
+  let fixed = 0, skipped = 0;
+
+  [dateCol, dobCol].forEach(function (col) {
+    const range  = sheet.getRange(2, col, lastRow - 1, 1);
+    const values = range.getValues();
+
+    for (let i = 0; i < values.length; i++) {
+      const val = values[i][0];
+      if (!(val instanceof Date)) continue;
+
+      const day   = val.getDate();
+      const month = val.getMonth() + 1;
+      const year  = val.getFullYear();
+
+      if (day > 12) { skipped++; continue; } // can't have been swapped this way
+
+      // Swap back: the true day was stored as "month", true month as "day"
+      const fixedStr = String(month).padStart(2, '0') + '/' +
+                       String(day).padStart(2, '0')   + '/' + year;
+
+      const cell = sheet.getRange(2 + i, col);
+      cell.setNumberFormat('@');
+      cell.setValue(fixedStr);
+      fixed++;
+    }
+  });
+
+  logAudit(ss, 'FIRST_TIMER_DATES_FIXED', 'System',
+    fixed + ' date cell(s) corrected, ' + skipped + ' skipped (ambiguous)');
+
+  return { status: 'success', fixed: fixed, skipped: skipped };
 }
 
 // ============================================================

@@ -2518,6 +2518,15 @@
               🆕 First Timers
             </h2>
 
+            <!-- One-time fix for guest dates corrupted by the
+                 Sheets locale day/month swap bug (pre 11 Jun 2026) -->
+            <button onclick="fixFirstTimerDateSwap()"
+              style="padding:8px 16px;margin-bottom:16px;
+              background:#fef3c7;color:#92400e;border:2px solid #f59e0b;
+              border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">
+              🛠 Fix Corrupted Guest Dates (run once)
+            </button>
+
             <!-- Period filter -->
             <div style="display:flex;gap:8px;
               margin-bottom:20px;flex-wrap:wrap;">
@@ -8367,6 +8376,18 @@
           member.isLeader = !member.isLeader;
           renderMembership();
         }
+      }
+
+      function fixFirstTimerDateSwap() {
+        if (!confirm('This will correct any First Timer guest dates that were swapped (day/month) by a past Sheets locale bug. Run once?')) return;
+        fetchData('fixFirstTimerDateSwap', function (data) {
+          if (data && data.status === 'success') {
+            alert('Fixed ' + data.fixed + ' date cell(s)' + (data.skipped ? (', skipped ' + data.skipped) : '') + '.');
+            loadFirstTimers();
+          } else {
+            alert('Could not run the fix: ' + ((data && data.message) || 'unknown error'));
+          }
+        });
       }
 
       function exportFirstTimers() {
