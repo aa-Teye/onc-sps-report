@@ -2341,6 +2341,11 @@
       firebase.initializeApp(FIREBASE_CONFIG);
     }
 
+    // Bump this when the topic-subscription logic changes server-side so
+    // devices that registered before the fix (e.g. the 401 silent-failure
+    // bug) get re-subscribed even though their token hasn't changed.
+    var FCM_RESUB_VERSION = '2';
+
     function initPushNotifications(shepherdName, shepherdType) {
       if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
       if (typeof firebase === 'undefined') return;
@@ -2357,7 +2362,8 @@
               if (!token) return;
 
               var savedToken = localStorage.getItem('onc_fcm_token');
-              if (savedToken === token) return;
+              var resubVersion = localStorage.getItem('onc_fcm_resub_version');
+              if (savedToken === token && resubVersion === FCM_RESUB_VERSION) return;
 
               var topics = ['all-shepherds'];
               if (shepherdType === 'sps') topics.push('sps-shepherds');
@@ -2375,6 +2381,7 @@
                 })
               }).then(function () {
                 localStorage.setItem('onc_fcm_token', token);
+                localStorage.setItem('onc_fcm_resub_version', FCM_RESUB_VERSION);
                 if (typeof showGlobalAlert === 'function') {
                   showGlobalAlert('Notifications enabled ✅', 'success');
                 }
