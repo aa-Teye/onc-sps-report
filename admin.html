@@ -1532,6 +1532,11 @@
 
         <!-- TAB 4: REPORTS -->
         <div class="tab-panel" id="panel-reports">
+          <div id="spsReportsLockOverlay" style="display:none;text-align:center;padding:60px;color:#64748b;">
+            <div style="font-size:48px;">🔒</div>
+            <p style="font-weight:700;">Access restricted to SPS reports</p>
+          </div>
+          <div id="spsReportsContent">
           <h2 id="reportsTitle" style="margin-bottom:24px;font-size:22px;font-weight:800;color:#0a1628;">📋 SPS Reports</h2>
           <div class="filter-bar">
             <select id="filter-rep-shep" onchange="renderReports()">
@@ -1569,6 +1574,7 @@
               </thead>
               <tbody id="reports-table"></tbody>
             </table>
+          </div>
           </div>
         </div>
 
@@ -2262,6 +2268,11 @@
 
           <!-- TAB 12: MICROCHURCH REPORTS -->
           <div class="tab-panel" id="panel-mc-reports">
+            <div id="mcReportsLockOverlay" style="display:none;text-align:center;padding:60px;color:#64748b;">
+              <div style="font-size:48px;">🔒</div>
+              <p style="font-weight:700;">Access restricted to MC reports</p>
+            </div>
+            <div id="mcReportsContent">
             <h2 id="mcReportsTitle" style="margin-bottom:24px;font-size:22px;font-weight:800;color:#0a1628;">📄 MC Reports</h2>
             <div class="filter-bar"
               style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
@@ -2342,6 +2353,7 @@
                 </thead>
                 <tbody id="mcReportsTableBody"></tbody>
               </table>
+            </div>
             </div>
           </div>
 
@@ -5505,18 +5517,16 @@
 
       function renderReports() {
         // Access control: SPS Reports are blocked for MC Head (mchead) and First Timers Head (ftshead)
-        if (currentRole === 'mchead' || 
+        var spsLockOverlay = document.getElementById('spsReportsLockOverlay');
+        var spsContent = document.getElementById('spsReportsContent');
+        if (currentRole === 'mchead' ||
             currentRole === 'ftshead') {
-          document.getElementById(
-            'panel-reports').innerHTML = 
-            '<div style="text-align:center;' +
-            'padding:60px;color:#64748b;">' +
-            '<div style="font-size:48px;">🔒</div>'+
-            '<p style="font-weight:700;">'+
-            'Access restricted to SPS reports'+
-            '</p></div>';
+          if (spsLockOverlay) spsLockOverlay.style.display = 'block';
+          if (spsContent) spsContent.style.display = 'none';
           return;
         }
+        if (spsLockOverlay) spsLockOverlay.style.display = 'none';
+        if (spsContent) spsContent.style.display = '';
         var shepFilter = document.getElementById('filter-rep-shep').value;
         var prayerFilter = document.getElementById('filter-rep-prayer').value;
         var dateFilter = document.getElementById('filter-rep-date').value;
@@ -7275,18 +7285,16 @@
 
       function renderMcReports() {
         // Access control: MC Reports are blocked for SPS Head (spshead) and First Timers Head (ftshead)
-        if (currentRole === 'spshead' || 
+        var lockOverlay = document.getElementById('mcReportsLockOverlay');
+        var content = document.getElementById('mcReportsContent');
+        if (currentRole === 'spshead' ||
             currentRole === 'ftshead') {
-          document.getElementById(
-            'panel-mc-reports').innerHTML = 
-            '<div style="text-align:center;' +
-            'padding:60px;color:#64748b;">' +
-            '<div style="font-size:48px;">🔒</div>'+
-            '<p style="font-weight:700;">'+
-            'Access restricted to MC reports'+
-            '</p></div>';
+          if (lockOverlay) lockOverlay.style.display = 'block';
+          if (content) content.style.display = 'none';
           return;
         }
+        if (lockOverlay) lockOverlay.style.display = 'none';
+        if (content) content.style.display = '';
         try {
           var panel = document.getElementById('panel-mc-reports');
           if (!panel) return;
