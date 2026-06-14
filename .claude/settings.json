@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check Code.gs)",
+      "Bash(cp Code.gs /tmp/Code_check.js)",
+      "Bash(node --check /tmp/Code_check.js)",
+      "Bash(python3 -c ' *)",
+      "Bash(node -e ' *)",
+      "Bash(curl -s \"https://aa-teye.github.io/onc-sps-report/firebase-messaging-sw.js\" -o /tmp/fcmsw.js -w \"%{http_code}\\\\n\")",
+      "Read(//tmp/**)",
+      "Bash(curl -s -L -X POST https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec -d '{\"action\":\"saveFCMToken\",\"shepherdName\":\"TEST_DEBUG\",\"role\":\"sps\",\"token\":\"test-token-123\",\"platform\":\"curl-test\",\"topics\":[\"all-shepherds\"]}')",
+      "Bash(curl -s -L -X POST https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec -d '{\"action\":\"sendAnnouncementNotification\",\"title\":\"Test\",\"message\":\"Test message\",\"audience\":\"all-shepherds\"}')",
+      "Bash(curl -s -i -X POST https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec --data-raw '{\"action\":\"saveFCMToken\",\"shepherdName\":\"TEST_DEBUG\",\"role\":\"sps\",\"token\":\"test-token-123\",\"platform\":\"curl-test\",\"topics\":[\"all-shepherds\"]}')"
+    ]
+  }
+}
