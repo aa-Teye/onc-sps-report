@@ -578,7 +578,7 @@ function submitGuestForm(data) {
   ]]);
 
   sheet.autoResizeColumns(1, 29);
-  logAudit(ss, 'GUEST_REGISTERED', 'First Timers Unit', g.fullName || '');
+  logAudit(ss, 'GUEST_REGISTERED', g.loggedInAs || 'First Timers Unit', g.fullName || '');
   return jsonResponse({ status: 'success' });
 }
 
@@ -612,7 +612,7 @@ function updateGuestForm(data) {
     g.referralName || '', g.referralRelation || '', g.referralPhone || ''
   ]]);
 
-  logAudit(ss, 'GUEST_UPDATED', 'First Timers Unit', g.fullName || '');
+  logAudit(ss, 'GUEST_UPDATED', g.loggedInAs || 'First Timers Unit', g.fullName || '');
   return jsonResponse({ status: 'success' });
 }
 

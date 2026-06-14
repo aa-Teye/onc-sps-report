@@ -726,6 +726,7 @@
             color:var(--navy);margin-bottom:4px;">
             First Timers Unit
           </div>
+          <div id="ftPortalUserName" style="color:var(--accent);font-size:13px;font-weight:700;margin-bottom:4px;"></div>
           <div style="color:var(--gray);font-size:14px;">
             What would you like to do?
           </div>
@@ -4224,8 +4225,13 @@
       '2500': 'Lady Sharon',
       '0000': 'Akwaaba Members',
       '3000': 'Haven Pastor',
-      '4000': 'Other Haven Executive'
+      '4000': 'Other Haven Executive',
+      '1111': 'Lady Sharon',
+      '2222': 'Pastor Sophia',
+      '3333': 'Akwba Ladies'
     };
+
+    var ftLoggedInName = localStorage.getItem('ft_logged_in_name') || 'First Timers Unit';
 
     function checkFirstTimersPin() {
       var pin = document.getElementById(
@@ -4233,7 +4239,14 @@
 
       if (pin === ftState.pin || FT_VALID_PINS.hasOwnProperty(pin)) {
         document.getElementById('ftPinInput').value = '';
-        
+
+        ftLoggedInName = FT_VALID_PINS.hasOwnProperty(pin)
+          ? FT_VALID_PINS[pin]
+          : (localStorage.getItem('ft_logged_in_name') || 'First Timers Unit');
+        localStorage.setItem('ft_logged_in_name', ftLoggedInName);
+        var ftNameEl = document.getElementById('ftPortalUserName');
+        if (ftNameEl) ftNameEl.textContent = '👋 Logged in as ' + ftLoggedInName;
+
         var today = new Date().toLocaleDateString(
           'en-GB');
         var dateEl = document.getElementById(
@@ -4241,7 +4254,7 @@
         if (dateEl) {
           dateEl.textContent = '📅 ' + today;
         }
-        
+
         showSection('secFirstTimersLanding');
         // CHANGE 5 — Check for pending unsynced submissions on login
         checkFTPendingSync();
@@ -4527,7 +4540,8 @@
         contactPreference: ftState.contact,
         feedback: document.getElementById(
           'guestFeedback').value.trim(),
-        followUpStatus: 'Needs Follow Up'
+        followUpStatus: 'Needs Follow Up',
+        loggedInAs: ftLoggedInName
       };
 
       if (ftState.editingGuestId) {
@@ -5282,6 +5296,7 @@
       if (guestRecord) {
         guestRecord.followUpStatus = newStatus;
         guestRecord.feedback = notes || guestRecord.feedback || '';
+        guestRecord.loggedInAs = ftLoggedInName;
         fetch(SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify({
