@@ -5073,7 +5073,7 @@
           'background:#22c55e;color:white;border-radius:8px;text-align:center;' +
           'text-decoration:none;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;">' + ICON_CALL + ' Call</a>' +
 
-          '<a href="https://wa.me/233' + (g.hasOwnContact === false ? (g.referralPhone||'') : (g.phone||'')).replace(/^0/,'') + '"' +
+          '<a href="https://wa.me/233' + String(g.hasOwnContact === false ? (g.referralPhone||'') : (g.phone||'')).replace(/^0/,'') + '"' +
           ' target="_blank" style="flex:1;padding:10px;background:#25D366;' +
           'color:white;border-radius:8px;text-align:center;text-decoration:none;' +
           'font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;">' + ICON_WHATSAPP + ' WhatsApp</a>' +
