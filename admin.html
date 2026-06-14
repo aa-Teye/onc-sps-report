@@ -3996,6 +3996,14 @@
             annoSelect.value = 'sps';
             annoSelect.disabled = true;
           }
+
+          var reportsTabBtn = Array.prototype.find.call(
+            document.querySelectorAll('.tab-btn'),
+            function(btn) {
+              return (btn.getAttribute('onclick') || '').indexOf("switchTab('reports'") !== -1;
+            }
+          );
+          switchTab('reports', reportsTabBtn);
         }
         else if (role === 'mchead') {
           setVisibleTabs([
