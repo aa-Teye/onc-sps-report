@@ -1563,6 +1563,7 @@
                   <th>Covered</th>
                   <th>Prayer</th>
                   <th>Concerns</th>
+                  <th>Photo</th>
                 </tr>
               </thead>
               <tbody id="reports-table"></tbody>
@@ -2334,6 +2335,7 @@
                     <th>Prayer</th>
                     <th style="text-align:center;">New Souls</th>
                     <th>Concerns</th>
+                    <th>Photo</th>
                   </tr>
                 </thead>
                 <tbody id="mcReportsTableBody"></tbody>
@@ -3201,6 +3203,21 @@
           style="max-height:70vh;overflow:hidden;border-radius:12px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;">
           <img id="proofViewerImg" src="" style="max-width:100%;max-height:65vh;object-fit:contain;display:block;">
         </div>
+      </div>
+    </div>
+
+    <!-- PROOF OF MEETING PHOTO LIGHTBOX (Firebase Storage photos) -->
+    <div id="proofPhotoModal" onclick="closeProofPhotoModal()"
+      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.9);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px;">
+      <div onclick="event.stopPropagation()"
+        style="background:#fff;border-radius:24px;border:3px solid #f0a500;padding:16px;max-width:600px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.5);text-align:center;position:relative;">
+        <button onclick="closeProofPhotoModal()"
+          style="position:absolute;top:-15px;right:-15px;background:#ef4444;border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,0.3);z-index:10;">✕</button>
+        <div
+          style="max-height:70vh;overflow:hidden;border-radius:12px;background:#f8fafc;border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;">
+          <img id="proofPhotoModalImg" src="" style="max-width:100%;max-height:65vh;object-fit:contain;display:block;">
+        </div>
+        <div id="proofPhotoModalCaption" style="margin-top:12px;font-weight:700;color:#0f2044;font-size:14px;"></div>
       </div>
     </div>
 
@@ -4533,6 +4550,24 @@
         }
       }
 
+      function showProofPhotoModal(url, caption) {
+        var modal = document.getElementById('proofPhotoModal');
+        var img = document.getElementById('proofPhotoModalImg');
+        var cap = document.getElementById('proofPhotoModalCaption');
+        if (modal && img) {
+          img.src = url;
+          if (cap) cap.textContent = caption || '';
+          modal.style.display = 'flex';
+        }
+      }
+
+      function closeProofPhotoModal() {
+        var modal = document.getElementById('proofPhotoModal');
+        if (modal) {
+          modal.style.display = 'none';
+        }
+      }
+
       function closeProofViewer() {
         var modal = document.getElementById('proofViewerModal');
         if (modal) {
@@ -5512,18 +5547,20 @@
           }
           var proofHtml = showProofImg ? ' <span onclick="event.stopPropagation(); showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
 
-          var mainRow = '<tr style="cursor:pointer;" onclick="toggleReportRow(' + i + ')"><td>' + (i + 1) + '</td><td>' + (r.sessionDate || r.date || '') + proofHtml + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td></tr>';
-          
+          var photoCell = r.photoUrl ? '<button type="button" onclick="event.stopPropagation(); showProofPhotoModal(\'' + r.photoUrl + '\', ' + JSON.stringify(r.shepherd + ' — ' + (r.sessionDate || r.date || '')) + ')" style="background:none;border:none;cursor:pointer;font-size:18px;" title="View Proof of Meeting Photo">📷</button>' : '--';
+
+          var mainRow = '<tr style="cursor:pointer;" onclick="toggleReportRow(' + i + ')"><td>' + (i + 1) + '</td><td>' + (r.sessionDate || r.date || '') + proofHtml + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td><td>' + photoCell + '</td></tr>';
+
           var concernCard = '';
           if (hasC) {
             var cText = formatConcernText(r);
             concernCard = '<div style="margin-top:8px;padding:10px 12px;background:#fff7ed;border-radius:8px;border-left:3px solid #f97316;max-width:600px;margin-bottom:12px;text-align:left;"><div style="font-weight:700;color:#c2410c;font-size:12px;margin-bottom:4px;">⚠ Concern Flagged</div><div style="color:#7c2d12;font-size:13px;">' + cText + '</div></div>';
           }
-          
-          var detailRow = '<tr id="rep-details-' + i + '" style="display:none;background:#f8fafc;"><td colspan="10" style="padding:16px;"><div style="background:white;border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);"><div style="font-weight:800;color:var(--navy);font-size:14px;margin-bottom:10px;text-align:left;">📋 Report Details — ' + r.shepherd + '</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px;font-size:13px;text-align:left;"><div style="color:var(--gray);"><strong>Date:</strong> ' + (r.sessionDate || r.date || '') + ' ' + formatTime(r.sessionTime) + '</div><div style="color:var(--gray);"><strong>Attendance Rate:</strong> ' + getRate(r) + '%</div><div style="color:var(--gray);"><strong>Topic Covered:</strong> ' + (r.actualTopic || r.bibleTopic || '—') + ' (' + (r.topicCovered || 'N/A').toUpperCase() + ')</div><div style="color:var(--gray);"><strong>Prayer Done:</strong> ' + (r.prayerDone || 'N/A').toUpperCase() + '</div></div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#15803d;">Present:</strong> ' + present + '</div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#991b1b;">Absent:</strong> ' + absent + '</div>' + concernCard + '</div></td></tr>';
-          
+
+          var detailRow = '<tr id="rep-details-' + i + '" style="display:none;background:#f8fafc;"><td colspan="11" style="padding:16px;"><div style="background:white;border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);"><div style="font-weight:800;color:var(--navy);font-size:14px;margin-bottom:10px;text-align:left;">📋 Report Details — ' + r.shepherd + '</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px;font-size:13px;text-align:left;"><div style="color:var(--gray);"><strong>Date:</strong> ' + (r.sessionDate || r.date || '') + ' ' + formatTime(r.sessionTime) + '</div><div style="color:var(--gray);"><strong>Attendance Rate:</strong> ' + getRate(r) + '%</div><div style="color:var(--gray);"><strong>Topic Covered:</strong> ' + (r.actualTopic || r.bibleTopic || '—') + ' (' + (r.topicCovered || 'N/A').toUpperCase() + ')</div><div style="color:var(--gray);"><strong>Prayer Done:</strong> ' + (r.prayerDone || 'N/A').toUpperCase() + '</div></div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#15803d;">Present:</strong> ' + present + '</div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#991b1b;">Absent:</strong> ' + absent + '</div>' + concernCard + '</div></td></tr>';
+
           return mainRow + detailRow;
-        }).join('') : '<tr><td colspan="10" class="empty"><div class="icon">📭</div><p>No reports match filters</p></td></tr>';
+        }).join('') : '<tr><td colspan="11" class="empty"><div class="icon">📭</div><p>No reports match filters</p></td></tr>';
       }
 
       function renderTopics() {
@@ -7255,7 +7292,7 @@
           if (!tbody) return;
 
           if (mc.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#94a3b8">No Microchurch reports yet</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;color:#94a3b8">No Microchurch reports yet</td></tr>';
             return;
           }
 
@@ -7281,6 +7318,8 @@
             }
             var proofHtml = showProofImg ? ' <span onclick="showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
 
+            var photoCell = r.photoUrl ? '<button type="button" onclick="event.stopPropagation(); showProofPhotoModal(\'' + r.photoUrl + '\', ' + JSON.stringify((r.shepherd || '—') + ' — ' + formatReportDate(r.submissionDate)) + ')" style="background:none;border:none;cursor:pointer;font-size:18px;" title="View Proof of Meeting Photo">📷</button>' : '--';
+
             return '<tr>' +
               '<td>' + (i + 1) + '</td>' +
               '<td>' + formatReportDate(r.submissionDate) + proofHtml + '</td>' +
@@ -7294,6 +7333,7 @@
               '<td><span class="badge ' + (r.prayerDone === 'yes' ? 'yes' : 'no') + '">' +
               (r.prayerDone || '—').toUpperCase() + '</span></td>' +
               '<td>' + parseSouls(r.newSouls) + '</td>' +
+              '<td>' + photoCell + '</td>' +
               '</tr>';
           }).join('');
         } catch (e) {

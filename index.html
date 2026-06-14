@@ -573,6 +573,7 @@
   <script src="churchData.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 </head>
 
 <body>
@@ -1807,12 +1808,12 @@
             <label style="font-weight:700;
               font-size:13px;color:var(--navy);
               display:block;margin-bottom:8px;">
-              📸 Proof of Meeting
+              📸 Proof of Meeting (Optional)
             </label>
-            
+
             <div style="display:flex;gap:8px;
               flex-direction:column;">
-              
+
               <!-- Take photo with camera -->
               <label style="display:flex;
                 align-items:center;justify-content:center;gap:10px;
@@ -1821,7 +1822,7 @@
                 border-radius:10px;cursor:pointer;
                 font-weight:700;font-size:14px;">
                 📷 Take Photo
-                <input type="file" 
+                <input type="file"
                   id="proofPhotoCamera_sps"
                   accept="image/*"
                   capture="environment"
@@ -2111,12 +2112,12 @@
             <label style="font-weight:700;
               font-size:13px;color:var(--navy);
               display:block;margin-bottom:8px;">
-              📸 Proof of Meeting
+              📸 Proof of Meeting (Optional)
             </label>
-            
+
             <div style="display:flex;gap:8px;
               flex-direction:column;">
-              
+
               <!-- Take photo with camera -->
               <label style="display:flex;
                 align-items:center;justify-content:center;gap:10px;
@@ -2125,7 +2126,7 @@
                 border-radius:10px;cursor:pointer;
                 font-weight:700;font-size:14px;">
                 📷 Take Photo
-                <input type="file" 
+                <input type="file"
                   id="proofPhotoCamera_mc"
                   accept="image/*"
                   capture="environment"
@@ -2304,6 +2305,11 @@
       appId: "1:193248349969:web:7ff0ce2f4c1492ff4e46b0"
     };
     const VAPID_KEY = "BLWf1yup0C_ZZGo3ISrZ0cIggiHjkkH9Xz08pgw_OWseMrdYLvhjRnyqZU_LLBQMD68KSjRi4XaGq9SgMO5LJvw";
+
+    // Shared Firebase app instance (used for push notifications + proof-of-meeting photo uploads)
+    if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
 
     function initPushNotifications(shepherdName, shepherdType) {
       if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
@@ -3364,12 +3370,14 @@
     }
 
     async function submitMCReport() {
-      if (!proofPhotoBase64) {
-        showGlobalAlert('❌ Please upload proof of meeting to continue', 'error');
-        return;
-      }
       var btn = document.getElementById('mcBtnSubmit');
-      btn.textContent = 'Submitting...'; btn.disabled = true;
+      btn.disabled = true;
+      var photoUrl = '';
+      if (proofPhotoFile) {
+        btn.textContent = 'Uploading photo...';
+        photoUrl = await uploadProofPhoto('mc', state.shepherd);
+      }
+      btn.textContent = 'Submitting...';
       var members = microchurchShepherdData[state.shepherd] || [];
       var present = members.filter(m => state.attendance[m]);
       var absent  = members.filter(m => !state.attendance[m]);
@@ -3395,7 +3403,7 @@
           });
         }) : [],
         concerns: state.concerns,
-        proofPhoto: proofPhotoBase64 || null,
+        photoUrl: photoUrl || '',
         notes: ''
       };
       try {
@@ -3632,12 +3640,14 @@
     }
 
     async function submitReport() {
-      if (!proofPhotoBase64) {
-        showGlobalAlert('❌ Please upload proof of meeting to continue', 'error');
-        return;
-      }
       var btn = document.querySelector('.btn-submit');
-      btn.textContent = 'Submitting...'; btn.disabled = true;
+      btn.disabled = true;
+      var photoUrl = '';
+      if (proofPhotoFile) {
+        btn.textContent = 'Uploading photo...';
+        photoUrl = await uploadProofPhoto('sps', state.shepherd);
+      }
+      btn.textContent = 'Submitting...';
       var members = (shepherdData[state.shepherd] ? shepherdData[state.shepherd].members : []) || [];
       var present = members.filter(function(m){ return state.attendance[m]; });
       var absent  = members.filter(function(m){ return !state.attendance[m]; });
@@ -3665,7 +3675,7 @@
           name: state.newMembers[0].name,
           contact: state.newMembers[0].phone
         } : { name: '', contact: '' },
-        proofPhoto: proofPhotoBase64 || null,
+        photoUrl: photoUrl || '',
         notes: ''
       };
       try {
@@ -3798,27 +3808,36 @@
     }
 
     var proofPhotoBase64 = '';
+    var proofPhotoFile = null;
 
     function handleProofPhoto(input, type) {
       var file = input.files[0];
       if (!file) return;
-      
+
+      if (file.size > 5 * 1024 * 1024) {
+        showGlobalAlert('❌ Photo is too large. Please choose an image under 5MB.', 'error');
+        input.value = '';
+        return;
+      }
+
+      proofPhotoFile = file;
+
       var nameEl = document.getElementById(
         'proofPhotoName_' + type);
       if (nameEl) {
         nameEl.textContent = '✅ ' + file.name;
         nameEl.style.display = 'block';
       }
-      
+
       var reader = new FileReader();
       reader.onload = function(e) {
         proofPhotoBase64 = e.target.result;
-        
+
         var preview = document.getElementById(
           'proofPhotoPreview_' + type);
         var img = document.getElementById(
           'proofPhotoImg_' + type);
-        
+
         if (preview) preview.style.display = 'block';
         if (img) img.src = proofPhotoBase64;
       };
@@ -3827,19 +3846,49 @@
 
     function clearProofPhoto(type) {
       proofPhotoBase64 = '';
-      
+      proofPhotoFile = null;
+
       var types = type ? [type] : ['sps', 'mc'];
       types.forEach(function(t) {
         var camera = document.getElementById('proofPhotoCamera_' + t);
         var gallery = document.getElementById('proofPhotoGallery_' + t);
         var preview = document.getElementById('proofPhotoPreview_' + t);
         var nameEl = document.getElementById('proofPhotoName_' + t);
-        
+
         if (camera) camera.value = '';
         if (gallery) gallery.value = '';
         if (preview) preview.style.display = 'none';
         if (nameEl) nameEl.style.display = 'none';
       });
+    }
+
+    // Returns the ISO week number (1-53) for a given date
+    function getISOWeekNumber(date) {
+      var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      var dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    // Uploads the selected proof-of-meeting photo to Firebase Storage and
+    // returns its download URL, or '' if there's no photo or the upload fails.
+    async function uploadProofPhoto(type, shepherdName) {
+      if (!proofPhotoFile) return '';
+      try {
+        if (typeof firebase === 'undefined' || !firebase.apps.length) return '';
+        var now = new Date();
+        var year = now.getFullYear();
+        var weekNumber = getISOWeekNumber(now);
+        var safeName = String(shepherdName || 'unknown').replace(/[^a-zA-Z0-9]+/g, '-');
+        var path = 'meeting-photos/' + type + '/' + year + '/week-' + weekNumber + '/' + safeName + '-' + now.getTime() + '.jpg';
+        var storageRef = firebase.storage().ref(path);
+        await storageRef.put(proofPhotoFile);
+        return await storageRef.getDownloadURL();
+      } catch (e) {
+        showGlobalAlert('⚠️ Photo upload failed — submitting report without photo', 'warning');
+        return '';
+      }
     }
 
     function openStartGuide() {
