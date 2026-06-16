@@ -1,4 +1,55 @@
-const CACHE_NAME = 'onc-sps-v25';
+// Firebase Cloud Messaging — must be imported before any other SW code so
+// Firebase can register its own internal push/message event listeners.
+try {
+  importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp({
+      apiKey: "AIzaSyASBX11NesPvKgswxqH54r-ouf6kEHLNNE",
+      authDomain: "onc-sps.firebaseapp.com",
+      projectId: "onc-sps",
+      storageBucket: "onc-sps.firebasestorage.app",
+      messagingSenderId: "193248349969",
+      appId: "1:193248349969:web:7ff0ce2f4c1492ff4e46b0"
+    });
+  }
+
+  var _fcmMsg = firebase.messaging();
+  var _appUrl = new URL('./', self.location.href).href;
+  var _logo   = _appUrl + 'logo.png';
+
+  _fcmMsg.onBackgroundMessage(function (payload) {
+    var n = payload.notification || {};
+    self.registration.showNotification(n.title || 'ONC SPS', {
+      body:  n.body  || '',
+      icon:  n.icon  || _logo,
+      badge: _logo,
+      data:  Object.assign({ url: _appUrl }, payload.data || {})
+    });
+  });
+} catch (e) {
+  // Firebase scripts unavailable (offline install) — push disabled; cache still works.
+}
+
+// Open / focus the app when a notification is tapped.
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+  var target = (event.notification.data && event.notification.data.url)
+    || (self.location.origin + '/onc-sps-report/');
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
+      for (var i = 0; i < list.length; i++) {
+        var c = list[i];
+        if (c.url.startsWith(target.replace(/\/$/, '')) && 'focus' in c) return c.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(target);
+    })
+  );
+});
+
+// ── Cache ────────────────────────────────────────────────────────
+const CACHE_NAME = 'onc-sps-v27';
 const CACHE_URLS = [
   '/onc-sps-report/',
   '/onc-sps-report/index.html',
@@ -30,14 +81,8 @@ self.addEventListener('activate', function (event) {
             .map(function (k) { return caches.delete(k); })
       );
       await self.clients.claim();
-
-      // Force any already-open app windows (running old cached JS that
-      // doesn't know to reload itself) to navigate to fresh content now
-      // that this new service worker is in control.
-      var allClients = await self.clients.matchAll({ type: 'window' });
-      allClients.forEach(function (client) {
-        client.navigate(client.url);
-      });
+      // controllerchange fires in open pages when claim() runs;
+      // each page has a one-shot reload guard that picks up the new cache.
     })()
   );
 });
@@ -47,6 +92,7 @@ self.addEventListener('fetch', function (event) {
   if (event.request.url.includes('script.google.com')) return;
   if (event.request.url.includes('fonts.googleapis.com')) return;
   if (event.request.url.includes('fonts.gstatic.com')) return;
+  if (event.request.url.includes('gstatic.com/firebasejs')) return;
 
   event.respondWith(
     caches.match(event.request).then(function (cached) {

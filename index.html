@@ -2384,10 +2384,10 @@
       firebase.initializeApp(FIREBASE_CONFIG);
     }
 
-    // Bump this when the topic-subscription logic changes server-side so
-    // devices that registered before the fix (e.g. the 401 silent-failure
-    // bug) get re-subscribed even though their token hasn't changed.
-    var FCM_RESUB_VERSION = '2';
+    // Bump this when the SW or subscription logic changes so all devices re-register.
+    var FCM_RESUB_VERSION = '3';
+
+    var _fcmOnMessageBound = false;
 
     function initPushNotifications(shepherdName, shepherdType) {
       if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
@@ -2400,11 +2400,30 @@
           if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
           var messaging = firebase.messaging();
 
-          navigator.serviceWorker.register('./firebase-messaging-sw.js').then(function (registration) {
+          // Show notification when the app is open in the foreground (Firebase
+          // suppresses system notifications by default in this case).
+          if (!_fcmOnMessageBound) {
+            _fcmOnMessageBound = true;
+            messaging.onMessage(function (payload) {
+              var n = payload.notification || {};
+              navigator.serviceWorker.ready.then(function (reg) {
+                reg.showNotification(n.title || 'ONC SPS', {
+                  body:  n.body  || '',
+                  icon:  n.icon  || '/onc-sps-report/logo.png',
+                  badge: '/onc-sps-report/logo.png',
+                  data:  payload.data || {}
+                });
+              });
+            });
+          }
+
+          // Use the already-active sw.js registration so push subscriptions
+          // are tied to the single merged SW (no two-SW scope conflict).
+          navigator.serviceWorker.ready.then(function (registration) {
             messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: registration }).then(function (token) {
               if (!token) return;
 
-              var savedToken = localStorage.getItem('onc_fcm_token');
+              var savedToken   = localStorage.getItem('onc_fcm_token');
               var resubVersion = localStorage.getItem('onc_fcm_resub_version');
               if (savedToken === token && resubVersion === FCM_RESUB_VERSION) return;
 

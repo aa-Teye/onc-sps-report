@@ -1508,33 +1508,49 @@ function saveResource(data) {
 // blocks the resource itself from saving.
 function notifyNewResource(ss, data, mandatory) {
   try {
-    const topics = {
-      'SPS Shepherds':          'sps-shepherds',
-      'Microchurch Shepherds':  'mc-shepherds',
-      'All Shepherds':          'all-shepherds',
-      'Members':                'all-shepherds'
+    const roleFilter = {
+      'SPS Shepherds':         'sps',
+      'Microchurch Shepherds': 'mc'
     };
-    const topic      = topics[data.audience || 'All Shepherds'] || 'all-shepherds';
-    const projectId   = PropertiesService.getScriptProperties().getProperty('FIREBASE_PROJECT_ID');
+    const filterRole  = roleFilter[data.audience || 'All Shepherds'] || null;
+    const props       = PropertiesService.getScriptProperties();
+    const projectId   = props.getProperty('FIREBASE_PROJECT_ID');
+    const appUrl      = (props.getProperty('APP_URL') || 'https://aa-teye.github.io/onc-sps-report/').replace(/\/?$/, '/');
     const accessToken = getFCMAccessToken();
+    const title       = '📚 New Resource: ' + (data.title || '');
+    const body        = (mandatory ? '📌 Mandatory read — ' : '') + (data.desc || 'Tap to view it in the Resource Library');
 
-    const response = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
-      method: 'post',
-      contentType: 'application/json',
-      headers: { Authorization: 'Bearer ' + accessToken },
-      payload: JSON.stringify({
-        message: {
-          topic: topic,
-          notification: {
-            title: '📚 New Resource: ' + (data.title || ''),
-            body: (mandatory ? '📌 Mandatory read — ' : '') + (data.desc || 'Tap to view it in the Resource Library')
+    const tokenSheet = ss.getSheetByName(FCM_TOKENS_SHEET);
+    let targets = tokenSheet ? getSheetRecords(tokenSheet).filter(function (r) { return r.Token; }) : [];
+    if (filterRole) targets = targets.filter(function (r) { return r.Role === filterRole; });
+
+    let sent = 0, failed = 0;
+    targets.forEach(function (r) {
+      const resp = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
+        method: 'post',
+        contentType: 'application/json',
+        headers: { Authorization: 'Bearer ' + accessToken },
+        payload: JSON.stringify({
+          message: {
+            token: r.Token,
+            notification: { title: title, body: body },
+            webpush: {
+              notification: {
+                icon:    appUrl + 'logo.png',
+                badge:   appUrl + 'logo.png',
+                vibrate: [200, 100, 200]
+              },
+              fcm_options: { link: appUrl }
+            }
           }
-        }
-      }),
-      muteHttpExceptions: true
+        }),
+        muteHttpExceptions: true
+      });
+      if (resp.getResponseCode() === 200) sent++;
+      else failed++;
     });
 
-    logAudit(ss, 'RESOURCE_NOTIFICATION_SENT', topic, (data.title || '') + ' — ' + response.getResponseCode());
+    logAudit(ss, 'RESOURCE_NOTIFICATION_SENT', data.audience || 'All Shepherds', (data.title || '') + ' — ' + sent + ' sent, ' + failed + ' failed');
   } catch (e) {
     logAudit(ss, 'RESOURCE_NOTIFICATION_FAILED', data.addedBy || 'Admin', e.toString());
   }
@@ -2159,7 +2175,9 @@ function getFCMAccessToken() {
   return result.access_token;
 }
 
-// Saves (or refreshes) a shepherd's FCM token and subscribes it to topics.
+// Saves (or refreshes) a shepherd's FCM device token.
+// We send notifications directly to individual tokens (no topic subscription
+// needed), so we just record the token and role in the sheet.
 function saveFCMToken(data) {
   const ss    = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ensureSheet(FCM_TOKENS_SHEET, ['ShepherdName', 'Role', 'Token', 'Platform', 'SavedDate', 'LastUpdated']);
@@ -2182,67 +2200,69 @@ function saveFCMToken(data) {
     sheet.appendRow([shepherdName, role, token, platform, nowStr, nowStr]);
   }
 
-  // Subscribe this token to the requested topics
-  const topics = Array.isArray(data.topics) ? data.topics : [];
-  if (topics.length > 0) {
-    try {
-      const accessToken = getFCMAccessToken();
-      topics.forEach(function (topic) {
-        UrlFetchApp.fetch('https://iid.googleapis.com/iid/v1:batchAdd', {
-          method: 'post',
-          contentType: 'application/json',
-          headers: {
-            Authorization: 'Bearer ' + accessToken,
-            access_token_auth: 'true'
-          },
-          payload: JSON.stringify({
-            to: '/topics/' + topic,
-            registration_tokens: [token]
-          }),
-          muteHttpExceptions: true
-        });
-      });
-    } catch (e) {
-      logAudit(ss, 'FCM_TOPIC_SUBSCRIBE_FAILED', shepherdName, e.toString());
-    }
-  }
-
+  logAudit(ss, 'FCM_TOKEN_SAVED', shepherdName, role + ' — token updated');
   return jsonResponse({ status: 'success' });
 }
 
-// Sends a push notification to a topic via the FCM HTTP v1 API, and
-// optionally relays the announcement to Telegram.
+// Sends a push notification directly to individual device tokens (no topic
+// subscription required) and optionally relays the announcement to Telegram.
 function sendAnnouncementNotification(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   try {
-    const title = data.title || 'New Announcement';
-    const topic = data.audience || 'all-shepherds';
+    const title    = data.title || 'New Announcement';
+    const audience = data.audience || 'all-shepherds';
+    const body     = (data.message || '').substring(0, 100);
 
     if (data.sendPush !== false) {
-      const projectId   = PropertiesService.getScriptProperties().getProperty('FIREBASE_PROJECT_ID');
+      const props       = PropertiesService.getScriptProperties();
+      const projectId   = props.getProperty('FIREBASE_PROJECT_ID');
+      const appUrl      = (props.getProperty('APP_URL') || 'https://aa-teye.github.io/onc-sps-report/').replace(/\/?$/, '/');
       const accessToken = getFCMAccessToken();
-      const body        = (data.message || '').substring(0, 100);
 
-      const response = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
-        method: 'post',
-        contentType: 'application/json',
-        headers: { Authorization: 'Bearer ' + accessToken },
-        payload: JSON.stringify({
-          message: {
-            topic: topic,
-            notification: { title: title, body: body }
-          }
-        }),
-        muteHttpExceptions: true
+      const tokenSheet = ss.getSheetByName(FCM_TOKENS_SHEET);
+      let targets = tokenSheet ? getSheetRecords(tokenSheet).filter(function (r) { return r.Token; }) : [];
+
+      // Filter by audience / role
+      if (audience === 'sps-shepherds') {
+        targets = targets.filter(function (r) { return r.Role === 'sps'; });
+      } else if (audience === 'mc-shepherds') {
+        targets = targets.filter(function (r) { return r.Role === 'mc'; });
+      }
+      // 'all-shepherds' and 'first-timers-unit' → send to everyone
+
+      let sent = 0, failed = 0;
+      targets.forEach(function (r) {
+        const resp = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
+          method: 'post',
+          contentType: 'application/json',
+          headers: { Authorization: 'Bearer ' + accessToken },
+          payload: JSON.stringify({
+            message: {
+              token: r.Token,
+              notification: { title: title, body: body },
+              webpush: {
+                notification: {
+                  icon:    appUrl + 'logo.png',
+                  badge:   appUrl + 'logo.png',
+                  vibrate: [200, 100, 200]
+                },
+                fcm_options: { link: appUrl }
+              }
+            }
+          }),
+          muteHttpExceptions: true
+        });
+        if (resp.getResponseCode() === 200) sent++;
+        else { failed++; logAudit(ss, 'FCM_TOKEN_FAILED', r.ShepherdName || '', resp.getContentText().substring(0, 120)); }
       });
 
-      logAudit(ss, 'FCM_NOTIFICATION_SENT', topic, title + ' — ' + response.getResponseCode());
+      logAudit(ss, 'FCM_NOTIFICATION_SENT', audience, title + ' — ' + sent + ' sent, ' + failed + ' failed of ' + targets.length);
     }
 
     if (data.sendTelegram) {
       sendTelegramAnnouncement({
-        title: title,
-        message: data.message || '',
+        title:    data.title || 'New Announcement',
+        message:  data.message || '',
         audience: data.rawAudience || 'all'
       });
     }
