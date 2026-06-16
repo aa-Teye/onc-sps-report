@@ -22,10 +22,12 @@ try {
   _fcmMsg.onBackgroundMessage(function (payload) {
     var n = payload.notification || {};
     self.registration.showNotification(n.title || 'ONC SPS', {
-      body:  n.body  || '',
-      icon:  n.icon  || _logo,
-      badge: _logo,
-      data:  Object.assign({ url: _appUrl }, payload.data || {})
+      body:               n.body || '',
+      icon:               n.icon || _logo,
+      badge:              _logo,
+      vibrate:            [200, 100, 200],
+      requireInteraction: true,
+      data:               Object.assign({ url: _appUrl }, payload.data || {})
     });
   });
 } catch (e) {

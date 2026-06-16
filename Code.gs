@@ -126,6 +126,7 @@ function doGet(e) {
     // ── Sprint 5 GET actions ─────────────────────────────────────
     else if (action === 'getZoneSnapshots')       response = getZoneSnapshots();
     else if (action === 'getShepherdScores')      response = getShepherdScores();
+    else if (action === 'getFCMTokens')           response = getFCMTokens();
     else                                          response = { status: 'ok', message: 'ONC SPS Backend v4.0 Running' };
   } catch (err) {
     response = { status: 'error', message: err.toString() };
@@ -2177,6 +2178,25 @@ function getFCMAccessToken() {
   return result.access_token;
 }
 
+// Returns all FCM token registrations — used by admin to see who has
+// push notifications enabled on their device.
+function getFCMTokens() {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(FCM_TOKENS_SHEET);
+  if (!sheet || sheet.getLastRow() <= 1)
+    return { status: 'success', tokens: [] };
+
+  const records = getSheetRecords(sheet).map(function (r) {
+    return {
+      name:        r.ShepherdName || '',
+      role:        r.Role || '',
+      hasToken:    !!(r.Token && r.Token.trim()),
+      lastUpdated: r.LastUpdated || r.SavedDate || ''
+    };
+  });
+  return { status: 'success', tokens: records };
+}
+
 // Saves (or refreshes) a shepherd's FCM device token.
 // We send notifications directly to individual tokens (no topic subscription
 // needed), so we just record the token and role in the sheet.
@@ -2233,6 +2253,8 @@ function sendAnnouncementNotification(data) {
       // 'all-shepherds' and 'first-timers-unit' → send to everyone
 
       let sent = 0, failed = 0;
+      const staleNames = [];
+
       targets.forEach(function (r) {
         const resp = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
           method: 'post',
@@ -2245,9 +2267,9 @@ function sendAnnouncementNotification(data) {
               webpush: {
                 headers: { Urgency: 'high' },
                 notification: {
-                  icon:             appUrl + 'logo.png',
-                  badge:            appUrl + 'logo.png',
-                  vibrate:          [200, 100, 200],
+                  icon:               appUrl + 'logo.png',
+                  badge:              appUrl + 'logo.png',
+                  vibrate:            [200, 100, 200],
                   requireInteraction: true
                 },
                 fcm_options: { link: appUrl }
@@ -2256,9 +2278,35 @@ function sendAnnouncementNotification(data) {
           }),
           muteHttpExceptions: true
         });
-        if (resp.getResponseCode() === 200) sent++;
-        else { failed++; logAudit(ss, 'FCM_TOKEN_FAILED', r.ShepherdName || '', resp.getContentText().substring(0, 120)); }
+
+        if (resp.getResponseCode() === 200) {
+          sent++;
+        } else {
+          failed++;
+          let errCode = '';
+          try {
+            const errBody = JSON.parse(resp.getContentText());
+            const details = errBody.error && errBody.error.details;
+            if (details && details.length) errCode = details[0].errorCode || '';
+          } catch (e) {}
+          // UNREGISTERED = token expired or app uninstalled — remove it so it
+          // doesn't keep appearing in failed counts on every future send.
+          if (errCode === 'UNREGISTERED' || resp.getResponseCode() === 404) {
+            staleNames.push(r.ShepherdName);
+          }
+          logAudit(ss, 'FCM_TOKEN_FAILED', r.ShepherdName || '', (errCode || resp.getResponseCode()) + ' — ' + resp.getContentText().substring(0, 80));
+        }
       });
+
+      // Remove stale tokens from the sheet
+      if (staleNames.length > 0 && tokenSheet) {
+        const allRecords = getSheetRecords(tokenSheet);
+        staleNames.forEach(function (name) {
+          const rec = allRecords.find(function (r) { return r.ShepherdName === name; });
+          if (rec) tokenSheet.getRange(rec._row, 3).setValue('');
+          logAudit(ss, 'FCM_TOKEN_REMOVED', name, 'Token unregistered — cleared from sheet');
+        });
+      }
 
       logAudit(ss, 'FCM_NOTIFICATION_SENT', audience, title + ' — ' + sent + ' sent, ' + failed + ' failed of ' + targets.length);
     }
