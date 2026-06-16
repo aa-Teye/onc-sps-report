@@ -1535,10 +1535,12 @@ function notifyNewResource(ss, data, mandatory) {
             token: r.Token,
             notification: { title: title, body: body },
             webpush: {
+              headers: { Urgency: 'high' },
               notification: {
-                icon:    appUrl + 'logo.png',
-                badge:   appUrl + 'logo.png',
-                vibrate: [200, 100, 200]
+                icon:               appUrl + 'logo.png',
+                badge:              appUrl + 'logo.png',
+                vibrate:            [200, 100, 200],
+                requireInteraction: true
               },
               fcm_options: { link: appUrl }
             }
@@ -2241,10 +2243,12 @@ function sendAnnouncementNotification(data) {
               token: r.Token,
               notification: { title: title, body: body },
               webpush: {
+                headers: { Urgency: 'high' },
                 notification: {
-                  icon:    appUrl + 'logo.png',
-                  badge:   appUrl + 'logo.png',
-                  vibrate: [200, 100, 200]
+                  icon:             appUrl + 'logo.png',
+                  badge:            appUrl + 'logo.png',
+                  vibrate:          [200, 100, 200],
+                  requireInteraction: true
                 },
                 fcm_options: { link: appUrl }
               }
