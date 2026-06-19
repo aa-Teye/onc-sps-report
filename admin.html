@@ -5770,7 +5770,8 @@
               time: r.sessionTime,
               present: toArray(r.membersPresent).length,
               total: r.totalMembers || 4,
-              rate: getRate(r)
+              rate: getRate(r),
+              reportId: r.reportId
             });
           });
         }
@@ -5787,18 +5788,23 @@
               time: r.submissionTime,
               present: toArray(r.membersPresent).length,
               total: r.totalMembers || 4,
-              rate: pct
+              rate: pct,
+              reportId: r.reportId
             });
           });
         }
 
         var recent = list.slice().sort(function (a, b) {
-          // Sort by week number first, then by time
-          var weekDiff = (parseInt(b.weekNumber) || 0) - (parseInt(a.weekNumber) || 0);
-          if (weekDiff !== 0) return weekDiff;
+          // Sort by actual session date first, then by time of day, then by report id
+          var dateA = parseRobustDate(a.date);
+          var dateB = parseRobustDate(b.date);
+          var tA = (dateA && !isNaN(dateA.getTime())) ? dateA.getTime() : 0;
+          var tB = (dateB && !isNaN(dateB.getTime())) ? dateB.getTime() : 0;
+          if (tB !== tA) return tB - tA;
           var timeA = (a.time || '').substring(0, 5);
           var timeB = (b.time || '').substring(0, 5);
-          return timeB > timeA ? 1 : -1;
+          if (timeB !== timeA) return timeB > timeA ? 1 : -1;
+          return (b.reportId || '').localeCompare(a.reportId || '');
         }).slice(0, 10);
 
         document.getElementById('activity-count').textContent = list.length + ' total';
