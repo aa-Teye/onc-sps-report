@@ -3449,7 +3449,6 @@
       }
       if (step === 4) {
         if (!state.prayerDone) { showGlobalAlert('Please answer the prayer question', 'error'); return; }
-        if (!state.offeringGiven) { showGlobalAlert('Please specify whether an offering was given', 'error'); return; }
         const soulsYesBtn = document.getElementById('mcNewSoulsYes');
         if (soulsYesBtn && soulsYesBtn.classList.contains('selected')) {
           if (!state.newSouls || state.newSouls < 1) {
@@ -3700,7 +3699,6 @@
       }
       if (step === 3) {
         if (!state.prayerDone) { showGlobalAlert('Please answer the prayer question', 'error'); return; }
-        if (!state.offeringGiven) { showGlobalAlert('Please specify whether an offering was given', 'error'); return; }
         const yesBtn = document.getElementById('newMemberYesBtn');
         if (yesBtn && yesBtn.classList.contains('selected')) {
           const n = parseInt(document.getElementById('newMembersCountInput').value) || 0;
