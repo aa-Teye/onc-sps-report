@@ -2729,7 +2729,16 @@
       if (sessionActive && savedShep && savedType) {
         state.shepherd = savedShep;
         state.shepherdType = savedType;
-        
+
+        // Returning session skips the intro screen entirely — make sure the
+        // intro videos (autoplay baked into their src) don't keep playing
+        // silently in the background behind the landing page.
+        if (countdownInterval) clearInterval(countdownInterval);
+        var introIframe1 = document.getElementById('player1_iframe');
+        if (introIframe1) introIframe1.src = '';
+        var introIframe2 = document.getElementById('player2_iframe');
+        if (introIframe2) introIframe2.src = '';
+
         // Welcome message
         var welcomeMsgEl = document.getElementById('welcomeMsg');
         if (welcomeMsgEl) {
