@@ -5766,8 +5766,8 @@
             list.push({
               type: 'SPS',
               shepherd: r.shepherd,
-              date: r.sessionDate || r.submissionDate || r.date || r.timestamp,
-              time: r.sessionTime,
+              date: r.submissionDate || r.sessionDate || r.date || r.timestamp,
+              time: r.submissionTime || r.sessionTime,
               present: toArray(r.membersPresent).length,
               total: r.totalMembers || 4,
               rate: getRate(r),
@@ -5785,7 +5785,7 @@
               type: 'MC',
               shepherd: r.shepherd,
               date: r.submissionDate || r.sessionDate || r.date || r.timestamp,
-              time: r.submissionTime,
+              time: r.submissionTime || r.sessionTime,
               present: toArray(r.membersPresent).length,
               total: r.totalMembers || 4,
               rate: pct,
@@ -7768,7 +7768,7 @@
           }
 
           var sorted = mc.slice().sort(function (a, b) {
-            return new Date(b.submissionDate) - new Date(a.submissionDate);
+            return (b.reportId || '').localeCompare(a.reportId || '');
           });
 
           tbody.innerHTML = sorted.map(function (r, i) {
