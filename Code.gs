@@ -350,10 +350,13 @@ function submitReport(data) {
       'Session Date', 'Session Day', 'Session Time', 'Shepherd',
       'Members Present', 'Members Absent', 'Attendance Count', 'Total Members',
       'Attendance Rate', 'Bible Study Topic', 'Topic Covered', 'Prayer Done',
-      'Concerns', 'Notes', 'Week Number', 'Photo URL', 'Offering Given'
+      'Concerns', 'Notes', 'Week Number', 'Photo URL', 'Offering Given', 'Offering Amount'
     ];
     sheet.appendRow(headers);
     styleHeaders(sheet, headers.length);
+  }
+  if (sheet.getRange(1, 22).getValue() !== 'Offering Amount') {
+    sheet.getRange(1, 22).setValue('Offering Amount');
   }
 
   const now            = new Date();
@@ -383,10 +386,11 @@ function submitReport(data) {
     sessionDate, sessionDay, sessionTime, data.shepherd || '',
     membersPresent, membersAbsent, attendanceCount, totalMembers,
     attendanceRate, data.bibleTopic || '', data.topicCovered || '',
-    data.prayerDone || '', concerns, data.notes || '', weekNumber, data.photoUrl || '', data.offeringGiven || ''
+    data.prayerDone || '', concerns, data.notes || '', weekNumber, data.photoUrl || '', data.offeringGiven || '',
+    data.offeringAmount || ''
   ]);
 
-  sheet.autoResizeColumns(1, 21);
+  sheet.autoResizeColumns(1, 22);
   logAudit(ss, 'REPORT_SUBMITTED', data.shepherd, reportId);
   return jsonResponse({ status: 'success', reportId });
 }
@@ -420,7 +424,8 @@ function getReports() {
     notes:           row[17],
     weekNumber:      row[18],
     photoUrl:        row[19],
-    offeringGiven:   row[20]
+    offeringGiven:   row[20],
+    offeringAmount:  row[21]
   }));
 
   return { status: 'success', reports };
@@ -441,10 +446,13 @@ function submitMicrochurchReport(data) {
       'Session Date', 'Session Day', 'Session Time', 'Shepherd', 'Meeting Type',
       'Members Present', 'Members Absent', 'Attendance Count', 'Total Members',
       'Attendance Rate', 'Bible Study Topic', 'Topic Covered', 'Actual Topic',
-      'Prayer Done', 'New Souls', 'New Soul Names', 'Concerns', 'Notes', 'Week Number', 'Photo URL', 'Offering Given'
+      'Prayer Done', 'New Souls', 'New Soul Names', 'Concerns', 'Notes', 'Week Number', 'Photo URL', 'Offering Given', 'Offering Amount'
     ];
     sheet.appendRow(headers);
     styleHeaders(sheet, headers.length);
+  }
+  if (sheet.getRange(1, 26).getValue() !== 'Offering Amount') {
+    sheet.getRange(1, 26).setValue('Offering Amount');
   }
 
   const now             = new Date();
@@ -482,10 +490,11 @@ function submitMicrochurchReport(data) {
     attendanceCount, totalMembers, attendanceRate,
     data.bibleTopic || '', data.topicCovered || '', data.actualTopic || '',
     data.prayerDone || '', newSoulsValue, newSoulNamesValue,
-    concerns, data.notes || '', weekNumber, data.photoUrl || '', data.offeringGiven || ''
+    concerns, data.notes || '', weekNumber, data.photoUrl || '', data.offeringGiven || '',
+    data.offeringAmount || ''
   ]);
 
-  sheet.autoResizeColumns(1, 25);
+  sheet.autoResizeColumns(1, 26);
   logAudit(ss, 'MC_REPORT_SUBMITTED', data.shepherd, reportId);
   return jsonResponse({ status: 'success', reportId });
 }
@@ -523,7 +532,8 @@ function getMicrochurchReports() {
     notes:           row[21],
     weekNumber:      row[22],
     photoUrl:        row[23],
-    offeringGiven:   row[24]
+    offeringGiven:   row[24],
+    offeringAmount:  row[25]
   }));
 
   return { status: 'success', reports };

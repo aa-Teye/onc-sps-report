@@ -6030,7 +6030,7 @@
             concernCard = '<div style="margin-top:8px;padding:10px 12px;background:#fff7ed;border-radius:8px;border-left:3px solid #f97316;max-width:600px;margin-bottom:12px;text-align:left;"><div style="font-weight:700;color:#c2410c;font-size:12px;margin-bottom:4px;">⚠ Concern Flagged</div><div style="color:#7c2d12;font-size:13px;">' + cText + '</div></div>';
           }
 
-          var detailRow = '<tr id="rep-details-' + i + '" style="display:none;background:#f8fafc;"><td colspan="12" style="padding:16px;"><div style="background:white;border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);"><div style="font-weight:800;color:var(--navy);font-size:14px;margin-bottom:10px;text-align:left;">📋 Report Details — ' + r.shepherd + '</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px;font-size:13px;text-align:left;"><div style="color:var(--gray);"><strong>Date:</strong> ' + (r.sessionDate || r.date || '') + ' ' + formatTime(r.sessionTime) + '</div><div style="color:var(--gray);"><strong>Attendance Rate:</strong> ' + getRate(r) + '%</div><div style="color:var(--gray);"><strong>Topic Covered:</strong> ' + (r.actualTopic || r.bibleTopic || '—') + ' (' + (r.topicCovered || 'N/A').toUpperCase() + ')</div><div style="color:var(--gray);"><strong>Prayer Done:</strong> ' + (r.prayerDone || 'N/A').toUpperCase() + '</div><div style="color:var(--gray);"><strong>Offering Given:</strong> ' + (r.offeringGiven || 'N/A').toUpperCase() + '</div></div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#15803d;">Present:</strong> ' + present + '</div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#991b1b;">Absent:</strong> ' + absent + '</div>' + concernCard + '</div></td></tr>';
+          var detailRow = '<tr id="rep-details-' + i + '" style="display:none;background:#f8fafc;"><td colspan="12" style="padding:16px;"><div style="background:white;border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);"><div style="font-weight:800;color:var(--navy);font-size:14px;margin-bottom:10px;text-align:left;">📋 Report Details — ' + r.shepherd + '</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px;font-size:13px;text-align:left;"><div style="color:var(--gray);"><strong>Date:</strong> ' + (r.sessionDate || r.date || '') + ' ' + formatTime(r.sessionTime) + '</div><div style="color:var(--gray);"><strong>Attendance Rate:</strong> ' + getRate(r) + '%</div><div style="color:var(--gray);"><strong>Topic Covered:</strong> ' + (r.actualTopic || r.bibleTopic || '—') + ' (' + (r.topicCovered || 'N/A').toUpperCase() + ')</div><div style="color:var(--gray);"><strong>Prayer Done:</strong> ' + (r.prayerDone || 'N/A').toUpperCase() + '</div><div style="color:var(--gray);"><strong>Offering Given:</strong> ' + (r.offeringGiven || 'N/A').toUpperCase() + (r.offeringGiven === 'yes' && r.offeringAmount ? ' (' + r.offeringAmount + ')' : '') + '</div></div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#15803d;">Present:</strong> ' + present + '</div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#991b1b;">Absent:</strong> ' + absent + '</div>' + concernCard + '</div></td></tr>';
 
           return mainRow + detailRow;
         }).join('') : '<tr><td colspan="12" class="empty"><div class="icon">📭</div><p>No reports match filters</p></td></tr>';
@@ -7805,7 +7805,9 @@
               '<td><span class="badge ' + (r.prayerDone === 'yes' ? 'yes' : 'no') + '">' +
               (r.prayerDone || '—').toUpperCase() + '</span></td>' +
               '<td><span class="badge ' + (r.offeringGiven === 'yes' ? 'yes' : 'no') + '">' +
-              (r.offeringGiven || '—').toUpperCase() + '</span></td>' +
+              (r.offeringGiven || '—').toUpperCase() + '</span>' +
+              (r.offeringGiven === 'yes' && r.offeringAmount ? '<br><span style="font-size:11px;color:#64748b;">' + r.offeringAmount + '</span>' : '') +
+              '</td>' +
               '<td>' + parseSouls(r.newSouls) + '</td>' +
               '<td>' + photoCell + '</td>' +
               '</tr>';
@@ -8013,7 +8015,7 @@
       }
 
       function exportMC_CSV() {
-        var csv = ['Date,Shepherd,Meeting Type,Present,Absent,Attendance Rate,Topic,Prayer,New Souls,Concerns'];
+        var csv = ['Date,Shepherd,Meeting Type,Present,Absent,Attendance Rate,Topic,Prayer,Offering,Offering Amount,New Souls,Concerns'];
         allMicrochurchReports.forEach(function (r) {
           var concernsText = 'None';
           if (r.concerns && typeof r.concerns === 'object') {
@@ -8031,6 +8033,8 @@
             getMcRate(r) + '%',
             (r.actualTopicCovered || r.topicCovered || '').replace(/"/g, '""'),
             r.prayerDone || 'no',
+            r.offeringGiven || 'no',
+            r.offeringGiven === 'yes' ? (r.offeringAmount || '') : '',
             r.newSoulsCount || 0,
             '"' + concernsText.replace(/"/g, '""') + '"'
           ];
