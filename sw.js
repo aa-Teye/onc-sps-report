@@ -34,11 +34,21 @@ try {
   // Firebase scripts unavailable (offline install) — push disabled; cache still works.
 }
 
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+
 // Open / focus the app when a notification is tapped.
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
-  var target = (event.notification.data && event.notification.data.url)
-    || (self.location.origin + '/onc-sps-report/');
+  var data = event.notification.data || {};
+  var target = data.url || (self.location.origin + '/onc-sps-report/');
+
+  // Fire-and-forget so admin can see which shepherds actually opened the push.
+  if (data.notificationId && data.shepherdName) {
+    fetch(SCRIPT_URL + '?action=logNotificationClick'
+      + '&notificationId=' + encodeURIComponent(data.notificationId)
+      + '&shepherdName=' + encodeURIComponent(data.shepherdName), { mode: 'no-cors' }).catch(function () {});
+  }
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
       for (var i = 0; i < list.length; i++) {
@@ -51,7 +61,7 @@ self.addEventListener('notificationclick', function (event) {
 });
 
 // ── Cache ────────────────────────────────────────────────────────
-const CACHE_NAME = 'onc-sps-v28';
+const CACHE_NAME = 'onc-sps-v29';
 const CACHE_URLS = [
   '/onc-sps-report/',
   '/onc-sps-report/index.html',

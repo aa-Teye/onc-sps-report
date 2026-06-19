@@ -127,6 +127,8 @@ function doGet(e) {
     else if (action === 'getZoneSnapshots')       response = getZoneSnapshots();
     else if (action === 'getShepherdScores')      response = getShepherdScores();
     else if (action === 'getFCMTokens')           response = getFCMTokens();
+    else if (action === 'logNotificationClick')   response = logNotificationClick(e.parameter.notificationId, e.parameter.shepherdName);
+    else if (action === 'getNotificationLog')     response = getNotificationLog(e.parameter.notificationId);
     else                                          response = { status: 'ok', message: 'ONC SPS Backend v4.0 Running' };
   } catch (err) {
     response = { status: 'error', message: err.toString() };
@@ -2145,6 +2147,7 @@ function sendScheduledReminders() {
 // ============================================================
 
 const FCM_TOKENS_SHEET = 'FCMTokens';
+const NOTIFICATION_LOG_SHEET = 'NotificationLog';
 
 // Returns an OAuth2 access token for the Firebase service account using
 // the JWT bearer flow. Credentials come from Script Properties — never
@@ -2250,6 +2253,7 @@ function sendAnnouncementNotification(data) {
       const projectId   = props.getProperty('FIREBASE_PROJECT_ID');
       const appUrl      = (props.getProperty('APP_URL') || 'https://aa-teye.github.io/onc-sps-report/').replace(/\/?$/, '/');
       const accessToken = getFCMAccessToken();
+      const notificationId = data.notificationId || ('ANN-' + Date.now());
 
       const tokenSheet = ss.getSheetByName(FCM_TOKENS_SHEET);
       let targets = tokenSheet ? getSheetRecords(tokenSheet).filter(function (r) { return r.Token; }) : [];
@@ -2264,6 +2268,9 @@ function sendAnnouncementNotification(data) {
 
       let sent = 0, failed = 0;
       const staleNames = [];
+      const logSheet = ensureSheet(NOTIFICATION_LOG_SHEET,
+        ['AnnouncementID', 'Title', 'ShepherdName', 'Role', 'Status', 'SentDate', 'ClickedDate']);
+      const logRows = [];
 
       targets.forEach(function (r) {
         const resp = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
@@ -2274,6 +2281,7 @@ function sendAnnouncementNotification(data) {
             message: {
               token: r.Token,
               notification: { title: title, body: body },
+              data: { notificationId: notificationId, shepherdName: r.ShepherdName || '' },
               webpush: {
                 headers: { Urgency: 'high' },
                 notification: {
@@ -2289,8 +2297,12 @@ function sendAnnouncementNotification(data) {
           muteHttpExceptions: true
         });
 
+        const now = new Date();
+        const nowStr = formatDate(now) + ' ' + formatTime(now);
+
         if (resp.getResponseCode() === 200) {
           sent++;
+          logRows.push([notificationId, title, r.ShepherdName || '', r.Role || '', 'sent', nowStr, '']);
         } else {
           failed++;
           let errCode = '';
@@ -2305,8 +2317,13 @@ function sendAnnouncementNotification(data) {
             staleNames.push(r.ShepherdName);
           }
           logAudit(ss, 'FCM_TOKEN_FAILED', r.ShepherdName || '', (errCode || resp.getResponseCode()) + ' — ' + resp.getContentText().substring(0, 80));
+          logRows.push([notificationId, title, r.ShepherdName || '', r.Role || '', 'failed', nowStr, '']);
         }
       });
+
+      if (logRows.length > 0) {
+        logSheet.getRange(logSheet.getLastRow() + 1, 1, logRows.length, logRows[0].length).setValues(logRows);
+      }
 
       // Remove stale tokens from the sheet
       if (staleNames.length > 0 && tokenSheet) {
@@ -2355,6 +2372,51 @@ function sendPushToToken(token, title, body) {
   });
 
   return response.getResponseCode();
+}
+
+// Called by sw.js's notificationclick handler (fire-and-forget GET) to mark
+// a shepherd's row in NotificationLog as opened.
+function logNotificationClick(notificationId, shepherdName) {
+  if (!notificationId || !shepherdName) return { status: 'error', message: 'Missing notificationId or shepherdName' };
+
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(NOTIFICATION_LOG_SHEET);
+  if (!sheet) return { status: 'error', message: 'No log sheet' };
+
+  const records = getSheetRecords(sheet);
+  const match = records.find(function (r) {
+    return r.AnnouncementID === notificationId && r.ShepherdName === shepherdName && !r.ClickedDate;
+  });
+  if (!match) return { status: 'success' };
+
+  const now = new Date();
+  sheet.getRange(match._row, 7).setValue(formatDate(now) + ' ' + formatTime(now));
+  return { status: 'success' };
+}
+
+// Returns per-shepherd sent/clicked status for one announcement, used by the
+// admin dashboard to show delivery + open tracking for a posted notification.
+function getNotificationLog(notificationId) {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(NOTIFICATION_LOG_SHEET);
+  if (!sheet || sheet.getLastRow() <= 1) return { status: 'success', entries: [] };
+
+  let records = getSheetRecords(sheet);
+  if (notificationId) {
+    records = records.filter(function (r) { return r.AnnouncementID === notificationId; });
+  }
+  const entries = records.map(function (r) {
+    return {
+      announcementId: r.AnnouncementID || '',
+      title:          r.Title || '',
+      shepherdName:   r.ShepherdName || '',
+      role:           r.Role || '',
+      status:         r.Status || '',
+      sentDate:       r.SentDate || '',
+      clickedDate:    r.ClickedDate || ''
+    };
+  });
+  return { status: 'success', entries: entries };
 }
 
 // ============================================================

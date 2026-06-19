@@ -9240,7 +9240,8 @@
               audience: audienceTopics[audience] || 'all-shepherds',
               rawAudience: audience,
               sendPush: !!(sendPush && sendPush.checked),
-              sendTelegram: !!(sendTelegram && sendTelegram.checked)
+              sendTelegram: !!(sendTelegram && sendTelegram.checked),
+              notificationId: announcement.id
             })
           }).catch(function() {});
         }
@@ -9558,15 +9559,56 @@
               (a.expiry ? '<span>Expires: '+
                 a.expiry+'</span>' : '') +
               '</div>' +
+              '<div style="margin-top:10px;display:flex;gap:8px;">'+
               '<button onclick="deleteAnnouncement(\''+
               a.id+'\')" '+
-              'style="margin-top:10px;padding:6px 12px;'+
+              'style="padding:6px 12px;'+
               'background:#fee2e2;color:#b91c1c;'+
               'border:none;border-radius:6px;'+
               'cursor:pointer;font-size:12px;'+
               'font-weight:700;">🗑 Delete</button>'+
+              '<button onclick="toggleDeliveryView(\''+a.id+'\')" '+
+              'style="padding:6px 12px;'+
+              'background:#e0e7ff;color:#3730a3;'+
+              'border:none;border-radius:6px;'+
+              'cursor:pointer;font-size:12px;'+
+              'font-weight:700;">📊 Delivery</button>'+
+              '</div>'+
+              '<div id="deliveryBox_'+a.id+'" style="display:none;margin-top:10px;'+
+              'font-size:12px;border-top:1px solid #e2e8f0;padding-top:8px;"></div>'+
               '</div>';
           }).join('');
+      }
+
+      function toggleDeliveryView(announcementId) {
+        var box = document.getElementById('deliveryBox_' + announcementId);
+        if (!box) return;
+        if (box.style.display === 'block') { box.style.display = 'none'; return; }
+        box.style.display = 'block';
+        box.innerHTML = 'Loading…';
+        fetch(SCRIPT_URL + '?action=getNotificationLog&notificationId=' + encodeURIComponent(announcementId) + '&cb=' + Date.now())
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var entries = (data && data.entries) || [];
+            if (entries.length === 0) {
+              box.innerHTML = '<span style="color:#64748b;">No push delivery recorded for this announcement.</span>';
+              return;
+            }
+            var clickedCount = entries.filter(function(e) { return e.clickedDate; }).length;
+            box.innerHTML = '<div style="font-weight:700;margin-bottom:6px;color:#0a1628;">'+
+              '🔔 Sent to ' + entries.length + ' · 👁 Opened by ' + clickedCount + '</div>' +
+              entries.map(function(e) {
+                var statusColor = e.status === 'sent' ? '#166534' : '#991b1b';
+                var clicked = e.clickedDate
+                  ? '<span style="color:#1d4ed8;">👁 Opened ' + e.clickedDate + '</span>'
+                  : '<span style="color:#9ca3af;">Not opened yet</span>';
+                return '<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;gap:8px;">'+
+                  '<span style="color:'+statusColor+';">' + (e.status === 'sent' ? '✅' : '❌') + ' ' + e.shepherdName + '</span>' +
+                  clicked +
+                  '</div>';
+              }).join('');
+          })
+          .catch(function() { box.innerHTML = '<span style="color:#991b1b;">Could not load delivery status.</span>'; });
       }
 
       function toggleAnnouncementActive(id) {
