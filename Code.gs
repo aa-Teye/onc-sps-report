@@ -2084,13 +2084,16 @@ function logAudit(ss, action, user, detail) {
 // TRIGGERS
 // ============================================================
 
-// Run once manually to set up the WhatsApp reminder trigger.
-// WARNING: deletes all existing triggers first — run setupNightlyTrigger() afterwards.
+// Run once manually to set up the push-reminder trigger. Runs hourly; the
+// function itself checks REMINDER_DAYS/REMINDER_TIME from Settings so the
+// schedule can be changed from admin.html without re-running this.
 function setupTrigger() {
-  ScriptApp.getProjectTriggers().forEach(function (t) { ScriptApp.deleteTrigger(t); });
-  ScriptApp.newTrigger('sendScheduledReminders')
-    .timeBased().everyDays(1).atHour(18).create();
-  Logger.log('WhatsApp reminder trigger set up successfully');
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'sendShepherdReportReminders') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('sendShepherdReportReminders')
+    .timeBased().everyHours(1).create();
+  Logger.log('Push reminder trigger set up successfully');
 }
 
 // Run once manually to set up the nightly flag-check trigger (1 am daily).
@@ -2103,43 +2106,133 @@ function setupNightlyTrigger() {
   Logger.log('Nightly flag check trigger set up successfully');
 }
 
-function sendScheduledReminders() {
-  var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('SPS Settings');
-  if (!sheet) return;
+// Hourly trigger (see setupTrigger). Only acts when REMINDER_ENABLED is true,
+// today matches REMINDER_DAYS, and the current hour matches REMINDER_TIME —
+// then pushes a reminder to every SPS/MC shepherd who hasn't yet submitted a
+// report for the current ISO week, and a digest to the three head roles.
+function sendShepherdReportReminders() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var settingsSheet = ss.getSheetByName(SETTINGS_SHEET);
+  if (!settingsSheet) return;
 
-  var data     = sheet.getDataRange().getValues();
   var settings = {};
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0]) settings[data[i][0]] = data[i][1];
-  }
-
+  settingsSheet.getDataRange().getValues().slice(1).forEach(function (row) {
+    if (row[0]) settings[row[0]] = row[1];
+  });
   if (settings['REMINDER_ENABLED'] !== 'true') return;
 
-  var days  = (settings['REMINDER_DAYS'] || 'Monday,Wednesday,Friday').split(',');
-  var today = new Date().toLocaleDateString('en-GB', { weekday: 'long' });
-  if (days.indexOf(today) === -1) return;
+  var tz   = Session.getScriptTimeZone() || 'GMT';
+  var days = (settings['REMINDER_DAYS'] || 'Mon,Wed,Fri').split(',').map(function (d) { return d.trim(); });
+  if (days.indexOf(Utilities.formatDate(new Date(), tz, 'EEE')) === -1) return;
 
-  var message  = settings['REMINDER_MESSAGE'] ||
-    'Hi {name}! Please submit your SPS report today. Link: https://aa-teye.github.io/onc-sps-report/';
-  var contacts = JSON.parse(settings['SHEPHERD_CONTACTS'] || '{}');
+  var configuredHour = parseInt((settings['REMINDER_TIME'] || '08:00').split(':')[0], 10);
+  if (Number(Utilities.formatDate(new Date(), tz, 'H')) !== configuredHour) return;
 
-  SHEPHERD_DIRECTORY.forEach(function (s) {
-    var contact = contacts[s.name] || {};
-    var number  = (typeof contact === 'string') ? contact : (contact.number || s.contact);
-    var apiKey  = (typeof contact === 'object') ? (contact.apiKey || '') : '';
-    if (!number || !apiKey) return;
+  var message = settings['REMINDER_MESSAGE'] || 'Hi {name}! Please submit your report for this week.';
+  var missing = getShepherdsMissingReportThisWeek();
+  var allMissing = missing.missingSPS.concat(missing.missingMC);
+  var ctx = getFCMSendContext();
 
-    var msg = message.replace('{name}', s.name.split(' ')[0]);
-    var url = 'https://api.callmebot.com/whatsapp.php?phone=' + number +
-              '&text=' + encodeURIComponent(msg) + '&apikey=' + apiKey;
-    try {
-      UrlFetchApp.fetch(url);
-      Logger.log('Sent to ' + s.name);
-    } catch (err) {
-      Logger.log('Failed: ' + s.name);
+  if (allMissing.length > 0) {
+    var notificationId = 'REM-' + Utilities.formatDate(new Date(), tz, 'yyyyMMdd');
+    var logSheet = ensureSheet(NOTIFICATION_LOG_SHEET,
+      ['AnnouncementID', 'Title', 'ShepherdName', 'Role', 'Status', 'SentDate', 'ClickedDate']);
+    var logRows = [];
+
+    allMissing.forEach(function (r) {
+      var body = message.replace('{name}', (r.ShepherdName || '').split(' ')[0]);
+      var result = sendFCMPushToToken(ctx, r.Token, 'Report Reminder', body, notificationId, r.ShepherdName);
+      var nowStr = formatDate(new Date()) + ' ' + formatTime(new Date());
+      logRows.push([notificationId, 'Report Reminder', r.ShepherdName || '', r.Role || '', result.success ? 'sent' : 'failed', nowStr, '']);
+    });
+
+    if (logRows.length > 0) {
+      logSheet.getRange(logSheet.getLastRow() + 1, 1, logRows.length, logRows[0].length).setValues(logRows);
     }
+  }
+
+  sendHeadDigests(missing.missingSPS, missing.missingMC, ctx);
+}
+
+// Returns FCM-registered SPS/MC shepherds who have no report logged against
+// the current ISO week number yet.
+function getShepherdsMissingReportThisWeek() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var currentWeek = getWeekNumber(new Date());
+
+  function reportedNames(sheetName) {
+    var sheet = ss.getSheetByName(sheetName);
+    var names = {};
+    if (!sheet || sheet.getLastRow() <= 1) return names;
+    getSheetRecords(sheet).forEach(function (r) {
+      if (Number(r['Week Number']) === currentWeek && r.Shepherd) names[r.Shepherd] = true;
+    });
+    return names;
+  }
+
+  var reportedSPS = reportedNames(SHEET_NAME);
+  var reportedMC  = reportedNames(MC_SHEET_NAME);
+
+  var tokenSheet = ss.getSheetByName(FCM_TOKENS_SHEET);
+  var tokens = tokenSheet ? getSheetRecords(tokenSheet).filter(function (r) { return r.Token; }) : [];
+
+  return {
+    missingSPS: tokens.filter(function (r) { return r.Role === 'sps' && !reportedSPS[r.ShepherdName]; }),
+    missingMC:  tokens.filter(function (r) { return r.Role === 'mc'  && !reportedMC[r.ShepherdName]; })
+  };
+}
+
+// Counts open (non-closed, non-visited) visitations past their due date —
+// the "missing report" equivalent for the First Timers Head.
+function getOverdueVisitationCount() {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(VISITATIONS_SHEET);
+  if (!sheet || sheet.getLastRow() <= 1) return 0;
+
+  var now = new Date();
+  return getSheetRecords(sheet).filter(function (r) {
+    if (r.Status === 'Closed' || r.Status === 'Visited') return false;
+    if (!r.DueDate) return false;
+    var due = r.DueDate instanceof Date ? r.DueDate : new Date(r.DueDate);
+    return !isNaN(due.getTime()) && due < now;
+  }).length;
+}
+
+// Pushes one summary notification each to SPS Head, MC Head, and First
+// Timers Head — only if they have something to act on and a registered device.
+function sendHeadDigests(missingSPS, missingMC, ctx) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var tokenSheet = ss.getSheetByName(FCM_TOKENS_SHEET);
+  if (!tokenSheet) return;
+  var tokens = getSheetRecords(tokenSheet).filter(function (r) { return r.Token; });
+
+  var overdueVisitations = getOverdueVisitationCount();
+  var jobs = [
+    { role: 'spshead', count: missingSPS.length, title: 'SPS Report Reminder',
+      body: missingSPS.length + ' SPS shepherd(s) haven’t submitted this week’s report.' },
+    { role: 'mchead', count: missingMC.length, title: 'MC Report Reminder',
+      body: missingMC.length + ' MC shepherd(s) haven’t submitted this week’s report.' },
+    { role: 'ftshead', count: overdueVisitations, title: 'Visitation Follow-up Reminder',
+      body: overdueVisitations + ' first-timer visitation(s) are overdue follow-up.' }
+  ];
+
+  var notificationId = 'HEADDIGEST-' + formatDate(new Date()).replace(/\//g, '-');
+  var logSheet = ensureSheet(NOTIFICATION_LOG_SHEET,
+    ['AnnouncementID', 'Title', 'ShepherdName', 'Role', 'Status', 'SentDate', 'ClickedDate']);
+  var logRows = [];
+
+  jobs.forEach(function (job) {
+    if (job.count === 0) return;
+    var headToken = tokens.find(function (r) { return r.Role === job.role; });
+    if (!headToken) return;
+    var result = sendFCMPushToToken(ctx, headToken.Token, job.title, job.body, notificationId, headToken.ShepherdName);
+    var nowStr = formatDate(new Date()) + ' ' + formatTime(new Date());
+    logRows.push([notificationId, job.title, headToken.ShepherdName || '', job.role, result.success ? 'sent' : 'failed', nowStr, '']);
   });
+
+  if (logRows.length > 0) {
+    logSheet.getRange(logSheet.getLastRow() + 1, 1, logRows.length, logRows[0].length).setValues(logRows);
+  }
 }
 
 // ============================================================
@@ -2189,6 +2282,57 @@ function getFCMAccessToken() {
   const result = JSON.parse(response.getContentText());
   if (!result.access_token) throw new Error('Failed to get FCM access token: ' + response.getContentText());
   return result.access_token;
+}
+
+// Bundles the access token + project config needed for one batch of FCM
+// sends, so callers fetch the OAuth token once instead of per-recipient.
+function getFCMSendContext() {
+  const props = PropertiesService.getScriptProperties();
+  return {
+    accessToken: getFCMAccessToken(),
+    projectId:   props.getProperty('FIREBASE_PROJECT_ID'),
+    appUrl:      (props.getProperty('APP_URL') || 'https://aa-teye.github.io/onc-sps-report/').replace(/\/?$/, '/')
+  };
+}
+
+// Sends one push to one device token, tagging it with notificationId +
+// shepherdName (via the FCM "data" payload) so sw.js's notificationclick
+// handler can report opens back via logNotificationClick.
+function sendFCMPushToToken(ctx, token, title, body, notificationId, shepherdName) {
+  const resp = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + ctx.projectId + '/messages:send', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + ctx.accessToken },
+    payload: JSON.stringify({
+      message: {
+        token: token,
+        notification: { title: title, body: body },
+        data: { notificationId: notificationId, shepherdName: shepherdName || '' },
+        webpush: {
+          headers: { Urgency: 'high' },
+          notification: {
+            icon:               ctx.appUrl + 'logo.png',
+            badge:              ctx.appUrl + 'logo.png',
+            vibrate:            [200, 100, 200],
+            requireInteraction: true
+          },
+          fcm_options: { link: ctx.appUrl }
+        }
+      }
+    }),
+    muteHttpExceptions: true
+  });
+
+  const success = resp.getResponseCode() === 200;
+  let errCode = '';
+  if (!success) {
+    try {
+      const errBody = JSON.parse(resp.getContentText());
+      const details = errBody.error && errBody.error.details;
+      if (details && details.length) errCode = details[0].errorCode || '';
+    } catch (e) {}
+  }
+  return { success: success, responseCode: resp.getResponseCode(), errCode: errCode, rawBody: success ? '' : resp.getContentText() };
 }
 
 // Returns all FCM token registrations — used by admin to see who has
@@ -2249,10 +2393,7 @@ function sendAnnouncementNotification(data) {
     const body     = (data.message || '').substring(0, 100);
 
     if (data.sendPush !== false) {
-      const props       = PropertiesService.getScriptProperties();
-      const projectId   = props.getProperty('FIREBASE_PROJECT_ID');
-      const appUrl      = (props.getProperty('APP_URL') || 'https://aa-teye.github.io/onc-sps-report/').replace(/\/?$/, '/');
-      const accessToken = getFCMAccessToken();
+      const ctx = getFCMSendContext();
       const notificationId = data.notificationId || ('ANN-' + Date.now());
 
       const tokenSheet = ss.getSheetByName(FCM_TOKENS_SHEET);
@@ -2273,50 +2414,21 @@ function sendAnnouncementNotification(data) {
       const logRows = [];
 
       targets.forEach(function (r) {
-        const resp = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + projectId + '/messages:send', {
-          method: 'post',
-          contentType: 'application/json',
-          headers: { Authorization: 'Bearer ' + accessToken },
-          payload: JSON.stringify({
-            message: {
-              token: r.Token,
-              notification: { title: title, body: body },
-              data: { notificationId: notificationId, shepherdName: r.ShepherdName || '' },
-              webpush: {
-                headers: { Urgency: 'high' },
-                notification: {
-                  icon:               appUrl + 'logo.png',
-                  badge:              appUrl + 'logo.png',
-                  vibrate:            [200, 100, 200],
-                  requireInteraction: true
-                },
-                fcm_options: { link: appUrl }
-              }
-            }
-          }),
-          muteHttpExceptions: true
-        });
-
+        const result = sendFCMPushToToken(ctx, r.Token, title, body, notificationId, r.ShepherdName);
         const now = new Date();
         const nowStr = formatDate(now) + ' ' + formatTime(now);
 
-        if (resp.getResponseCode() === 200) {
+        if (result.success) {
           sent++;
           logRows.push([notificationId, title, r.ShepherdName || '', r.Role || '', 'sent', nowStr, '']);
         } else {
           failed++;
-          let errCode = '';
-          try {
-            const errBody = JSON.parse(resp.getContentText());
-            const details = errBody.error && errBody.error.details;
-            if (details && details.length) errCode = details[0].errorCode || '';
-          } catch (e) {}
           // UNREGISTERED = token expired or app uninstalled — remove it so it
           // doesn't keep appearing in failed counts on every future send.
-          if (errCode === 'UNREGISTERED' || resp.getResponseCode() === 404) {
+          if (result.errCode === 'UNREGISTERED' || result.responseCode === 404) {
             staleNames.push(r.ShepherdName);
           }
-          logAudit(ss, 'FCM_TOKEN_FAILED', r.ShepherdName || '', (errCode || resp.getResponseCode()) + ' — ' + resp.getContentText().substring(0, 80));
+          logAudit(ss, 'FCM_TOKEN_FAILED', r.ShepherdName || '', (result.errCode || result.responseCode) + ' — ' + result.rawBody.substring(0, 80));
           logRows.push([notificationId, title, r.ShepherdName || '', r.Role || '', 'failed', nowStr, '']);
         }
       });

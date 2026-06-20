@@ -2050,13 +2050,6 @@
         <!-- TAB 8: SETTINGS -->
         <div class="tab-panel" id="panel-settings">
           <div class="export-section">
-            <h3>📱 WhatsApp Reminders</h3>
-            <button onclick="sendReminders()" id="btn-send-reminders"
-              style="padding:12px 24px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:10px;">📱
-              Send WhatsApp Reminder to All</button>
-            <div id="reminder-progress" style="font-size:13px;font-weight:600;color:var(--navy);"></div>
-          </div>
-          <div class="export-section">
             <h3>🔐 Change Admin PIN</h3>
             <div style="display:flex;flex-direction:column;gap:10px;max-width:320px;">
               <input type="password" id="pin-current" placeholder="Current PIN"
@@ -2100,17 +2093,8 @@
           </div>
 
           <div class="export-section">
-            <h3>📞 Shepherd WhatsApp Contacts</h3>
-            <div id="contacts-grid" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
-            <button onclick="saveContacts()"
-              style="padding:12px 24px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾
-              Save Contacts</button>
-            <div id="contacts-msg" style="display:none;color:#15803d;font-size:13px;font-weight:600;margin-top:8px;">
-            </div>
-          </div>
-
-          <div class="export-section">
-            <h3>🔔 Reminder Settings</h3>
+            <h3>🔔 Push Reminder Settings</h3>
+            <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">Automatically pushes a reminder to any shepherd who hasn't submitted their SPS/MC report yet this week, on the days below. SPS Head, MC Head, and First Timers Head also get a phone notification summarizing who's missing (heads must log in once on their phone for notifications to register).</p>
             <div style="display:flex;flex-direction:column;gap:14px;max-width:480px;">
               <label
                 style="display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;color:var(--navy);"><input
@@ -2145,8 +2129,8 @@
               <div>
                 <div
                   style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">
-                  Message template:</div><textarea id="rem-msg" rows="3"
-                  style="width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px;outline:none;resize:vertical;">Hi {name}! Please submit your SPS report. Link: {link}</textarea>
+                  Push message:</div><textarea id="rem-msg" rows="3"
+                  style="width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px;outline:none;resize:vertical;">Hi {name}! Please submit your report for this week.</textarea>
               </div>
               <button onclick="saveReminder()"
                 style="padding:12px 24px;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">💾
@@ -3578,6 +3562,63 @@
       if (typeof firebase !== 'undefined' && !firebase.apps.length) {
         firebase.initializeApp(FIREBASE_CONFIG);
       }
+      const VAPID_KEY = "BLWf1yup0C_ZZGo3ISrZ0cIggiHjkkH9Xz08pgw_OWseMrdYLvhjRnyqZU_LLBQMD68KSjRi4XaGq9SgMO5LJvw";
+
+      // Push notification registration for the head roles (SPS/MC/First Timers
+      // Head) so they can receive the automated "shepherds missing reports"
+      // digest on their phone. Mirrors index.html's initPushNotifications.
+      var _adminFcmOnMessageBound = false;
+      var HEAD_ROLE_LABELS = { spshead: 'SPS Head', mchead: 'MC Head', ftshead: 'First Timers Head' };
+      function initAdminPushNotifications(roleKey) {
+        var roleLabel = HEAD_ROLE_LABELS[roleKey];
+        if (!roleLabel) return;
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+        if (typeof firebase === 'undefined') return;
+
+        try {
+          Notification.requestPermission().then(function (permission) {
+            if (permission !== 'granted') return;
+            if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+            var messaging = firebase.messaging();
+
+            if (!_adminFcmOnMessageBound) {
+              _adminFcmOnMessageBound = true;
+              messaging.onMessage(function (payload) {
+                var n = payload.notification || {};
+                navigator.serviceWorker.ready.then(function (reg) {
+                  reg.showNotification(n.title || 'ONC SPS', {
+                    body:  n.body  || '',
+                    icon:  '/onc-sps-report/logo.png',
+                    badge: '/onc-sps-report/logo.png',
+                    data:  payload.data || {}
+                  });
+                });
+              });
+            }
+
+            navigator.serviceWorker.ready.then(function (registration) {
+              messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: registration }).then(function (token) {
+                if (!token) return;
+                var savedToken = localStorage.getItem('onc_fcm_token_' + roleKey);
+                if (savedToken === token) return;
+
+                fetch(SCRIPT_URL, {
+                  method: 'POST',
+                  body: JSON.stringify({
+                    action: 'saveFCMToken',
+                    shepherdName: roleLabel,
+                    role: roleKey,
+                    token: token,
+                    platform: navigator.userAgent
+                  })
+                }).then(function () {
+                  localStorage.setItem('onc_fcm_token_' + roleKey, token);
+                }).catch(function () {});
+              }).catch(function () {});
+            }).catch(function () {});
+          }).catch(function () {});
+        } catch (e) {}
+      }
 
       // Professional outline-style action icons (Call / WhatsApp / SMS)
       const ICON_CALL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg>';
@@ -4196,6 +4237,7 @@
           document.getElementById('dashboard').style.display = 'block';
 
           setTimeout(function () { if (window.maybeShowInstallPrompt) window.maybeShowInstallPrompt(); }, 1000);
+          initAdminPushNotifications(currentRole);
 
           // Load cached data instantly
           var cachedReports = localStorage.getItem('onc_cached_reports');
@@ -6911,30 +6953,7 @@
 
       // ── SETTINGS TAB ──
       var currentPIN = localStorage.getItem('onc_pin') || ADMIN_PIN;
-      var shepherdContacts = JSON.parse(localStorage.getItem('onc_contacts') || 'null');
       function initSettings() {
-        // Contacts grid
-        var cg = document.getElementById('contacts-grid');
-        cg.innerHTML = ALL_SHEPHERDS.map(function (s, i) {
-          var num = '';
-          var api = '';
-          if (shepherdContacts && shepherdContacts[s.name]) {
-            if (typeof shepherdContacts[s.name] === 'object') {
-              num = shepherdContacts[s.name].number || s.contact || '';
-              api = shepherdContacts[s.name].apiKey || '';
-            } else {
-              num = shepherdContacts[s.name] || s.contact || '';
-            }
-          } else {
-            num = s.contact || '';
-          }
-          var status = (num && api) ? '🟢 Ready' : (!num ? '🔴 No Number' : '🟡 No API Key');
-
-          return '<div style="display:flex;align-items:center;gap:10px;"><span style="width:160px;font-size:13px;font-weight:600;color:var(--navy);flex-shrink:0;">' + s.name + '</span>' +
-            '<input type="tel" id="ct_' + i + '" data-name="' + s.name + '" value="' + num + '" placeholder="Phone number" style="flex:1;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--navy);outline:none;">' +
-            '<input type="text" id="api_' + i + '" data-name="' + s.name + '" value="' + api + '" placeholder="CallMeBot API key" style="flex:1;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--navy);outline:none;">' +
-            '<span style="width:100px;font-size:12px;text-align:right;">' + status + '</span></div>';
-        }).join('');
         // Reminder settings
         var rem = JSON.parse(localStorage.getItem('onc_reminder') || 'null');
         if (rem) {
@@ -6988,69 +7007,6 @@
         document.getElementById('pin-new').value = '';
         document.getElementById('pin-confirm').value = '';
         setTimeout(function () { msg.textContent = ''; }, 4000);
-      }
-      function saveContacts() {
-        var map = {};
-        document.querySelectorAll('#contacts-grid input[type=tel]').forEach(function (el) {
-          var name = el.dataset.name;
-          var num = el.value.trim();
-          var apiEl = document.getElementById(el.id.replace('ct_', 'api_'));
-          var api = apiEl ? apiEl.value.trim() : '';
-          map[name] = { number: num, apiKey: api };
-        });
-        shepherdContacts = map;
-        localStorage.setItem('onc_contacts', JSON.stringify(map));
-        var msg = document.getElementById('contacts-msg');
-        msg.textContent = '✅ Contacts saved locally.';
-        msg.style.display = 'block';
-        initSettings();
-        setTimeout(function () { msg.textContent = ''; }, 3000);
-      }
-
-      function sendReminders() {
-        var btn = document.getElementById('btn-send-reminders');
-        var prog = document.getElementById('reminder-progress');
-        btn.disabled = true;
-        btn.style.opacity = '0.7';
-        prog.textContent = 'Sending to shepherds...';
-
-        var contacts = JSON.parse(localStorage.getItem('onc_contacts') || '{}');
-        var message = localStorage.getItem('onc_reminder_message') ||
-          'Hi {name}! Please submit your SPS report today. Link: https://aa-teye.github.io/onc-sps-report/';
-
-        var sent = 0;
-        var skipped = 0;
-        var promises = [];
-
-        ALL_SHEPHERDS.forEach(function (s) {
-          var contact = contacts[s.name] || {};
-          var number = contact.number || s.contact;
-          // Backward compatibility if it was saved as a string
-          if (typeof contact === 'string') number = contact;
-          var apiKey = contact.apiKey || '';
-
-          if (!number || !apiKey) {
-            skipped++;
-            return;
-          }
-
-          var personalMessage = message.replace('{name}', s.name.split(' ')[0]);
-          var url = 'https://api.callmebot.com/whatsapp.php?phone=' +
-            number + '&text=' + encodeURIComponent(personalMessage) +
-            '&apikey=' + apiKey;
-
-          promises.push(
-            fetch(url, { mode: 'no-cors' })
-              .then(function () { sent++; })
-              .catch(function () { sent++; })
-          );
-        });
-
-        Promise.all(promises).then(function () {
-          btn.disabled = false;
-          btn.style.opacity = '1';
-          prog.textContent = '✅ Sent to ' + sent + ' | ⚠ Skipped ' + skipped + ' (no API key)';
-        });
       }
       function saveReminder() {
         var days = [];

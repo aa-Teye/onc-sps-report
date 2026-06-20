@@ -5,3 +5,6 @@
 # Local dev-tool config (not part of the deployed app)
 .claude/
 .clasp.json
+
+# Local-only planning/reference doc — not part of the deployed app
+PROJECT_OVERVIEW.md
