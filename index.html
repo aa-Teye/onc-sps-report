@@ -2535,8 +2535,9 @@
 
     function seekerBadge(name) {
       var status = dynamicMemberStatus[name];
-      if (status === 'Pending') return ' <span style="font-size:10px;background:#fde68a;color:#92400e;padding:2px 6px;border-radius:10px;font-weight:700;vertical-align:middle;">PENDING</span>';
-      if (status === 'Seeker') return ' <span style="font-size:10px;background:#bbf7d0;color:#15803d;padding:2px 6px;border-radius:10px;font-weight:700;vertical-align:middle;">SEEKER</span>';
+      // Shepherd-facing label is always "SEEKER" the moment they're reported —
+      // the Pending/Approved distinction is for admin's internal review only.
+      if (status === 'Pending' || status === 'Seeker') return ' <span style="font-size:10px;background:#bbf7d0;color:#15803d;padding:2px 6px;border-radius:10px;font-weight:700;vertical-align:middle;">SEEKER</span>';
       return '';
     }
 
