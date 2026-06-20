@@ -1306,6 +1306,11 @@
             🌱 Growth
           </div>
           <button class="tab-btn"
+            onclick="switchTab('seekers', this)">
+            <span class="icon">🌱</span>
+            <span class="tab-btn-label">Seekers</span>
+          </button>
+          <button class="tab-btn"
             onclick="switchTab('membership', this)">
             <span class="icon">👥</span>
             <span class="tab-btn-label">Membership</span>
@@ -2746,6 +2751,62 @@
             </div>
           </div>
 
+          <div class="tab-panel" id="panel-seekers">
+            <h2 style="margin-bottom:24px;font-size:22px;font-weight:800;color:#0a1628;">
+              🌱 Seekers
+            </h2>
+            <p style="color:#64748b;font-size:13px;margin-bottom:20px;">
+              People a shepherd reported as a new soul/new member. They show up in the shepherd's
+              attendance list right away so they're never reported as "new" twice — review and
+              approve them here, then graduate them to full Member once ready.
+            </p>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;" id="seekerStats"></div>
+
+            <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="font-size:16px;font-weight:800;color:#0a1628;">⏳ Pending Review</h3>
+                <button onclick="loadSeekers()" style="padding:8px 16px;background:#0f2044;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;">🔄 Refresh</button>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:760px;">
+                  <thead>
+                    <tr style="background:#0a1628;color:white;">
+                      <th style="padding:10px;text-align:left;">Name</th>
+                      <th style="padding:10px;text-align:left;">Phone</th>
+                      <th style="padding:10px;text-align:left;">Shepherd</th>
+                      <th style="padding:10px;text-align:center;">Stream</th>
+                      <th style="padding:10px;text-align:center;">Reported</th>
+                      <th style="padding:10px;text-align:center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="seekersPendingBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="font-size:16px;font-weight:800;color:#0a1628;">🌱 Active Seekers</h3>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:760px;">
+                  <thead>
+                    <tr style="background:#0a1628;color:white;">
+                      <th style="padding:10px;text-align:left;">Name</th>
+                      <th style="padding:10px;text-align:left;">Phone</th>
+                      <th style="padding:10px;text-align:left;">Shepherd</th>
+                      <th style="padding:10px;text-align:center;">Stream</th>
+                      <th style="padding:10px;text-align:center;">Approved</th>
+                      <th style="padding:10px;text-align:center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="seekersActiveBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <div class="tab-panel" id="panel-membership">
             <h2 style="margin-bottom:24px;font-size:22px;
               font-weight:800;color:#0a1628;">
@@ -3812,6 +3873,7 @@
 
       var journeyData = [];
       var flagsData = [];
+      var seekersData = [];
       var schoolData = { foundations: [], membership: [] };
 
       var STAGE_LABELS = {
@@ -3925,6 +3987,99 @@
         fetchData('getFlags', function (data) {
           flagsData = (data && data.records) ? data.records : [];
           renderFlags();
+        });
+      }
+
+      // ── SEEKERS TAB ──
+      function loadSeekers() {
+        fetchData('getMembersRoster', function (data) {
+          seekersData = (data && data.members) ? data.members : [];
+          renderSeekers();
+        });
+      }
+
+      function visibleSeekerStream() {
+        // spshead/mchead only act on their own stream; admin/superadmin see both.
+        if (currentRole === 'spshead') return 'sps';
+        if (currentRole === 'mchead') return 'mc';
+        return null;
+      }
+
+      function renderSeekers() {
+        var statsEl = document.getElementById('seekerStats');
+        var pendingBody = document.getElementById('seekersPendingBody');
+        var activeBody = document.getElementById('seekersActiveBody');
+        if (!statsEl || !pendingBody || !activeBody) return;
+
+        var streamFilter = visibleSeekerStream();
+        var visible = streamFilter ? seekersData.filter(function (r) { return r.Stream === streamFilter; }) : seekersData;
+
+        var pending = visible.filter(function (r) { return r.Status === 'Pending'; });
+        var active  = visible.filter(function (r) { return r.Status === 'Seeker'; });
+        var members = visible.filter(function (r) { return r.Status === 'Member'; });
+
+        statsEl.innerHTML = [
+          { label: 'Pending Review', count: pending.length, color: '#fde68a' },
+          { label: 'Active Seekers', count: active.length, color: '#bbf7d0' },
+          { label: 'Graduated to Member', count: members.length, color: '#bfdbfe' }
+        ].map(function (s) {
+          return '<div style="background:white;border-radius:16px;padding:18px;box-shadow:0 1px 8px rgba(0,0,0,.06);border-left:4px solid ' + s.color + ';">' +
+            '<div style="font-size:12px;color:#64748b;margin-bottom:8px;">' + s.label + '</div>' +
+            '<div style="font-size:32px;font-weight:900;color:#0a1628;">' + s.count + '</div></div>';
+        }).join('');
+
+        pendingBody.innerHTML = pending.length ? pending.map(function (r) {
+          return '<tr style="border-bottom:1px solid #e2e8f0;">' +
+            '<td style="padding:10px;font-weight:700;color:#0f2044;">' + (r.Name || '—') + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + (r.Phone || '—') + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + (r.Shepherd || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;">' + (r.Stream === 'sps' ? 'SPS' : 'MC') + '</td>' +
+            '<td style="padding:10px;text-align:center;color:#0f2044;">' + (r.ImportDate || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;"><button onclick="approveSeekerAction(\'' + r.MemberID + '\')" style="padding:8px 14px;background:#16a34a;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">✅ Approve</button></td>' +
+            '</tr>';
+        }).join('') : '<tr><td colspan="6" style="text-align:center;padding:30px;color:#64748b;">No pending seekers right now.</td></tr>';
+
+        var canGraduate = (currentRole === 'admin' || currentRole === 'superadmin');
+        activeBody.innerHTML = active.length ? active.map(function (r) {
+          return '<tr style="border-bottom:1px solid #e2e8f0;">' +
+            '<td style="padding:10px;font-weight:700;color:#0f2044;">' + (r.Name || '—') + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + (r.Phone || '—') + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + (r.Shepherd || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;">' + (r.Stream === 'sps' ? 'SPS' : 'MC') + '</td>' +
+            '<td style="padding:10px;text-align:center;color:#0f2044;">' + (r.ApprovedDate || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;">' + (canGraduate ?
+              '<button onclick="graduateSeekerAction(\'' + r.MemberID + '\')" style="padding:8px 14px;background:#1d4ed8;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🎓 Mark as Member</button>' :
+              '<span style="color:#94a3b8;font-size:12px;">Awaiting graduation</span>') + '</td>' +
+            '</tr>';
+        }).join('') : '<tr><td colspan="6" style="text-align:center;padding:30px;color:#64748b;">No active seekers right now.</td></tr>';
+      }
+
+      function approveSeekerAction(memberId) {
+        fetchDataQuery('approveSeeker', {
+          memberId: memberId,
+          approvedBy: currentRoleName || currentRole || 'Admin'
+        }, function (response) {
+          if (response && response.status === 'success') {
+            loadSeekers();
+            adminToast('✅ Seeker approved');
+          } else {
+            adminToast('❌ Could not approve seeker');
+          }
+        });
+      }
+
+      function graduateSeekerAction(memberId) {
+        if (!confirm('Mark this seeker as a full Member?')) return;
+        fetchDataQuery('markSeekerAsMember', {
+          memberId: memberId,
+          graduatedBy: currentRoleName || currentRole || 'Admin'
+        }, function (response) {
+          if (response && response.status === 'success') {
+            loadSeekers();
+            adminToast('🎓 Marked as Member');
+          } else {
+            adminToast('❌ Could not update seeker');
+          }
         });
       }
 
@@ -4348,7 +4503,7 @@
           setVisibleTabs([
             'overview','analytics','leaderboard',
             'shepherds','reports','announcements',
-            'activity-log','export','reminders','resources'
+            'activity-log','export','reminders','resources','seekers'
           ]);
           
           if (annoSelect) {
@@ -4369,7 +4524,7 @@
             'overview','analytics','leaderboard',
             'mc-shepherds','mc-reports',
             'announcements','activity-log',
-            'export','reminders','resources'
+            'export','reminders','resources','seekers'
           ]);
           
           if (annoSelect) {
@@ -4399,7 +4554,7 @@
             'shepherds','mc-shepherds','zones',
             'reports','mc-reports','first-timers',
             'membership','journey','flags','schools',
-            'announcements','export'
+            'announcements','export','seekers'
           ]);
         }
 
@@ -4809,7 +4964,7 @@
         'mc-overview': 'Microchurch Overview', 'mc-shepherds': 'Microchurch Shepherds', 'mc-members': 'Microchurch Members', 'mc-reports': 'Microchurch Reports Logs',
         'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings', analytics: 'Analytics Dashboard',
         'soul-reports': 'Sunday Soul Reports', 'first-timers': 'First Timers', 'membership': 'Church Membership',
-        'journey': 'Discipleship Journey', 'flags': 'Flags & Alerts', 'schools': 'School Tracking',
+        'journey': 'Discipleship Journey', 'flags': 'Flags & Alerts', 'schools': 'School Tracking', 'seekers': 'Seekers',
         'activity-log': 'Activity Log',
         'announcements': 'Announcements'
       };
@@ -4888,6 +5043,11 @@
           setTimeout(function() {
             buildMembersList();
             renderMembership();
+          }, 150);
+        }
+        if (id === 'seekers') {
+          setTimeout(function() {
+            loadSeekers();
           }, 150);
         }
         if (id === 'journey') {

@@ -129,6 +129,10 @@ function doGet(e) {
     else if (action === 'getFCMTokens')           response = getFCMTokens();
     else if (action === 'logNotificationClick')   response = logNotificationClick(e.parameter.notificationId, e.parameter.shepherdName);
     else if (action === 'getNotificationLog')     response = getNotificationLog(e.parameter.notificationId);
+    else if (action === 'getMembersRoster')       response = getMembersRoster();
+    else if (action === 'getShepherdMembers')     response = getShepherdMembers(e.parameter.shepherd);
+    else if (action === 'approveSeeker')          response = approveSeeker(e.parameter.memberId, e.parameter.approvedBy);
+    else if (action === 'markSeekerAsMember')     response = markSeekerAsMember(e.parameter.memberId, e.parameter.graduatedBy);
     else                                          response = { status: 'ok', message: 'ONC SPS Backend v4.0 Running' };
   } catch (err) {
     response = { status: 'error', message: err.toString() };
@@ -394,6 +398,13 @@ function submitReport(data) {
 
   sheet.autoResizeColumns(1, 22);
   logAudit(ss, 'REPORT_SUBMITTED', data.shepherd, reportId);
+
+  if (Array.isArray(data.newMembers)) {
+    data.newMembers.forEach(function (m) {
+      if (m && m.name) addOrUpdateSeeker(m.name, m.phone, data.shepherd, 'sps', 'SPS New Member');
+    });
+  }
+
   return jsonResponse({ status: 'success', reportId });
 }
 
@@ -498,6 +509,13 @@ function submitMicrochurchReport(data) {
 
   sheet.autoResizeColumns(1, 26);
   logAudit(ss, 'MC_REPORT_SUBMITTED', data.shepherd, reportId);
+
+  if (Array.isArray(data.newSouls)) {
+    data.newSouls.forEach(function (s) {
+      if (s && s.name) addOrUpdateSeeker(s.name, s.phone, data.shepherd, 'mc', 'MC New Soul');
+    });
+  }
+
   return jsonResponse({ status: 'success', reportId });
 }
 
@@ -1964,17 +1982,20 @@ function calculateShepherdScores() {
 }
 
 // ============================================================
-// BULK MEMBER IMPORT
+// MEMBERS / SEEKER PIPELINE
 // ============================================================
+
+const MEMBERS_SHEET  = 'Members';
+const MEMBERS_HEADERS = ['MemberID', 'Name', 'Phone', 'Shepherd', 'Zone', 'Stream', 'ImportDate',
+  'Status', 'Source', 'ApprovedBy', 'ApprovedDate', 'GraduatedBy', 'GraduatedDate'];
 
 function bulkImportMembers(data) {
   if (!Array.isArray(data.members) || !data.members.length)
     return jsonResponse({ status: 'error', message: 'No members provided' });
 
-  var membersHeaders = ['MemberID', 'Name', 'Phone', 'Shepherd', 'Zone', 'Stream', 'ImportDate'];
-  var membersSheet   = ensureSheet('Members', membersHeaders);
-  var importHeaders  = ['ImportID', 'Date', 'ImportedBy', 'RowCount', 'Status'];
-  var importSheet    = ensureSheet('BulkImports', importHeaders);
+  var membersSheet  = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  var importHeaders = ['ImportID', 'Date', 'ImportedBy', 'RowCount', 'Status'];
+  var importSheet   = ensureSheet('BulkImports', importHeaders);
 
   var now      = new Date();
   var importId = 'IMP-' + now.getTime();
@@ -1982,6 +2003,7 @@ function bulkImportMembers(data) {
 
   data.members.forEach(function (m, i) {
     if (!m.name) return;
+    // Bulk-imported rows are presumed already-established members, not seekers.
     membersSheet.appendRow([
       importId + '-' + (i + 1),
       m.name     || '',
@@ -1989,7 +2011,8 @@ function bulkImportMembers(data) {
       m.shepherd || '',
       m.zone     || '',
       m.stream   || 'SPS',
-      formatDate(now)
+      formatDate(now),
+      'Member', 'BulkImport', '', '', '', ''
     ]);
     count++;
   });
@@ -1998,6 +2021,79 @@ function bulkImportMembers(data) {
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'BULK_IMPORT', data.importedBy || 'Admin',
     count + ' members imported (' + importId + ')');
   return jsonResponse({ status: 'success', importId: importId, count: count });
+}
+
+// Adds a person reported as a "new soul"/"new member" to the Members sheet
+// as a Pending seeker (or silently returns the existing record if they're
+// already tracked, matched by name+shepherd) — so the same person doesn't
+// get reported as new every week, and admin/heads can review from the
+// Seekers tab. shepherdName/stream tag who they belong to; source records
+// which report flow created the entry (for audit only).
+function addOrUpdateSeeker(name, phone, shepherdName, stream, source) {
+  name = (name || '').toString().trim();
+  if (!name) return null;
+
+  var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  var records = getSheetRecords(sheet);
+  var existing = records.find(function (r) {
+    return r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase() && r.Shepherd === shepherdName;
+  });
+  if (existing) return existing;
+
+  var now = new Date();
+  var memberId = 'MEM-' + now.getTime() + '-' + Math.floor(Math.random() * 1000);
+  sheet.appendRow([
+    memberId, name, phone || '', shepherdName || '', '', stream || '',
+    formatDate(now), 'Pending', source || '', '', '', '', ''
+  ]);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_ADDED', shepherdName || '', name + ' (' + (source || '') + ')');
+  return { MemberID: memberId, Name: name, Phone: phone || '', Shepherd: shepherdName || '', Zone: '', Stream: stream || '', Status: 'Pending' };
+}
+
+// Full Members roster (Pending/Seeker/Member) — used by the admin Seekers tab.
+function getMembersRoster() {
+  var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  return { status: 'success', members: getSheetRecords(sheet) };
+}
+
+// One shepherd's slice of the roster — merged into their attendance
+// checklist in index.html right after they report a new soul, instead of
+// waiting on admin approval before the person shows up next time.
+function getShepherdMembers(shepherdName) {
+  if (!shepherdName) return { status: 'success', members: [] };
+  var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  var records = getSheetRecords(sheet).filter(function (r) { return r.Shepherd === shepherdName; });
+  return { status: 'success', members: records };
+}
+
+// Admin or the relevant SPS/MC Head confirms a Pending seeker is legitimate.
+function approveSeeker(memberId, approvedBy) {
+  if (!memberId) return { status: 'error', message: 'Missing memberId' };
+  var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  var rec = getSheetRecords(sheet).find(function (r) { return r.MemberID === memberId; });
+  if (!rec) return { status: 'error', message: 'Member not found' };
+
+  var now = new Date();
+  sheet.getRange(rec._row, 8).setValue('Seeker');
+  sheet.getRange(rec._row, 10).setValue(approvedBy || 'Admin');
+  sheet.getRange(rec._row, 11).setValue(formatDate(now));
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_APPROVED', approvedBy || 'Admin', rec.Name);
+  return { status: 'success' };
+}
+
+// Manual admin action: graduates a Seeker to full Member.
+function markSeekerAsMember(memberId, graduatedBy) {
+  if (!memberId) return { status: 'error', message: 'Missing memberId' };
+  var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  var rec = getSheetRecords(sheet).find(function (r) { return r.MemberID === memberId; });
+  if (!rec) return { status: 'error', message: 'Member not found' };
+
+  var now = new Date();
+  sheet.getRange(rec._row, 8).setValue('Member');
+  sheet.getRange(rec._row, 12).setValue(graduatedBy || 'Admin');
+  sheet.getRange(rec._row, 13).setValue(formatDate(now));
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_GRADUATED', graduatedBy || 'Admin', rec.Name);
+  return { status: 'success' };
 }
 
 // ============================================================

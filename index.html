@@ -2528,6 +2528,55 @@
       "IT User": ["Test Member One", "Test Member Two"]
     };
 
+    // Names auto-added from new-soul reports, keyed by name -> 'Pending' | 'Seeker'.
+    // Populated by mergeDynamicSeekers() so a person reported as new doesn't
+    // have to be re-reported every week — they show up here right away.
+    var dynamicMemberStatus = {};
+
+    function seekerBadge(name) {
+      var status = dynamicMemberStatus[name];
+      if (status === 'Pending') return ' <span style="font-size:10px;background:#fde68a;color:#92400e;padding:2px 6px;border-radius:10px;font-weight:700;vertical-align:middle;">PENDING</span>';
+      if (status === 'Seeker') return ' <span style="font-size:10px;background:#bbf7d0;color:#15803d;padding:2px 6px;border-radius:10px;font-weight:700;vertical-align:middle;">SEEKER</span>';
+      return '';
+    }
+
+    function mergeDynamicSeekers(shepherdName, isMC, onDone) {
+      if (!shepherdName) { if (onDone) onDone(); return; }
+      var done = false;
+      var s = document.createElement('script');
+      var cbName = 'onShepherdMembers_' + Date.now();
+
+      window[cbName] = function (data) {
+        if (done) return;
+        done = true;
+        window[cbName] = null;
+
+        var records = (data && data.members) || [];
+        records.forEach(function (r) {
+          if (!r.Name) return;
+          if (r.Status === 'Pending' || r.Status === 'Seeker') {
+            dynamicMemberStatus[r.Name] = r.Status;
+          }
+          if (isMC) {
+            var arr = microchurchShepherdData[shepherdName];
+            if (arr && arr.indexOf(r.Name) === -1) arr.push(r.Name);
+          } else {
+            var entry = shepherdData[shepherdName];
+            if (entry && entry.members.indexOf(r.Name) === -1) entry.members.push(r.Name);
+          }
+        });
+
+        if (document.head.contains(s)) document.head.removeChild(s);
+        if (onDone) onDone();
+      };
+
+      s.src = SCRIPT_URL + '?action=getShepherdMembers&shepherd=' + encodeURIComponent(shepherdName) + '&callback=' + cbName;
+      s.onerror = function () { if (window[cbName]) window[cbName]({}); };
+      document.head.appendChild(s);
+
+      setTimeout(function () { if (window[cbName]) window[cbName]({}); }, 6000);
+    }
+
     const microchurchNames = {
       "Michael Ayisia": "Tesano 1",
       "Michael Ameyaw (Tesano 2)": "Tesano 2",
@@ -3141,6 +3190,7 @@
         shepSel.dispatchEvent(evt);
       }
       buildMemberCards();
+      mergeDynamicSeekers(state.shepherd, false, buildMemberCards);
     }
 
     function goToStep2MC() {
@@ -3220,11 +3270,11 @@
           (present ? '#22c55e' : '#dce7f7') + ';background:' +
           (present ? '#dcfce7' : '#f0f5ff') +
           ';display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s;';
-        card.innerHTML = '<span style="font-weight:700;color:#0f2044;font-size:15px;">' + m +
+        card.innerHTML = '<span style="font-weight:700;color:#0f2044;font-size:15px;">' + m + seekerBadge(m) +
           '</span><span style="font-size:20px;">' + (present ? '✅' : '⭕') + '</span>';
-        card.onclick = function() { 
-          state.attendance[m] = !state.attendance[m]; 
-          buildMCMemberCards(); 
+        card.onclick = function() {
+          state.attendance[m] = !state.attendance[m];
+          buildMCMemberCards();
         };
         container.appendChild(card);
       });
@@ -3475,6 +3525,7 @@
       if (step === 2) {
         if (!state.meetingType) { showGlobalAlert('Please select meeting type', 'error'); return; }
         buildMCMemberCards();
+        mergeDynamicSeekers(state.shepherd, true, buildMCMemberCards);
       }
       if (step === 3) {
         buildMCConcernFields();
@@ -3648,7 +3699,7 @@
           (present ? '#22c55e' : '#dce7f7') + ';background:' +
           (present ? '#dcfce7' : '#f0f5ff') +
           ';display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s;';
-        card.innerHTML = '<span style="font-weight:700;color:#0f2044;font-size:15px;">' + m +
+        card.innerHTML = '<span style="font-weight:700;color:#0f2044;font-size:15px;">' + m + seekerBadge(m) +
           '</span><span style="font-size:20px;">' + (present ? '✅' : '⭕') + '</span>';
         card.onclick = function() { state.attendance[m] = !state.attendance[m]; buildMemberCards(); };
         container.appendChild(card);
