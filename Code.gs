@@ -16,6 +16,7 @@ const SHEPHERD_PIPELINE_SHEET       = 'ShepherdPipeline';
 const SHEPHERD_COHORTS_SHEET        = 'ShepherdCohorts';
 const SUNDAY_ATTENDANCE_SHEET       = 'SundayAttendance';
 const VISITATIONS_SHEET             = 'Visitations';
+const SHEPHERDS_SHEET               = 'Shepherds';
 
 // ============================================================
 // HTTP HANDLERS
@@ -63,6 +64,7 @@ function doPost(e) {
     if (action === 'createBaptismCohort')     return createBaptismCohort(data);
     // ── Sprint 5 POST actions ─────────────────────────────────
     if (action === 'saveZoneConfig')          return saveZoneConfig(data);
+    if (action === 'addShepherd')             return addShepherd(data);
     if (action === 'bulkImportMembers')       return bulkImportMembers(data);
     if (action === 'calculateShepherdScores') return calculateShepherdScores(data);
     // ── FCM Push Notifications ────────────────────────────────
@@ -131,6 +133,7 @@ function doGet(e) {
     else if (action === 'getNotificationLog')     response = getNotificationLog(e.parameter.notificationId);
     else if (action === 'getMembersRoster')       response = getMembersRoster();
     else if (action === 'getShepherdMembers')     response = getShepherdMembers(e.parameter.shepherd);
+    else if (action === 'getDynamicShepherds')    response = getDynamicShepherds();
     else if (action === 'approveSeeker')          response = approveSeeker(e.parameter.memberId, e.parameter.approvedBy);
     else if (action === 'markSeekerAsMember')     response = markSeekerAsMember(e.parameter.memberId, e.parameter.graduatedBy);
     else                                          response = { status: 'ok', message: 'ONC SPS Backend v4.0 Running' };
@@ -2094,6 +2097,51 @@ function markSeekerAsMember(memberId, graduatedBy) {
   sheet.getRange(rec._row, 13).setValue(formatDate(now));
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_GRADUATED', graduatedBy || 'Admin', rec.Name);
   return { status: 'success' };
+}
+
+// ============================================================
+// SHEPHERDS — created by General Overseer / Admin / SPS Head / MC Head
+// from the admin dashboard. Stored here (rather than the hardcoded
+// churchData.js / index.html rosters) so a newly added shepherd is
+// picked up automatically the next time they open the shepherd app.
+// ============================================================
+
+const SHEPHERDS_HEADERS = ['ShepherdID', 'Name', 'Contact', 'Type', 'ZoneOrGroup', 'PIN', 'AddedBy', 'DateAdded'];
+
+function addShepherd(data) {
+  var name = (data.name || '').toString().trim();
+  var type = (data.type || '').toString().toUpperCase(); // 'SPS' or 'MC'
+  if (!name) return jsonResponse({ status: 'error', message: 'Shepherd name is required' });
+  if (type !== 'SPS' && type !== 'MC') return jsonResponse({ status: 'error', message: 'Type must be SPS or MC' });
+
+  var sheet = ensureSheet(SHEPHERDS_SHEET, SHEPHERDS_HEADERS);
+  var records = getSheetRecords(sheet);
+  var dup = records.find(function (r) {
+    return r.Type === type && r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase();
+  });
+  if (dup) return jsonResponse({ status: 'error', message: name + ' is already a ' + type + ' shepherd' });
+
+  var now = new Date();
+  var shepherdId = 'SHP-' + now.getTime();
+  var pin = '0000';
+  sheet.appendRow([
+    shepherdId, name, data.contact || '', type, data.zoneOrGroup || '', pin,
+    data.addedBy || 'Admin', formatDate(now)
+  ]);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SHEPHERD_ADDED', data.addedBy || 'Admin', name + ' (' + type + ')');
+
+  return jsonResponse({
+    status: 'success',
+    shepherd: { ShepherdID: shepherdId, Name: name, Contact: data.contact || '', Type: type, ZoneOrGroup: data.zoneOrGroup || '', PIN: pin }
+  });
+}
+
+// Shepherds added via the admin dashboard (not part of the static roster
+// baked into churchData.js). index.html and admin.html merge these in
+// on load so newly added shepherds show up without a code deploy.
+function getDynamicShepherds() {
+  var sheet = ensureSheet(SHEPHERDS_SHEET, SHEPHERDS_HEADERS);
+  return { status: 'success', shepherds: getSheetRecords(sheet) };
 }
 
 // ============================================================

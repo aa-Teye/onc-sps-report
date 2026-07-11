@@ -1570,6 +1570,10 @@
               <option value="overdue">🟡 Overdue</option>
               <option value="silent">🔴 Silent</option>
             </select>
+            <button id="btnAddSpsShepherd" onclick="openAddShepherdModal('SPS')"
+              style="display:none;padding:10px 18px;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;">
+              ➕ Add SPS Shepherd
+            </button>
           </div>
           <div class="shepherd-grid" id="shepherd-grid"></div>
         </div>
@@ -2324,6 +2328,12 @@
 
           <!-- TAB 10: MICROCHURCH SHEPHERDS -->
           <div class="tab-panel" id="panel-mc-shepherds">
+            <div class="filter-bar">
+              <button id="btnAddMcShepherd" onclick="openAddShepherdModal('MC')"
+                style="display:none;padding:10px 18px;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;">
+                ➕ Add MC Shepherd
+              </button>
+            </div>
             <div id="mcShepherdsGrid" class="cards-grid"
               style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;"></div>
             <div id="mc-shepherds-grid" class="shepherd-grid"></div>
@@ -4641,6 +4651,16 @@
           scoresTabBtn.style.display = (role === 'superadmin' || role === 'admin') ? 'flex' : 'none';
         }
 
+        // Add Shepherd buttons — General Overseer, Admin, and the relevant Head role
+        var btnAddSpsShepherd = document.getElementById('btnAddSpsShepherd');
+        if (btnAddSpsShepherd) {
+          btnAddSpsShepherd.style.display = (role === 'superadmin' || role === 'admin' || role === 'spshead') ? 'inline-block' : 'none';
+        }
+        var btnAddMcShepherd = document.getElementById('btnAddMcShepherd');
+        if (btnAddMcShepherd) {
+          btnAddMcShepherd.style.display = (role === 'superadmin' || role === 'admin' || role === 'mchead') ? 'inline-block' : 'none';
+        }
+
         // Show role badge in topbar
         var roleDisplayNames = {
           'superadmin': '👑 General Overseer',
@@ -5572,6 +5592,7 @@
         _loadAllRunning = true;
         showShimmer();
         document.getElementById('lastUpdated').textContent = 'Loading...';
+        loadDynamicShepherdsAdmin();
 
         var old2 = document.getElementById('spsReportsScript');
         if (old2 && old2.parentNode) 
@@ -6098,6 +6119,146 @@
 
       function toggleShepCard(el) {
         el.classList.toggle('expanded');
+      }
+
+      // ============================================================
+      // ADD SHEPHERD — General Overseer / Admin / SPS Head / MC Head
+      // ============================================================
+      var addShepherdType = 'SPS';
+      var dynamicShepherdsLoaded = false;
+
+      function openAddShepherdModal(type) {
+        addShepherdType = type;
+        document.getElementById('newShepherdName').value = '';
+        document.getElementById('newShepherdContact').value = '';
+        document.getElementById('newShepherdGroup').value = '';
+        var err = document.getElementById('addShepherdErrorMsg');
+        if (err) err.style.display = 'none';
+
+        if (type === 'MC') {
+          document.getElementById('addShepherdModalIcon').textContent = '⛪';
+          document.getElementById('addShepherdModalTitle').textContent = 'Add MC Shepherd';
+          document.getElementById('newShepherdGroupLabel').textContent = 'Microchurch Name';
+          document.getElementById('newShepherdGroup').placeholder = 'e.g. Tesano 5';
+        } else {
+          document.getElementById('addShepherdModalIcon').textContent = '🙏';
+          document.getElementById('addShepherdModalTitle').textContent = 'Add SPS Shepherd';
+          document.getElementById('newShepherdGroupLabel').textContent = 'Zone';
+          document.getElementById('newShepherdGroup').placeholder = 'e.g. Zone 1';
+        }
+
+        document.getElementById('addShepherdModal').style.display = 'flex';
+        setTimeout(function () { document.getElementById('newShepherdName').focus(); }, 150);
+      }
+
+      function closeAddShepherdModal() {
+        document.getElementById('addShepherdModal').style.display = 'none';
+      }
+
+      function submitAddShepherd() {
+        var name = document.getElementById('newShepherdName').value.trim();
+        var contact = document.getElementById('newShepherdContact').value.trim();
+        var group = document.getElementById('newShepherdGroup').value.trim();
+        var err = document.getElementById('addShepherdErrorMsg');
+
+        if (!name) {
+          err.textContent = 'Please enter the shepherd\'s full name.';
+          err.style.display = 'block';
+          return;
+        }
+
+        var dup = (addShepherdType === 'MC' ? ALL_MC_SHEPHERDS : ALL_SHEPHERDS)
+          .some(function (s) { return s.name.toLowerCase() === name.toLowerCase(); });
+        if (dup) {
+          err.textContent = name + ' is already a ' + addShepherdType + ' shepherd.';
+          err.style.display = 'block';
+          return;
+        }
+
+        var btn = document.getElementById('addShepherdSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+
+        var addedByLabel = (currentRole === 'superadmin') ? 'General Overseer' :
+          (currentRole === 'spshead') ? 'SPS Head' :
+          (currentRole === 'mchead') ? 'MC Head' : 'Admin';
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'addShepherd',
+            name: name,
+            contact: contact,
+            type: addShepherdType,
+            zoneOrGroup: group,
+            addedBy: addedByLabel
+          })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          btn.disabled = false;
+          btn.textContent = '➕ Add Shepherd';
+          if (data.status !== 'success') {
+            err.textContent = data.message || 'Could not add shepherd.';
+            err.style.display = 'block';
+            return;
+          }
+
+          if (addShepherdType === 'MC') {
+            ALL_MC_SHEPHERDS.push({ name: name, microchurch: group, contact: contact });
+            window.mcMemberData[name] = window.mcMemberData[name] || [];
+          } else {
+            ALL_SHEPHERDS.push({ name: name, contact: contact, zone: group });
+          }
+          if (window.CHURCH_DATA) {
+            if (addShepherdType === 'MC') {
+              window.CHURCH_DATA.mcShepherds = window.CHURCH_DATA.mcShepherds || [];
+              window.CHURCH_DATA.mcShepherds.push({ name: name, microchurch: group, contact: contact, members: [] });
+            } else {
+              window.CHURCH_DATA.spsShepherds = window.CHURCH_DATA.spsShepherds || [];
+              window.CHURCH_DATA.spsShepherds.push({ name: name, contact: contact, zone: group, members: [] });
+            }
+          }
+
+          closeAddShepherdModal();
+          renderAll();
+          alert('✅ ' + name + ' added as an ' + addShepherdType + ' shepherd. They can sign in on the shepherd app with default PIN 0000.');
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = '➕ Add Shepherd';
+          err.textContent = 'Network error — please try again.';
+          err.style.display = 'block';
+        });
+      }
+
+      // Pulls in shepherds added via this dashboard on a previous session
+      // (stored server-side in the Shepherds sheet) so they show up here too.
+      function loadDynamicShepherdsAdmin() {
+        if (dynamicShepherdsLoaded) return;
+        var cbName = 'onDynamicShepherdsAdmin';
+        window[cbName] = function (data) {
+          dynamicShepherdsLoaded = true;
+          var records = (data && data.shepherds) || [];
+          records.forEach(function (r) {
+            if (!r.Name) return;
+            if (r.Type === 'MC') {
+              if (!ALL_MC_SHEPHERDS.some(function (s) { return s.name === r.Name; })) {
+                ALL_MC_SHEPHERDS.push({ name: r.Name, microchurch: r.ZoneOrGroup || '', contact: r.Contact || '' });
+                window.mcMemberData[r.Name] = window.mcMemberData[r.Name] || [];
+              }
+            } else {
+              if (!ALL_SHEPHERDS.some(function (s) { return s.name === r.Name; })) {
+                ALL_SHEPHERDS.push({ name: r.Name, contact: r.Contact || '', zone: r.ZoneOrGroup || '' });
+              }
+            }
+          });
+          renderAll();
+        };
+        var s = document.createElement('script');
+        s.src = SCRIPT_URL + '?action=getDynamicShepherds&callback=' + cbName;
+        s.onerror = function () { dynamicShepherdsLoaded = true; };
+        document.head.appendChild(s);
       }
 
       function renderMembers() {
@@ -9945,6 +10106,54 @@
         <button type="button" onclick="verifySettingsUnlock()"
           style="width: 100%; padding: 16px; background: #0f2044; color: #fff; border: none; border-radius: 12px; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 15px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(15, 32, 68, 0.15);">
           🔓 Access Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Add Shepherd Modal — General Overseer / Admin / SPS Head / MC Head -->
+    <div id="addShepherdModal"
+      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px;">
+      <div
+        style="background:#fff;border-radius:24px;border:3px solid #0a1628;width:100%;max-width:420px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#0f2044;font-family:'Outfit',sans-serif;position:relative;">
+
+        <button onclick="closeAddShepherdModal()"
+          style="position:absolute;top:20px;right:20px;background:rgba(15,32,68,0.08);border:none;color:#0f2044;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">✕</button>
+
+        <div style="font-size:32px;margin-bottom:6px;" id="addShepherdModalIcon">🙏</div>
+        <h2 id="addShepherdModalTitle"
+          style="font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:#0f2044;margin:0 0 4px;">
+          Add SPS Shepherd</h2>
+        <p style="font-size:13px;color:#64748b;margin:0 0 20px;">They'll be able to sign in with the default PIN
+          <strong>0000</strong> the next time they open the shepherd app.</p>
+
+        <div class="field" style="margin-bottom:14px;">
+          <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Full
+            Name</label>
+          <input type="text" id="newShepherdName" placeholder="e.g. Samuel Boateng"
+            style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:6px;box-sizing:border-box;">
+        </div>
+
+        <div class="field" style="margin-bottom:14px;">
+          <label
+            style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Contact
+            Number</label>
+          <input type="text" id="newShepherdContact" placeholder="e.g. 0551234567"
+            style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:6px;box-sizing:border-box;">
+        </div>
+
+        <div class="field" style="margin-bottom:18px;">
+          <label id="newShepherdGroupLabel"
+            style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Zone</label>
+          <input type="text" id="newShepherdGroup" placeholder="e.g. Zone 1"
+            style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:6px;box-sizing:border-box;">
+        </div>
+
+        <p id="addShepherdErrorMsg" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-bottom:14px;">
+        </p>
+
+        <button type="button" id="addShepherdSubmitBtn" onclick="submitAddShepherd()"
+          style="width:100%;padding:16px;background:#0f2044;color:#fff;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 12px rgba(15,32,68,0.15);">
+          ➕ Add Shepherd
         </button>
       </div>
     </div>

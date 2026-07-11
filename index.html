@@ -2578,6 +2578,50 @@
       setTimeout(function () { if (window[cbName]) window[cbName]({}); }, 6000);
     }
 
+    // Shepherds added via the admin dashboard (General Overseer / Admin /
+    // SPS Head / MC Head) aren't baked into shepherdData/microchurchShepherdData
+    // above — they live in the backend "Shepherds" sheet instead. Merge them
+    // in here so a newly added shepherd shows up in the login list the next
+    // time this page loads, with no code redeploy needed.
+    var dynamicShepherdsMerged = false;
+    function mergeDynamicShepherds(onDone) {
+      if (dynamicShepherdsMerged) { if (onDone) onDone(); return; }
+      var done = false;
+      var s = document.createElement('script');
+      var cbName = 'onDynamicShepherds_' + Date.now();
+
+      window[cbName] = function (data) {
+        if (done) return;
+        done = true;
+        window[cbName] = null;
+        dynamicShepherdsMerged = true;
+
+        var records = (data && data.shepherds) || [];
+        records.forEach(function (r) {
+          if (!r.Name) return;
+          if (r.Type === 'MC') {
+            if (!microchurchShepherdData[r.Name]) {
+              microchurchShepherdData[r.Name] = [];
+              microchurchNames[r.Name] = r.ZoneOrGroup || '';
+            }
+          } else {
+            if (!shepherdData[r.Name]) {
+              shepherdData[r.Name] = { members: [], pin: r.PIN || '0000' };
+            }
+          }
+        });
+
+        if (document.head.contains(s)) document.head.removeChild(s);
+        if (onDone) onDone();
+      };
+
+      s.src = SCRIPT_URL + '?action=getDynamicShepherds&callback=' + cbName;
+      s.onerror = function () { dynamicShepherdsMerged = true; if (window[cbName]) window[cbName]({}); };
+      document.head.appendChild(s);
+
+      setTimeout(function () { if (window[cbName]) window[cbName]({}); }, 6000);
+    }
+
     const microchurchNames = {
       "Michael Ayisia": "Tesano 1",
       "Michael Ameyaw (Tesano 2)": "Tesano 2",
@@ -2757,6 +2801,7 @@
 
     // Auto-run: Restore session if valid, otherwise run intro
     document.addEventListener("DOMContentLoaded", function() {
+      mergeDynamicShepherds();
       loadPinsFromBackend();
       syncResourcesAndReads();
       // CHANGE 4 — Retry any failed FT submissions on app load
@@ -2867,22 +2912,25 @@
           '⛪ Microchurch Shepherd Login';
       }
       
-      // Populate dropdown with correct names
-      var select = document.getElementById('loginShepherdSelect');
-      if (select) {
-        select.innerHTML = '<option value="">— Select your name —</option>';
-        
-        var names = type === 'sps' ? 
-          Object.keys(shepherdData) : 
-          Object.keys(microchurchShepherdData);
-        
-        names.sort().forEach(function(name) {
-          var opt = document.createElement('option');
-          opt.value = name;
-          opt.textContent = name;
-          select.appendChild(opt);
-        });
-      }
+      // Populate dropdown with correct names (wait for any admin-added
+      // shepherds to merge in first, so they're selectable immediately)
+      mergeDynamicShepherds(function () {
+        var select = document.getElementById('loginShepherdSelect');
+        if (select) {
+          select.innerHTML = '<option value="">— Select your name —</option>';
+
+          var names = type === 'sps' ?
+            Object.keys(shepherdData) :
+            Object.keys(microchurchShepherdData);
+
+          names.sort().forEach(function(name) {
+            var opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            select.appendChild(opt);
+          });
+        }
+      });
       
       // Show login screen
       var secWho = document.getElementById('secWhoAreYou');
