@@ -6174,6 +6174,22 @@
       var addShepherdType = 'SPS';
       var dynamicShepherdsLoaded = false;
 
+      // SPS zones live mainly in window.CHURCH_DATA.zones (the authoritative Zone
+      // 1-7 list); MC microchurch names are already on every ALL_MC_SHEPHERDS row.
+      // Union with any dynamically-added shepherds' group field either way, so a
+      // group created earlier via this same modal also shows up as a suggestion.
+      function getExistingGroupNames(type) {
+        var names;
+        if (type === 'MC') {
+          names = ALL_MC_SHEPHERDS.map(function (s) { return s.microchurch; });
+        } else {
+          names = (window.CHURCH_DATA && window.CHURCH_DATA.zones ? window.CHURCH_DATA.zones.map(function (z) { return z.name; }) : [])
+            .concat(ALL_SHEPHERDS.map(function (s) { return s.zone; }));
+        }
+        names = names.filter(Boolean);
+        return names.filter(function (g, i) { return names.indexOf(g) === i; }).sort();
+      }
+
       function openAddShepherdModal(type) {
         addShepherdType = type;
         document.getElementById('newShepherdName').value = '';
@@ -6181,6 +6197,10 @@
         document.getElementById('newShepherdGroup').value = '';
         var err = document.getElementById('addShepherdErrorMsg');
         if (err) err.style.display = 'none';
+
+        var uniqueGroups = getExistingGroupNames(type);
+        document.getElementById('newShepherdGroupSuggestions').innerHTML =
+          uniqueGroups.map(function (g) { return '<option value="' + g.replace(/"/g, '&quot;') + '">'; }).join('');
 
         if (type === 'MC') {
           document.getElementById('addShepherdModalIcon').textContent = '⛪';
@@ -6193,9 +6213,22 @@
           document.getElementById('newShepherdGroupLabel').textContent = 'Zone';
           document.getElementById('newShepherdGroup').placeholder = 'e.g. Zone 1';
         }
+        document.getElementById('newShepherdGroupHint').textContent = '';
 
         document.getElementById('addShepherdModal').style.display = 'flex';
         setTimeout(function () { document.getElementById('newShepherdName').focus(); }, 150);
+      }
+
+      function updateShepherdGroupHint() {
+        var val = document.getElementById('newShepherdGroup').value.trim();
+        var hint = document.getElementById('newShepherdGroupHint');
+        if (!val) { hint.textContent = ''; return; }
+        var groupLabel = addShepherdType === 'MC' ? 'microchurch' : 'zone';
+        var isExisting = getExistingGroupNames(addShepherdType).some(function (g) { return g.toLowerCase() === val.toLowerCase(); });
+        hint.style.color = isExisting ? '#2563eb' : '#15803d';
+        hint.textContent = isExisting ?
+          ('👥 Adding another shepherd to the existing ' + groupLabel + ' "' + val + '"') :
+          ('🆕 This will create a brand-new ' + groupLabel + ': "' + val + '"');
       }
 
       function closeAddShepherdModal() {
@@ -10222,8 +10255,11 @@
         <div class="field" style="margin-bottom:18px;">
           <label id="newShepherdGroupLabel"
             style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Zone</label>
-          <input type="text" id="newShepherdGroup" placeholder="e.g. Zone 1"
+          <input type="text" id="newShepherdGroup" placeholder="e.g. Zone 1" list="newShepherdGroupSuggestions"
+            oninput="updateShepherdGroupHint()"
             style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:6px;box-sizing:border-box;">
+          <datalist id="newShepherdGroupSuggestions"></datalist>
+          <p id="newShepherdGroupHint" style="font-size:12px;color:#64748b;margin-top:6px;"></p>
         </div>
 
         <p id="addShepherdErrorMsg" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-bottom:14px;">
