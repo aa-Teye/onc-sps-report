@@ -2828,7 +2828,6 @@ const SHEPHERD_DIRECTORY = [
   {name:"LP. Sophia Korkor",              contact:"236929939"},
   {name:"Wisdom Akakpo",                  contact:"246461508"},
   {name:"Cyril Amevor",                   contact:"246038534"},
-  {name:"IT User",                        contact:"243310124"},
   {name:"Solomon Aziakah",                contact:"245775546"},
   {name:"Deborah Otumfuor",               contact:"203219321"},
   {name:"Patience Addo",                  contact:"247816836"},

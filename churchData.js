@@ -1,6 +1,6 @@
 // ONC Church Data - Updated with MC Members
-// SPS Shepherds: 29 | MC Shepherds: 20 | Total Members: 280+
-// Last updated: June 2026 (May MC List)
+// SPS Shepherds: 27 | MC Shepherds: 19 | Total Members: 280+
+// Last updated: July 2026
 
 window.CHURCH_DATA = {
   spsShepherds: [
@@ -19,7 +19,9 @@ window.CHURCH_DATA = {
       "zone": "Zone 1",
       "members": [
         { "name": "Majeed Saleem", "contact": "0553250246" },
-        { "name": "Isaac Yeboah", "contact": "0263153156" }
+        { "name": "Isaac Yeboah", "contact": "0263153156" },
+        { "name": "Emmanuel Nii-Lantei", "contact": "0599962519" },
+        { "name": "Rebecca Donkor", "contact": "0530217959" }
       ]
     },
     {
@@ -111,15 +113,6 @@ window.CHURCH_DATA = {
       "members": [
         { "name": "Princess Gyamfuaa", "contact": "0539487516" },
         { "name": "Philip Boateng", "contact": "0544361936" }
-      ]
-    },
-    {
-      "name": "IT User",
-      "contact": "0243310124",
-      "zone": "Zone 4",
-      "members": [
-        { "name": "Christabel Arhin", "contact": "0530415531" },
-        { "name": "Abena Achia", "contact": "" }
       ]
     },
     {
@@ -238,15 +231,6 @@ window.CHURCH_DATA = {
       "members": [
         { "name": "Kingsley Kobina Aduful", "contact": "0598951791" },
         { "name": "Titus Quaye", "contact": "0241631779" }
-      ]
-    },
-    {
-      "name": "Bernice Can-Tamakloe",
-      "contact": "0547912591",
-      "zone": "Zone 7",
-      "members": [
-        { "name": "Emmanuel Nii-Lantei", "contact": "0599962519" },
-        { "name": "Rebecca Donkor", "contact": "0530217959" }
       ]
     },
     {
@@ -610,15 +594,6 @@ window.CHURCH_DATA = {
         { "name": "Jacinta Quaye", "contact": "0555502151" },
         { "name": "George Essel", "contact": "0572113371" }
       ]
-    },
-    {
-      "name": "IT User",
-      "microchurch": "IT Test",
-      "contact": "0000000000",
-      "members": [
-        { "name": "Test Member One", "contact": "0000000001" },
-        { "name": "Test Member Two", "contact": "0000000002" }
-      ]
     }
   ],
   zones: [
@@ -640,8 +615,7 @@ window.CHURCH_DATA = {
     },
     {
       "name": "Zone 4",
-      "shepherds": ["IT User",
-        "Solomon Aziakah", "Deborah Otumfuor",
+      "shepherds": ["Solomon Aziakah", "Deborah Otumfuor",
         "Patience Addo"]
     },
     {
@@ -658,7 +632,7 @@ window.CHURCH_DATA = {
     {
       "name": "Zone 7",
       "shepherds": ["Loretta Owusu", "Melchizedek Ofori",
-        "Bernice Can-Tamakloe", "Ruth Dadzie",
+        "Ruth Dadzie",
         "Anita Asamoah", "Christabel Arhin"]
     }
   ]
