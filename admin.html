@@ -1450,7 +1450,7 @@
               <div class="stat-value" id="s-sessions">—</div>
               <div class="stat-sub">Total submissions</div>
             </div>
-            <div class="stat-card green sps-stat-card">
+            <div class="stat-card green sps-stat-card" onclick="showReportStatusModal('sps')" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to see who has and hasn't reported">
               <div class="stat-label">Shepherds Reported</div>
               <div class="stat-value" id="s-reported">—</div>
               <div class="stat-sub" id="s-shepherd-total">of 29 shepherds</div>
@@ -1487,7 +1487,7 @@
               <div class="stat-value" id="ov-mc-s-sessions">—</div>
               <div class="stat-sub">Submissions this week</div>
             </div>
-            <div class="stat-card green mc-stat-card">
+            <div class="stat-card green mc-stat-card" onclick="showReportStatusModal('mc')" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to see who has and hasn't reported">
               <div class="stat-label">MC Shepherds Reported</div>
               <div class="stat-value" id="ov-mc-s-reported">—</div>
               <div class="stat-sub">of 20 shepherds</div>
@@ -2270,7 +2270,7 @@
                 <div class="stat-value" id="mc-s-sessions">—</div>
                 <div class="stat-sub">Submissions this week</div>
               </div>
-              <div class="stat-card green">
+              <div class="stat-card green" onclick="showReportStatusModal('mc')" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to see who has and hasn't reported">
                 <div class="stat-label">Shepherds Reported</div>
                 <div class="stat-value" id="mc-s-reported">—</div>
                 <div class="stat-sub">of 20 shepherds</div>
@@ -3446,6 +3446,23 @@
           <img id="proofPhotoModalImg" src="" style="max-width:100%;max-height:65vh;object-fit:contain;display:block;">
         </div>
         <div id="proofPhotoModalCaption" style="margin-top:12px;font-weight:700;color:#0f2044;font-size:14px;"></div>
+      </div>
+    </div>
+
+    <!-- REPORT STATUS DRILL-DOWN (who reported / hasn't this week) -->
+    <div id="reportStatusModal" onclick="closeReportStatusModal()"
+      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.9);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px;">
+      <div onclick="event.stopPropagation()"
+        style="background:#fff;border-radius:24px;border:3px solid #f0a500;padding:24px;max-width:520px;width:100%;max-height:80vh;box-shadow:0 24px 60px rgba(0,0,0,0.5);position:relative;display:flex;flex-direction:column;">
+        <button onclick="closeReportStatusModal()"
+          style="position:absolute;top:-15px;right:-15px;background:#ef4444;border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,0.3);z-index:10;">✕</button>
+        <div id="reportStatusModalTitle" style="font-weight:800;color:#0f2044;font-size:16px;margin-bottom:14px;">Report Status</div>
+        <div style="overflow-y:auto;">
+          <div style="font-weight:700;color:#15803d;font-size:13px;margin-bottom:6px;">✅ Reported</div>
+          <div id="reportStatusReportedList" style="margin-bottom:16px;"></div>
+          <div style="font-weight:700;color:#ef4444;font-size:13px;margin-bottom:6px;">❌ Not Reported Yet</div>
+          <div id="reportStatusMissingList"></div>
+        </div>
       </div>
     </div>
 
@@ -6366,6 +6383,37 @@
             row.style.display = 'table-row';
           });
         }, 200);
+      };
+
+      function closeReportStatusModal() {
+        document.getElementById('reportStatusModal').style.display = 'none';
+      }
+
+      window.showReportStatusModal = function (type) {
+        var isSps = type !== 'mc';
+        var reports = isSps ? allReports : (allMicrochurchReports || []);
+        var shepherds = isSps ? ALL_SHEPHERDS : ALL_MC_SHEPHERDS;
+        var weekly = reports.filter(isThisWeek);
+
+        var reportedNames = {};
+        weekly.forEach(function (r) { reportedNames[r.shepherd] = true; });
+        var reported = shepherds.filter(function (s) { return reportedNames[s.name]; });
+        var missing = shepherds.filter(function (s) { return !reportedNames[s.name]; });
+
+        document.getElementById('reportStatusModalTitle').textContent =
+          (isSps ? 'SPS' : 'Microchurch') + ' Report Status — This Week (' + reported.length + '/' + shepherds.length + ')';
+
+        var reportedList = document.getElementById('reportStatusReportedList');
+        reportedList.innerHTML = reported.length ? reported.map(function (s) {
+          return '<div style="padding:6px 0;font-size:13px;border-bottom:1px solid #f1f5f9;color:#15803d;">✅ ' + s.name + '</div>';
+        }).join('') : '<div style="color:#94a3b8;font-size:13px;">Nobody yet this week.</div>';
+
+        var missingList = document.getElementById('reportStatusMissingList');
+        missingList.innerHTML = missing.length ? missing.map(function (s) {
+          return '<div style="padding:6px 0;font-size:13px;border-bottom:1px solid #f1f5f9;color:#ef4444;">❌ ' + s.name + '</div>';
+        }).join('') : '<div style="color:#15803d;font-size:13px;">Everyone has reported! 🎉</div>';
+
+        document.getElementById('reportStatusModal').style.display = 'flex';
       };
 
       function renderReports() {
