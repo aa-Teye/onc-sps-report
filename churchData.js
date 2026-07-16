@@ -1,5 +1,5 @@
 // ONC Church Data - Updated with MC Members
-// SPS Shepherds: 27 | MC Shepherds: 19 | Total Members: 280+
+// SPS Shepherds: 27 | MC Shepherds: 20 | Total Members: 296+
 // Last updated: July 2026
 
 window.CHURCH_DATA = {
@@ -593,6 +593,29 @@ window.CHURCH_DATA = {
         { "name": "Ryan Elinam Tettey", "contact": "0552667454" },
         { "name": "Jacinta Quaye", "contact": "0555502151" },
         { "name": "George Essel", "contact": "0572113371" }
+      ]
+    },
+    {
+      "name": "Akpene Komedio Anatsui",
+      "microchurch": "AFROPA 1",
+      "contact": "",
+      "members": [
+        { "name": "Blessing Donkor", "contact": "" },
+        { "name": "Elizabeth Ashie", "contact": "" },
+        { "name": "Gifty Donkor", "contact": "" },
+        { "name": "Empress", "contact": "" },
+        { "name": "Felix", "contact": "" },
+        { "name": "Peniel", "contact": "" },
+        { "name": "Winifred Aickins", "contact": "" },
+        { "name": "Samuel Donkor", "contact": "" },
+        { "name": "Blessing Bimbim", "contact": "" },
+        { "name": "Antoinette", "contact": "" },
+        { "name": "Emefa Blebo", "contact": "" },
+        { "name": "Quad", "contact": "" },
+        { "name": "Stephen Tetteh", "contact": "" },
+        { "name": "Favour Okine", "contact": "" },
+        { "name": "Nadia", "contact": "" },
+        { "name": "Joel", "contact": "" }
       ]
     }
   ],
