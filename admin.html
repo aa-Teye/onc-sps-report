@@ -1084,6 +1084,32 @@
       }
     }
 
+    /* Small phones (iPhone SE / small Android, ~375px and under) — the 768px
+       breakpoint above force-sets .stats-grid to exactly 2 columns, which
+       overrides its normal auto-fit/minmax collapse and leaves cards too
+       cramped once minmax(160px,1fr) no longer has room to breathe. */
+    @media (max-width: 420px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .content-area {
+        padding: 12px;
+        padding-bottom: 92px;
+      }
+
+      .stat-card {
+        padding: 14px;
+      }
+
+      #reportStatusModal > div,
+      #reassignMemberModal > div,
+      #addShepherdModal > div,
+      #proofPhotoModal > div {
+        padding: 18px !important;
+      }
+    }
+
     /* LOADING */
     .loading {
       text-align: center;
