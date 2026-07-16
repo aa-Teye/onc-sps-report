@@ -432,7 +432,6 @@ window.CHURCH_DATA = {
         { "name": "Wilhelmina Komesour", "contact": "0592284829" },
         { "name": "Aisha Mohammed", "contact": "0539139623" },
         { "name": "Harriet Ampofo", "contact": "0208533288" },
-        { "name": "Akpene Anatsui-Kemedo", "contact": "0574776380" },
         { "name": "Christiana Akosua Latibea", "contact": "0534123309" },
         { "name": "Celestine Baatu", "contact": "0240972631" },
         { "name": "Kukua McKay", "contact": "" },
@@ -598,7 +597,7 @@ window.CHURCH_DATA = {
     {
       "name": "Akpene Komedio Anatsui",
       "microchurch": "AFROPA 1",
-      "contact": "",
+      "contact": "0574776380",
       "members": [
         { "name": "Blessing Donkor", "contact": "" },
         { "name": "Elizabeth Ashie", "contact": "" },
@@ -613,8 +612,6 @@ window.CHURCH_DATA = {
         { "name": "Emefa Blebo", "contact": "" },
         { "name": "Quad", "contact": "" },
         { "name": "Stephen Tetteh", "contact": "" },
-        { "name": "Favour Okine", "contact": "" },
-        { "name": "Nadia", "contact": "" },
         { "name": "Joel", "contact": "" }
       ]
     }
