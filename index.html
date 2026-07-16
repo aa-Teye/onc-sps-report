@@ -1790,6 +1790,10 @@
       <!-- SEC 2: ATTENDANCE -->
       <div class="section" id="sec2">
         <div class="card-title"><span class="dot"></span>Who Attended?</div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;">
+          <button type="button" class="yn-btn yes" onclick="toggleAllSPS(true)" style="padding:8px 12px;font-size:12px;font-weight:700;">✅ SELECT ALL</button>
+          <button type="button" class="yn-btn no" onclick="toggleAllSPS(false)" style="padding:8px 12px;font-size:12px;font-weight:700;">🚫 NOBODY ATTENDED</button>
+        </div>
         <div id="attendanceCount" style="font-size:13px;color:#2e80e8;font-weight:700;margin-bottom:14px;"></div>
         <div id="memberCards" style="display:flex;flex-direction:column;gap:10px;"></div>
         <div class="nav-btns">
@@ -2098,7 +2102,7 @@
         <div class="card-title"><span class="dot"></span>Who Attended?</div>
         <div style="display:flex;gap:10px;margin-bottom:14px;">
           <button type="button" class="yn-btn yes" onclick="toggleAllMC(true)" style="padding:8px 12px;font-size:12px;font-weight:700;">✅ SELECT ALL</button>
-          <button type="button" class="yn-btn no" onclick="toggleAllMC(false)" style="padding:8px 12px;font-size:12px;font-weight:700;">⭕ DESELECT ALL</button>
+          <button type="button" class="yn-btn no" onclick="toggleAllMC(false)" style="padding:8px 12px;font-size:12px;font-weight:700;">🚫 NOBODY ATTENDED</button>
         </div>
         <div id="mcAttendanceCount" style="font-size:13px;color:#2e80e8;font-weight:700;margin-bottom:10px;"></div>
         <div id="mcSplitWarning" style="display:none;background:#fff7ed;border:2px solid #f97316;border-radius:12px;padding:12px 16px;margin-bottom:12px;font-size:13px;color:#9a3412;font-weight:600;">
@@ -3523,7 +3527,7 @@
       const cf = document.getElementById('mcConcernFields');
       cf.innerHTML = '';
       if (!attended.length) {
-        cf.innerHTML = '<p style="color:#64748b;font-size:13px;">No members marked as attended.</p>';
+        cf.innerHTML = '<p style="color:#64748b;font-size:13px;">🚫 Nobody attended this session — that\'s fine, just tap Next to continue and submit your report.</p>';
         return;
       }
       attended.forEach(m => {
@@ -3755,12 +3759,18 @@
       document.getElementById('attendanceCount').textContent = count + ' of ' + members.length + ' attended';
     }
 
+    function toggleAllSPS(present) {
+      const members = (shepherdData[state.shepherd] ? shepherdData[state.shepherd].members : []) || [];
+      members.forEach(m => { state.attendance[m] = present; });
+      buildMemberCards();
+    }
+
     function buildConcernFields() {
       const attended = Object.entries(state.attendance).filter(function(e){return e[1];}).map(function(e){return e[0];});
       const cf = document.getElementById('concernFields');
       cf.innerHTML = '';
       if (!attended.length) {
-        cf.innerHTML = '<p style="color:#64748b;font-size:13px;">No members marked as attended.</p>';
+        cf.innerHTML = '<p style="color:#64748b;font-size:13px;">🚫 Nobody attended this session — that\'s fine, just tap Next to continue and submit your report.</p>';
         return;
       }
       attended.forEach(function(m) {
