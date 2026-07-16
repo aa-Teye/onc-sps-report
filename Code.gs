@@ -136,6 +136,7 @@ function doGet(e) {
     else if (action === 'getDynamicShepherds')    response = getDynamicShepherds();
     else if (action === 'approveSeeker')          response = approveSeeker(e.parameter.memberId, e.parameter.approvedBy);
     else if (action === 'markSeekerAsMember')     response = markSeekerAsMember(e.parameter.memberId, e.parameter.graduatedBy);
+    else if (action === 'reassignMember')         response = reassignMember(e.parameter.memberId, e.parameter.newShepherd, e.parameter.newZone, e.parameter.reassignedBy);
     else                                          response = { status: 'ok', message: 'ONC SPS Backend v4.0 Running' };
   } catch (err) {
     response = { status: 'error', message: err.toString() };
@@ -2096,6 +2097,26 @@ function markSeekerAsMember(memberId, graduatedBy) {
   sheet.getRange(rec._row, 12).setValue(graduatedBy || 'Admin');
   sheet.getRange(rec._row, 13).setValue(formatDate(now));
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_GRADUATED', graduatedBy || 'Admin', rec.Name);
+  return { status: 'success' };
+}
+
+// Admin self-service: move a member (from the Members sheet -- seekers,
+// graduated members, and bulk-imports) to a different shepherd, without
+// a code deploy. Does not touch the static churchData.js roster, so it
+// only covers members already tracked in this sheet -- see the roadmap
+// plan for the full roster migration this is a first step toward.
+function reassignMember(memberId, newShepherd, newZone, reassignedBy) {
+  if (!memberId) return { status: 'error', message: 'Missing memberId' };
+  if (!newShepherd) return { status: 'error', message: 'Missing newShepherd' };
+  var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  var rec = getSheetRecords(sheet).find(function (r) { return r.MemberID === memberId; });
+  if (!rec) return { status: 'error', message: 'Member not found' };
+
+  var oldShepherd = rec.Shepherd || '(none)';
+  sheet.getRange(rec._row, 4).setValue(newShepherd);
+  if (newZone) sheet.getRange(rec._row, 5).setValue(newZone);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_REASSIGNED', reassignedBy || 'Admin',
+    rec.Name + ': ' + oldShepherd + ' -> ' + newShepherd);
   return { status: 'success' };
 }
 

@@ -3466,6 +3466,27 @@
       </div>
     </div>
 
+    <!-- REASSIGN MEMBER -->
+    <div id="reassignMemberModal" onclick="closeReassignMemberModal()"
+      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px;">
+      <div onclick="event.stopPropagation()"
+        style="background:#fff;border-radius:24px;border:3px solid #0a1628;width:100%;max-width:420px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#0f2044;font-family:'Outfit',sans-serif;position:relative;">
+        <button onclick="closeReassignMemberModal()"
+          style="position:absolute;top:20px;right:20px;background:rgba(15,32,68,0.08);border:none;color:#0f2044;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">✕</button>
+        <div style="font-size:32px;margin-bottom:6px;">🔀</div>
+        <div style="font-weight:800;font-size:18px;margin-bottom:4px;">Reassign Member</div>
+        <div id="reassignMemberName" style="color:#64748b;font-size:13px;margin-bottom:18px;"></div>
+        <div class="field" style="margin-bottom:18px;">
+          <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">New Shepherd</label>
+          <select id="reassignMemberShepherdSelect"
+            style="width:100%;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:6px;box-sizing:border-box;"></select>
+        </div>
+        <p id="reassignMemberErrorMsg" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-bottom:14px;"></p>
+        <button type="button" id="reassignMemberSubmitBtn" onclick="submitReassignMember()"
+          style="width:100%;padding:16px;background:#0f2044;color:#fff;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 12px rgba(15,32,68,0.15);">🔀 Reassign</button>
+      </div>
+    </div>
+
     <script>
       // Register service worker for PWA offline support
       // (shares sw.js / cache with index.html — same scope, can't register a separate worker)
@@ -4062,7 +4083,8 @@
             '<td style="padding:10px;color:#64748b;">' + (r.Shepherd || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;">' + (r.Stream === 'sps' ? 'SPS' : 'MC') + '</td>' +
             '<td style="padding:10px;text-align:center;color:#0f2044;">' + (r.ImportDate || '—') + '</td>' +
-            '<td style="padding:10px;text-align:center;"><button onclick="approveSeekerAction(\'' + r.MemberID + '\')" style="padding:8px 14px;background:#16a34a;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">✅ Approve</button></td>' +
+            '<td style="padding:10px;text-align:center;display:flex;gap:6px;justify-content:center;"><button onclick="approveSeekerAction(\'' + r.MemberID + '\')" style="padding:8px 14px;background:#16a34a;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">✅ Approve</button>' +
+            '<button onclick="openReassignMemberModal(\'' + r.MemberID + '\', \'' + escAttrAdmin(r.Name) + '\', \'' + escAttrAdmin(r.Shepherd) + '\', \'' + escAttrAdmin(r.Stream || 'sps') + '\')" style="padding:8px 14px;background:#f0a500;color:#0f2044;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🔀 Reassign</button></td>' +
             '</tr>';
         }).join('') : '<tr><td colspan="6" style="text-align:center;padding:30px;color:#64748b;">No pending seekers right now.</td></tr>';
 
@@ -4074,9 +4096,10 @@
             '<td style="padding:10px;color:#64748b;">' + (r.Shepherd || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;">' + (r.Stream === 'sps' ? 'SPS' : 'MC') + '</td>' +
             '<td style="padding:10px;text-align:center;color:#0f2044;">' + (r.ApprovedDate || '—') + '</td>' +
-            '<td style="padding:10px;text-align:center;">' + (canGraduate ?
+            '<td style="padding:10px;text-align:center;display:flex;gap:6px;justify-content:center;">' + (canGraduate ?
               '<button onclick="graduateSeekerAction(\'' + r.MemberID + '\')" style="padding:8px 14px;background:#1d4ed8;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🎓 Mark as Member</button>' :
-              '<span style="color:#94a3b8;font-size:12px;">Awaiting graduation</span>') + '</td>' +
+              '<span style="color:#94a3b8;font-size:12px;">Awaiting graduation</span>') +
+            '<button onclick="openReassignMemberModal(\'' + r.MemberID + '\', \'' + escAttrAdmin(r.Name) + '\', \'' + escAttrAdmin(r.Shepherd) + '\', \'' + escAttrAdmin(r.Stream || 'sps') + '\')" style="padding:8px 14px;background:#f0a500;color:#0f2044;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🔀 Reassign</button></td>' +
             '</tr>';
         }).join('') : '<tr><td colspan="6" style="text-align:center;padding:30px;color:#64748b;">No active seekers right now.</td></tr>';
       }
@@ -4106,6 +4129,74 @@
             adminToast('🎓 Marked as Member');
           } else {
             adminToast('❌ Could not update seeker');
+          }
+        });
+      }
+
+      // ── REASSIGN MEMBER (Members-sheet-backed seekers/graduates only —
+      // see the roadmap plan for migrating the full static roster too) ──
+      var reassignMemberId = null;
+      var reassignMemberOldShepherd = null;
+
+      function openReassignMemberModal(memberId, name, currentShepherd, stream) {
+        reassignMemberId = memberId;
+        reassignMemberOldShepherd = currentShepherd;
+        document.getElementById('reassignMemberName').textContent = name + ' — currently under ' + (currentShepherd || 'no shepherd');
+
+        var sel = document.getElementById('reassignMemberShepherdSelect');
+        var isSps = stream !== 'mc';
+        var shepherds = (isSps ? ALL_SHEPHERDS : ALL_MC_SHEPHERDS).slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+        sel.innerHTML = shepherds.map(function (s) {
+          return '<option value="' + s.name.replace(/"/g, '&quot;') + '"' + (s.name === currentShepherd ? ' selected' : '') + '>' + s.name + (isSps ? '' : ' (' + s.microchurch + ')') + '</option>';
+        }).join('');
+
+        var err = document.getElementById('reassignMemberErrorMsg');
+        if (err) err.style.display = 'none';
+        document.getElementById('reassignMemberModal').style.display = 'flex';
+      }
+
+      function closeReassignMemberModal() {
+        document.getElementById('reassignMemberModal').style.display = 'none';
+      }
+
+      function submitReassignMember() {
+        var sel = document.getElementById('reassignMemberShepherdSelect');
+        var newShepherd = sel.value;
+        var err = document.getElementById('reassignMemberErrorMsg');
+
+        if (!newShepherd) {
+          err.textContent = 'Please choose a shepherd.';
+          err.style.display = 'block';
+          return;
+        }
+        if (newShepherd === reassignMemberOldShepherd) {
+          err.textContent = 'Already assigned to this shepherd.';
+          err.style.display = 'block';
+          return;
+        }
+
+        var newZone = (ALL_SHEPHERDS.find(function (s) { return s.name === newShepherd; }) || {}).zone ||
+          (ALL_MC_SHEPHERDS.find(function (s) { return s.name === newShepherd; }) || {}).microchurch || '';
+
+        var btn = document.getElementById('reassignMemberSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Reassigning...';
+
+        fetchDataQuery('reassignMember', {
+          memberId: reassignMemberId,
+          newShepherd: newShepherd,
+          newZone: newZone,
+          reassignedBy: currentRoleName || currentRole || 'Admin'
+        }, function (response) {
+          btn.disabled = false;
+          btn.textContent = '🔀 Reassign';
+          if (response && response.status === 'success') {
+            closeReassignMemberModal();
+            loadSeekers();
+            adminToast('🔀 Reassigned to ' + newShepherd);
+          } else {
+            err.textContent = (response && response.message) || 'Could not reassign member.';
+            err.style.display = 'block';
           }
         });
       }
