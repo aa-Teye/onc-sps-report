@@ -3392,10 +3392,10 @@
     <!-- MOBILE BOTTOM TAB -->
     <div class="bottom-tab">
       <div class="bottom-tab-inner">
-        <button class="btab-btn active" onclick="switchTab('overview',this,true)"><span
+        <button class="btab-btn active" id="btab-home" onclick="switchTab('overview',this,true)"><span
             class="icon">🏠</span>Home</button>
-        <button class="btab-btn" onclick="switchTab('shepherds',this,true)"><span class="icon">👥</span>SPS</button>
-        <button class="btab-btn" onclick="switchTab('mc-overview',this,true)"><span class="icon">⛪</span>MC</button>
+        <button class="btab-btn" id="btab-sps" onclick="switchTab('shepherds',this,true)"><span class="icon">👥</span>SPS</button>
+        <button class="btab-btn" id="btab-mc" onclick="switchTab('mc-overview',this,true)"><span class="icon">⛪</span>MC</button>
         <button class="btab-btn" id="btab-more" onclick="openDrawer()"><span class="icon">☰</span>More</button>
       </div>
     </div>
@@ -4490,6 +4490,19 @@
         updateSectionLabels();
       }
 
+      // Mirrors setVisibleTabs() for the mobile bottom-tab bar, which uses
+      // separate .btab-btn elements not covered by that function. 'mc-overview'
+      // has no desktop sidebar button of its own (mobile-only panel), so its
+      // access follows the same rule as 'mc-shepherds'.
+      function setBottomTabVisibility(visibleIds) {
+        var home = document.getElementById('btab-home');
+        var sps = document.getElementById('btab-sps');
+        var mc = document.getElementById('btab-mc');
+        if (home) home.style.display = visibleIds.indexOf('overview') !== -1 ? 'flex' : 'none';
+        if (sps) sps.style.display = visibleIds.indexOf('shepherds') !== -1 ? 'flex' : 'none';
+        if (mc) mc.style.display = visibleIds.indexOf('mc-shepherds') !== -1 ? 'flex' : 'none';
+      }
+
       function applyRoleRestrictions() {
         var role = currentRole;
         
@@ -4502,6 +4515,15 @@
         allLabels.forEach(function(label) {
           label.style.display = 'block';
         });
+
+        // Mobile bottom-tab bar (Home/SPS/MC) shortcuts bypass the sidebar's
+        // .tab-btn filtering above because they're separate .btab-btn elements —
+        // reset to visible here, then each role branch below calls
+        // setBottomTabVisibility() with its own tab list so mobile matches desktop.
+        ['btab-home', 'btab-sps', 'btab-mc'].forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.style.display = 'flex';
+        });
         
         // Enable audience select by default
         var annoSelect = document.getElementById('annoAudience');
@@ -4510,12 +4532,14 @@
         }
 
         if (role === 'spshead') {
-          setVisibleTabs([
+          var spsheadTabs = [
             'overview','analytics','leaderboard',
             'shepherds','reports','announcements',
             'activity-log','export','reminders','resources','seekers'
-          ]);
-          
+          ];
+          setVisibleTabs(spsheadTabs);
+          setBottomTabVisibility(spsheadTabs);
+
           if (annoSelect) {
             annoSelect.value = 'sps';
             annoSelect.disabled = true;
@@ -4530,42 +4554,48 @@
           switchTab('reports', reportsTabBtn);
         }
         else if (role === 'mchead') {
-          setVisibleTabs([
+          var mcheadTabs = [
             'overview','analytics','leaderboard',
             'mc-shepherds','mc-reports',
             'announcements','activity-log',
             'export','reminders','resources','seekers'
-          ]);
-          
+          ];
+          setVisibleTabs(mcheadTabs);
+          setBottomTabVisibility(mcheadTabs);
+
           if (annoSelect) {
             annoSelect.value = 'mc';
             annoSelect.disabled = true;
           }
         }
         else if (role === 'ftshead') {
-          setVisibleTabs([
+          var ftsheadTabs = [
             'first-timers','announcements',
             'activity-log','export'
-          ]);
-          
+          ];
+          setVisibleTabs(ftsheadTabs);
+          setBottomTabVisibility(ftsheadTabs);
+
           if (annoSelect) {
             annoSelect.value = 'firsttimers';
             annoSelect.disabled = true;
           }
         }
         else if (role === 'zoneleader') {
-          setVisibleTabs([
-            'overview','shepherds','reports','export'
-          ]);
+          var zoneleaderTabs = ['overview','shepherds','reports','export'];
+          setVisibleTabs(zoneleaderTabs);
+          setBottomTabVisibility(zoneleaderTabs);
         }
         else if (role === 'admin') {
-          setVisibleTabs([
+          var adminTabs = [
             'overview','analytics','leaderboard',
             'shepherds','mc-shepherds','zones',
             'reports','mc-reports','first-timers',
             'membership','journey','flags','schools',
             'announcements','export','seekers'
-          ]);
+          ];
+          setVisibleTabs(adminTabs);
+          setBottomTabVisibility(adminTabs);
         }
 
         // Show Settings for non-super-admin
