@@ -261,6 +261,11 @@
       </div>
 
       <div class="field">
+        <label>Address / Hostel *</label>
+        <input type="text" id="fAddress" placeholder="Where you live / hostel name">
+      </div>
+
+      <div class="field">
         <label>Date of Birth *</label>
         <input type="date" id="fDob">
       </div>
@@ -341,11 +346,12 @@
       const name = document.getElementById('fName').value.trim();
       const phone = document.getElementById('fPhone').value.trim();
       const satelliteLocation = document.getElementById('fSatellite').value.trim();
+      const address = document.getElementById('fAddress').value.trim();
       const dob = document.getElementById('fDob').value;
       const occupation = document.getElementById('fOccupation').value;
       const occupationOther = document.getElementById('fOccupationOther').value.trim();
 
-      if (!name || !phone || !satelliteLocation || !dob || !state.bornAgain || !state.inChurch) {
+      if (!name || !phone || !satelliteLocation || !address || !dob || !state.bornAgain || !state.inChurch) {
         showError('Please fill in all required fields marked with *.');
         return;
       }
@@ -361,6 +367,7 @@
           name: name,
           phone: phone,
           satelliteLocation: satelliteLocation,
+          address: address,
           dob: dob,
           bornAgain: state.bornAgain,
           inChurch: state.inChurch,
@@ -391,6 +398,7 @@
       document.getElementById('fName').value = '';
       document.getElementById('fPhone').value = '';
       document.getElementById('fSatellite').value = '';
+      document.getElementById('fAddress').value = '';
       document.getElementById('fDob').value = '';
       document.getElementById('fOccupation').value = '';
       document.getElementById('fOccupationOther').value = '';

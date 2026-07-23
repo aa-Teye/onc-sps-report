@@ -2812,6 +2812,8 @@
                       <th style="padding:10px;text-align:left;">Phone</th>
                       <th style="padding:10px;text-align:left;">Shepherd</th>
                       <th style="padding:10px;text-align:center;">Stream</th>
+                      <th style="padding:10px;text-align:left;">Satellite Location</th>
+                      <th style="padding:10px;text-align:left;">Address/Hostel</th>
                       <th style="padding:10px;text-align:center;">Reported</th>
                       <th style="padding:10px;text-align:center;">Action</th>
                     </tr>
@@ -2833,6 +2835,8 @@
                       <th style="padding:10px;text-align:left;">Phone</th>
                       <th style="padding:10px;text-align:left;">Shepherd</th>
                       <th style="padding:10px;text-align:center;">Stream</th>
+                      <th style="padding:10px;text-align:left;">Satellite Location</th>
+                      <th style="padding:10px;text-align:left;">Address/Hostel</th>
                       <th style="padding:10px;text-align:center;">Approved</th>
                       <th style="padding:10px;text-align:center;">Action</th>
                     </tr>
@@ -4115,11 +4119,13 @@
             '<td style="padding:10px;color:#64748b;">' + (r.Phone || '—') + '</td>' +
             '<td style="padding:10px;color:#64748b;">' + (r.Shepherd || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;">' + seekerStreamLabel(r.Stream) + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + (r.Zone || '—') + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + (r.AddressOrHostel || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;color:#0f2044;">' + (r.ImportDate || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;display:flex;gap:6px;justify-content:center;"><button onclick="approveSeekerAction(\'' + r.MemberID + '\')" style="padding:8px 14px;background:#16a34a;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">✅ Approve</button>' +
             '<button onclick="openReassignMemberModal(\'' + r.MemberID + '\', \'' + escAttrAdmin(r.Name) + '\', \'' + escAttrAdmin(r.Shepherd) + '\', \'' + escAttrAdmin(r.Stream || 'sps') + '\')" style="padding:8px 14px;background:#f0a500;color:#0f2044;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🔀 Reassign</button></td>' +
             '</tr>';
-        }).join('') : '<tr><td colspan="6" style="text-align:center;padding:30px;color:#64748b;">No pending seekers right now.</td></tr>';
+        }).join('') : '<tr><td colspan="8" style="text-align:center;padding:30px;color:#64748b;">No pending seekers right now.</td></tr>';
 
         var canGraduate = (currentRole === 'admin' || currentRole === 'superadmin');
         activeBody.innerHTML = active.length ? active.map(function (r) {
@@ -4128,13 +4134,15 @@
             '<td style="padding:10px;color:#64748b;">' + (r.Phone || '—') + '</td>' +
             '<td style="padding:10px;color:#64748b;">' + (r.Shepherd || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;">' + seekerStreamLabel(r.Stream) + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + (r.Zone || '—') + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + (r.AddressOrHostel || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;color:#0f2044;">' + (r.ApprovedDate || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;display:flex;gap:6px;justify-content:center;">' + (canGraduate ?
               '<button onclick="graduateSeekerAction(\'' + r.MemberID + '\')" style="padding:8px 14px;background:#1d4ed8;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🎓 Mark as Member</button>' :
               '<span style="color:#94a3b8;font-size:12px;">Awaiting graduation</span>') +
             '<button onclick="openReassignMemberModal(\'' + r.MemberID + '\', \'' + escAttrAdmin(r.Name) + '\', \'' + escAttrAdmin(r.Shepherd) + '\', \'' + escAttrAdmin(r.Stream || 'sps') + '\')" style="padding:8px 14px;background:#f0a500;color:#0f2044;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🔀 Reassign</button></td>' +
             '</tr>';
-        }).join('') : '<tr><td colspan="6" style="text-align:center;padding:30px;color:#64748b;">No active seekers right now.</td></tr>';
+        }).join('') : '<tr><td colspan="8" style="text-align:center;padding:30px;color:#64748b;">No active seekers right now.</td></tr>';
       }
 
       function approveSeekerAction(memberId) {

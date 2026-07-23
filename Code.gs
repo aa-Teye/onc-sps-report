@@ -1993,7 +1993,7 @@ function calculateShepherdScores() {
 const MEMBERS_SHEET  = 'Members';
 const MEMBERS_HEADERS = ['MemberID', 'Name', 'Phone', 'Shepherd', 'Zone', 'Stream', 'ImportDate',
   'Status', 'Source', 'ApprovedBy', 'ApprovedDate', 'GraduatedBy', 'GraduatedDate',
-  'DOB', 'BornAgain', 'InChurch', 'Occupation'];
+  'DOB', 'BornAgain', 'InChurch', 'Occupation', 'AddressOrHostel'];
 
 // ============================================================
 // FELLOWSHIP SELF-SERVICE SIGN-UP
@@ -2034,7 +2034,7 @@ function submitFellowshipMember(data) {
     formatDate(now),
     'Pending', 'Fellowship Self-Service',
     '', '', '', '',
-    m.dob || '', m.bornAgain || '', m.inChurch || '', occupation
+    m.dob || '', m.bornAgain || '', m.inChurch || '', occupation, m.address || ''
   ]);
 
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'FELLOWSHIP_SIGNUP', 'Fellowship Self-Service', name);
