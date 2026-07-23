@@ -16,3 +16,4 @@ node_modules/**
 install.html
 firebase-messaging-sw.js
 test_spshead.js
+fellowship-signup.html
