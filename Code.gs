@@ -38,6 +38,7 @@ function doPost(e) {
     if (action === 'saveReminder')            return saveReminderSettings(data);
     if (action === 'submitMicrochurchReport') return submitMicrochurchReport(data);
     if (action === 'submitGuestForm')         return submitGuestForm(data);
+    if (action === 'submitFellowshipMember')  return submitFellowshipMember(data);
     if (action === 'updateGuestForm')         return updateGuestForm(data);
     if (action === 'savePinChange')           return savePinChange(data);
     if (action === 'logActivity')             return logActivity(data);
@@ -1991,7 +1992,54 @@ function calculateShepherdScores() {
 
 const MEMBERS_SHEET  = 'Members';
 const MEMBERS_HEADERS = ['MemberID', 'Name', 'Phone', 'Shepherd', 'Zone', 'Stream', 'ImportDate',
-  'Status', 'Source', 'ApprovedBy', 'ApprovedDate', 'GraduatedBy', 'GraduatedDate'];
+  'Status', 'Source', 'ApprovedBy', 'ApprovedDate', 'GraduatedBy', 'GraduatedDate',
+  'DOB', 'BornAgain', 'InChurch', 'Occupation'];
+
+// ============================================================
+// FELLOWSHIP SELF-SERVICE SIGN-UP
+// Public, no-login form (fellowship-signup.html) where a Fellowship
+// (a.k.a. satellite location) member submits their own details directly,
+// ahead of the Fellowship shepherd/reporting structure being set up.
+// Lands in the Members sheet as a Pending entry (Zone holds the satellite
+// location name) so admin can review/assign from the Seekers tab once
+// Fellowship shepherds exist.
+// ============================================================
+function submitFellowshipMember(data) {
+  const m = data.member || {};
+  const name  = (m.name  || '').toString().trim();
+  const phone = (m.phone || '').toString().trim();
+  if (!name || !phone)
+    return jsonResponse({ status: 'error', message: 'Name and phone are required' });
+
+  const sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+
+  // Avoid a duplicate row if this same submission is retried (e.g. after a
+  // network/CORS hiccup even though the original submission succeeded).
+  if (m.id) {
+    const records = getSheetRecords(sheet);
+    if (records.some(function (r) { return String(r.MemberID) === String(m.id); })) {
+      return jsonResponse({ status: 'success' });
+    }
+  }
+
+  const now = new Date();
+  const occupation = m.occupation === 'Other' ? (m.occupationOther || 'Other') : (m.occupation || '');
+
+  sheet.appendRow([
+    m.id || 'FEL-' + now.getTime(),
+    name, phone,
+    '',                                  // Shepherd — unassigned until Fellowship structure exists
+    m.satelliteLocation || '',           // Zone — the satellite location name
+    'fellowship',
+    formatDate(now),
+    'Pending', 'Fellowship Self-Service',
+    '', '', '', '',
+    m.dob || '', m.bornAgain || '', m.inChurch || '', occupation
+  ]);
+
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'FELLOWSHIP_SIGNUP', 'Fellowship Self-Service', name);
+  return jsonResponse({ status: 'success' });
+}
 
 function bulkImportMembers(data) {
   if (!Array.isArray(data.members) || !data.members.length)
