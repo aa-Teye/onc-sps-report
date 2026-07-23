@@ -279,14 +279,6 @@
       </div>
 
       <div class="field">
-        <label>Are You In The Church? *</label>
-        <div class="yn-row">
-          <button type="button" class="yn-btn yes" data-field="inChurch" data-val="yes" onclick="setYN(this)">✅ Yes</button>
-          <button type="button" class="yn-btn no" data-field="inChurch" data-val="no" onclick="setYN(this)">❌ No</button>
-        </div>
-      </div>
-
-      <div class="field">
         <label>Occupation <span style="font-weight:400;text-transform:none;">(optional)</span></label>
         <select id="fOccupation" onchange="toggleOccupationOther()">
           <option value="">-- Select --</option>
@@ -314,7 +306,7 @@
 
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
-    const state = { bornAgain: '', inChurch: '' };
+    const state = { bornAgain: '' };
 
     function setYN(btn) {
       const field = btn.dataset.field;
@@ -351,7 +343,7 @@
       const occupation = document.getElementById('fOccupation').value;
       const occupationOther = document.getElementById('fOccupationOther').value.trim();
 
-      if (!name || !phone || !satelliteLocation || !address || !dob || !state.bornAgain || !state.inChurch) {
+      if (!name || !phone || !satelliteLocation || !address || !dob || !state.bornAgain) {
         showError('Please fill in all required fields marked with *.');
         return;
       }
@@ -370,7 +362,6 @@
           address: address,
           dob: dob,
           bornAgain: state.bornAgain,
-          inChurch: state.inChurch,
           occupation: occupation,
           occupationOther: occupationOther
         }
@@ -405,7 +396,6 @@
       document.getElementById('fOccupationOther').style.display = 'none';
       document.querySelectorAll('.yn-btn').forEach(function (b) { b.classList.remove('selected'); });
       state.bornAgain = '';
-      state.inChurch = '';
       clearError();
       document.getElementById('successScreen').classList.add('hidden');
       document.getElementById('formScreen').classList.remove('hidden');
