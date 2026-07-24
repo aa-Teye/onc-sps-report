@@ -2025,7 +2025,16 @@ function submitFellowshipMember(data) {
   const now = new Date();
   const occupation = m.occupation === 'Other' ? (m.occupationOther || 'Other') : (m.occupation || '');
 
-  sheet.appendRow([
+  // Write Phone (col 3) and DOB (col 14) as plain text so Sheets doesn't
+  // auto-convert them — numeric-looking phone strings lose leading zeros
+  // (breaking most Ghanaian numbers), and dd/mm/yyyy-style dates can get
+  // silently swapped by locale-dependent parsing, same issue already
+  // guarded against in submitGuestForm.
+  const newRow = sheet.getLastRow() + 1;
+  sheet.getRange(newRow, 3).setNumberFormat('@');
+  sheet.getRange(newRow, 14).setNumberFormat('@');
+
+  sheet.getRange(newRow, 1, 1, 18).setValues([[
     m.id || 'FEL-' + now.getTime(),
     name, phone,
     '',                                  // Shepherd — unassigned until Fellowship structure exists
@@ -2035,7 +2044,7 @@ function submitFellowshipMember(data) {
     'Pending', 'Fellowship Self-Service',
     '', '', '', '',
     m.dob || '', m.bornAgain || '', m.inChurch || '', occupation, m.address || ''
-  ]);
+  ]]);
 
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'FELLOWSHIP_SIGNUP', 'Fellowship Self-Service', name);
   return jsonResponse({ status: 'success' });
