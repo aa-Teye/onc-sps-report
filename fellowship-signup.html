@@ -333,6 +333,37 @@
       document.getElementById('errorMsg').style.display = 'none';
     }
 
+    // Confirms the submission actually reached the sheet via a real GET
+    // (JSONP, so we can read the response — unlike the no-cors POST above).
+    // Never show the success screen without this: a no-cors POST always
+    // "succeeds" from the browser's point of view even if the backend
+    // silently rejected it (e.g. an out-of-date deployment), which is
+    // exactly what caused real submissions to be lost before this existed.
+    function verifySubmission(memberId) {
+      return new Promise(function (resolve) {
+        var cbName = 'onFellowshipCheck_' + Date.now();
+        var done = false;
+        var timer = setTimeout(function () {
+          if (done) return;
+          done = true;
+          window[cbName] = null;
+          resolve(false);
+        }, 6000);
+
+        window[cbName] = function (data) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          window[cbName] = null;
+          resolve(!!(data && data.exists));
+        };
+
+        var s = document.createElement('script');
+        s.src = SCRIPT_URL + '?action=checkFellowshipMember&memberId=' + encodeURIComponent(memberId) + '&callback=' + cbName + '&_=' + Date.now();
+        document.body.appendChild(s);
+      });
+    }
+
     async function submitFellowshipForm() {
       clearError();
       const name = document.getElementById('fName').value.trim();
@@ -375,12 +406,24 @@
           body: JSON.stringify(payload)
         });
       } catch (err) {
-        // no-cors means we can't read the response either way — assume success
-        // matches the same fire-and-forget pattern used by the shepherd report form.
+        // A network-level failure here still needs the same verify-before-
+        // trusting-success step below, so nothing special happens here.
       }
 
-      document.getElementById('formScreen').classList.add('hidden');
-      document.getElementById('successScreen').classList.remove('hidden');
+      btn.textContent = 'Confirming…';
+      let confirmed = false;
+      for (let attempt = 0; attempt < 3 && !confirmed; attempt++) {
+        if (attempt > 0) await new Promise(function (r) { setTimeout(r, 1200); });
+        confirmed = await verifySubmission(payload.member.id);
+      }
+
+      if (confirmed) {
+        document.getElementById('formScreen').classList.add('hidden');
+        document.getElementById('successScreen').classList.remove('hidden');
+      } else {
+        showError('We could not confirm your details were saved. Please check your internet connection and press Submit again — your entries have not been cleared.');
+      }
+
       btn.disabled = false;
       btn.textContent = 'Submit My Details';
     }

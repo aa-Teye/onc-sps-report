@@ -133,6 +133,7 @@ function doGet(e) {
     else if (action === 'logNotificationClick')   response = logNotificationClick(e.parameter.notificationId, e.parameter.shepherdName);
     else if (action === 'getNotificationLog')     response = getNotificationLog(e.parameter.notificationId);
     else if (action === 'getMembersRoster')       response = getMembersRoster();
+    else if (action === 'checkFellowshipMember')  response = checkFellowshipMember(e.parameter.memberId);
     else if (action === 'getShepherdMembers')     response = getShepherdMembers(e.parameter.shepherd);
     else if (action === 'getDynamicShepherds')    response = getDynamicShepherds();
     else if (action === 'approveSeeker')          response = approveSeeker(e.parameter.memberId, e.parameter.approvedBy);
@@ -2115,6 +2116,18 @@ function addOrUpdateSeeker(name, phone, shepherdName, stream, source) {
 function getMembersRoster() {
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
   return { status: 'success', members: getSheetRecords(sheet) };
+}
+
+// Lets the Fellowship sign-up form confirm a submission actually reached the
+// sheet before telling the person it succeeded, instead of trusting the
+// no-cors POST blindly (that silent-failure gap is what caused real
+// submissions to be lost before this existed — see 2026-07-24 incident).
+function checkFellowshipMember(memberId) {
+  if (!memberId) return { status: 'success', exists: false };
+  var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  var records = getSheetRecords(sheet);
+  var exists = records.some(function (r) { return String(r.MemberID) === String(memberId); });
+  return { status: 'success', exists: exists };
 }
 
 // One shepherd's slice of the roster — merged into their attendance
