@@ -99,6 +99,8 @@ function doGet(e) {
     else if (action === 'getMicrochurchReports')  response = getMicrochurchReports();
     else if (action === 'getGuests')              response = getGuests();
     else if (action === 'getSalvations')          response = getSalvations();
+    else if (action === 'checkGuestSaved')        response = checkGuestSaved(e.parameter.guestId);
+    else if (action === 'checkSalvationSaved')    response = checkSalvationSaved(e.parameter.salvationId);
     else if (action === 'fixFirstTimerDateSwap')  response = fixFirstTimerDateSwap();
     else if (action === 'getPins')                response = getPins();
     else if (action === 'getActivityLog')         response = getActivityLog();
@@ -812,6 +814,31 @@ function getGuests() {
   });
 
   return { status: 'success', guests };
+}
+
+// Lets the frontend confirm a guest registration actually reached the
+// sheet after an ambiguous/failed-looking POST response, same pattern
+// as checkFellowshipMember — a failed fetch doesn't mean the backend
+// didn't write the row.
+function checkGuestSaved(guestId) {
+  if (!guestId) return { status: 'success', exists: false };
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(FIRST_TIMERS_SHEET);
+  if (!sheet || sheet.getLastRow() <= 1) return { status: 'success', exists: false };
+  const ids = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+  const exists = ids.some(function (row) { return String(row[0]) === String(guestId); });
+  return { status: 'success', exists: exists };
+}
+
+// Same as checkGuestSaved but for Salvation Form submissions.
+function checkSalvationSaved(salvationId) {
+  if (!salvationId) return { status: 'success', exists: false };
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SALVATION_SHEET_NAME);
+  if (!sheet || sheet.getLastRow() <= 1) return { status: 'success', exists: false };
+  const ids = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+  const exists = ids.some(function (row) { return String(row[0]) === String(salvationId); });
+  return { status: 'success', exists: exists };
 }
 
 // ============================================================

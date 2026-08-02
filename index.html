@@ -933,36 +933,21 @@
           </h2>
         </div>
 
-        <div id="salvationFormDate"
-          style="background:#f0f5ff;border-radius:10px;
-          padding:10px 14px;margin-bottom:16px;
-          font-size:13px;font-weight:700;
-          color:var(--navy);">
+        <div style="background:#f0f5ff;border-radius:10px;
+          padding:10px 14px;margin-bottom:16px;">
+          <label style="font-weight:700;font-size:11px;
+            color:var(--navy);display:block;
+            margin-bottom:4px;">📅 Date</label>
+          <input type="date" id="salvationFormDate"
+            style="width:100%;padding:6px 4px;
+            border:none;background:transparent;
+            font-size:14px;font-weight:700;
+            color:var(--navy);box-sizing:border-box;
+            font-family:'Outfit',sans-serif;">
         </div>
 
         <div style="display:flex;flex-direction:column;
           gap:14px;">
-
-          <!-- Filled By -->
-          <div style="background:white;border-radius:16px;
-            padding:20px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-            <div style="font-weight:800;color:var(--navy);
-              font-size:14px;margin-bottom:14px;
-              border-bottom:2px solid #f1f5f9;
-              padding-bottom:8px;">
-              ✍️ Filled By
-            </div>
-            <label style="font-weight:700;font-size:13px;
-              color:var(--navy);display:block;
-              margin-bottom:4px;">Your Name (First Timers Member) *</label>
-            <input type="text" id="salvationFilledBy"
-              placeholder="Enter your own name"
-              style="width:100%;padding:10px;
-              border:2px solid var(--border);
-              border-radius:8px;font-size:14px;
-              box-sizing:border-box;">
-          </div>
 
           <!-- Personal Details -->
           <div style="background:white;border-radius:16px;
@@ -1239,6 +1224,27 @@
               border-radius:8px;font-size:14px;
               box-sizing:border-box;
               display:none;">
+          </div>
+
+          <!-- Filled By -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              ✍️ Filled By
+            </div>
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Your Name (First Timers Member) *</label>
+            <input type="text" id="salvationFilledBy"
+              placeholder="Enter your own name"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              box-sizing:border-box;">
           </div>
 
         </div>
@@ -5242,7 +5248,47 @@
       showSection('secGuestReview');
     }
 
-    function submitGuestForm() {
+    // Confirms a guest registration actually reached the sheet via a
+    // real GET (JSONP, so we can read the response). A failed/ambiguous
+    // POST response does NOT mean the backend didn't write the row —
+    // Apps Script can complete the write and still fail to deliver the
+    // HTTP response back to the browser. Never show success/failure to
+    // the user without checking this first (same pattern already used
+    // for Fellowship sign-up submissions).
+    function verifyGuestSubmission(guestId) {
+      return new Promise(function(resolve) {
+        var cbName = 'onGuestCheck_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        var done = false;
+        var timer = setTimeout(function() {
+          if (done) return;
+          done = true;
+          window[cbName] = null;
+          resolve(false);
+        }, 6000);
+        window[cbName] = function(data) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          window[cbName] = null;
+          resolve(!!(data && data.exists));
+        };
+        var s = document.createElement('script');
+        s.src = SCRIPT_URL + '?action=checkGuestSaved&guestId=' +
+          encodeURIComponent(guestId) + '&callback=' + cbName + '&_=' + Date.now();
+        document.body.appendChild(s);
+      });
+    }
+
+    async function confirmGuestSubmission(guestId) {
+      var confirmed = false;
+      for (var attempt = 0; attempt < 3 && !confirmed; attempt++) {
+        if (attempt > 0) await new Promise(function(r) { setTimeout(r, 1200); });
+        confirmed = await verifyGuestSubmission(guestId);
+      }
+      return confirmed;
+    }
+
+    async function submitGuestForm() {
       var firstName = document.getElementById(
         'guestFirstName').value.trim();
       var lastName = document.getElementById(
@@ -5392,56 +5438,61 @@
       localStorage.setItem(
         'ft_pending_backup', JSON.stringify(ftBackups));
 
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        todaysGuests.push(guest);
-        localStorage.setItem('todays_guests',
-          JSON.stringify(todaysGuests));
-
-        // CHANGE 2 — Mark backup as synced after successful backend response
-        var backups = JSON.parse(
-          localStorage.getItem('ft_pending_backup') || '[]');
-        backups = backups.map(function(b) {
-          if (b.id === guestBackup.id) b.synced = true;
-          return b;
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
         });
-        localStorage.setItem(
-          'ft_pending_backup', JSON.stringify(backups));
+      } catch (err) {
+        // A network-level failure here still needs the same
+        // verify-before-trusting-failure step below — Apps Script may
+        // have completed the write regardless of what fetch saw.
+      }
 
+      if (submitBtn) submitBtn.textContent = '⏳ Confirming...';
+      var confirmed = await confirmGuestSubmission(guest.id);
+
+      todaysGuests.push(guest);
+      localStorage.setItem('todays_guests',
+        JSON.stringify(todaysGuests));
+
+      var backups = JSON.parse(
+        localStorage.getItem('ft_pending_backup') || '[]');
+      backups = backups.map(function(b) {
+        if (b.id === guestBackup.id) b.synced = confirmed;
+        return b;
+      });
+      localStorage.setItem(
+        'ft_pending_backup', JSON.stringify(backups));
+
+      if (confirmed) {
         showGlobalAlert('✅ Guest registered successfully!', 'success');
         launchConfetti();
-        resetGuestForm();
-        showSection('secFirstTimersLanding');
-      })
-      .catch(function(err) {
-        // Guest already saved to localStorage backup above (CHANGE 1)
-        todaysGuests.push(guest);
-        localStorage.setItem('todays_guests',
-          JSON.stringify(todaysGuests));
+      } else {
+        showGlobalAlert('⚠️ Could not confirm this was saved. Saved locally and will keep retrying — please check your connection.', 'warning');
+      }
+      resetGuestForm();
+      showSection('secFirstTimersLanding');
 
-        // CHANGE 3 — Show warning toast instead of false success
-        showGlobalAlert('⚠️ Saved locally but server sync failed. Will retry automatically.', 'warning');
-        resetGuestForm();
-        showSection('secFirstTimersLanding');
-      })
-      .finally(function() {
-        if (submitBtn) {
-          submitBtn.textContent = '✅ Submit Guest Form';
-          submitBtn.disabled = false;
-        }
-      });
+      if (submitBtn) {
+        submitBtn.textContent = '✅ Submit Guest Form';
+        submitBtn.disabled = false;
+      }
     }
 
     // ── Salvation Form (inside First Timers Unit) ──────────────
     var salvationState = { decisionType: '', gender: '', church: '' };
 
+    function todayISO() {
+      var d = new Date();
+      var mm = String(d.getMonth() + 1).padStart(2, '0');
+      var dd = String(d.getDate()).padStart(2, '0');
+      return d.getFullYear() + '-' + mm + '-' + dd;
+    }
+
     function openSalvationForm() {
       var dateEl = document.getElementById('salvationFormDate');
-      if (dateEl) dateEl.textContent = '📅 ' + new Date().toLocaleDateString('en-GB');
+      if (dateEl && !dateEl.value) dateEl.value = todayISO();
       showSection('secSalvationForm');
     }
 
@@ -5509,11 +5560,22 @@
       return sources.join(', ');
     }
 
+    function salvationDateDMY() {
+      var iso = document.getElementById('salvationFormDate').value;
+      if (!iso) return '';
+      var parts = iso.split('-');
+      return parts[2] + '/' + parts[1] + '/' + parts[0];
+    }
+
     function reviewSalvationForm() {
       var firstName = document.getElementById('salvationFirstName').value.trim();
       var lastName = document.getElementById('salvationLastName').value.trim();
       var filledBy = document.getElementById('salvationFilledBy').value.trim();
 
+      if (!document.getElementById('salvationFormDate').value) {
+        showGlobalAlert('Please select a date', 'error');
+        return;
+      }
       if (!filledBy) {
         showGlobalAlert('Please enter your name in "Filled By"', 'error');
         return;
@@ -5552,6 +5614,7 @@
       }
 
       content.innerHTML =
+        reviewRow('Date', salvationDateDMY()) +
         reviewRow('Filled By', filledBy) +
         reviewRow('Spiritual Commitment', salvationState.decisionType) +
         reviewRow('Full Name', firstName + ' ' +
@@ -5595,13 +5658,56 @@
 
       var churchEl = document.getElementById('salvationChurchName');
       if (churchEl) churchEl.style.display = 'none';
+
+      var dateEl = document.getElementById('salvationFormDate');
+      if (dateEl) dateEl.value = todayISO();
     }
 
-    function submitSalvationForm() {
+    // Same verify-before-trusting pattern as verifyGuestSubmission — a
+    // failed/ambiguous POST response does not mean the backend didn't
+    // write the row.
+    function verifySalvationSubmission(salvationId) {
+      return new Promise(function(resolve) {
+        var cbName = 'onSalvationCheck_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        var done = false;
+        var timer = setTimeout(function() {
+          if (done) return;
+          done = true;
+          window[cbName] = null;
+          resolve(false);
+        }, 6000);
+        window[cbName] = function(data) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          window[cbName] = null;
+          resolve(!!(data && data.exists));
+        };
+        var s = document.createElement('script');
+        s.src = SCRIPT_URL + '?action=checkSalvationSaved&salvationId=' +
+          encodeURIComponent(salvationId) + '&callback=' + cbName + '&_=' + Date.now();
+        document.body.appendChild(s);
+      });
+    }
+
+    async function confirmSalvationSubmission(salvationId) {
+      var confirmed = false;
+      for (var attempt = 0; attempt < 3 && !confirmed; attempt++) {
+        if (attempt > 0) await new Promise(function(r) { setTimeout(r, 1200); });
+        confirmed = await verifySalvationSubmission(salvationId);
+      }
+      return confirmed;
+    }
+
+    async function submitSalvationForm() {
       var firstName = document.getElementById('salvationFirstName').value.trim();
       var lastName = document.getElementById('salvationLastName').value.trim();
       var filledBy = document.getElementById('salvationFilledBy').value.trim();
 
+      if (!document.getElementById('salvationFormDate').value) {
+        showGlobalAlert('Please select a date', 'error');
+        return;
+      }
       if (!filledBy) {
         showGlobalAlert('Please enter your name in "Filled By"', 'error');
         return;
@@ -5617,7 +5723,7 @@
 
       var salvation = {
         id: 'SV' + Date.now(),
-        date: new Date().toLocaleDateString('en-GB'),
+        date: salvationDateDMY(),
         time: new Date().toLocaleTimeString('en-GB'),
         filledBy: filledBy,
         decisionType: salvationState.decisionType,
@@ -5660,35 +5766,39 @@
       svBackups.push(svBackup);
       localStorage.setItem('sv_pending_backup', JSON.stringify(svBackups));
 
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      })
-      .then(function(r) { return r.json(); })
-      .then(function() {
-        var backups = JSON.parse(localStorage.getItem('sv_pending_backup') || '[]');
-        backups = backups.map(function(b) {
-          if (b.id === svBackup.id) b.synced = true;
-          return b;
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
         });
-        localStorage.setItem('sv_pending_backup', JSON.stringify(backups));
+      } catch (err) {
+        // A network-level failure here still needs the same
+        // verify-before-trusting-failure step below.
+      }
 
+      if (submitBtn) submitBtn.textContent = '⏳ Confirming...';
+      var confirmed = await confirmSalvationSubmission(salvation.id);
+
+      var backups = JSON.parse(localStorage.getItem('sv_pending_backup') || '[]');
+      backups = backups.map(function(b) {
+        if (b.id === svBackup.id) b.synced = confirmed;
+        return b;
+      });
+      localStorage.setItem('sv_pending_backup', JSON.stringify(backups));
+
+      if (confirmed) {
         showGlobalAlert('✅ Salvation recorded successfully!', 'success');
         launchConfetti();
-        resetSalvationForm();
-        showSection('secFirstTimersLanding');
-      })
-      .catch(function() {
-        showGlobalAlert('⚠️ Saved locally but server sync failed. Will retry automatically.', 'warning');
-        resetSalvationForm();
-        showSection('secFirstTimersLanding');
-      })
-      .finally(function() {
-        if (submitBtn) {
-          submitBtn.textContent = '✅ Confirm & Submit';
-          submitBtn.disabled = false;
-        }
-      });
+      } else {
+        showGlobalAlert('⚠️ Could not confirm this was saved. Saved locally and will keep retrying — please check your connection.', 'warning');
+      }
+      resetSalvationForm();
+      showSection('secFirstTimersLanding');
+
+      if (submitBtn) {
+        submitBtn.textContent = '✅ Confirm & Submit';
+        submitBtn.disabled = false;
+      }
     }
 
     // Auto-retry unsynced Salvation Form submissions (same pattern as
