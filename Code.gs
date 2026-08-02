@@ -8,6 +8,7 @@ const SETTINGS_SHEET                = 'SPS Settings';
 const LOG_SHEET                     = 'SPS Audit Log';
 const MC_SHEET_NAME                 = 'Microchurch Reports';
 const FIRST_TIMERS_SHEET            = 'First Timers';
+const SALVATION_SHEET_NAME          = 'Salvation Records';
 const PINS_SHEET                    = 'Shepherd PINs';
 const ANNOUNCEMENTS_SHEET           = 'Announcements';
 const PASTORAL_NOTES_SHEET          = 'PastoralNotes';
@@ -38,6 +39,7 @@ function doPost(e) {
     if (action === 'saveReminder')            return saveReminderSettings(data);
     if (action === 'submitMicrochurchReport') return submitMicrochurchReport(data);
     if (action === 'submitGuestForm')         return submitGuestForm(data);
+    if (action === 'submitSalvationForm')     return submitSalvationForm(data);
     if (action === 'submitFellowshipMember')  return submitFellowshipMember(data);
     if (action === 'updateGuestForm')         return updateGuestForm(data);
     if (action === 'savePinChange')           return savePinChange(data);
@@ -96,6 +98,7 @@ function doGet(e) {
     else if (action === 'getStats')               response = getStats();
     else if (action === 'getMicrochurchReports')  response = getMicrochurchReports();
     else if (action === 'getGuests')              response = getGuests();
+    else if (action === 'getSalvations')          response = getSalvations();
     else if (action === 'fixFirstTimerDateSwap')  response = fixFirstTimerDateSwap();
     else if (action === 'getPins')                response = getPins();
     else if (action === 'getActivityLog')         response = getActivityLog();
@@ -583,9 +586,12 @@ function submitGuestForm(data) {
       'How Heard About ONC', 'Invited By', 'Faith Academy Podcasts',
       'WhatsApp Number', 'Born Again', 'Belongs to Church', 'Church Name',
       'Contact Preference', 'Follow Up Status', 'Feedback',
-      'Has Own Contact', 'Referral Name', 'Referral Relation', 'Referral Phone'
+      'Has Own Contact', 'Referral Name', 'Referral Relation', 'Referral Phone',
+      'Filled By'
     ]);
-    styleHeaders(sheet, 29);
+    styleHeaders(sheet, 30);
+  } else if (sheet.getRange(1, 30).getValue() !== 'Filled By') {
+    sheet.getRange(1, 30).setValue('Filled By');
   }
 
   const g   = data.guest || {};
@@ -611,7 +617,7 @@ function submitGuestForm(data) {
   sheet.getRange(newRow, 2).setNumberFormat('@');
   sheet.getRange(newRow, 10).setNumberFormat('@');
 
-  sheet.getRange(newRow, 1, 1, 29).setValues([[
+  sheet.getRange(newRow, 1, 1, 30).setValues([[
     g.id || 'G' + now.getTime(),
     g.date || formatDate(now),
     formatTime(now),
@@ -625,12 +631,129 @@ function submitGuestForm(data) {
     g.belongsToChurch || '', g.churchName || '', g.contactPreference || '',
     g.followUpStatus || 'Needs Follow Up', g.feedback || '',
     g.hasOwnContact === false ? 'No' : 'Yes',
-    g.referralName || '', g.referralRelation || '', g.referralPhone || ''
+    g.referralName || '', g.referralRelation || '', g.referralPhone || '',
+    g.filledBy || ''
   ]]);
 
-  sheet.autoResizeColumns(1, 29);
+  sheet.autoResizeColumns(1, 30);
   logAudit(ss, 'GUEST_REGISTERED', g.loggedInAs || 'First Timers Unit', g.fullName || '');
   return jsonResponse({ status: 'success' });
+}
+
+function submitSalvationForm(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SALVATION_SHEET_NAME);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(SALVATION_SHEET_NAME);
+    sheet.appendRow([
+      'ID', 'Date', 'Time', 'Filled By', 'Decision Type',
+      'First Name', 'Middle Name', 'Last Name', 'Full Name',
+      'Phone', 'Has Own Contact', 'Referral Name', 'Referral Relation', 'Referral Phone',
+      'Email', 'Date of Birth', 'Gender', 'Marital Status',
+      'Occupation', 'Company/School', 'Residence',
+      'How Heard About ONC', 'Invited By', 'Faith Academy Podcasts',
+      'WhatsApp Number', 'Born Again', 'Belongs to Church', 'Church Name',
+      'Contact Preference', 'Speaks in Tongues', 'Ministered By', 'Feedback',
+      'Logged In As'
+    ]);
+    styleHeaders(sheet, 33);
+  }
+
+  const s   = data.salvation || {};
+  const now = new Date();
+
+  // Avoid creating a duplicate row if this was already submitted
+  // (e.g. retried after a network error even though the original
+  // submission succeeded).
+  if (s.id && sheet.getLastRow() > 1) {
+    const ids = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+    for (let i = 0; i < ids.length; i++) {
+      if (String(ids[i][0]) === String(s.id)) {
+        return jsonResponse({ status: 'success' });
+      }
+    }
+  }
+
+  // Write the Date (col B) and DOB (col P) as plain text so Sheets
+  // doesn't auto-convert dd/mm/yyyy strings into locale-dependent
+  // date serials (same fix applied to First Timers guest dates).
+  const newRow = sheet.getLastRow() + 1;
+  sheet.getRange(newRow, 2).setNumberFormat('@');
+  sheet.getRange(newRow, 16).setNumberFormat('@');
+
+  sheet.getRange(newRow, 1, 1, 33).setValues([[
+    s.id || 'SV' + now.getTime(),
+    s.date || formatDate(now),
+    formatTime(now),
+    s.filledBy || '', s.decisionType || '',
+    s.firstName || '', s.middleName || '', s.lastName || '', s.fullName || '',
+    s.phone || '',
+    s.hasOwnContact === false ? 'No' : 'Yes',
+    s.referralName || '', s.referralRelation || '', s.referralPhone || '',
+    s.email || '',
+    (s.dobDay && s.dobMonth && s.dobYear)
+      ? s.dobDay + '/' + s.dobMonth + '/' + s.dobYear : '',
+    s.gender || '', s.maritalStatus || '',
+    s.occupation || '', s.company || '', s.residence || '',
+    s.heardFrom || '', s.invitedBy || '', s.podcast || '',
+    s.whatsapp || '', s.bornAgain || '', s.belongsToChurch || '', s.churchName || '',
+    s.contactPreference || '', s.speaksInTongues || '', s.ministeredBy || '', s.feedback || '',
+    s.loggedInAs || 'First Timers Unit'
+  ]]);
+
+  sheet.autoResizeColumns(1, 33);
+  logAudit(ss, 'SALVATION_REGISTERED', s.loggedInAs || 'First Timers Unit', s.fullName || '');
+  return jsonResponse({ status: 'success' });
+}
+
+function getSalvations() {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SALVATION_SHEET_NAME);
+
+  if (!sheet || sheet.getLastRow() <= 1)
+    return { status: 'success', salvations: [] };
+
+  const data       = sheet.getDataRange().getValues();
+  const salvations = data.slice(1).map(function (row) {
+    return {
+      id:               row[0]  || '',
+      date:             row[1] instanceof Date ? formatDate(row[1]) : (row[1] || ''),
+      time:             row[2]  || '',
+      filledBy:         row[3]  || '',
+      decisionType:     row[4]  || '',
+      firstName:        row[5]  || '',
+      middleName:       row[6]  || '',
+      lastName:         row[7]  || '',
+      fullName:         row[8]  || '',
+      phone:            row[9]  || '',
+      hasOwnContact:    row[10] !== 'No',
+      referralName:     row[11] || '',
+      referralRelation: row[12] || '',
+      referralPhone:    row[13] || '',
+      email:            row[14] || '',
+      dob:              row[15] || '',
+      gender:           row[16] || '',
+      maritalStatus:    row[17] || '',
+      occupation:       row[18] || '',
+      company:          row[19] || '',
+      residence:        row[20] || '',
+      heardFrom:        row[21] || '',
+      invitedBy:        row[22] || '',
+      podcast:          row[23] || '',
+      whatsapp:         row[24] || '',
+      bornAgain:        row[25] || '',
+      belongsToChurch:  row[26] || '',
+      churchName:       row[27] || '',
+      contactPreference: row[28] || '',
+      speaksInTongues:  row[29] || '',
+      ministeredBy:     row[30] || '',
+      feedback:         row[31] || '',
+      loggedInAs:       row[32] || ''
+    };
+  });
+
+  return { status: 'success', salvations };
 }
 
 function updateGuestForm(data) {
@@ -662,6 +785,7 @@ function updateGuestForm(data) {
     g.hasOwnContact === false ? 'No' : 'Yes',
     g.referralName || '', g.referralRelation || '', g.referralPhone || ''
   ]]);
+  sheet.getRange(row, 30).setValue(g.filledBy || '');
 
   logAudit(ss, 'GUEST_UPDATED', g.loggedInAs || 'First Timers Unit', g.fullName || '');
   return jsonResponse({ status: 'success' });
@@ -705,7 +829,8 @@ function getGuests() {
       hasOwnContact:    row[25] !== 'No',
       referralName:     row[26] || '',
       referralRelation: row[27] || '',
-      referralPhone:    row[28] || ''
+      referralPhone:    row[28] || '',
+      filledBy:         row[29] || ''
     };
   });
 

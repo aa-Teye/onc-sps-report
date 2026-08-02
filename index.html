@@ -781,8 +781,19 @@
             gap:10px;margin-top:8px;">
             📞 Follow Up & Call Centre
           </button>
+
+          <button onclick="openSalvationForm()"
+            style="padding:20px;border-radius:16px;
+            background:white;color:var(--navy);
+            border:2px solid #a855f7;
+            font-size:16px;font-weight:700;
+            cursor:pointer;display:flex;
+            align-items:center;justify-content:center;
+            gap:10px;margin-top:8px;">
+            ✝️ Salvation Form
+          </button>
         </div>
-        
+
         <div style="display:flex;
           justify-content:center;gap:24px;
           margin-top:20px;">
@@ -907,6 +918,627 @@
         </div>
       </div>
 
+      <!-- Salvation Form Section -->
+      <div class="section" id="secSalvationForm">
+        <div style="display:flex;align-items:center;
+          gap:12px;margin-bottom:20px;">
+          <button onclick="showSection('secFirstTimersLanding')"
+            style="background:none;border:none;
+            color:var(--gray);cursor:pointer;
+            font-size:20px;">←</button>
+          <h2 style="font-family:'Nunito',sans-serif;
+            font-weight:900;font-size:18px;
+            color:var(--navy);margin:0;">
+            ✝️ Salvation Form
+          </h2>
+        </div>
+
+        <div id="salvationFormDate"
+          style="background:#f0f5ff;border-radius:10px;
+          padding:10px 14px;margin-bottom:16px;
+          font-size:13px;font-weight:700;
+          color:var(--navy);">
+        </div>
+
+        <div style="display:flex;flex-direction:column;
+          gap:14px;">
+
+          <!-- Filled By -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              ✍️ Filled By
+            </div>
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Your Name (First Timers Member) *</label>
+            <input type="text" id="salvationFilledBy"
+              placeholder="Enter your own name"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              box-sizing:border-box;">
+          </div>
+
+          <!-- Personal Details -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              👤 Personal Details
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">First Name *</label>
+            <input type="text" id="salvationFirstName"
+              placeholder="Enter first name"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Middle Name</label>
+            <input type="text" id="salvationMiddleName"
+              placeholder="Enter middle name"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Last Name *</label>
+            <input type="text" id="salvationLastName"
+              placeholder="Enter last name"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Contact Number</label>
+            <input type="tel" id="salvationPhone"
+              placeholder="Enter phone number"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="display:flex;align-items:center;gap:8px;
+              font-weight:700;font-size:13px;color:var(--navy);
+              margin-bottom:10px;cursor:pointer;">
+              <input type="checkbox" id="salvationNoContact"
+                onchange="toggleSalvationReferralFields()"
+                style="width:18px;height:18px;accent-color:var(--gold);">
+              I don't have my own contact number
+            </label>
+
+            <div id="salvationReferralFields" style="display:none;
+              background:#f8fafc;border:2px solid var(--border);
+              border-radius:10px;padding:12px;margin-bottom:10px;">
+              <div style="font-weight:800;font-size:13px;
+                color:var(--navy);margin-bottom:8px;">
+                📇 Referral Contact Details
+              </div>
+
+              <label style="font-weight:700;font-size:13px;
+                color:var(--navy);display:block;
+                margin-bottom:4px;">Referral Person's Name</label>
+              <input type="text" id="salvationReferralName"
+                placeholder="Enter referral person's name"
+                style="width:100%;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                margin-bottom:10px;box-sizing:border-box;">
+
+              <label style="font-weight:700;font-size:13px;
+                color:var(--navy);display:block;
+                margin-bottom:4px;">Relation to Guest</label>
+              <input type="text" id="salvationReferralRelation"
+                placeholder="e.g. Friend, Sibling, Spouse"
+                style="width:100%;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                margin-bottom:10px;box-sizing:border-box;">
+
+              <label style="font-weight:700;font-size:13px;
+                color:var(--navy);display:block;
+                margin-bottom:4px;">Referral Person's Phone Number</label>
+              <input type="tel" id="salvationReferralPhone"
+                placeholder="Enter referral person's phone number"
+                style="width:100%;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                margin-bottom:10px;box-sizing:border-box;">
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Email Address</label>
+            <input type="email" id="salvationEmail"
+              placeholder="Enter email address"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Date of Birth</label>
+            <div style="display:flex;gap:8px;
+              margin-bottom:10px;">
+              <input type="number" id="salvationDOBDay"
+                placeholder="Day" min="1" max="31"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                box-sizing:border-box;">
+              <input type="number" id="salvationDOBMonth"
+                placeholder="Month" min="1" max="12"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                box-sizing:border-box;">
+              <input type="number" id="salvationDOBYear"
+                placeholder="Year"
+                style="flex:2;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-size:14px;
+                box-sizing:border-box;">
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Gender</label>
+            <div style="display:flex;gap:10px;
+              margin-bottom:10px;">
+              <button id="salvationGenderMale"
+                onclick="selectSalvationGender('Male')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Male</button>
+              <button id="salvationGenderFemale"
+                onclick="selectSalvationGender('Female')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Female</button>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Marital Status</label>
+            <div style="display:flex;gap:8px;
+            margin-bottom:10px;">
+              <button id="salvationMaritalSingle"
+                onclick="selectSalvationMarital('Single')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Single</button>
+              <button id="salvationMaritalMarried"
+                onclick="selectSalvationMarital('Married')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Married</button>
+              <button id="salvationMaritalDivorced"
+                onclick="selectSalvationMarital('Divorced')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Divorced</button>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Occupation</label>
+            <input type="text" id="salvationOccupation"
+              placeholder="Enter occupation"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Company/School/Place of Work</label>
+            <input type="text" id="salvationCompany"
+              placeholder="Enter company or school"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:10px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Place of Residence
+              (closest landmark)</label>
+            <input type="text" id="salvationResidence"
+              placeholder="Enter residence/landmark"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              box-sizing:border-box;">
+          </div>
+
+          <!-- How did you hear -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              📣 How Did You Hear About Us?
+            </div>
+
+            <div style="display:grid;
+              grid-template-columns:1fr 1fr;
+              gap:8px;margin-bottom:12px;">
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="salvationSrcFriend"
+                  value="Friend">
+                Friend
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="salvationSrcMember"
+                  value="Church Member">
+                Church Member
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="salvationSrcFacebook"
+                  value="Facebook">
+                Facebook
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="salvationSrcWhatsApp"
+                  value="WhatsApp">
+                WhatsApp
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="salvationSrcPodbean"
+                  value="Podbean">
+                Podbean
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="salvationSrcWebsite"
+                  value="Website">
+                Website
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="salvationSrcTV"
+                  value="TV">
+                TV
+              </label>
+              <label style="display:flex;gap:8px;
+                align-items:center;font-size:13px;
+                cursor:pointer;">
+                <input type="checkbox" id="salvationSrcRadio"
+                  value="Radio">
+                Radio
+              </label>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">
+              Name of Friend/Member who invited you
+            </label>
+            <input type="text" id="salvationInvitedBy"
+              placeholder="Enter name of inviter"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              box-sizing:border-box;">
+          </div>
+
+          <!-- Follow Up -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              📞 Follow Up Details
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:8px;">
+              Receive Faith Academy Podcasts?
+            </label>
+            <div style="display:flex;gap:10px;
+              margin-bottom:12px;">
+              <button id="salvationPodcastYes"
+                onclick="selectSalvationOption('podcast','Yes')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">YES</button>
+              <button id="salvationPodcastNo"
+                onclick="selectSalvationOption('podcast','No')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">NO</button>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">
+              Active WhatsApp Number
+            </label>
+            <input type="tel" id="salvationWhatsApp"
+              placeholder="Enter WhatsApp number"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:12px;box-sizing:border-box;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:8px;">
+              Are you born again?
+            </label>
+            <div style="display:flex;gap:10px;
+              margin-bottom:12px;">
+              <button id="salvationBornAgainYes"
+                onclick="selectSalvationOption('bornAgain','Yes')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">YES</button>
+              <button id="salvationBornAgainNo"
+                onclick="selectSalvationOption('bornAgain','No')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">NO</button>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:8px;">
+              Do you belong to a church?
+            </label>
+            <div style="display:flex;gap:10px;
+              margin-bottom:8px;">
+              <button id="salvationChurchYes"
+                onclick="selectSalvationOption('church','Yes')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">YES</button>
+              <button id="salvationChurchNo"
+                onclick="selectSalvationOption('church','No')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">NO</button>
+            </div>
+            <input type="text" id="salvationChurchName"
+              placeholder="If yes, enter church name"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              margin-bottom:12px;box-sizing:border-box;
+              display:none;">
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:8px;">
+              Can we call/visit you?
+            </label>
+            <div style="display:flex;gap:8px;
+              margin-bottom:12px;">
+              <button id="salvationContactCall"
+                onclick="selectSalvationOption('contact','Call')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Call</button>
+              <button id="salvationContactVisit"
+                onclick="selectSalvationOption('contact','Visit')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Visit</button>
+              <button id="salvationContactBoth"
+                onclick="selectSalvationOption('contact','Both')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">Both</button>
+            </div>
+          </div>
+
+          <!-- Salvation Details -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              ✝️ Salvation Details
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:8px;">Decision Type *</label>
+            <div style="display:flex;gap:10px;margin-bottom:14px;">
+              <button type="button" class="salvation-type-btn"
+                onclick="selectSalvationType('First-Time Salvation', this)"
+                style="flex:1;padding:10px;border-radius:8px;
+                border:2px solid var(--border);background:#f8fafc;
+                font-weight:700;font-size:13px;color:var(--navy);
+                cursor:pointer;">🙌 First-Time</button>
+              <button type="button" class="salvation-type-btn"
+                onclick="selectSalvationType('Rededication', this)"
+                style="flex:1;padding:10px;border-radius:8px;
+                border:2px solid var(--border);background:#f8fafc;
+                font-weight:700;font-size:13px;color:var(--navy);
+                cursor:pointer;">🔄 Rededication</button>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:8px;">
+              Do you speak in tongues?
+            </label>
+            <div style="display:flex;gap:10px;margin-bottom:12px;">
+              <button id="salvationTonguesYes"
+                onclick="selectSalvationOption('speaksInTongues','Yes')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">YES</button>
+              <button id="salvationTonguesNo"
+                onclick="selectSalvationOption('speaksInTongues','No')"
+                style="flex:1;padding:10px;
+                border:2px solid var(--border);
+                border-radius:8px;font-weight:700;
+                cursor:pointer;background:white;
+                color:var(--navy);">NO</button>
+            </div>
+
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Ministered By</label>
+            <input type="text" id="salvationMinisteredBy"
+              placeholder="Who prayed with them"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              box-sizing:border-box;">
+          </div>
+
+          <!-- Feedback -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              💬 Feedback / Testimony
+            </div>
+            <textarea id="salvationFeedback"
+              placeholder="Please share any feedback or testimony..."
+              rows="4"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              resize:none;box-sizing:border-box;">
+            </textarea>
+          </div>
+
+        </div>
+
+        <button onclick="reviewSalvationForm()"
+          style="width:100%;padding:16px;
+          background:var(--navy);color:white;
+          border:none;border-radius:12px;
+          font-weight:800;font-size:15px;
+          cursor:pointer;margin-top:20px;
+          margin-bottom:8px;">
+          📋 Review & Submit
+        </button>
+
+        <button onclick="showSection('secFirstTimersLanding')"
+          style="width:100%;padding:12px;
+          background:none;border:none;
+          color:var(--gray);font-size:13px;
+          cursor:pointer;margin-bottom:20px;">
+          ← Back
+        </button>
+      </div>
+
+      <div class="section" id="secSalvationReview">
+        <div style="display:flex;align-items:center;
+          gap:12px;margin-bottom:20px;">
+          <button onclick="showSection('secSalvationForm')"
+            style="background:none;border:none;
+            color:var(--gray);cursor:pointer;
+            font-size:20px;">←</button>
+          <h2 style="font-family:'Nunito',sans-serif;
+            font-weight:900;font-size:18px;
+            color:var(--navy);margin:0;">
+            ✝️ Review Salvation Details
+          </h2>
+        </div>
+
+        <p style="color:var(--gray);font-size:13px;
+          margin-bottom:16px;">
+          Please review the details before submitting
+        </p>
+
+        <div id="salvationReviewContent"
+          style="display:flex;flex-direction:column;
+          gap:12px;margin-bottom:20px;">
+        </div>
+
+        <button onclick="submitSalvationForm()"
+          style="width:100%;padding:16px;
+          background:#22c55e;color:white;
+          border:none;border-radius:12px;
+          font-weight:800;font-size:15px;
+          cursor:pointer;margin-bottom:8px;">
+          ✅ Confirm & Submit
+        </button>
+
+        <button onclick="showSection('secSalvationForm')"
+          style="width:100%;padding:12px;
+          background:none;border:none;
+          color:var(--gray);font-size:13px;
+          cursor:pointer;">
+          ✏️ Edit Details
+        </button>
+      </div>
+
       <!-- Guest Registration Form -->
       <div class="section" id="secGuestForm">
         <div style="display:flex;align-items:center;
@@ -931,6 +1563,27 @@
 
         <div style="display:flex;flex-direction:column;
           gap:14px;">
+
+          <!-- Filled By -->
+          <div style="background:white;border-radius:16px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-weight:800;color:var(--navy);
+              font-size:14px;margin-bottom:14px;
+              border-bottom:2px solid #f1f5f9;
+              padding-bottom:8px;">
+              ✍️ Filled By
+            </div>
+            <label style="font-weight:700;font-size:13px;
+              color:var(--navy);display:block;
+              margin-bottom:4px;">Your Name (First Timers Member) *</label>
+            <input type="text" id="guestFilledBy"
+              placeholder="Enter your own name"
+              style="width:100%;padding:10px;
+              border:2px solid var(--border);
+              border-radius:8px;font-size:14px;
+              box-sizing:border-box;">
+          </div>
 
           <!-- Personal Details -->
           <div style="background:white;border-radius:16px;
@@ -4729,7 +5382,13 @@
         'guestLastName').value.trim();
       var phone = document.getElementById(
         'guestPhone').value.trim();
+      var filledBy = document.getElementById(
+        'guestFilledBy').value.trim();
 
+      if (!filledBy) {
+        showGlobalAlert('Please enter your name in "Filled By"', 'error');
+        return;
+      }
       if (!firstName || !lastName) {
         showGlobalAlert('Please fill First Name and Last Name', 'error');
         return;
@@ -4776,8 +5435,9 @@
         dob = day + '/' + month + '/' + year;
       }
       
-      content.innerHTML = 
-        reviewRow('Full Name', firstName + ' ' + 
+      content.innerHTML =
+        reviewRow('Filled By', filledBy) +
+        reviewRow('Full Name', firstName + ' ' +
           document.getElementById('guestMiddleName')
             .value.trim() + ' ' + lastName) +
         reviewRow('Phone', phone) +
@@ -4824,7 +5484,13 @@
         'guestLastName').value.trim();
       var phone = document.getElementById(
         'guestPhone').value.trim();
+      var filledBy = document.getElementById(
+        'guestFilledBy').value.trim();
 
+      if (!filledBy) {
+        showGlobalAlert('Please enter your name in "Filled By"', 'error');
+        return;
+      }
       if (!firstName || !lastName) {
         showGlobalAlert('Please fill First Name and Last Name', 'error');
         return;
@@ -4849,6 +5515,7 @@
         id: 'G' + Date.now(),
         date: new Date().toLocaleDateString('en-GB'),
         time: new Date().toLocaleTimeString('en-GB'),
+        filledBy: filledBy,
         firstName: firstName,
         middleName: document.getElementById(
           'guestMiddleName').value.trim(),
@@ -5004,6 +5671,405 @@
       });
     }
 
+    // ── Salvation Form (inside First Timers Unit) ──────────────
+    var salvationState = {
+      decisionType: '', gender: '', marital: '', podcast: '',
+      bornAgain: '', church: '', contact: '', speaksInTongues: ''
+    };
+
+    function openSalvationForm() {
+      var dateEl = document.getElementById('salvationFormDate');
+      if (dateEl) dateEl.textContent = '📅 ' + new Date().toLocaleDateString('en-GB');
+      showSection('secSalvationForm');
+    }
+
+    function selectSalvationGender(value) {
+      salvationState.gender = value;
+      document.getElementById('salvationGenderMale')
+        .style.background = value === 'Male' ? 'var(--navy)' : 'white';
+      document.getElementById('salvationGenderMale')
+        .style.color = value === 'Male' ? 'white' : 'var(--navy)';
+      document.getElementById('salvationGenderFemale')
+        .style.background = value === 'Female' ? 'var(--navy)' : 'white';
+      document.getElementById('salvationGenderFemale')
+        .style.color = value === 'Female' ? 'white' : 'var(--navy)';
+    }
+
+    function selectSalvationMarital(value) {
+      salvationState.marital = value;
+      var btns = {
+        'Single': 'salvationMaritalSingle',
+        'Married': 'salvationMaritalMarried',
+        'Divorced': 'salvationMaritalDivorced'
+      };
+      Object.keys(btns).forEach(function(k) {
+        var btn = document.getElementById(btns[k]);
+        if (btn) {
+          btn.style.background = k === value ? 'var(--navy)' : 'white';
+          btn.style.color = k === value ? 'white' : 'var(--navy)';
+        }
+      });
+    }
+
+    function selectSalvationOption(field, value) {
+      salvationState[field] = value;
+
+      var buttonMap = {
+        podcast: ['salvationPodcastYes', 'salvationPodcastNo'],
+        bornAgain: ['salvationBornAgainYes', 'salvationBornAgainNo'],
+        church: ['salvationChurchYes', 'salvationChurchNo'],
+        contact: ['salvationContactCall', 'salvationContactVisit', 'salvationContactBoth'],
+        speaksInTongues: ['salvationTonguesYes', 'salvationTonguesNo']
+      };
+
+      var valueMap = {
+        podcast: ['Yes', 'No'],
+        bornAgain: ['Yes', 'No'],
+        church: ['Yes', 'No'],
+        contact: ['Call', 'Visit', 'Both'],
+        speaksInTongues: ['Yes', 'No']
+      };
+
+      var buttons = buttonMap[field];
+      var values = valueMap[field];
+
+      if (buttons) {
+        buttons.forEach(function(btnId, idx) {
+          var btn = document.getElementById(btnId);
+          if (btn) {
+            btn.style.background = values[idx] === value ? 'var(--navy)' : 'white';
+            btn.style.color = values[idx] === value ? 'white' : 'var(--navy)';
+          }
+        });
+      }
+
+      if (field === 'church') {
+        var churchNameEl = document.getElementById('salvationChurchName');
+        if (churchNameEl) {
+          churchNameEl.style.display = value === 'Yes' ? 'block' : 'none';
+        }
+      }
+    }
+
+    function selectSalvationType(value, btn) {
+      salvationState.decisionType = value;
+      btn.closest('div').querySelectorAll('.salvation-type-btn')
+        .forEach(function(b) {
+          b.style.background = '#f8fafc';
+          b.style.borderColor = 'var(--border)';
+          b.style.color = 'var(--navy)';
+        });
+      btn.style.background = '#f3e8ff';
+      btn.style.borderColor = '#a855f7';
+      btn.style.color = '#7e22ce';
+    }
+
+    function getSalvationCheckedSources() {
+      var sources = [];
+      var ids = ['salvationSrcFriend', 'salvationSrcMember', 'salvationSrcFacebook',
+        'salvationSrcWhatsApp', 'salvationSrcPodbean', 'salvationSrcWebsite',
+        'salvationSrcTV', 'salvationSrcRadio'];
+      ids.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && el.checked) sources.push(el.value);
+      });
+      return sources.join(', ');
+    }
+
+    function toggleSalvationReferralFields() {
+      var checked = document.getElementById('salvationNoContact').checked;
+      var fields = document.getElementById('salvationReferralFields');
+      var phoneInput = document.getElementById('salvationPhone');
+      if (fields) fields.style.display = checked ? 'block' : 'none';
+      if (phoneInput) {
+        phoneInput.disabled = checked;
+        if (checked) phoneInput.value = '';
+      }
+      if (!checked) {
+        var rn = document.getElementById('salvationReferralName');
+        var rr = document.getElementById('salvationReferralRelation');
+        var rp = document.getElementById('salvationReferralPhone');
+        if (rn) rn.value = '';
+        if (rr) rr.value = '';
+        if (rp) rp.value = '';
+      }
+    }
+
+    function reviewSalvationForm() {
+      var firstName = document.getElementById('salvationFirstName').value.trim();
+      var lastName = document.getElementById('salvationLastName').value.trim();
+      var phone = document.getElementById('salvationPhone').value.trim();
+      var filledBy = document.getElementById('salvationFilledBy').value.trim();
+
+      if (!filledBy) {
+        showGlobalAlert('Please enter your name in "Filled By"', 'error');
+        return;
+      }
+      if (!firstName || !lastName) {
+        showGlobalAlert('Please fill First Name and Last Name', 'error');
+        return;
+      }
+      if (!salvationState.decisionType) {
+        showGlobalAlert('Please select a decision type', 'error');
+        return;
+      }
+
+      var noContact = document.getElementById('salvationNoContact').checked;
+      if (noContact) {
+        var refName = document.getElementById('salvationReferralName').value.trim();
+        var refPhone = document.getElementById('salvationReferralPhone').value.trim();
+        if (!refName || !refPhone) {
+          showGlobalAlert('Please provide the referral person\'s name and phone number', 'error');
+          return;
+        }
+      } else if (!phone) {
+        showGlobalAlert('Please enter a contact number, or check "I don\'t have my own contact number"', 'error');
+        return;
+      }
+
+      var content = document.getElementById('salvationReviewContent');
+      if (!content) return;
+
+      function reviewRow(label, value) {
+        if (!value) return '';
+        return '<div style="background:white;' +
+          'border-radius:10px;padding:12px 16px;' +
+          'box-shadow:0 1px 4px rgba(0,0,0,0.06);">' +
+          '<div style="font-size:11px;color:#94a3b8;' +
+          'font-weight:700;margin-bottom:2px;">' +
+          label + '</div>' +
+          '<div style="font-size:14px;font-weight:600;' +
+          'color:#0a1628;">' + value + '</div>' +
+          '</div>';
+      }
+
+      var dob = '';
+      var day = document.getElementById('salvationDOBDay').value;
+      var month = document.getElementById('salvationDOBMonth').value;
+      var year = document.getElementById('salvationDOBYear').value;
+      if (day && month && year) {
+        dob = day + '/' + month + '/' + year;
+      }
+
+      content.innerHTML =
+        reviewRow('Filled By', filledBy) +
+        reviewRow('Decision Type', salvationState.decisionType) +
+        reviewRow('Full Name', firstName + ' ' +
+          document.getElementById('salvationMiddleName').value.trim() + ' ' + lastName) +
+        reviewRow('Phone', phone) +
+        (noContact ?
+          reviewRow('Referral Person', document.getElementById('salvationReferralName').value.trim()) +
+          reviewRow('Relation to Guest', document.getElementById('salvationReferralRelation').value.trim()) +
+          reviewRow('Referral Phone', document.getElementById('salvationReferralPhone').value.trim())
+          : '') +
+        reviewRow('Email', document.getElementById('salvationEmail').value.trim()) +
+        reviewRow('Date of Birth', dob) +
+        reviewRow('Gender', salvationState.gender) +
+        reviewRow('Marital Status', salvationState.marital) +
+        reviewRow('Occupation', document.getElementById('salvationOccupation').value.trim()) +
+        reviewRow('Company/School', document.getElementById('salvationCompany').value.trim()) +
+        reviewRow('Residence', document.getElementById('salvationResidence').value.trim()) +
+        reviewRow('How Heard About ONC', getSalvationCheckedSources()) +
+        reviewRow('Invited By', document.getElementById('salvationInvitedBy').value.trim()) +
+        reviewRow('WhatsApp Number', document.getElementById('salvationWhatsApp').value.trim()) +
+        reviewRow('Born Again', salvationState.bornAgain) +
+        reviewRow('Belongs to Church', salvationState.church) +
+        reviewRow('Church Name', document.getElementById('salvationChurchName').value.trim()) +
+        reviewRow('Contact Preference', salvationState.contact) +
+        reviewRow('Speaks in Tongues', salvationState.speaksInTongues) +
+        reviewRow('Ministered By', document.getElementById('salvationMinisteredBy').value.trim()) +
+        reviewRow('Feedback', document.getElementById('salvationFeedback').value.trim());
+
+      showSection('secSalvationReview');
+    }
+
+    function resetSalvationForm() {
+      var inputs = document.querySelectorAll(
+        '#secSalvationForm input, #secSalvationForm textarea');
+      inputs.forEach(function(input) { input.value = ''; });
+
+      var checkboxes = document.querySelectorAll(
+        '#secSalvationForm input[type="checkbox"]');
+      checkboxes.forEach(function(cb) { cb.checked = false; });
+
+      salvationState = {
+        decisionType: '', gender: '', marital: '', podcast: '',
+        bornAgain: '', church: '', contact: '', speaksInTongues: ''
+      };
+
+      var idBtns = document.querySelectorAll('#secSalvationForm button[id]');
+      idBtns.forEach(function(btn) {
+        btn.style.background = 'white';
+        btn.style.color = 'var(--navy)';
+      });
+
+      var typeBtns = document.querySelectorAll('#secSalvationForm .salvation-type-btn');
+      typeBtns.forEach(function(btn) {
+        btn.style.background = '#f8fafc';
+        btn.style.borderColor = 'var(--border)';
+        btn.style.color = 'var(--navy)';
+      });
+
+      var churchEl = document.getElementById('salvationChurchName');
+      if (churchEl) churchEl.style.display = 'none';
+
+      var phoneEl = document.getElementById('salvationPhone');
+      if (phoneEl) phoneEl.disabled = false;
+      var referralEl = document.getElementById('salvationReferralFields');
+      if (referralEl) referralEl.style.display = 'none';
+    }
+
+    function submitSalvationForm() {
+      var firstName = document.getElementById('salvationFirstName').value.trim();
+      var lastName = document.getElementById('salvationLastName').value.trim();
+      var phone = document.getElementById('salvationPhone').value.trim();
+      var filledBy = document.getElementById('salvationFilledBy').value.trim();
+
+      if (!filledBy) {
+        showGlobalAlert('Please enter your name in "Filled By"', 'error');
+        return;
+      }
+      if (!firstName || !lastName) {
+        showGlobalAlert('Please fill First Name and Last Name', 'error');
+        return;
+      }
+      if (!salvationState.decisionType) {
+        showGlobalAlert('Please select a decision type', 'error');
+        return;
+      }
+
+      var noContact = document.getElementById('salvationNoContact').checked;
+      var referralName = '', referralRelation = '', referralPhone = '';
+      if (noContact) {
+        referralName = document.getElementById('salvationReferralName').value.trim();
+        referralRelation = document.getElementById('salvationReferralRelation').value.trim();
+        referralPhone = document.getElementById('salvationReferralPhone').value.trim();
+        if (!referralName || !referralPhone) {
+          showGlobalAlert('Please provide the referral person\'s name and phone number', 'error');
+          return;
+        }
+      } else if (!phone) {
+        showGlobalAlert('Please enter a contact number, or check "I don\'t have my own contact number"', 'error');
+        return;
+      }
+
+      var salvation = {
+        id: 'SV' + Date.now(),
+        date: new Date().toLocaleDateString('en-GB'),
+        time: new Date().toLocaleTimeString('en-GB'),
+        filledBy: filledBy,
+        decisionType: salvationState.decisionType,
+        firstName: firstName,
+        middleName: document.getElementById('salvationMiddleName').value.trim(),
+        lastName: lastName,
+        fullName: firstName + ' ' + lastName,
+        phone: phone,
+        hasOwnContact: !noContact,
+        referralName: referralName,
+        referralRelation: referralRelation,
+        referralPhone: referralPhone,
+        email: document.getElementById('salvationEmail').value.trim(),
+        dobDay: document.getElementById('salvationDOBDay').value,
+        dobMonth: document.getElementById('salvationDOBMonth').value,
+        dobYear: document.getElementById('salvationDOBYear').value,
+        gender: salvationState.gender,
+        maritalStatus: salvationState.marital,
+        occupation: document.getElementById('salvationOccupation').value.trim(),
+        company: document.getElementById('salvationCompany').value.trim(),
+        residence: document.getElementById('salvationResidence').value.trim(),
+        heardFrom: getSalvationCheckedSources(),
+        invitedBy: document.getElementById('salvationInvitedBy').value.trim(),
+        podcast: salvationState.podcast,
+        whatsapp: document.getElementById('salvationWhatsApp').value.trim(),
+        bornAgain: salvationState.bornAgain,
+        belongsToChurch: salvationState.church,
+        churchName: document.getElementById('salvationChurchName').value.trim(),
+        contactPreference: salvationState.contact,
+        speaksInTongues: salvationState.speaksInTongues,
+        ministeredBy: document.getElementById('salvationMinisteredBy').value.trim(),
+        feedback: document.getElementById('salvationFeedback').value.trim(),
+        loggedInAs: ftLoggedInName
+      };
+
+      var submitBtn = document.querySelector(
+        '#secSalvationReview button[onclick="submitSalvationForm()"]');
+      if (submitBtn) {
+        submitBtn.textContent = '⏳ Submitting...';
+        submitBtn.disabled = true;
+      }
+
+      var payload = { action: 'submitSalvationForm', salvation: salvation };
+
+      // Save to localStorage as backup BEFORE sending to backend, same
+      // resiliency pattern used for guest submissions.
+      var svBackup = {
+        id: 'SVB' + Date.now(),
+        savedAt: new Date().toISOString(),
+        synced: false,
+        data: salvation
+      };
+      var svBackups = JSON.parse(localStorage.getItem('sv_pending_backup') || '[]');
+      svBackups.push(svBackup);
+      localStorage.setItem('sv_pending_backup', JSON.stringify(svBackups));
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+      .then(function(r) { return r.json(); })
+      .then(function() {
+        var backups = JSON.parse(localStorage.getItem('sv_pending_backup') || '[]');
+        backups = backups.map(function(b) {
+          if (b.id === svBackup.id) b.synced = true;
+          return b;
+        });
+        localStorage.setItem('sv_pending_backup', JSON.stringify(backups));
+
+        showGlobalAlert('✅ Salvation recorded successfully!', 'success');
+        launchConfetti();
+        resetSalvationForm();
+        showSection('secFirstTimersLanding');
+      })
+      .catch(function() {
+        showGlobalAlert('⚠️ Saved locally but server sync failed. Will retry automatically.', 'warning');
+        resetSalvationForm();
+        showSection('secFirstTimersLanding');
+      })
+      .finally(function() {
+        if (submitBtn) {
+          submitBtn.textContent = '✅ Confirm & Submit';
+          submitBtn.disabled = false;
+        }
+      });
+    }
+
+    // Auto-retry unsynced Salvation Form submissions (same pattern as
+    // retryFailedFTSubmissions for guests).
+    function retryFailedSalvationSubmissions() {
+      var backups = JSON.parse(localStorage.getItem('sv_pending_backup') || '[]');
+      var unsynced = backups.filter(function(b) { return !b.synced; });
+      if (unsynced.length === 0) return;
+
+      unsynced.forEach(function(backup) {
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'submitSalvationForm', salvation: backup.data })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+          if (result.status === 'success') {
+            var all = JSON.parse(localStorage.getItem('sv_pending_backup') || '[]');
+            all = all.map(function(b) {
+              if (b.id === backup.id) b.synced = true;
+              return b;
+            });
+            localStorage.setItem('sv_pending_backup', JSON.stringify(all));
+          }
+        })
+        .catch(function() {});
+      });
+    }
+
     // CHANGE 4 — Auto-retry unsynced First Timers submissions
     function retryFailedFTSubmissions() {
       var backups = JSON.parse(
@@ -5053,6 +6119,15 @@
           ' guest(s) pending sync. Please check internet connection.',
           'warning');
         retryFailedFTSubmissions();
+      }
+
+      var svBackups = JSON.parse(localStorage.getItem('sv_pending_backup') || '[]');
+      var svUnsynced = svBackups.filter(function(b) { return !b.synced; });
+      if (svUnsynced.length > 0) {
+        showGlobalAlert('⚠️ ' + svUnsynced.length +
+          ' salvation record(s) pending sync. Please check internet connection.',
+          'warning');
+        retryFailedSalvationSubmissions();
       }
     }
 
