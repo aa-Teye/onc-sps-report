@@ -647,17 +647,13 @@ function submitSalvationForm(data) {
   if (!sheet) {
     sheet = ss.insertSheet(SALVATION_SHEET_NAME);
     sheet.appendRow([
-      'ID', 'Date', 'Time', 'Filled By', 'Decision Type',
+      'ID', 'Date', 'Time', 'Filled By', 'Spiritual Commitment',
       'First Name', 'Middle Name', 'Last Name', 'Full Name',
-      'Phone', 'Has Own Contact', 'Referral Name', 'Referral Relation', 'Referral Phone',
-      'Email', 'Date of Birth', 'Gender', 'Marital Status',
-      'Occupation', 'Company/School', 'Residence',
-      'How Heard About ONC', 'Invited By', 'Faith Academy Podcasts',
-      'WhatsApp Number', 'Born Again', 'Belongs to Church', 'Church Name',
-      'Contact Preference', 'Speaks in Tongues', 'Ministered By', 'Feedback',
-      'Logged In As'
+      'Contact Number', 'WhatsApp Number', 'Date of Birth', 'Gender', 'Residence',
+      'How Heard About Us', 'Name of Friend/Member',
+      'Ever Attended Church', 'Church Name', 'Logged In As'
     ]);
-    styleHeaders(sheet, 33);
+    styleHeaders(sheet, 19);
   }
 
   const s   = data.salvation || {};
@@ -675,34 +671,29 @@ function submitSalvationForm(data) {
     }
   }
 
-  // Write the Date (col B) and DOB (col P) as plain text so Sheets
+  // Write the Date (col B) and DOB (col L) as plain text so Sheets
   // doesn't auto-convert dd/mm/yyyy strings into locale-dependent
   // date serials (same fix applied to First Timers guest dates).
   const newRow = sheet.getLastRow() + 1;
   sheet.getRange(newRow, 2).setNumberFormat('@');
-  sheet.getRange(newRow, 16).setNumberFormat('@');
+  sheet.getRange(newRow, 12).setNumberFormat('@');
 
-  sheet.getRange(newRow, 1, 1, 33).setValues([[
+  sheet.getRange(newRow, 1, 1, 19).setValues([[
     s.id || 'SV' + now.getTime(),
     s.date || formatDate(now),
     formatTime(now),
     s.filledBy || '', s.decisionType || '',
     s.firstName || '', s.middleName || '', s.lastName || '', s.fullName || '',
-    s.phone || '',
-    s.hasOwnContact === false ? 'No' : 'Yes',
-    s.referralName || '', s.referralRelation || '', s.referralPhone || '',
-    s.email || '',
+    s.phone || '', s.whatsapp || '',
     (s.dobDay && s.dobMonth && s.dobYear)
       ? s.dobDay + '/' + s.dobMonth + '/' + s.dobYear : '',
-    s.gender || '', s.maritalStatus || '',
-    s.occupation || '', s.company || '', s.residence || '',
-    s.heardFrom || '', s.invitedBy || '', s.podcast || '',
-    s.whatsapp || '', s.bornAgain || '', s.belongsToChurch || '', s.churchName || '',
-    s.contactPreference || '', s.speaksInTongues || '', s.ministeredBy || '', s.feedback || '',
+    s.gender || '', s.residence || '',
+    s.heardFrom || '', s.invitedBy || '',
+    s.attendedChurch || '', s.churchName || '',
     s.loggedInAs || 'First Timers Unit'
   ]]);
 
-  sheet.autoResizeColumns(1, 33);
+  sheet.autoResizeColumns(1, 19);
   logAudit(ss, 'SALVATION_REGISTERED', s.loggedInAs || 'First Timers Unit', s.fullName || '');
   return jsonResponse({ status: 'success' });
 }
@@ -717,39 +708,25 @@ function getSalvations() {
   const data       = sheet.getDataRange().getValues();
   const salvations = data.slice(1).map(function (row) {
     return {
-      id:               row[0]  || '',
-      date:             row[1] instanceof Date ? formatDate(row[1]) : (row[1] || ''),
-      time:             row[2]  || '',
-      filledBy:         row[3]  || '',
-      decisionType:     row[4]  || '',
-      firstName:        row[5]  || '',
-      middleName:       row[6]  || '',
-      lastName:         row[7]  || '',
-      fullName:         row[8]  || '',
-      phone:            row[9]  || '',
-      hasOwnContact:    row[10] !== 'No',
-      referralName:     row[11] || '',
-      referralRelation: row[12] || '',
-      referralPhone:    row[13] || '',
-      email:            row[14] || '',
-      dob:              row[15] || '',
-      gender:           row[16] || '',
-      maritalStatus:    row[17] || '',
-      occupation:       row[18] || '',
-      company:          row[19] || '',
-      residence:        row[20] || '',
-      heardFrom:        row[21] || '',
-      invitedBy:        row[22] || '',
-      podcast:          row[23] || '',
-      whatsapp:         row[24] || '',
-      bornAgain:        row[25] || '',
-      belongsToChurch:  row[26] || '',
-      churchName:       row[27] || '',
-      contactPreference: row[28] || '',
-      speaksInTongues:  row[29] || '',
-      ministeredBy:     row[30] || '',
-      feedback:         row[31] || '',
-      loggedInAs:       row[32] || ''
+      id:             row[0]  || '',
+      date:           row[1] instanceof Date ? formatDate(row[1]) : (row[1] || ''),
+      time:           row[2]  || '',
+      filledBy:       row[3]  || '',
+      decisionType:   row[4]  || '',
+      firstName:      row[5]  || '',
+      middleName:     row[6]  || '',
+      lastName:       row[7]  || '',
+      fullName:       row[8]  || '',
+      phone:          row[9]  || '',
+      whatsapp:       row[10] || '',
+      dob:            row[11] || '',
+      gender:         row[12] || '',
+      residence:      row[13] || '',
+      heardFrom:      row[14] || '',
+      invitedBy:      row[15] || '',
+      attendedChurch: row[16] || '',
+      churchName:     row[17] || '',
+      loggedInAs:     row[18] || ''
     };
   });
 

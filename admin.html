@@ -2814,13 +2814,11 @@
                         text-align:left;">Date</th>
                       <th style="padding:10px;
                         text-align:left;">Name</th>
-                      <th style="padding:10px;">Phone</th>
+                      <th style="padding:10px;">Contact</th>
                       <th style="padding:10px;">
-                        Decision Type</th>
+                        Spiritual Commitment</th>
                       <th style="padding:10px;">
-                        Speaks in Tongues</th>
-                      <th style="padding:10px;">
-                        Ministered By</th>
+                        Ever Attended Church</th>
                       <th style="padding:10px;">
                         Filled By</th>
                     </tr>
@@ -9082,7 +9080,7 @@
 
         if (allSalvationRecords.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="7" style="text-align:' +
+            '<tr><td colspan="6" style="text-align:' +
             'center;padding:40px;color:#64748b;">' +
             'No salvation records yet.</td></tr>';
           return;
@@ -9094,9 +9092,9 @@
 
         tbody.innerHTML = sorted.map(function(s, idx) {
           var bg = idx % 2 === 0 ? '#f8fafc' : 'white';
-          var tonguesCell = s.speaksInTongues === 'Yes' ?
+          var churchCell = s.attendedChurch === 'Yes' ?
             '<span style="color:#22c55e;">✅ Yes</span>' :
-            s.speaksInTongues === 'No' ?
+            s.attendedChurch === 'No' ?
             '<span style="color:#ef4444;">❌ No</span>' : '—';
 
           return '<tr style="background:' + bg +
@@ -9106,13 +9104,11 @@
             '<td style="padding:10px;font-weight:700;' +
             'color:#0a1628;">' + (s.fullName || '') + '</td>' +
             '<td style="padding:10px;text-align:center;">' +
-            (s.phone || '—') + '</td>' +
+            (s.phone || s.whatsapp || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;">' +
             (s.decisionType || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;">' +
-            tonguesCell + '</td>' +
-            '<td style="padding:10px;text-align:center;">' +
-            (s.ministeredBy || '—') + '</td>' +
+            churchCell + '</td>' +
             '<td style="padding:10px;text-align:center;">' +
             (s.filledBy || '—') + '</td>' +
             '</tr>';
