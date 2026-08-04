@@ -5273,7 +5273,7 @@
           }, 150);
         }
         if (id === 'settings') {
-          renderShepherdPinsTable();
+          loadShepherdPinsTable();
         }
         if (id === 'first-timers') {
           setTimeout(function() {
@@ -8684,6 +8684,33 @@
         doc.save('ONC_Microchurch_Report_' + new Date().toISOString().split('T')[0] + '.pdf');
       }
 
+      // Real PIN status lives in the "Shepherd PINs" backend sheet, not in this
+      // browser's localStorage — populated by loadShepherdPinsTable() via getPins.
+      var shepherdPinsBackendMap = {};
+
+      window.loadShepherdPinsTable = function (afterLoad) {
+        window.onShepherdPinsLoaded = function (data) {
+          window.onShepherdPinsLoaded = null;
+          shepherdPinsBackendMap = {};
+          if (data && data.pins) {
+            data.pins.forEach(function (p) {
+              if (p.name) shepherdPinsBackendMap[p.name] = p.pin || '0000';
+            });
+          }
+          renderShepherdPinsTable();
+          if (typeof afterLoad === 'function') afterLoad();
+        };
+
+        var old = document.getElementById('shepherdPinsScript');
+        if (old && old.parentNode) old.parentNode.removeChild(old);
+
+        var script = document.createElement('script');
+        script.id = 'shepherdPinsScript';
+        script.src = SCRIPT_URL + '?action=getPins&callback=onShepherdPinsLoaded&_=' + Date.now();
+        script.onerror = function () { renderShepherdPinsTable(); };
+        document.head.appendChild(script);
+      };
+
       window.renderShepherdPinsTable = function () {
         var tbody = document.getElementById('shepherdPinsTableBody');
         if (!tbody) return;
@@ -8697,25 +8724,20 @@
           return a.name.localeCompare(b.name);
         });
 
-        // Load custom pins from localstorage
-        var customPins = {};
-        try {
-          customPins = JSON.parse(localStorage.getItem('onc_shepherd_pins') || '{}');
-        } catch (e) { }
-
         var rowsHtml = '';
         allCombined.forEach(function (shep) {
           if (searchQuery && !shep.name.toLowerCase().includes(searchQuery)) {
             return;
           }
 
-          var hasCustomPin = customPins[shep.name] !== undefined && customPins[shep.name] !== '0000';
+          var currentPin = shepherdPinsBackendMap[shep.name] || '0000';
+          var hasCustomPin = currentPin !== '0000';
           var statusBadge = hasCustomPin
-            ? '<span class="badge" style="background:#dbeafe;color:#2563eb;font-weight:700;padding:4px 8px;border-radius:6px;font-size:11px;">Custom Set</span>'
+            ? '<span class="badge" style="background:#dbeafe;color:#2563eb;font-weight:700;padding:4px 8px;border-radius:6px;font-size:11px;">Custom Set (' + currentPin + ')</span>'
             : '<span class="badge" style="background:#f1f5f9;color:#64748b;font-weight:700;padding:4px 8px;border-radius:6px;font-size:11px;">Default (0000)</span>';
 
           var actionBtn = hasCustomPin
-            ? '<button onclick="resetShepherdPin(\'' + shep.name.replace(/'/g, "\\'") + '\')" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;width:100%;transition:background .2s;">Reset to 0000</button>'
+            ? '<button onclick="resetShepherdPin(\'' + shep.name.replace(/'/g, "\\'") + '\', \'' + shep.type + '\')" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;width:100%;transition:background .2s;">Reset to 0000</button>'
             : '<button disabled style="padding:6px 12px;background:#cbd5e1;color:#94a3b8;border:none;border-radius:8px;font-size:12px;font-weight:700;width:100%;cursor:not-allowed;">Reset</button>';
 
           rowsHtml += '<tr>' +
@@ -8733,18 +8755,26 @@
         tbody.innerHTML = rowsHtml;
       };
 
-      window.resetShepherdPin = function (name) {
-        if (confirm('Are you sure you want to reset ' + name + '\'s PIN back to the default "0000"?')) {
-          var customPins = {};
-          try {
-            customPins = JSON.parse(localStorage.getItem('onc_shepherd_pins') || '{}');
-          } catch (e) { }
+      window.resetShepherdPin = function (name, type) {
+        if (!confirm('Are you sure you want to reset ' + name + '\'s PIN back to the default "0000"?')) return;
 
-          delete customPins[name];
-          localStorage.setItem('onc_shepherd_pins', JSON.stringify(customPins));
-          alert('Successfully reset ' + name + '\'s PIN back to default 0000!');
-          renderShepherdPinsTable();
-        }
+        var role = type === 'Microchurch' ? 'MC Shepherd' : 'SPS Shepherd';
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'savePinChange', name: name, role: role, pin: '0000' })
+        }).catch(function (e) { console.log('PIN reset sync error:', e); });
+
+        // Backend write is fire-and-forget (no readable CORS response), so
+        // re-fetch from the sheet after a beat to confirm it actually took.
+        setTimeout(function () {
+          loadShepherdPinsTable(function () {
+            var stillCustom = shepherdPinsBackendMap[name] && shepherdPinsBackendMap[name] !== '0000';
+            alert(stillCustom
+              ? 'Could not confirm the reset for ' + name + '. Please try again in a moment.'
+              : 'Successfully reset ' + name + '\'s PIN back to default 0000!');
+          });
+        }, 1200);
       };
 
       // ── SUNDAY SOUL REPORTS MANAGEMENT ──

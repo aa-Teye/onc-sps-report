@@ -681,11 +681,14 @@
             id="ftPinInput"
             maxlength="4"
             placeholder="••••"
+            oninput="hideLoginPinError();"
+            onfocus="hideLoginPinError();"
             style="width:100%;padding:16px;
             border:2px solid var(--border);
             border-radius:10px;font-size:24px;
             text-align:center;letter-spacing:8px;
             box-sizing:border-box;">
+          <div id="ftPinError" style="display:none; margin-top:8px; padding:10px 12px; background:#fee2e2; border:1px solid #fecaca; border-radius:10px; color:#b91c1c; font-size:13px; font-weight:700; text-align:center;"></div>
         </div>
 
         <button onclick="verifyFirstTimersLogin()"
@@ -1919,7 +1922,8 @@
           <label style="font-weight: 700; color: var(--navy); font-size: 13px;">Enter 4-Digit PIN</label>
           <input type="password" id="loginPinInput" placeholder="••••" maxlength="4" pattern="[0-9]*" inputmode="numeric"
             style="width:100%;padding:14px;border:2px solid #dce7f7;border-radius:12px;font-family:Outfit,sans-serif;font-size:20px;letter-spacing:6px;text-align:center;color:#0f2044;background:#f0f5ff;outline:none;margin-top:6px;transition:border-color .2s;"
-            onfocus="this.style.borderColor='#2e80e8'" onblur="this.style.borderColor='#dce7f7'">
+            onfocus="this.style.borderColor='#2e80e8'; hideLoginPinError();" onblur="this.style.borderColor='#dce7f7'" oninput="hideLoginPinError();">
+          <div id="loginPinError" style="display:none; margin-top:8px; padding:10px 12px; background:#fee2e2; border:1px solid #fecaca; border-radius:10px; color:#b91c1c; font-size:13px; font-weight:700; text-align:center;"></div>
         </div>
 
         <button type="button" onclick="verifyShepherdLogin()" style="width: 100%; padding: 16px; background: #0f2044; color: #fff; border: none; border-radius: 12px; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 15px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(15, 32, 68, 0.15);">
@@ -3426,6 +3430,7 @@
 
       if (!enteredPin) {
         showGlobalAlert('Please enter your 4-digit PIN', 'error');
+        showLoginPinError('Please enter your 4-digit PIN');
         return;
       }
 
@@ -3437,6 +3442,7 @@
       var expectedPin = localStorage.getItem('onc_pin_' + shepherdName) || customPins[shepherdName] || (shepherdData[shepherdName] ? shepherdData[shepherdName].pin : '0000');
 
       if (enteredPin === expectedPin) {
+        hideLoginPinError();
         // Save session locally
         localStorage.setItem('onc_logged_in_shepherd', shepherdName);
         localStorage.setItem('onc_logged_in_type', shepherdType);
@@ -3501,6 +3507,7 @@
         initPushNotifications(shepherdName, shepherdType);
       } else {
         showGlobalAlert('❌ Incorrect PIN. Please try again.', 'error');
+        showLoginPinError('❌ Incorrect PIN. Please try again.');
         pinEl.value = '';
         pinEl.focus();
       }
@@ -4488,6 +4495,28 @@
       window.requestAnimationFrame(frame);
     }
 
+    // Inline PIN error messages — the global top banner ends up hidden behind
+    // the on-screen keyboard on mobile while entering a PIN, so login/PIN
+    // errors also get shown right under the PIN field itself.
+    function showLoginPinError(message) {
+      var el = document.getElementById('loginPinError');
+      if (!el) return;
+      el.textContent = message;
+      el.style.display = 'block';
+    }
+    function showFtPinError(message) {
+      var el = document.getElementById('ftPinError');
+      if (!el) return;
+      el.textContent = message;
+      el.style.display = 'block';
+    }
+    function hideLoginPinError() {
+      var el1 = document.getElementById('loginPinError');
+      if (el1) el1.style.display = 'none';
+      var el2 = document.getElementById('ftPinError');
+      if (el2) el2.style.display = 'none';
+    }
+
     function showGlobalAlert(message, type) {
       var alertEl = document.getElementById('globalAlert');
       if (!alertEl) return;
@@ -5006,12 +5035,14 @@
       var pin = pinEl.value;
       if (!pin) {
         showGlobalAlert('Please enter your 4-digit PIN', 'error');
+        showFtPinError('Please enter your 4-digit PIN');
         return;
       }
 
       var expectedPin = localStorage.getItem('ft_pin_' + name) || '0000';
 
       if (pin === expectedPin) {
+        hideLoginPinError();
         pinEl.value = '';
 
         ftLoggedInName = name;
@@ -5032,6 +5063,7 @@
         checkFTPendingSync();
       } else {
         showGlobalAlert('❌ Incorrect PIN. Please try again.', 'error');
+        showFtPinError('❌ Incorrect PIN. Please try again.');
         pinEl.value = '';
       }
     }
