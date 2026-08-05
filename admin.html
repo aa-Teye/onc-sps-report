@@ -305,6 +305,93 @@
       display: none !important;
     }
 
+    /* ── GUIDED TOUR ──
+       A separate fixed overlay (not a class on the sidebar item itself) —
+       .sidebar nav has overflow-y:auto, which would clip a box-shadow
+       spotlight applied directly to a nested element. */
+    #tourSpotlight {
+      display: none;
+      position: fixed;
+      z-index: 100000;
+      border-radius: 8px;
+      box-shadow: 0 0 0 4px var(--accent, #3b82f6), 0 0 0 9999px rgba(10, 22, 40, .78);
+      pointer-events: none;
+      transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease;
+    }
+
+    .tour-tooltip {
+      display: none;
+      position: fixed;
+      z-index: 100001;
+      width: 280px;
+      max-width: calc(100vw - 32px);
+      background: #fff;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
+      font-family: inherit;
+    }
+
+    .tour-tooltip-step {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent, #3b82f6);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .tour-tooltip-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--navy, #0a1628);
+      margin-bottom: 6px;
+    }
+
+    .tour-tooltip-text {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .tour-tooltip-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .tour-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+
+    .tour-btn-skip {
+      background: none;
+      color: #94a3b8;
+      padding-left: 0;
+    }
+
+    .tour-btn-back {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .tour-btn-next {
+      background: var(--navy, #0a1628);
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      #tourBtn { display: none; }
+    }
+
     .tab-btn.active {
       color: var(--white);
       background: rgba(59, 130, 246, .25);
@@ -1280,7 +1367,7 @@
         <nav style="overflow-y: auto; max-height: calc(100vh - 120px);">
           <!-- OVERVIEW -->
           <div class="tab-group">
-          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
+          <div class="tab-section-label tab-group-header" data-tour="overview" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
@@ -1305,7 +1392,7 @@
 
           <!-- SHEPHERDS -->
           <div class="tab-group collapsed">
-          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
+          <div class="tab-section-label tab-group-header" data-tour="shepherds" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
@@ -1335,7 +1422,7 @@
 
           <!-- REPORTS -->
           <div class="tab-group collapsed">
-          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
+          <div class="tab-section-label tab-group-header" data-tour="reports" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
@@ -1360,7 +1447,7 @@
 
           <!-- GROWTH -->
           <div class="tab-group collapsed">
-          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
+          <div class="tab-section-label tab-group-header" data-tour="growth" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
@@ -1413,7 +1500,7 @@
 
           <!-- COMMUNICATION -->
           <div class="tab-group collapsed">
-          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
+          <div class="tab-section-label tab-group-header" data-tour="communication" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
@@ -1433,7 +1520,7 @@
 
           <!-- INTELLIGENCE -->
           <div class="tab-group collapsed">
-          <div class="tab-section-label tab-group-header" id="intelligenceLabel" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
+          <div class="tab-section-label tab-group-header" id="intelligenceLabel" data-tour="intelligence" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;display:none;">
@@ -1451,7 +1538,7 @@
 
           <!-- SYSTEM -->
           <div class="tab-group collapsed">
-          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
+          <div class="tab-section-label tab-group-header" data-tour="system" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
@@ -1496,7 +1583,23 @@
             <div class="live-badge">
               <div class="live-dot"></div><span id="lastUpdated">Loading...</span>
             </div>
+            <button class="btn-refresh" id="tourBtn" onclick="startTour()">🧭 Take a Tour</button>
             <button class="btn-refresh" onclick="loadAll()">🔄 Refresh</button>
+          </div>
+        </div>
+
+        <!-- GUIDED TOUR -->
+        <div id="tourSpotlight"></div>
+        <div class="tour-tooltip" id="tourTooltip">
+          <div class="tour-tooltip-step" id="tourStepLabel">Step 1 of 7</div>
+          <div class="tour-tooltip-title" id="tourTitle"></div>
+          <div class="tour-tooltip-text" id="tourText"></div>
+          <div class="tour-tooltip-actions">
+            <button class="tour-btn tour-btn-skip" onclick="endTour()">Skip</button>
+            <div style="display:flex;gap:8px;">
+              <button class="tour-btn tour-btn-back" id="tourBackBtn" onclick="tourBack()">Back</button>
+              <button class="tour-btn tour-btn-next" id="tourNextBtn" onclick="tourNext()">Next</button>
+            </div>
           </div>
         </div>
 
@@ -5265,6 +5368,117 @@
       function toggleTabGroup(headerEl) {
         var group = headerEl.closest('.tab-group');
         if (group) group.classList.toggle('collapsed');
+      }
+
+      // ── GUIDED TOUR ──────────────────────────────────────────────
+      var TOUR_STEPS = [
+        { tour: 'overview', title: '📊 Overview', text: 'Your at-a-glance stats — sessions this week, shepherds reported, average attendance, concerns flagged, and Sunday souls won.' },
+        { tour: 'shepherds', title: '👥 Shepherds', text: 'Manage SPS and MC shepherd rosters, assign zones, and view performance scores.' },
+        { tour: 'reports', title: '📋 Reports', text: 'Review weekly SPS reports, MC reports, and First Timers activity as they come in.' },
+        { tour: 'growth', title: '🌱 Growth', text: 'Track seekers, membership status, discipleship journey, flagged concerns, school attendance, and the soul-winning leaderboard.' },
+        { tour: 'communication', title: '📢 Communication', text: 'Post announcements to shepherds and manage the shared resource library.' },
+        { tour: 'intelligence', title: '🧠 Intelligence', text: 'Deeper member records and pipeline tracking. Only visible to Super Admin.' },
+        { tour: 'system', title: '⚙️ System', text: 'Settings, PIN management, the activity log, data export, and reminder scheduling.' }
+      ];
+      var tourState = { steps: [], index: 0 };
+      var tourPositionTimeout = null;
+
+      function startTour() {
+        var steps = TOUR_STEPS.map(function (s) {
+          var el = document.querySelector('.tab-group-header[data-tour="' + s.tour + '"]');
+          if (!el || getComputedStyle(el).display === 'none') return null;
+          return { title: s.title, text: s.text, el: el };
+        }).filter(Boolean);
+
+        if (!steps.length) return;
+
+        tourState = { steps: steps, index: 0 };
+        document.getElementById('tourTooltip').style.display = 'block';
+        showTourStep(0);
+      }
+
+      function showTourStep(index) {
+        var step = tourState.steps[index];
+
+        document.querySelectorAll('.tab-group').forEach(function (g) { g.classList.add('collapsed'); });
+        var group = step.el.closest('.tab-group');
+        if (group) group.classList.remove('collapsed');
+        step.el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+        document.getElementById('tourStepLabel').textContent = 'Step ' + (index + 1) + ' of ' + tourState.steps.length;
+        document.getElementById('tourTitle').textContent = step.title;
+        document.getElementById('tourText').textContent = step.text;
+        document.getElementById('tourBackBtn').style.visibility = index === 0 ? 'hidden' : 'visible';
+        document.getElementById('tourNextBtn').textContent = (index === tourState.steps.length - 1) ? 'Finish' : 'Next';
+
+        // Wait for the collapse/expand + smooth-scroll to settle before
+        // measuring the target's position. Clear any still-pending timeout
+        // from a previous step so a fast click-through (or endTour) can't
+        // have a stale callback re-show the spotlight afterward.
+        if (tourPositionTimeout) clearTimeout(tourPositionTimeout);
+        tourPositionTimeout = setTimeout(function () {
+          tourPositionTimeout = null;
+          positionTourOverlay(step.el);
+        }, 260);
+      }
+
+      function positionTourOverlay(el) {
+        var rect = el.getBoundingClientRect();
+        var pad = 4;
+
+        var spotlight = document.getElementById('tourSpotlight');
+        spotlight.style.display = 'block';
+        spotlight.style.left = (rect.left - pad) + 'px';
+        spotlight.style.top = (rect.top - pad) + 'px';
+        spotlight.style.width = (rect.width + pad * 2) + 'px';
+        spotlight.style.height = (rect.height + pad * 2) + 'px';
+
+        var tooltip = document.getElementById('tourTooltip');
+        var tw = tooltip.offsetWidth || 280;
+        var th = tooltip.offsetHeight || 160;
+        var left = rect.right + 16;
+        var top = rect.top;
+
+        if (left + tw > window.innerWidth - 16) {
+          left = rect.left;
+          top = rect.bottom + 12;
+        }
+        if (top + th > window.innerHeight - 16) {
+          top = Math.max(16, window.innerHeight - th - 16);
+        }
+        if (left < 16) left = 16;
+
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+      }
+
+      function tourNext() {
+        if (tourState.index >= tourState.steps.length - 1) {
+          endTour();
+          return;
+        }
+        tourState.index++;
+        showTourStep(tourState.index);
+      }
+
+      function tourBack() {
+        if (tourState.index === 0) return;
+        tourState.index--;
+        showTourStep(tourState.index);
+      }
+
+      function endTour() {
+        if (tourPositionTimeout) { clearTimeout(tourPositionTimeout); tourPositionTimeout = null; }
+        document.getElementById('tourTooltip').style.display = 'none';
+        document.getElementById('tourSpotlight').style.display = 'none';
+
+        // Leave the sidebar the way the app already keeps it: whichever
+        // group holds the currently active tab stays open, rest collapse.
+        var activeBtn = document.querySelector('.sidebar .tab-btn.active');
+        var activeGroup = activeBtn ? activeBtn.closest('.tab-group') : null;
+        document.querySelectorAll('.tab-group').forEach(function (g) {
+          g.classList.toggle('collapsed', g !== activeGroup);
+        });
       }
 
       function switchTab(id, btn, isMobile) {
