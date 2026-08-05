@@ -277,6 +277,34 @@
       background: rgba(255, 255, 255, .07);
     }
 
+    .tab-group-header {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    .tab-group-header:hover {
+      background: rgba(255, 255, 255, .04);
+    }
+
+    .tab-group-arrow {
+      display: inline-block;
+      transition: transform .2s;
+      font-size: 9px;
+      opacity: .7;
+      padding-right: 20px;
+    }
+
+    .tab-group.collapsed .tab-group-arrow {
+      transform: rotate(-90deg);
+    }
+
+    .tab-group.collapsed .tab-btn {
+      display: none !important;
+    }
+
     .tab-btn.active {
       color: var(--white);
       background: rgba(59, 130, 246, .25);
@@ -1251,13 +1279,14 @@
         </div>
         <nav style="overflow-y: auto; max-height: calc(100vh - 120px);">
           <!-- OVERVIEW -->
-          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+          <div class="tab-group">
+          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
-            📊 Overview
+            <span>📊 Overview</span><span class="tab-group-arrow">▾</span>
           </div>
-          <button class="tab-btn active" 
+          <button class="tab-btn active"
             onclick="switchTab('overview', this)">
             <span class="icon">🏠</span>
             <span class="tab-btn-label">Overview</span>
@@ -1272,13 +1301,15 @@
             <span class="icon">🏆</span>
             <span class="tab-btn-label">Leaderboard</span>
           </button>
+          </div>
 
           <!-- SHEPHERDS -->
-          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+          <div class="tab-group collapsed">
+          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
-            👥 Shepherds
+            <span>👥 Shepherds</span><span class="tab-group-arrow">▾</span>
           </div>
           <button class="tab-btn"
             onclick="switchTab('shepherds', this)">
@@ -1300,13 +1331,15 @@
             <span class="icon">📊</span>
             <span class="tab-btn-label">Scores</span>
           </button>
+          </div>
 
           <!-- REPORTS -->
-          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+          <div class="tab-group collapsed">
+          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
-            📋 Reports
+            <span>📋 Reports</span><span class="tab-group-arrow">▾</span>
           </div>
           <button class="tab-btn"
             onclick="switchTab('reports', this)">
@@ -1323,13 +1356,15 @@
             <span class="icon">🆕</span>
             <span class="tab-btn-label">First Timers</span>
           </button>
+          </div>
 
           <!-- GROWTH -->
-          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+          <div class="tab-group collapsed">
+          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
-            🌱 Growth
+            <span>🌱 Growth</span><span class="tab-group-arrow">▾</span>
           </div>
           <button class="tab-btn"
             onclick="switchTab('seekers', this)">
@@ -1374,13 +1409,15 @@
             <span class="icon">🌟</span>
             <span class="tab-btn-label">Soul Winners</span>
           </button>
+          </div>
 
           <!-- COMMUNICATION -->
-          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+          <div class="tab-group collapsed">
+          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
-            📢 Communication
+            <span>📢 Communication</span><span class="tab-group-arrow">▾</span>
           </div>
           <button class="tab-btn"
             onclick="switchTab('announcements', this)">
@@ -1392,13 +1429,15 @@
             <span class="icon">📚</span>
             <span class="tab-btn-label">Resources</span>
           </button>
+          </div>
 
           <!-- INTELLIGENCE -->
-          <div class="tab-section-label" id="intelligenceLabel" style="font-size:10px;font-weight:800;
+          <div class="tab-group collapsed">
+          <div class="tab-section-label tab-group-header" id="intelligenceLabel" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;display:none;">
-            🧠 Intelligence
+            <span>🧠 Intelligence</span><span class="tab-group-arrow">▾</span>
           </div>
           <a href="members.html" id="membersLink" class="tab-btn" style="display:none;text-decoration:none;">
             <span class="icon">👥</span>
@@ -1408,13 +1447,15 @@
             <span class="icon">🔄</span>
             <span class="tab-btn-label">Pipeline</span>
           </a>
+          </div>
 
           <!-- SYSTEM -->
-          <div class="tab-section-label" style="font-size:10px;font-weight:800;
+          <div class="tab-group collapsed">
+          <div class="tab-section-label tab-group-header" onclick="toggleTabGroup(this)" title="Click to expand/collapse" style="font-size:10px;font-weight:800;
             color:#94a3b8;letter-spacing:1px;
             padding:16px 20px 6px;
             text-transform:uppercase;">
-            ⚙️ System
+            <span>⚙️ System</span><span class="tab-group-arrow">▾</span>
           </div>
           <a href="go-dashboard.html" id="goDashboardLink" class="tab-btn" style="display:none;text-decoration:none;">
             <span class="icon">👑</span>
@@ -1442,6 +1483,7 @@
             <span class="icon">🔔</span>
             <span class="tab-btn-label">Reminders</span>
           </button>
+          </div>
         </nav>
         <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Logout</button></div>
       </div>
@@ -4932,10 +4974,16 @@
         // Already reachable via the bottom tab bar — skip in the drawer.
         var skipTabs = ['overview', 'shepherds', 'mc-overview', 'settings'];
 
+        // Flattened query (not nav.children) so it still walks labels/buttons
+        // in document order regardless of the .tab-group wrapper divs each
+        // section now lives in (those wrappers exist for sidebar collapse/
+        // expand and don't affect this ordering).
         var pendingSectionLabel = null;
-        Array.prototype.forEach.call(nav.children, function (el) {
+        Array.prototype.forEach.call(nav.querySelectorAll('.tab-section-label, .tab-btn'), function (el) {
           if (el.classList.contains('tab-section-label')) {
-            pendingSectionLabel = (el.style.display === 'none') ? null : el.textContent.trim();
+            var labelTextSpan = el.querySelector('span:not(.tab-group-arrow)');
+            var labelText = labelTextSpan ? labelTextSpan.textContent.trim() : el.textContent.trim();
+            pendingSectionLabel = (el.style.display === 'none') ? null : labelText;
             return;
           }
           if (!el.classList.contains('tab-btn')) return;
@@ -5210,6 +5258,15 @@
         'announcements': 'Announcements'
       };
 
+      // Collapses/expands a sidebar section so the ~27 admin tabs don't all
+      // sit open in one long scroll. Purely a CSS class toggle — it never
+      // touches individual .tab-btn style.display, which role-based
+      // visibility (setVisibleTabs/applyRoleRestrictions) owns.
+      function toggleTabGroup(headerEl) {
+        var group = headerEl.closest('.tab-group');
+        if (group) group.classList.toggle('collapsed');
+      }
+
       function switchTab(id, btn, isMobile) {
         if (id === 'settings') {
           var unlocked = sessionStorage.getItem('onc_admin_settings_unlocked') === 'true';
@@ -5241,7 +5298,11 @@
           document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
           document.querySelectorAll('.btab-btn').forEach(function (b) { b.classList.remove('active'); });
         }
-        if (btn) btn.classList.add('active');
+        if (btn) {
+          btn.classList.add('active');
+          var activeGroup = btn.closest ? btn.closest('.tab-group') : null;
+          if (activeGroup) activeGroup.classList.remove('collapsed');
+        }
 
         // Clear active drawer item highlight if we switch to a main bottom tab
         if (id === 'overview' || id === 'shepherds' || id === 'mc-overview') {
