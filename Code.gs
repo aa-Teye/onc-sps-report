@@ -176,8 +176,10 @@ function savePinChange(data) {
   const pinValue = String(data.pin || '0000').padStart(4, '0');
 
   let found = false;
+  let previousPin = '0000'; // no prior row means they were still on the default
   for (let i = 1; i < sheetData.length; i++) {
     if (sheetData[i][0] === data.name) {
+      previousPin = String(sheetData[i][2] || '0000').padStart(4, '0');
       sheet.getRange(i + 1, 3).setValue(pinValue);
       sheet.getRange(i + 1, 4).setValue(formatDate(now));
       sheet.getRange(i + 1, 5).setValue(formatTime(now));
@@ -191,7 +193,7 @@ function savePinChange(data) {
   }
 
   logAudit(ss, 'PIN_CHANGED', data.name,
-    (data.role || 'Shepherd') + ' changed PIN to: ' + pinValue +
+    (data.role || 'Shepherd') + ' changed PIN from ' + previousPin + ' to ' + pinValue +
     ' on ' + formatDate(now) + ' at ' + formatTime(now));
 
   return jsonResponse({ status: 'success' });
@@ -3139,8 +3141,10 @@ function forgotPin(data) {
 
   const sheetData = sheet.getDataRange().getValues();
   let found = false;
+  let previousPin = '0000'; // no prior row means they were still on the default
   for (let i = 1; i < sheetData.length; i++) {
     if (sheetData[i][0] === shepherdName) {
+      previousPin = String(sheetData[i][2] || '0000').padStart(4, '0');
       sheet.getRange(i + 1, 3).setValue(newPin);
       sheet.getRange(i + 1, 4).setValue(formatDate(now));
       sheet.getRange(i + 1, 5).setValue(formatTime(now));
@@ -3159,6 +3163,6 @@ function forgotPin(data) {
     return jsonResponse({ status: 'error', message: 'Could not send notification. Please ask an admin to reset your PIN.' });
   }
 
-  logAudit(ss, 'PIN_RESET', shepherdName, 'PIN reset and sent via push notification');
+  logAudit(ss, 'PIN_RESET', shepherdName, 'PIN reset from ' + previousPin + ' to ' + newPin + ' via push notification');
   return jsonResponse({ status: 'success', message: 'A new PIN has been sent to your device', pin: newPin });
 }
