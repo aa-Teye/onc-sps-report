@@ -4658,7 +4658,7 @@
           loadAll();
           keepWarm();
           setInterval(loadAll, 120000);
-          setInterval(keepWarm, 4 * 60 * 1000);
+          setInterval(keepWarm, 15 * 60 * 1000);
           applyRoleRestrictions();
           loadShepherdScores();
         } else {
@@ -5824,8 +5824,11 @@
         script.src = SCRIPT_URL + '?action=ping&callback=' + cbName;
         document.body.appendChild(script);
       }
-      // Ping every 4 minutes to prevent cold starts
-      setInterval(keepWarm, 4 * 60 * 1000);
+      // NOTE: the recurring ping is scheduled once login succeeds (see
+      // setInterval(keepWarm, ...) after the PIN check above) — not here,
+      // so it doesn't run for someone sitting on the unauthenticated login
+      // screen. A duplicate unconditional interval used to live here too,
+      // which is why this looked like it was pinging constantly.
 
       window.onSpsReportsLoaded = function(data) {
         if (data && data.reports) {
