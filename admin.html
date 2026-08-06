@@ -4764,6 +4764,11 @@
           setInterval(keepWarm, 10 * 60 * 1000);
           applyRoleRestrictions();
           loadShepherdScores();
+
+          // Guided tour highlights the sidebar, which is desktop-only (see #tourBtn media query above)
+          if (window.innerWidth > 768) {
+            setTimeout(startTour, 500);
+          }
         } else {
           document.getElementById('loginError').style.display = 'block';
           document.getElementById('pinInput').value = '';
