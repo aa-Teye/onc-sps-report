@@ -65,6 +65,8 @@ function doPost(e) {
     // ── Baptism Tracking POST actions ────────────────────────────
     if (action === 'updateBaptismStatus')     return updateBaptismStatus(data);
     if (action === 'createBaptismCohort')     return createBaptismCohort(data);
+    // ── Soul Tracker POST actions ─────────────────────────────────
+    if (action === 'addSoul')                 return addSoul(data);
     // ── Sprint 5 POST actions ─────────────────────────────────
     if (action === 'saveZoneConfig')          return saveZoneConfig(data);
     if (action === 'addShepherd')             return addShepherd(data);
@@ -108,6 +110,8 @@ function doGet(e) {
     // ── Sprint 1 GET actions ──────────────────────────────────────
     else if (action === 'getDiscipleshipJourney') response = getDiscipleshipJourney();
     else if (action === 'updateMemberStage')      response = updateMemberStage(e.parameter.memberId, e.parameter.newStage, e.parameter.updatedBy);
+    else if (action === 'getSoulTracker')         response = getSoulTracker();
+    else if (action === 'updateSoulStage')        response = updateSoulStage(e.parameter.soulId, e.parameter.newStage, e.parameter.updatedBy);
     else if (action === 'getFlags')               response = getFlags();
     else if (action === 'resolveFlag')            response = resolveFlag(e.parameter.flagId, e.parameter.resolvedBy, e.parameter.notes);
     else if (action === 'runNightlyFlagCheck')    response = runNightlyFlagCheck();
@@ -1047,7 +1051,7 @@ function getDiscipleshipJourney() {
   return { status: 'success', records: getSheetRecords(sheet) };
 }
 
-function updateMemberStage(memberId, newStage, updatedBy) {
+function updateMemberStage(memberId, newStage, updatedBy, memberName, phone) {
   if (!memberId) return { status: 'error', message: 'Missing MemberID' };
   if (!newStage) return { status: 'error', message: 'Missing newStage' };
 
@@ -1072,10 +1076,87 @@ function updateMemberStage(memberId, newStage, updatedBy) {
   }
 
   if (!updated) {
-    sheet.appendRow([memberId.toString(), '', '', '', parseInt(newStage, 10), now, now, 'Created by ' + (updatedBy || 'System')]);
+    sheet.appendRow([memberId.toString(), memberName || '', phone || '', '', parseInt(newStage, 10), now, now, 'Created by ' + (updatedBy || 'System')]);
   }
 
   return { status: 'success', updated: updated };
+}
+
+// ============================================================
+// SOUL TRACKER — Relational Evangelism Pipeline
+// ============================================================
+// Stages: 1 Name Identified, 2 Gospel Shared, 3 Invited, 4 Attended,
+// 5 Decision for Christ, 6 Under Follow-up, 7 Established.
+// Standalone from Seekers/DiscipleshipJourney. Once a soul has actually
+// attended (stage >= 4), progress also syncs into DiscipleshipJourney so
+// leaders see it in both places — a one-way surface, not a merge.
+
+var SOUL_TO_JOURNEY_STAGE_MAP = { 4: 1, 5: 2, 6: 2, 7: 6 };
+
+function getSoulTracker() {
+  var headers = ['SoulID', 'Name', 'Phone', 'Notes', 'ShepherdType', 'ShepherdName', 'CurrentStage', 'StageEntryDate', 'DateAdded', 'LastUpdated', 'UpdatedBy'];
+  var sheet   = ensureSheet('SoulTracker', headers);
+  return { status: 'success', records: getSheetRecords(sheet) };
+}
+
+function addSoul(data) {
+  if (!data.name) return jsonResponse({ status: 'error', message: 'Missing name' });
+
+  var ss      = SpreadsheetApp.getActiveSpreadsheet();
+  var headers = ['SoulID', 'Name', 'Phone', 'Notes', 'ShepherdType', 'ShepherdName', 'CurrentStage', 'StageEntryDate', 'DateAdded', 'LastUpdated', 'UpdatedBy'];
+  var sheet   = ensureSheet('SoulTracker', headers);
+  var now     = new Date();
+  var soulId  = 'SOUL-' + now.getTime();
+  var nowIso  = formatISODate(now);
+
+  sheet.appendRow([
+    soulId,
+    data.name,
+    data.phone || '',
+    data.notes || '',
+    data.shepherdType || '',
+    data.shepherdName || '',
+    1,
+    nowIso,
+    nowIso,
+    nowIso,
+    data.shepherdName || 'Shepherd'
+  ]);
+
+  logAudit(ss, 'SOUL_LOGGED', data.shepherdName || '', data.name);
+  return jsonResponse({ status: 'success', soulId: soulId });
+}
+
+function updateSoulStage(soulId, newStage, updatedBy) {
+  if (!soulId) return { status: 'error', message: 'Missing soulId' };
+  if (!newStage) return { status: 'error', message: 'Missing newStage' };
+
+  var headers = ['SoulID', 'Name', 'Phone', 'Notes', 'ShepherdType', 'ShepherdName', 'CurrentStage', 'StageEntryDate', 'DateAdded', 'LastUpdated', 'UpdatedBy'];
+  var sheet   = ensureSheet('SoulTracker', headers);
+  var records = getSheetRecords(sheet);
+  var now     = formatISODate(new Date());
+  var stage   = parseInt(newStage, 10);
+  var rec     = null;
+
+  for (var i = 0; i < records.length; i++) {
+    if (records[i].SoulID.toString() === soulId.toString()) { rec = records[i]; break; }
+  }
+  if (!rec) return { status: 'error', message: 'Soul not found' };
+
+  if (rec.CurrentStage.toString() !== stage.toString()) {
+    sheet.getRange(rec._row, 7).setValue(stage);
+    sheet.getRange(rec._row, 8).setValue(now);
+  }
+  sheet.getRange(rec._row, 10).setValue(now);
+  sheet.getRange(rec._row, 11).setValue(updatedBy || 'System');
+
+  var journeySynced = false;
+  if (SOUL_TO_JOURNEY_STAGE_MAP[stage]) {
+    updateMemberStage(soulId, SOUL_TO_JOURNEY_STAGE_MAP[stage], updatedBy, rec.Name, rec.Phone);
+    journeySynced = true;
+  }
+
+  return { status: 'success', journeySynced: journeySynced };
 }
 
 // ============================================================

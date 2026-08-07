@@ -1469,6 +1469,11 @@
             <span class="tab-btn-label">Journey</span>
           </button>
           <button class="tab-btn"
+            onclick="switchTab('soul-tracker', this)">
+            <span class="icon">🤝</span>
+            <span class="tab-btn-label">Soul Tracker</span>
+          </button>
+          <button class="tab-btn"
             onclick="switchTab('flags', this)">
             <span class="icon">🚨</span>
             <span class="tab-btn-label">Flags</span>
@@ -3185,6 +3190,59 @@
             </div>
           </div>
 
+          <div class="tab-panel" id="panel-soul-tracker">
+            <h2 style="margin-bottom:4px;font-size:22px;font-weight:800;color:#0a1628;">
+              🤝 Soul Tracker
+            </h2>
+            <p style="color:#64748b;font-size:13px;margin:0 0 24px;">
+              Relational evangelism pipeline — names shepherds/leaders pick up from members at weekly fellowship, tracked from first contact to church establishment. Not the same as Sunday Soul Reports (Sunday altar-call attendance log).
+            </p>
+
+            <div id="soulTrackerStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:24px;"></div>
+
+            <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="font-size:16px;font-weight:800;color:#0a1628;">Stage Pipeline</h3>
+                <button onclick="loadSoulTracker()" style="padding:8px 16px;background:#0f2044;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;">🔄 Refresh</button>
+              </div>
+              <div id="soulTrackerPipeline" style="display:grid;grid-template-columns:1fr;gap:12px;"></div>
+            </div>
+
+            <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                <div>
+                  <h3 style="font-size:16px;font-weight:800;color:#0a1628;">Manage Souls</h3>
+                  <p style="color:#64748b;font-size:13px;margin-top:4px;">Update a soul's current stage and save progress. Stages 4+ also sync into the Discipleship Journey tab.</p>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  <input type="text" id="soulTrackerSearch" oninput="renderSoulTracker()" placeholder="🔍 Search souls..."
+                    style="padding:8px 12px;border-radius:8px;border:2px solid #e2e8f0;font-size:13px;">
+                  <select id="filtSoulShepherdType" onchange="renderSoulTracker()"
+                    style="padding:8px 12px;border-radius:8px;border:2px solid #e2e8f0;font-size:13px;">
+                    <option value="">All Shepherd Types</option>
+                    <option value="sps">SPS</option>
+                    <option value="mc">Micro-Church</option>
+                  </select>
+                </div>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:900px;">
+                  <thead>
+                    <tr style="background:#0a1628;color:white;">
+                      <th style="padding:10px;text-align:left;">Name</th>
+                      <th style="padding:10px;text-align:left;">Shepherd</th>
+                      <th style="padding:10px;text-align:center;">Phone</th>
+                      <th style="padding:10px;text-align:center;">Current Stage</th>
+                      <th style="padding:10px;text-align:center;">Update</th>
+                      <th style="padding:10px;text-align:center;">Save</th>
+                    </tr>
+                  </thead>
+                  <tbody id="soulTrackerBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <div class="tab-panel" id="panel-flags">
             <h2 style="margin-bottom:24px;font-size:22px;font-weight:800;color:#0a1628;">
               🚨 Flags & Alerts
@@ -4246,6 +4304,123 @@
         });
       }
 
+      // ── SOUL TRACKER — Relational Evangelism Pipeline ──────────────
+      var soulTrackerData = [];
+
+      var SOUL_STAGE_LABELS = {
+        1: 'Name Identified',
+        2: 'Gospel Shared',
+        3: 'Invited',
+        4: 'Attended',
+        5: 'Decision for Christ',
+        6: 'Under Follow-up',
+        7: 'Established'
+      };
+
+      function loadSoulTracker() {
+        fetchData('getSoulTracker', function (data) {
+          soulTrackerData = (data && data.records) ? data.records : [];
+          renderSoulTracker();
+        });
+      }
+
+      function renderSoulTracker() {
+        var stats = document.getElementById('soulTrackerStats');
+        var pipeline = document.getElementById('soulTrackerPipeline');
+        var body = document.getElementById('soulTrackerBody');
+        if (!stats || !pipeline || !body) return;
+
+        var counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0};
+        soulTrackerData.forEach(function (record) {
+          var stage = parseInt(record.CurrentStage, 10) || 1;
+          counts[stage] = (counts[stage] || 0) + 1;
+        });
+
+        stats.innerHTML = Object.keys(SOUL_STAGE_LABELS).map(function (stageKey) {
+          return '<div style="background:white;border-radius:16px;padding:18px;box-shadow:0 1px 8px rgba(0,0,0,.06);">' +
+            '<div style="font-size:12px;color:#64748b;margin-bottom:8px;">' + SOUL_STAGE_LABELS[stageKey] + '</div>' +
+            '<div style="font-size:32px;font-weight:900;color:#0a1628;">' + counts[stageKey] + '</div>' +
+            '</div>';
+        }).join('');
+
+        var maxCount = Math.max.apply(null, Object.values(counts));
+        pipeline.innerHTML = Object.keys(SOUL_STAGE_LABELS).map(function (stageKey) {
+          var widthPercent = maxCount ? Math.max(12, Math.round((counts[stageKey] / maxCount) * 100)) : 12;
+          return '<div style="display:flex;align-items:center;gap:12px;">' +
+            '<div style="width:180px;font-weight:700;color:#0f2044;">' + stageKey + '. ' + SOUL_STAGE_LABELS[stageKey] + '</div>' +
+            '<div style="flex:1;background:#e2e8f0;border-radius:999px;overflow:hidden;height:16px;">' +
+            '<div style="width:' + widthPercent + '%;height:100%;background:#0f2044;border-radius:999px;"></div>' +
+            '</div>' +
+            '<div style="width:34px;text-align:right;font-weight:700;color:#0f2044;">' + counts[stageKey] + '</div>' +
+            '</div>';
+        }).join('');
+
+        var q = (document.getElementById('soulTrackerSearch').value || '').toLowerCase().trim();
+        var fType = document.getElementById('filtSoulShepherdType').value;
+        var filtered = soulTrackerData.filter(function (r) {
+          if (fType && r.ShepherdType !== fType) return false;
+          if (q && (r.Name || '').toLowerCase().indexOf(q) === -1) return false;
+          return true;
+        });
+
+        if (!filtered.length) {
+          body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#64748b;">No souls found.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = filtered.map(function (record) {
+          var index = soulTrackerData.indexOf(record);
+          var stage = parseInt(record.CurrentStage, 10) || 1;
+          var rowBg = index % 2 === 0 ? '#f8fafc' : 'white';
+          var stageSelect = Object.keys(SOUL_STAGE_LABELS).map(function (stageKey) {
+            return '<option value="' + stageKey + '"' + (stageKey == stage ? ' selected' : '') + '>' + SOUL_STAGE_LABELS[stageKey] + '</option>';
+          }).join('');
+
+          return '<tr style="background:' + rowBg + ';border-bottom:1px solid #e2e8f0;">' +
+            '<td style="padding:10px;font-weight:700;color:#0f2044;">' + escHtml(record.Name || '—') + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + escHtml(record.ShepherdName || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;color:#0f2044;">' + escHtml(record.Phone || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            '<span class="stage-pill">' + SOUL_STAGE_LABELS[stage] + '</span>' +
+            '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            '<select id="soulStageSelect-' + index + '" style="padding:8px 10px;border-radius:10px;border:1px solid #e2e8f0;font-size:13px;min-width:180px;">' + stageSelect + '</select>' +
+            '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            '<button onclick="saveSoulStage(' + index + ')" style="padding:8px 14px;background:#0f2044;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Save</button>' +
+            '</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      function saveSoulStage(index) {
+        var record = soulTrackerData[index];
+        if (!record) return;
+
+        var select = document.getElementById('soulStageSelect-' + index);
+        if (!select) return;
+
+        var newStage = select.value;
+        if (String(newStage) === String(record.CurrentStage)) {
+          alert('This soul is already assigned to the selected stage.');
+          return;
+        }
+
+        fetchDataQuery('updateSoulStage', {
+          soulId: record.SoulID,
+          newStage: newStage,
+          updatedBy: currentRoleName || currentRole || 'Admin'
+        }, function (response) {
+          if (response && response.status === 'success') {
+            record.CurrentStage = newStage;
+            renderSoulTracker();
+            alert(response.journeySynced ? 'Stage updated — also synced to the Discipleship Journey tab.' : 'Stage updated successfully.');
+          } else {
+            alert('Unable to update stage.');
+          }
+        });
+      }
+
       var renderedFlags = [];
 
       function loadFlags() {
@@ -4876,7 +5051,7 @@
           var spsheadTabs = [
             'overview','analytics','leaderboard',
             'shepherds','reports','announcements',
-            'activity-log','export','reminders','resources','seekers'
+            'activity-log','export','reminders','resources','seekers','soul-tracker'
           ];
           setVisibleTabs(spsheadTabs);
           setBottomTabVisibility(spsheadTabs);
@@ -4899,7 +5074,7 @@
             'overview','analytics','leaderboard',
             'mc-shepherds','mc-reports',
             'announcements','activity-log',
-            'export','reminders','resources','seekers'
+            'export','reminders','resources','seekers','soul-tracker'
           ];
           setVisibleTabs(mcheadTabs);
           setBottomTabVisibility(mcheadTabs);
@@ -4932,7 +5107,7 @@
             'overview','analytics','leaderboard',
             'shepherds','mc-shepherds','zones',
             'reports','mc-reports','first-timers',
-            'membership','journey','flags','schools',
+            'membership','journey','soul-tracker','flags','schools',
             'announcements','export','seekers','resources'
           ];
           setVisibleTabs(adminTabs);
@@ -5361,7 +5536,7 @@
         'mc-overview': 'Microchurch Overview', 'mc-shepherds': 'Microchurch Shepherds', 'mc-members': 'Microchurch Members', 'mc-reports': 'Microchurch Reports Logs',
         'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings', analytics: 'Analytics Dashboard',
         'soul-reports': 'Sunday Soul Reports', 'first-timers': 'First Timers', 'membership': 'Church Membership',
-        'journey': 'Discipleship Journey', 'flags': 'Flags & Alerts', 'schools': 'School Tracking', 'seekers': 'Seekers',
+        'journey': 'Discipleship Journey', 'soul-tracker': 'Soul Tracker', 'flags': 'Flags & Alerts', 'schools': 'School Tracking', 'seekers': 'Seekers',
         'activity-log': 'Activity Log',
         'announcements': 'Announcements'
       };
@@ -5574,6 +5749,11 @@
         if (id === 'journey') {
           setTimeout(function() {
             loadJourney();
+          }, 150);
+        }
+        if (id === 'soul-tracker') {
+          setTimeout(function() {
+            loadSoulTracker();
           }, 150);
         }
         if (id === 'flags') {

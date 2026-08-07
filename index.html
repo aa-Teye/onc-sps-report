@@ -2045,6 +2045,19 @@
             👥 Know Your Members
           </button>
 
+          <button onclick="openSoulTrackerModal()"
+            style="width:100%;padding:18px;
+            border-radius:16px;background:white;
+            color:var(--navy);
+            border:2px solid var(--navy);
+            font-size:16px;font-weight:700;
+            cursor:pointer;display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;margin-top:8px;">
+            🤝 Soul Tracker
+          </button>
+
           <button onclick="openClusterModal()"
             style="width:100%;padding:18px;
             border-radius:16px;
@@ -2789,6 +2802,29 @@
       </button>
 
       <p id="telegramLinkStatus" style="font-size:12px;color:var(--gray);margin:12px 0 0;"></p>
+    </div>
+  </div>
+
+  <div id="soulTrackerModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.8);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);">
+    <div style="background:#fff;border-radius:24px;width:100%;max-width:420px;padding:24px;text-align:left;position:relative;">
+      <button onclick="closeSoulTrackerModal()" style="position:absolute;top:16px;right:16px;background:rgba(15,32,68,.08);border:none;color:var(--navy);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;">✕</button>
+      <h3 style="font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);margin:0 0 8px;">🤝 Soul Tracker</h3>
+      <p style="font-size:13px;color:var(--gray);margin:0 0 16px;line-height:1.6;">Log someone a member is reaching out to — you can update their progress with your leader over time.</p>
+
+      <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Name *</label>
+      <input id="soulNameInput" type="text" placeholder="Full name" style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
+
+      <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Phone (optional)</label>
+      <input id="soulPhoneInput" type="tel" placeholder="Phone number" style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
+
+      <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Notes (optional)</label>
+      <textarea id="soulNotesInput" rows="3" placeholder="How you know them, when you plan to reach out, etc." style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:16px;font-family:inherit;resize:vertical;"></textarea>
+
+      <button id="soulSubmitBtn" onclick="submitNewSoul()" style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--navy);color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;">
+        Save Soul
+      </button>
+
+      <p id="soulTrackerStatus" style="font-size:12px;color:var(--gray);margin:12px 0 0;"></p>
     </div>
   </div>
 
@@ -7041,6 +7077,64 @@
     function closeTelegramLinkModal() {
       var modal = document.getElementById('telegramLinkModal');
       if (modal) modal.style.display = 'none';
+    }
+
+    // ── Soul Tracker: log a new prospect any time ────────────────
+    function openSoulTrackerModal() {
+      if (!state.shepherd) {
+        showGlobalAlert('Please log in first', 'error');
+        return;
+      }
+      document.getElementById('soulNameInput').value = '';
+      document.getElementById('soulPhoneInput').value = '';
+      document.getElementById('soulNotesInput').value = '';
+      document.getElementById('soulTrackerStatus').textContent = '';
+      var modal = document.getElementById('soulTrackerModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeSoulTrackerModal() {
+      var modal = document.getElementById('soulTrackerModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function submitNewSoul() {
+      var statusEl = document.getElementById('soulTrackerStatus');
+      var name = document.getElementById('soulNameInput').value.trim();
+      if (!name) {
+        statusEl.textContent = 'Please enter a name.';
+        return;
+      }
+
+      var submitBtn = document.getElementById('soulSubmitBtn');
+      submitBtn.disabled = true;
+      statusEl.textContent = 'Saving…';
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'addSoul',
+          name: name,
+          phone: document.getElementById('soulPhoneInput').value.trim(),
+          notes: document.getElementById('soulNotesInput').value.trim(),
+          shepherdType: state.shepherdType,
+          shepherdName: state.shepherd
+        })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          submitBtn.disabled = false;
+          if (data.status === 'success') {
+            statusEl.textContent = '✅ Saved! Your leader can track their progress from here.';
+            setTimeout(closeSoulTrackerModal, 1500);
+          } else {
+            statusEl.textContent = 'Could not save. Please try again.';
+          }
+        })
+        .catch(function () {
+          submitBtn.disabled = false;
+          statusEl.textContent = 'Network error. Please try again.';
+        });
     }
 
     function confirmTelegramLink() {
