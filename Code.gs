@@ -16,6 +16,7 @@ const DISCIPLESHIP_ASSIGNMENTS_SHEET = 'DiscipleshipAssignments';
 const SHEPHERD_PIPELINE_SHEET       = 'ShepherdPipeline';
 const SHEPHERD_COHORTS_SHEET        = 'ShepherdCohorts';
 const SUNDAY_ATTENDANCE_SHEET       = 'SundayAttendance';
+const SUNDAY_SUMMARY_SHEET          = 'SundaySummary';
 const VISITATIONS_SHEET             = 'Visitations';
 const SHEPHERDS_SHEET               = 'Shepherds';
 
@@ -55,6 +56,7 @@ function doPost(e) {
     if (action === 'createCohort')            return createCohort(data);
     // ── Sunday Attendance & Visitation POST actions ──────────────
     if (action === 'submitSundayAttendance')  return submitSundayAttendance(data);
+    if (action === 'submitSundayTotal')       return submitSundayTotal(data);
     if (action === 'assignVisitation')        return assignVisitation(data);
     if (action === 'updateVisitation')        return updateVisitation(data);
     if (action === 'escalateVisitation')      return escalateVisitation(data);
@@ -127,6 +129,7 @@ function doGet(e) {
     // ── Sunday Attendance & Visitation GET actions ───────────────
     else if (action === 'getSundayAttendance')    response = getSundayAttendance(e.parameter.date, e.parameter.zone);
     else if (action === 'getSundayHistory')       response = getSundayHistory();
+    else if (action === 'getSundayTotals')        response = getSundayTotals();
     else if (action === 'getVisitations')         response = getVisitations();
     // ── Resource Library & Mandatory Reads GET actions ───────────
     else if (action === 'getResources')           response = getResources();
@@ -1605,6 +1608,43 @@ function submitSundayAttendance(data) {
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SUNDAY_ATTENDANCE_SUBMITTED', data.markedBy || 'Shepherd',
     data.zone + ' — ' + present.length + ' present, ' + absent.length + ' absent (' + data.date + ')');
   return jsonResponse({ status: 'success' });
+}
+
+// Single-number whole-church Sunday headcount, kept in its own sheet rather
+// than folded into SUNDAY_ATTENDANCE_SHEET — that sheet's history rollup sums
+// PresentCount across every zone row for a date, so a combined total row
+// there would double-count against zone submissions for the same Sunday.
+function submitSundayTotal(data) {
+  var headers = ['Date', 'TotalPresent', 'MarkedBy', 'Timestamp'];
+  var sheet   = ensureSheet(SUNDAY_SUMMARY_SHEET, headers);
+  var records = getSheetRecords(sheet);
+  var now     = new Date();
+
+  var rowValues = [
+    data.date || formatDate(now),
+    parseInt(data.totalPresent, 10) || 0,
+    data.markedBy || 'First Timers Unit',
+    formatDate(now) + ' ' + formatTime(now)
+  ];
+
+  var existing = records.find(function (r) { return r.Date === rowValues[0]; });
+  if (existing) {
+    sheet.getRange(existing._row, 1, 1, headers.length).setValues([rowValues]);
+  } else {
+    sheet.appendRow(rowValues);
+  }
+
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SUNDAY_TOTAL_SUBMITTED', rowValues[2],
+    'Total Sunday attendance: ' + rowValues[1] + ' (' + rowValues[0] + ')');
+  return jsonResponse({ status: 'success' });
+}
+
+function getSundayTotals() {
+  var headers = ['Date', 'TotalPresent', 'MarkedBy', 'Timestamp'];
+  var sheet   = ensureSheet(SUNDAY_SUMMARY_SHEET, headers);
+  var records = getSheetRecords(sheet);
+  records.sort(function (a, b) { return parseDMY(b.Date) - parseDMY(a.Date); });
+  return { status: 'success', totals: records };
 }
 
 // Parses DD/MM/YYYY strings (as stored by formatDate) for sorting purposes.

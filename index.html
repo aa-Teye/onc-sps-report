@@ -795,6 +795,17 @@
             gap:10px;margin-top:8px;">
             ✝️ Salvation Form
           </button>
+
+          <button onclick="openSundayTotalForm()"
+            style="padding:20px;border-radius:16px;
+            background:white;color:var(--navy);
+            border:2px solid #f0a500;
+            font-size:16px;font-weight:700;
+            cursor:pointer;display:flex;
+            align-items:center;justify-content:center;
+            gap:10px;margin-top:8px;">
+            ☀️ Sunday Total Attendance
+          </button>
         </div>
 
         <div style="display:flex;
@@ -812,6 +823,65 @@
             font-weight:700;cursor:pointer;">
             🚪 Logout
           </button>
+        </div>
+      </div>
+
+      <!-- Sunday Total Attendance Section -->
+      <div class="section" id="secSundayTotal">
+        <div style="display:flex;align-items:center;
+          gap:12px;margin-bottom:20px;">
+          <button onclick="showSection('secFirstTimersLanding')"
+            style="background:none;border:none;
+            color:var(--gray);cursor:pointer;
+            font-size:20px;">←</button>
+          <h2 style="font-family:'Nunito',sans-serif;
+            font-weight:900;font-size:18px;
+            color:var(--navy);margin:0;">
+            ☀️ Sunday Total Attendance
+          </h2>
+        </div>
+
+        <div style="background:white;border-radius:16px;
+          padding:20px;margin-bottom:16px;
+          box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+          <label style="font-weight:700;font-size:13px;
+            color:var(--navy);display:block;
+            margin-bottom:4px;">Date</label>
+          <input type="date" id="sundayTotalDate"
+            style="width:100%;padding:10px;
+            border:2px solid var(--border);
+            border-radius:8px;font-size:14px;
+            margin-bottom:14px;box-sizing:border-box;
+            font-family:'Outfit',sans-serif;">
+
+          <label style="font-weight:700;font-size:13px;
+            color:var(--navy);display:block;
+            margin-bottom:4px;">Total Attendance *</label>
+          <input type="number" id="sundayTotalCount" min="0"
+            inputmode="numeric" placeholder="Enter total headcount"
+            style="width:100%;padding:10px;
+            border:2px solid var(--border);
+            border-radius:8px;font-size:16px;
+            font-weight:700;box-sizing:border-box;">
+        </div>
+
+        <button id="btnSubmitSundayTotal" onclick="submitSundayTotal()"
+          style="width:100%;padding:16px;
+          background:#22c55e;color:white;
+          border:none;border-radius:12px;
+          font-weight:800;font-size:15px;
+          cursor:pointer;margin-bottom:20px;">
+          ✅ Submit Total
+        </button>
+
+        <div style="font-weight:800;color:var(--navy);
+          font-size:13px;margin-bottom:10px;
+          text-transform:uppercase;letter-spacing:.6px;">
+          Recent Totals
+        </div>
+        <div id="sundayTotalHistory"
+          style="display:flex;flex-direction:column;
+          gap:8px;">
         </div>
       </div>
 
@@ -5562,6 +5632,88 @@
       var dateEl = document.getElementById('salvationFormDate');
       if (dateEl && !dateEl.value) dateEl.value = todayISO();
       showSection('secSalvationForm');
+    }
+
+    function openSundayTotalForm() {
+      var dateEl = document.getElementById('sundayTotalDate');
+      if (dateEl && !dateEl.value) dateEl.value = todayISO();
+      var countEl = document.getElementById('sundayTotalCount');
+      if (countEl) countEl.value = '';
+      showSection('secSundayTotal');
+      loadSundayTotalHistory();
+    }
+
+    function loadSundayTotalHistory() {
+      var list = document.getElementById('sundayTotalHistory');
+      if (!list) return;
+      list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gray);font-size:13px;">⏳ Loading…</div>';
+
+      fetch(SCRIPT_URL + '?action=getSundayTotals')
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+          var totals = (result && result.totals) || [];
+          if (totals.length === 0) {
+            list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gray);font-size:13px;">No totals submitted yet.</div>';
+            return;
+          }
+          list.innerHTML = totals.slice(0, 8).map(function(t) {
+            return '<div style="display:flex;justify-content:space-between;align-items:center;' +
+              'background:white;border-radius:10px;padding:12px 14px;' +
+              'box-shadow:0 1px 4px rgba(0,0,0,0.05);">' +
+              '<span style="font-size:13px;color:var(--navy);font-weight:700;">' + (t.Date || '—') + '</span>' +
+              '<span style="font-size:15px;color:#22c55e;font-weight:800;">' + (t.TotalPresent || 0) + '</span>' +
+              '</div>';
+          }).join('');
+        })
+        .catch(function() {
+          list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gray);font-size:13px;">Unable to load recent totals.</div>';
+        });
+    }
+
+    async function submitSundayTotal() {
+      var dateEl  = document.getElementById('sundayTotalDate');
+      var countEl = document.getElementById('sundayTotalCount');
+      var dateVal = dateEl.value;
+      var count   = countEl.value;
+
+      if (!dateVal) {
+        showGlobalAlert('Please choose the Sunday date', 'error');
+        return;
+      }
+      if (count === '' || parseInt(count, 10) < 0) {
+        showGlobalAlert('Please enter the total attendance', 'error');
+        return;
+      }
+
+      var dmy = dateVal.split('-'); // input is yyyy-mm-dd, sheet convention is dd/mm/yyyy
+      var formattedDate = dmy.length === 3 ? (dmy[2] + '/' + dmy[1] + '/' + dmy[0]) : dateVal;
+
+      var btn = document.getElementById('btnSubmitSundayTotal');
+      if (btn) { btn.textContent = '⏳ Submitting...'; btn.disabled = true; }
+
+      try {
+        var res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'submitSundayTotal',
+            date: formattedDate,
+            totalPresent: count,
+            markedBy: ftLoggedInName
+          })
+        });
+        var result = await res.json();
+        if (result && result.status === 'success') {
+          showGlobalAlert('✅ Sunday total submitted!', 'success');
+          countEl.value = '';
+          loadSundayTotalHistory();
+        } else {
+          showGlobalAlert('⚠️ Could not submit total. Please try again.', 'warning');
+        }
+      } catch (err) {
+        showGlobalAlert('⚠️ Network error — please check your connection and try again.', 'warning');
+      }
+
+      if (btn) { btn.textContent = '✅ Submit Total'; btn.disabled = false; }
     }
 
     function selectSalvationGender(value) {
