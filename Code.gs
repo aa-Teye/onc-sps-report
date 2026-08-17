@@ -1610,6 +1610,13 @@ function submitSundayAttendance(data) {
   return jsonResponse({ status: 'success' });
 }
 
+// Sheets auto-converts a DD/MM/YYYY-looking string into a real Date cell on
+// write, so reading it back gives a JS Date, not the original string — normalize
+// both sides before comparing/displaying or upserts silently stop matching.
+function normalizeSheetDate(val) {
+  return (val instanceof Date) ? formatDate(val) : val;
+}
+
 // Single-number whole-church Sunday headcount, kept in its own sheet rather
 // than folded into SUNDAY_ATTENDANCE_SHEET — that sheet's history rollup sums
 // PresentCount across every zone row for a date, so a combined total row
@@ -1627,7 +1634,7 @@ function submitSundayTotal(data) {
     formatDate(now) + ' ' + formatTime(now)
   ];
 
-  var existing = records.find(function (r) { return r.Date === rowValues[0]; });
+  var existing = records.find(function (r) { return normalizeSheetDate(r.Date) === rowValues[0]; });
   if (existing) {
     sheet.getRange(existing._row, 1, 1, headers.length).setValues([rowValues]);
   } else {
@@ -1642,7 +1649,10 @@ function submitSundayTotal(data) {
 function getSundayTotals() {
   var headers = ['Date', 'TotalPresent', 'MarkedBy', 'Timestamp'];
   var sheet   = ensureSheet(SUNDAY_SUMMARY_SHEET, headers);
-  var records = getSheetRecords(sheet);
+  var records = getSheetRecords(sheet).map(function (r) {
+    r.Date = normalizeSheetDate(r.Date);
+    return r;
+  });
   records.sort(function (a, b) { return parseDMY(b.Date) - parseDMY(a.Date); });
   return { status: 'success', totals: records };
 }
