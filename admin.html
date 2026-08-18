@@ -1575,6 +1575,11 @@
             <span class="icon">🔔</span>
             <span class="tab-btn-label">Reminders</span>
           </button>
+          <button class="tab-btn" id="rolePinsTabBtn" style="display:none;"
+            onclick="switchTab('role-pins', this)">
+            <span class="icon">🔑</span>
+            <span class="tab-btn-label">Portal PINs</span>
+          </button>
           </div>
         </nav>
         <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Logout</button></div>
@@ -2229,6 +2234,23 @@
               </div>
             </div>
 
+          </div>
+        </div>
+
+        <!-- TAB: PORTAL PINS -->
+        <div class="tab-panel" id="panel-role-pins">
+          <div class="export-section">
+            <h3>🔑 Portal Role Logins</h3>
+            <p style="font-size:13px;color:var(--gray);margin-bottom:14px;max-width:640px;">
+              The current PIN for each admin portal role. A role's PIN only becomes recorded here once someone
+              changes it via Settings &rarr; Change Admin PIN on some device — a role still marked
+              <strong>Default</strong> below is still using the PIN shown.
+            </p>
+            <button onclick="loadRolePins()"
+              style="padding:8px 16px;background:#0a1628;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;margin-bottom:16px;">
+              🔄 Refresh
+            </button>
+            <div id="rolePinsList"></div>
           </div>
         </div>
 
@@ -5108,7 +5130,7 @@
             'shepherds','mc-shepherds','zones',
             'reports','mc-reports','first-timers',
             'membership','journey','soul-tracker','flags','schools',
-            'announcements','export','seekers','resources'
+            'announcements','export','seekers','resources','role-pins'
           ];
           setVisibleTabs(adminTabs);
           setBottomTabVisibility(adminTabs);
@@ -5195,6 +5217,12 @@
         var scoresTabBtn = document.getElementById('scoresTabBtn');
         if (scoresTabBtn) {
           scoresTabBtn.style.display = (role === 'superadmin' || role === 'admin') ? 'flex' : 'none';
+        }
+
+        // Portal PINs tab — admin and superadmin only
+        var rolePinsTabBtn = document.getElementById('rolePinsTabBtn');
+        if (rolePinsTabBtn) {
+          rolePinsTabBtn.style.display = (role === 'superadmin' || role === 'admin') ? 'flex' : 'none';
         }
 
         // Add Shepherd buttons — General Overseer, Admin, and the relevant Head role
@@ -5538,8 +5566,79 @@
         'soul-reports': 'Sunday Soul Reports', 'first-timers': 'First Timers', 'membership': 'Church Membership',
         'journey': 'Discipleship Journey', 'soul-tracker': 'Soul Tracker', 'flags': 'Flags & Alerts', 'schools': 'School Tracking', 'seekers': 'Seekers',
         'activity-log': 'Activity Log',
-        'announcements': 'Announcements'
+        'announcements': 'Announcements',
+        'role-pins': 'Portal PINs'
       };
+
+      // Portal login roles and their factory-default PINs (must match the
+      // localStorage keys/fallbacks in checkPin()) — used so a role that's
+      // never had its PIN changed still shows its actual current PIN here
+      // instead of appearing blank.
+      var ROLE_PIN_DEFAULTS = [
+        { role: 'General Overseer', default: '2500' },
+        { role: 'Admin',             default: '1500' },
+        { role: 'Zone Leader',       default: '1000' },
+        { role: 'SPS Head',          default: '3000' },
+        { role: 'MC Head',           default: '4000' },
+        { role: 'First Timers Head', default: '5000' },
+        { role: 'IT User',           default: '9999' }
+      ];
+
+      function loadRolePins() {
+        var list = document.getElementById('rolePinsList');
+        if (!list) return;
+        list.innerHTML = '<p style="color:#64748b;">⏳ Loading...</p>';
+
+        window.onRolePinsLoaded = function (data) {
+          window.onRolePinsLoaded = null;
+          var records = (data && data.pins) || [];
+
+          // The backing sheet has pre-existing rows where a plain "DD/MM/YYYY"
+          // date string got auto-converted to a real Date by Sheets and comes
+          // back here as an ISO string — reformat those rather than display
+          // "2026-06-08T00:00:00.000Z" next to a shepherd's changed-PIN date.
+          function cleanDate(val) {
+            if (!val) return '';
+            var iso = String(val).match(/^(\d{4})-(\d{2})-(\d{2})T/);
+            return iso ? (iso[3] + '/' + iso[2] + '/' + iso[1]) : val;
+          }
+
+          var rows = ROLE_PIN_DEFAULTS.map(function (r) {
+            var match = records.find(function (p) { return p.name === r.role || p.role === r.role; });
+            return {
+              role: r.role,
+              pin: match ? match.pin : r.default,
+              status: match ? ('Changed ' + cleanDate(match.changedDate)) : 'Default (never changed)'
+            };
+          });
+
+          list.innerHTML =
+            '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+            '<thead><tr style="background:#0f2044;color:white;">' +
+            '<th style="padding:10px;text-align:left;">Role</th>' +
+            '<th style="padding:10px;text-align:left;">Current PIN</th>' +
+            '<th style="padding:10px;text-align:left;">Status</th>' +
+            '</tr></thead><tbody>' +
+            rows.map(function (row, idx) {
+              var bg = idx % 2 === 0 ? '#f8fafc' : 'white';
+              return '<tr style="background:' + bg + ';border-bottom:1px solid #e2e8f0;">' +
+                '<td style="padding:10px;font-weight:700;">' + row.role + '</td>' +
+                '<td style="padding:10px;font-family:ui-monospace,monospace;font-weight:800;letter-spacing:2px;">' + row.pin + '</td>' +
+                '<td style="padding:10px;color:#64748b;">' + row.status + '</td>' +
+                '</tr>';
+            }).join('') +
+            '</tbody></table>';
+        };
+
+        var old = document.getElementById('rolePinsScript');
+        if (old && old.parentNode) old.parentNode.removeChild(old);
+
+        var script = document.createElement('script');
+        script.id = 'rolePinsScript';
+        script.src = SCRIPT_URL + '?action=getPins&callback=onRolePinsLoaded&_=' + Date.now();
+        script.onerror = function () {};
+        document.head.appendChild(script);
+      }
 
       // Collapses/expands a sidebar section so the ~27 admin tabs don't all
       // sit open in one long scroll. Purely a CSS class toggle — it never
@@ -5795,6 +5894,9 @@
         }
         if (id === 'export') {
           filterExportByRole();
+        }
+        if (id === 'role-pins') {
+          loadRolePins();
         }
       }
 
