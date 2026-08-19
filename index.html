@@ -3792,6 +3792,8 @@
         mcSel.value = state.shepherd;
         selectMCShepherd(state.shepherd);
       }
+      buildMCMemberCards();
+      mergeDynamicSeekers(state.shepherd, true, buildMCMemberCards);
     }
 
     function chooseFlow(type) {
