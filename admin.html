@@ -1539,6 +1539,11 @@
             <span class="icon">🔄</span>
             <span class="tab-btn-label">Pipeline</span>
           </a>
+          <button class="tab-btn" id="knowHeadsTabBtn" style="display:none;"
+            onclick="switchTab('know-heads', this)">
+            <span class="icon">🙏</span>
+            <span class="tab-btn-label">Know Your Heads</span>
+          </button>
           </div>
 
           <!-- SYSTEM -->
@@ -2235,6 +2240,25 @@
             </div>
 
           </div>
+        </div>
+
+        <!-- TAB: KNOW YOUR HEADS -->
+        <div class="tab-panel" id="panel-know-heads">
+          <h2 style="margin-bottom:8px;font-size:22px;font-weight:800;color:#0a1628;">🙏 Know Your Heads</h2>
+          <p style="font-size:13px;color:var(--gray);margin-bottom:20px;max-width:640px;">
+            Every SPS and MC shepherd, grouped under their Head, with their assigned members and any new
+            seekers reported under them. Click a shepherd's card to expand it.
+          </p>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0;">🙏 SPS Head <span id="khSpsCount" style="font-weight:500;color:#64748b;font-size:13px;"></span></h3>
+          </div>
+          <div class="shepherd-grid" id="khSpsGrid" style="margin-bottom:32px;"></div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0;">⛪ MC Head <span id="khMcCount" style="font-weight:500;color:#64748b;font-size:13px;"></span></h3>
+          </div>
+          <div class="shepherd-grid" id="khMcGrid"></div>
         </div>
 
         <!-- TAB: PORTAL PINS -->
@@ -4453,10 +4477,11 @@
       }
 
       // ── SEEKERS TAB ──
-      function loadSeekers() {
+      function loadSeekers(onDone) {
         fetchData('getMembersRoster', function (data) {
           seekersData = (data && data.members) ? data.members : [];
           renderSeekers();
+          if (onDone) onDone();
         });
       }
 
@@ -4961,6 +4986,14 @@
           setInterval(keepWarm, 10 * 60 * 1000);
           applyRoleRestrictions();
           loadShepherdScores();
+          // Populate seekersData in the background so the Shepherds/MC Shepherds
+          // member-expansion and Know Your Heads tab have data whichever the
+          // user opens first, without each having to fetch it independently.
+          loadSeekers(function () {
+            renderShepherds();
+            renderMcShepherds();
+            renderKnowYourHeads();
+          });
 
           // Guided tour highlights the sidebar, which is desktop-only (see #tourBtn media query above)
           if (window.innerWidth > 768) {
@@ -5178,14 +5211,17 @@
         var intelligenceLabel = document.getElementById('intelligenceLabel');
         var membersLink       = document.getElementById('membersLink');
         var pipelineLink      = document.getElementById('pipelineLink');
+        var knowHeadsTabBtn   = document.getElementById('knowHeadsTabBtn');
         if (role === 'superadmin' || role === 'admin') {
           if (intelligenceLabel) intelligenceLabel.style.display = 'block';
           if (membersLink)       membersLink.style.display       = 'flex';
           if (pipelineLink)      pipelineLink.style.display      = 'flex';
+          if (knowHeadsTabBtn)   knowHeadsTabBtn.style.display    = 'flex';
         } else {
           if (intelligenceLabel) intelligenceLabel.style.display = 'none';
           if (membersLink)       membersLink.style.display       = 'none';
           if (pipelineLink)      pipelineLink.style.display      = 'none';
+          if (knowHeadsTabBtn)   knowHeadsTabBtn.style.display    = 'none';
         }
 
         // Schools+ — full standalone tracker — admin / superadmin only
@@ -5567,7 +5603,8 @@
         'journey': 'Discipleship Journey', 'soul-tracker': 'Soul Tracker', 'flags': 'Flags & Alerts', 'schools': 'School Tracking', 'seekers': 'Seekers',
         'activity-log': 'Activity Log',
         'announcements': 'Announcements',
-        'role-pins': 'Portal PINs'
+        'role-pins': 'Portal PINs',
+        'know-heads': 'Know Your Heads'
       };
 
       // Portal login roles and their factory-default PINs (must match the
@@ -5897,6 +5934,9 @@
         }
         if (id === 'role-pins') {
           loadRolePins();
+        }
+        if (id === 'know-heads') {
+          renderKnowYourHeads();
         }
       }
 
@@ -6840,6 +6880,67 @@
         renderOverview();
       };
 
+      // ── Shared shepherd → members/seekers lookups ──────────────────
+      // Used by the Shepherds/MC Shepherds card expansion and the
+      // Know Your Heads tab, so all three stay in sync off one source.
+      function spsMembersFor(shepherdName) {
+        return Object.keys(memberData).filter(function (m) { return memberData[m] === shepherdName; });
+      }
+      function mcMembersFor(shepherdName) {
+        return (window.mcMemberData && window.mcMemberData[shepherdName]) || [];
+      }
+      function seekersFor(shepherdName) {
+        return (seekersData || []).filter(function (r) {
+          return r.Shepherd === shepherdName && (r.Status === 'Pending' || r.Status === 'Seeker');
+        });
+      }
+      function renderShepherdMembersBlock(shepherdName, stream) {
+        var members = stream === 'mc' ? mcMembersFor(shepherdName) : spsMembersFor(shepherdName);
+        var seekers = seekersFor(shepherdName);
+        var memberList = members.length
+          ? members.map(function (m) { return '<div style="font-size:12px;padding:3px 0;color:#334155;">• ' + m + '</div>'; }).join('')
+          : '<div style="font-size:12px;color:#94a3b8;">No assigned members</div>';
+        var seekerList = seekers.length
+          ? seekers.map(function (r) {
+              var tag = r.Status === 'Pending' ? '🕓 Pending' : '🌱 Seeker';
+              return '<div style="font-size:12px;padding:3px 0;color:#15803d;">• ' + (r.Name || '') + ' <span style="font-size:10px;color:#64748b;">(' + tag + ')</span></div>';
+            }).join('')
+          : '<div style="font-size:12px;color:#94a3b8;">No new seekers</div>';
+        return '<div style="margin-top:10px;">' +
+          '<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">👥 Members (' + members.length + ')</div>' +
+          memberList +
+          '<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px;">🌱 New Seekers (' + seekers.length + ')</div>' +
+          seekerList +
+          '</div>';
+      }
+
+      function renderKnowYourHeads() {
+        var spsGrid = document.getElementById('khSpsGrid');
+        var mcGrid  = document.getElementById('khMcGrid');
+        if (!spsGrid || !mcGrid) return;
+
+        var spsCountEl = document.getElementById('khSpsCount');
+        if (spsCountEl) spsCountEl.textContent = '(' + ALL_SHEPHERDS.length + ' shepherds)';
+        var mcCountEl = document.getElementById('khMcCount');
+        if (mcCountEl) mcCountEl.textContent = '(' + ALL_MC_SHEPHERDS.length + ' shepherds)';
+
+        spsGrid.innerHTML = ALL_SHEPHERDS.map(function (s) {
+          return '<div class="shepherd-card" onclick="toggleShepCard(this)">' +
+            '<div class="shepherd-name">' + s.name + '</div>' +
+            '<div class="shepherd-meta">' + spsMembersFor(s.name).length + ' members</div>' +
+            '<div class="shepherd-details">' + renderShepherdMembersBlock(s.name, 'sps') + '</div>' +
+            '</div>';
+        }).join('') || '<div class="empty"><div class="icon">🙏</div><p>No SPS shepherds found</p></div>';
+
+        mcGrid.innerHTML = ALL_MC_SHEPHERDS.map(function (s) {
+          return '<div class="shepherd-card">' +
+            '<div class="shepherd-name">' + s.name + '</div>' +
+            '<div class="shepherd-meta">' + mcMembersFor(s.name).length + ' members' + (s.microchurch ? ' · ' + s.microchurch : '') + '</div>' +
+            '<details style="margin-top:8px;"><summary style="cursor:pointer;font-size:12px;font-weight:700;color:#3b82f6;">👥 View Members &amp; Seekers</summary>' + renderShepherdMembersBlock(s.name, 'mc') + '</details>' +
+            '</div>';
+        }).join('') || '<div class="empty"><div class="icon">⛪</div><p>No MC shepherds found</p></div>';
+      }
+
       function renderShepherds() {
         var statusFilter = document.getElementById('filter-shep-status').value;
         var now = new Date();
@@ -6898,7 +6999,7 @@
             : '<div style="color:#94a3b8;font-size:12px;' +
             'margin-top:8px;">No contact number</div>';
 
-          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? (lastRep.sessionDate || lastRep.date || '') : 'Never') + '</div></div>' + badge + '</div>' + contactBtns + '<div class="shepherd-details">' + repsHtml + '</div></div>';
+          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? (lastRep.sessionDate || lastRep.date || '') : 'Never') + '</div></div>' + badge + '</div>' + contactBtns + '<div class="shepherd-details">' + repsHtml + renderShepherdMembersBlock(s.name, 'sps') + '</div></div>';
         });
         grid.innerHTML = html || '<div class="empty"><div class="icon">👥</div><p>No shepherds found</p></div>';
       }
@@ -8801,6 +8902,7 @@
               '<div class="shepherd-meta">Last report: ' + (lastReport ? (lastReport.submissionDate || 'Never') : 'No reports yet') + '</div>' +
               '<span style="display:inline-block;margin-top:8px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:' + statusColor + '20;color:' + statusColor + '">' + status + '</span>' +
               contactBtns +
+              '<details style="margin-top:10px;" onclick="event.stopPropagation()"><summary style="cursor:pointer;font-size:12px;font-weight:700;color:#3b82f6;">👥 View Members &amp; Seekers</summary>' + renderShepherdMembersBlock(s.name, 'mc') + '</details>' +
               '</div>';
           }).join('') || '<div class="empty"><div class="icon">👥</div><p>No shepherds configured</p></div>';
         } catch (e) {
