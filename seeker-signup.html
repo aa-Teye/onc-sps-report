@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>ONC — New Seeker Sign-Up</title>
+  <link rel="icon" href="./logo.png" type="image/png">
+  <link rel="shortcut icon" href="./logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="./logo.png">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0f2044;
+      --blue: #1a3a6b;
+      --accent: #2e80e8;
+      --gold: #f0a500;
+      --green: #22c55e;
+      --red: #ef4444;
+      --light: #f0f5ff;
+      --white: #ffffff;
+      --gray: #64748b;
+      --border: #dce7f7;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(160deg, #0f2044 0%, #1a3a6b 50%, #0f2044 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px 16px 40px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 28px 0 24px;
+    }
+
+    .logo-ring {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #f5c842);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      box-shadow: 0 8px 24px rgba(240, 165, 0, 0.35);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 22px;
+      color: var(--navy);
+      letter-spacing: -0.5px;
+    }
+
+    .header h1 {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 21px;
+      color: var(--white);
+      letter-spacing: 0.3px;
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      margin-bottom: 16px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      color: var(--navy);
+      background: var(--light);
+      outline: none;
+      appearance: none;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--accent);
+    }
+
+    .field .hint {
+      font-size: 12px;
+      color: var(--gray);
+      margin-top: 6px;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .yn-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .yn-btn {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--light);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--navy);
+      cursor: pointer;
+    }
+
+    .yn-btn.selected.yes {
+      background: var(--green);
+      border-color: var(--green);
+      color: var(--white);
+    }
+
+    .yn-btn.selected.no {
+      background: var(--red);
+      border-color: var(--red);
+      color: var(--white);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--gold), #f5c842);
+      color: var(--navy);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(240, 165, 0, 0.3);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .error-msg {
+      color: var(--red);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .success-screen {
+      text-align: center;
+      padding: 20px 8px;
+    }
+
+    .success-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px;
+      font-size: 36px;
+    }
+
+    .success-screen h2 {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 19px;
+      color: var(--navy);
+      margin-bottom: 10px;
+    }
+
+    .success-screen p {
+      color: var(--gray);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .again-btn {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: var(--light);
+      color: var(--navy);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    #formScreen.hidden,
+    #successScreen.hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="logo-ring">ONC</div>
+      <h1>New Seeker Sign-Up</h1>
+      <p>Welcome! Fill in your details below so a shepherd can reach out and start following up with you.</p>
+    </div>
+
+    <div class="card" id="formScreen">
+      <div class="error-msg" id="errorMsg"></div>
+
+      <div class="field">
+        <label>Full Name *</label>
+        <input type="text" id="fName" placeholder="Your full name">
+      </div>
+
+      <div class="field">
+        <label>Phone Number *</label>
+        <input type="tel" id="fPhone" placeholder="Your phone number">
+      </div>
+
+      <div class="field">
+        <label>Your Shepherd *</label>
+        <select id="fShepherd">
+          <option value="">— I don't have a shepherd yet —</option>
+        </select>
+        <div class="hint">Already know who's been following up with you? Pick their name. If not, that's okay — leave this as "I don't have a shepherd yet."</div>
+      </div>
+
+      <div class="field">
+        <label>Date of Birth *</label>
+        <input type="date" id="fDob">
+      </div>
+
+      <div class="field">
+        <label>Born Again? *</label>
+        <div class="yn-row">
+          <button type="button" class="yn-btn yes" data-field="bornAgain" data-val="yes" onclick="setYN(this)">✅ Yes</button>
+          <button type="button" class="yn-btn no" data-field="bornAgain" data-val="no" onclick="setYN(this)">❌ No</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Occupation <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+        <select id="fOccupation" onchange="toggleOccupationOther()">
+          <option value="">-- Select --</option>
+          <option value="Student">Student</option>
+          <option value="Employed">Employed</option>
+          <option value="Self-Employed">Self-Employed</option>
+          <option value="Unemployed">Unemployed</option>
+          <option value="Retired">Retired</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="fOccupationOther" placeholder="Please specify occupation"
+          style="margin-top:8px;display:none;">
+      </div>
+
+      <button class="submit-btn" id="submitBtn" onclick="submitSeekerForm()">Submit My Details</button>
+    </div>
+
+    <div class="card success-screen hidden" id="successScreen">
+      <div class="success-icon">🎉</div>
+      <h2>Thank You!</h2>
+      <p id="successBody">Your details have been received.</p>
+      <button class="again-btn" onclick="resetForm()">Submit Another Person's Details</button>
+    </div>
+  </div>
+
+  <script src="./churchData.js"></script>
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+    const state = { bornAgain: '' };
+
+    // Builds the shepherd dropdown from the same roster data the rest of the
+    // app uses, tagging each option with its stream (sps/mc) so the backend
+    // records the person under the right shepherd type.
+    function populateShepherdSelect() {
+      const select = document.getElementById('fShepherd');
+      const data = window.CHURCH_DATA || { spsShepherds: [], mcShepherds: [] };
+
+      function addGroup(label, shepherds) {
+        if (!shepherds || !shepherds.length) return;
+        const group = document.createElement('optgroup');
+        group.label = label;
+        shepherds
+          .slice()
+          .sort(function (a, b) { return (a.name || '').localeCompare(b.name || ''); })
+          .forEach(function (s) {
+            const opt = document.createElement('option');
+            opt.value = s.name;
+            opt.textContent = s.name;
+            opt.dataset.stream = label === 'SPS Shepherds' ? 'sps' : 'mc';
+            group.appendChild(opt);
+          });
+        select.appendChild(group);
+      }
+
+      addGroup('SPS Shepherds', data.spsShepherds);
+      addGroup('Microchurch Shepherds', data.mcShepherds);
+    }
+    populateShepherdSelect();
+
+    function setYN(btn) {
+      const field = btn.dataset.field;
+      const val = btn.dataset.val;
+      state[field] = val;
+      document.querySelectorAll('.yn-btn[data-field="' + field + '"]').forEach(function (b) {
+        b.classList.remove('selected');
+      });
+      btn.classList.add('selected');
+    }
+
+    function toggleOccupationOther() {
+      const val = document.getElementById('fOccupation').value;
+      document.getElementById('fOccupationOther').style.display = val === 'Other' ? 'block' : 'none';
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function clearError() {
+      document.getElementById('errorMsg').style.display = 'none';
+    }
+
+    // Confirms the submission actually reached the sheet via a real GET
+    // (JSONP, so we can read the response — unlike the no-cors POST above).
+    // Never show the success screen without this: a no-cors POST always
+    // "succeeds" from the browser's point of view even if the backend
+    // silently rejected it, which is exactly what caused real submissions
+    // to be lost before this pattern existed on the Fellowship form.
+    function verifySubmission(memberId) {
+      return new Promise(function (resolve) {
+        var cbName = 'onSeekerCheck_' + Date.now();
+        var done = false;
+        var timer = setTimeout(function () {
+          if (done) return;
+          done = true;
+          window[cbName] = null;
+          resolve(false);
+        }, 6000);
+
+        window[cbName] = function (data) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          window[cbName] = null;
+          resolve(!!(data && data.exists));
+        };
+
+        var s = document.createElement('script');
+        s.src = SCRIPT_URL + '?action=checkFellowshipMember&memberId=' + encodeURIComponent(memberId) + '&callback=' + cbName + '&_=' + Date.now();
+        document.body.appendChild(s);
+      });
+    }
+
+    async function submitSeekerForm() {
+      clearError();
+      const name = document.getElementById('fName').value.trim();
+      const phone = document.getElementById('fPhone').value.trim();
+      const shepherdSelect = document.getElementById('fShepherd');
+      const shepherd = shepherdSelect.value;
+      const shepherdOpt = shepherdSelect.options[shepherdSelect.selectedIndex];
+      const shepherdType = shepherdOpt ? shepherdOpt.dataset.stream : '';
+      const dob = document.getElementById('fDob').value;
+      const occupation = document.getElementById('fOccupation').value;
+      const occupationOther = document.getElementById('fOccupationOther').value.trim();
+
+      if (!name || !phone || !dob || !state.bornAgain) {
+        showError('Please fill in all required fields marked with *.');
+        return;
+      }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      const payload = {
+        action: 'submitSeekerSelfSignup',
+        member: {
+          id: 'SEEK-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+          name: name,
+          phone: phone,
+          shepherd: shepherd,
+          shepherdType: shepherdType,
+          dob: dob,
+          bornAgain: state.bornAgain,
+          occupation: occupation,
+          occupationOther: occupationOther
+        }
+      };
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        // A network-level failure here still needs the same verify-before-
+        // trusting-success step below, so nothing special happens here.
+      }
+
+      btn.textContent = 'Confirming…';
+      let confirmed = false;
+      for (let attempt = 0; attempt < 3 && !confirmed; attempt++) {
+        if (attempt > 0) await new Promise(function (r) { setTimeout(r, 1200); });
+        confirmed = await verifySubmission(payload.member.id);
+      }
+
+      if (confirmed) {
+        document.getElementById('successBody').textContent = shepherd
+          ? 'Your details have been received, and you\'re now on ' + shepherd + '\'s list. They\'ll be in touch soon!'
+          : 'Your details have been received. A shepherd will be assigned to you soon.';
+        document.getElementById('formScreen').classList.add('hidden');
+        document.getElementById('successScreen').classList.remove('hidden');
+      } else {
+        showError('We could not confirm your details were saved. Please check your internet connection and press Submit again — your entries have not been cleared.');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Submit My Details';
+    }
+
+    function resetForm() {
+      document.getElementById('fName').value = '';
+      document.getElementById('fPhone').value = '';
+      document.getElementById('fShepherd').value = '';
+      document.getElementById('fDob').value = '';
+      document.getElementById('fOccupation').value = '';
+      document.getElementById('fOccupationOther').value = '';
+      document.getElementById('fOccupationOther').style.display = 'none';
+      document.querySelectorAll('.yn-btn').forEach(function (b) { b.classList.remove('selected'); });
+      state.bornAgain = '';
+      clearError();
+      document.getElementById('successScreen').classList.add('hidden');
+      document.getElementById('formScreen').classList.remove('hidden');
+    }
+  </script>
+</body>
+
+</html>

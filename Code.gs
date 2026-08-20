@@ -42,6 +42,7 @@ function doPost(e) {
     if (action === 'submitGuestForm')         return submitGuestForm(data);
     if (action === 'submitSalvationForm')     return submitSalvationForm(data);
     if (action === 'submitFellowshipMember')  return submitFellowshipMember(data);
+    if (action === 'submitSeekerSelfSignup')  return submitSeekerSelfSignup(data);
     if (action === 'updateGuestForm')         return updateGuestForm(data);
     if (action === 'savePinChange')           return savePinChange(data);
     if (action === 'logActivity')             return logActivity(data);
@@ -2317,6 +2318,59 @@ function submitFellowshipMember(data) {
   ]]);
 
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'FELLOWSHIP_SIGNUP', 'Fellowship Self-Service', name);
+  return jsonResponse({ status: 'success' });
+}
+
+// ============================================================
+// SEEKER SELF-SIGN-UP
+// Public, no-login form (seeker-signup.html) where a new seeker submits
+// their own details AND picks their own shepherd from the real shepherd
+// list (or says they don't have one yet). Lands live immediately under
+// that shepherd with Status='Seeker' — no admin/shepherd confirmation
+// step, by explicit choice: the shepherd is pre-filled by the person
+// themselves so nobody has to manually go assign them afterward. Unlike
+// submitFellowshipMember above (always Pending, always unassigned), this
+// trusts the submitter's own shepherd claim outright.
+// ============================================================
+function submitSeekerSelfSignup(data) {
+  const m = data.member || {};
+  const name  = (m.name  || '').toString().trim();
+  const phone = (m.phone || '').toString().trim();
+  if (!name || !phone)
+    return jsonResponse({ status: 'error', message: 'Name and phone are required' });
+
+  const sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+
+  // Avoid a duplicate row if this same submission is retried (e.g. after a
+  // network/CORS hiccup even though the original submission succeeded).
+  if (m.id) {
+    const records = getSheetRecords(sheet);
+    if (records.some(function (r) { return String(r.MemberID) === String(m.id); })) {
+      return jsonResponse({ status: 'success' });
+    }
+  }
+
+  const now        = new Date();
+  const occupation = m.occupation === 'Other' ? (m.occupationOther || 'Other') : (m.occupation || '');
+  const shepherd   = (m.shepherd || '').toString().trim();
+  const stream     = shepherd ? (m.shepherdType === 'mc' ? 'mc' : 'sps') : '';
+
+  const newRow = sheet.getLastRow() + 1;
+  sheet.getRange(newRow, 3).setNumberFormat('@');
+  sheet.getRange(newRow, 14).setNumberFormat('@');
+
+  sheet.getRange(newRow, 1, 1, 18).setValues([[
+    m.id || 'SEEK-' + now.getTime(),
+    name, phone,
+    shepherd,                            // Shepherd — the person's own pick, or '' if "no shepherd yet"
+    '', stream,
+    formatDate(now),
+    'Seeker', 'Seeker Self-Signup',
+    '', '', '', '',
+    m.dob || '', m.bornAgain || '', '', occupation, ''
+  ]]);
+
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_SELF_SIGNUP', shepherd || '(no shepherd chosen)', name);
   return jsonResponse({ status: 'success' });
 }
 
