@@ -107,7 +107,8 @@
     }
 
     .field input,
-    .field select {
+    .field select,
+    .field textarea {
       width: 100%;
       padding: 12px 14px;
       border: 2px solid var(--border);
@@ -121,8 +122,15 @@
     }
 
     .field input:focus,
-    .field select:focus {
+    .field select:focus,
+    .field textarea:focus {
       border-color: var(--accent);
+    }
+
+    .field textarea {
+      min-height: 92px;
+      resize: vertical;
+      line-height: 1.45;
     }
 
     .field .hint {
@@ -279,6 +287,36 @@
       </div>
 
       <div class="field">
+        <label>Gender *</label>
+        <select id="fGender">
+          <option value="">-- Select --</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Email *</label>
+        <input type="email" id="fEmail" placeholder="Your email address">
+      </div>
+
+      <div class="field">
+        <label>Location *</label>
+        <input type="text" id="fLocation" placeholder="Where do you stay?">
+      </div>
+
+      <div class="field">
+        <label>Marital Status *</label>
+        <select id="fMaritalStatus">
+          <option value="">-- Select --</option>
+          <option value="Single">Single</option>
+          <option value="Married">Married</option>
+          <option value="Divorced">Divorced</option>
+          <option value="Widowed">Widowed</option>
+        </select>
+      </div>
+
+      <div class="field">
         <label>Born Again? *</label>
         <div class="yn-row">
           <button type="button" class="yn-btn yes" data-field="bornAgain" data-val="yes" onclick="setYN(this)">✅ Yes</button>
@@ -301,6 +339,39 @@
           style="margin-top:8px;display:none;">
       </div>
 
+      <div class="field">
+        <label>Company / School / Place of Work *</label>
+        <input type="text" id="fWorkPlace" placeholder="Company, school, or workplace">
+      </div>
+
+      <div class="field">
+        <label>Do You Belong to Overcomers Haatso Church? *</label>
+        <div class="yn-row">
+          <button type="button" class="yn-btn yes" data-field="belongsToOvercomers" data-val="yes" onclick="setYN(this)">Yes</button>
+          <button type="button" class="yn-btn no" data-field="belongsToOvercomers" data-val="no" onclick="setYN(this)">No</button>
+        </div>
+      </div>
+
+      <div class="field" id="churchNameField" style="display:none;">
+        <label>If No, Name of Your Church *</label>
+        <input type="text" id="fChurchName" placeholder="Name of your church">
+      </div>
+
+      <div class="field">
+        <label>Testimony</label>
+        <textarea id="fTestimony" placeholder="Share your testimony"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Prayer Request</label>
+        <textarea id="fPrayerRequest" placeholder="What should we pray with you about?"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Comments</label>
+        <textarea id="fComments" placeholder="Any additional comments"></textarea>
+      </div>
+
       <button class="submit-btn" id="submitBtn" onclick="submitSeekerForm()">Submit My Details</button>
     </div>
 
@@ -315,7 +386,7 @@
   <script src="./churchData.js"></script>
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
-    const state = { bornAgain: '' };
+    const state = { bornAgain: '', belongsToOvercomers: '' };
 
     // Builds the shepherd dropdown from the same roster data the rest of the
     // app uses, tagging each option with its stream (sps/mc) so the backend
@@ -354,11 +425,18 @@
         b.classList.remove('selected');
       });
       btn.classList.add('selected');
+      if (field === 'belongsToOvercomers') toggleChurchName();
     }
 
     function toggleOccupationOther() {
       const val = document.getElementById('fOccupation').value;
       document.getElementById('fOccupationOther').style.display = val === 'Other' ? 'block' : 'none';
+    }
+
+    function toggleChurchName() {
+      const field = document.getElementById('churchNameField');
+      field.style.display = state.belongsToOvercomers === 'no' ? 'block' : 'none';
+      if (state.belongsToOvercomers !== 'no') document.getElementById('fChurchName').value = '';
     }
 
     function showError(msg) {
@@ -418,10 +496,21 @@
       const shepherdOpt = shepherdSelect.options[shepherdSelect.selectedIndex];
       const shepherdType = shepherdOpt ? shepherdOpt.dataset.stream : '';
       const dob = document.getElementById('fDob').value;
+      const gender = document.getElementById('fGender').value;
+      const email = document.getElementById('fEmail').value.trim();
+      const location = document.getElementById('fLocation').value.trim();
+      const maritalStatus = document.getElementById('fMaritalStatus').value;
       const occupation = document.getElementById('fOccupation').value;
       const occupationOther = document.getElementById('fOccupationOther').value.trim();
+      const workPlace = document.getElementById('fWorkPlace').value.trim();
+      const churchName = document.getElementById('fChurchName').value.trim();
+      const testimony = document.getElementById('fTestimony').value.trim();
+      const prayerRequest = document.getElementById('fPrayerRequest').value.trim();
+      const comments = document.getElementById('fComments').value.trim();
 
-      if (!name || !phone || !dob || !state.bornAgain) {
+      if (!name || !phone || !dob || !gender || !email || !location || !maritalStatus ||
+          !state.bornAgain || !workPlace || !state.belongsToOvercomers ||
+          (state.belongsToOvercomers === 'no' && !churchName)) {
         showError('Please fill in all required fields marked with *.');
         return;
       }
@@ -436,12 +525,22 @@
           id: 'SEEK-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
           name: name,
           phone: phone,
+          email: email,
           shepherd: shepherd,
           shepherdType: shepherdType,
           dob: dob,
+          gender: gender,
+          location: location,
+          maritalStatus: maritalStatus,
           bornAgain: state.bornAgain,
           occupation: occupation,
-          occupationOther: occupationOther
+          occupationOther: occupationOther,
+          workPlace: workPlace,
+          belongsToOvercomers: state.belongsToOvercomers,
+          churchName: churchName,
+          testimony: testimony,
+          prayerRequest: prayerRequest,
+          comments: comments
         }
       };
 
@@ -483,11 +582,22 @@
       document.getElementById('fPhone').value = '';
       document.getElementById('fShepherd').value = '';
       document.getElementById('fDob').value = '';
+      document.getElementById('fGender').value = '';
+      document.getElementById('fEmail').value = '';
+      document.getElementById('fLocation').value = '';
+      document.getElementById('fMaritalStatus').value = '';
       document.getElementById('fOccupation').value = '';
       document.getElementById('fOccupationOther').value = '';
       document.getElementById('fOccupationOther').style.display = 'none';
+      document.getElementById('fWorkPlace').value = '';
+      document.getElementById('fChurchName').value = '';
+      document.getElementById('churchNameField').style.display = 'none';
+      document.getElementById('fTestimony').value = '';
+      document.getElementById('fPrayerRequest').value = '';
+      document.getElementById('fComments').value = '';
       document.querySelectorAll('.yn-btn').forEach(function (b) { b.classList.remove('selected'); });
       state.bornAgain = '';
+      state.belongsToOvercomers = '';
       clearError();
       document.getElementById('successScreen').classList.add('hidden');
       document.getElementById('formScreen').classList.remove('hidden');

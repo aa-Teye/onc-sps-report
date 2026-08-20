@@ -2264,7 +2264,9 @@ function calculateShepherdScores() {
 const MEMBERS_SHEET  = 'Members';
 const MEMBERS_HEADERS = ['MemberID', 'Name', 'Phone', 'Shepherd', 'Zone', 'Stream', 'ImportDate',
   'Status', 'Source', 'ApprovedBy', 'ApprovedDate', 'GraduatedBy', 'GraduatedDate',
-  'DOB', 'BornAgain', 'InChurch', 'Occupation', 'AddressOrHostel'];
+  'DOB', 'BornAgain', 'InChurch', 'Occupation', 'AddressOrHostel',
+  'Gender', 'Email', 'Location', 'MaritalStatus', 'WorkPlace',
+  'BelongsToOvercomers', 'ChurchName', 'Testimony', 'PrayerRequest', 'Comments'];
 
 // ============================================================
 // FELLOWSHIP SELF-SERVICE SIGN-UP
@@ -2349,6 +2351,18 @@ function submitSeekerSelfSignup(data) {
   }
 
   const occupation = m.occupation === 'Other' ? (m.occupationOther || 'Other') : (m.occupation || '');
+  const seekerDetails = [
+    m.gender || '',
+    m.email || '',
+    m.location || '',
+    m.maritalStatus || '',
+    m.workPlace || '',
+    m.belongsToOvercomers || '',
+    m.churchName || '',
+    m.testimony || '',
+    m.prayerRequest || '',
+    m.comments || ''
+  ];
   const shepherd   = (m.shepherd || '').toString().trim();
   const stream     = shepherd ? (m.shepherdType === 'mc' ? 'mc' : 'sps') : '';
 
@@ -2370,10 +2384,12 @@ function submitSeekerSelfSignup(data) {
     if (dup) {
       sheet.getRange(dup._row, 3).setNumberFormat('@');
       sheet.getRange(dup._row, 14).setNumberFormat('@');
+      sheet.getRange(dup._row, 20).setNumberFormat('@');
       if (phone)       sheet.getRange(dup._row, 3).setValue(phone);
       if (m.dob)        sheet.getRange(dup._row, 14).setValue(m.dob);
       if (m.bornAgain)  sheet.getRange(dup._row, 15).setValue(m.bornAgain);
       if (occupation)   sheet.getRange(dup._row, 17).setValue(occupation);
+      sheet.getRange(dup._row, 19, 1, seekerDetails.length).setValues([seekerDetails]);
       logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_SELF_SIGNUP_MERGED', shepherd, name);
       return jsonResponse({ status: 'success', memberId: dup.MemberID, merged: true });
     }
@@ -2383,8 +2399,9 @@ function submitSeekerSelfSignup(data) {
   const newRow = sheet.getLastRow() + 1;
   sheet.getRange(newRow, 3).setNumberFormat('@');
   sheet.getRange(newRow, 14).setNumberFormat('@');
+  sheet.getRange(newRow, 20).setNumberFormat('@');
 
-  sheet.getRange(newRow, 1, 1, 18).setValues([[
+  sheet.getRange(newRow, 1, 1, 28).setValues([[
     m.id || 'SEEK-' + now.getTime(),
     name, phone,
     shepherd,                            // Shepherd — the person's own pick, or '' if "no shepherd yet"
@@ -2392,7 +2409,9 @@ function submitSeekerSelfSignup(data) {
     formatDate(now),
     'Seeker', 'Seeker Self-Signup',
     '', '', '', '',
-    m.dob || '', m.bornAgain || '', '', occupation, ''
+    m.dob || '', m.bornAgain || '', '', occupation, '',
+    seekerDetails[0], seekerDetails[1], seekerDetails[2], seekerDetails[3], seekerDetails[4],
+    seekerDetails[5], seekerDetails[6], seekerDetails[7], seekerDetails[8], seekerDetails[9]
   ]]);
 
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_SELF_SIGNUP', shepherd || '(no shepherd chosen)', name);
