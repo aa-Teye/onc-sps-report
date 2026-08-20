@@ -61,7 +61,7 @@ self.addEventListener('notificationclick', function (event) {
 });
 
 // ── Cache ────────────────────────────────────────────────────────
-const CACHE_NAME = 'onc-sps-v59';
+const CACHE_NAME = 'onc-sps-v60';
 const CACHE_URLS = [
   '/onc-sps-report/',
   '/onc-sps-report/index.html',
@@ -75,7 +75,9 @@ const CACHE_URLS = [
   '/onc-sps-report/schools.html',
   '/onc-sps-report/sunday.html',
   '/onc-sps-report/visitation.html',
-  '/onc-sps-report/go-dashboard.html'
+  '/onc-sps-report/go-dashboard.html',
+  '/onc-sps-report/seeker-signup.html',
+  '/onc-sps-report/fellowship-signup.html'
 ];
 
 self.addEventListener('install', function (event) {
