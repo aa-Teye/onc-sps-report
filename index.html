@@ -2180,7 +2180,7 @@
             style="background:none;border:none;
             color:var(--gray);cursor:pointer;
             font-size:20px;">←</button>
-          <div>
+          <div style="flex:1;">
             <h2 style="font-family:'Nunito',sans-serif;
               font-weight:900;font-size:18px;
               color:var(--navy);margin:0;">
@@ -2191,6 +2191,13 @@
               color:var(--gray);margin-top:2px;">
             </div>
           </div>
+          <button onclick="kymOpenAddModal()"
+            style="background:var(--navy);border:none;
+            color:white;cursor:pointer;font-weight:800;
+            font-size:13px;padding:10px 16px;
+            border-radius:10px;white-space:nowrap;">
+            + Add
+          </button>
         </div>
 
         <div id="kymMembersList"
@@ -2909,6 +2916,69 @@
       </button>
 
       <p id="soulTrackerStatus" style="font-size:12px;color:var(--gray);margin:12px 0 0;"></p>
+    </div>
+  </div>
+
+  <div id="kymPersonModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.8);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);overflow-y:auto;">
+    <div style="background:#fff;border-radius:24px;width:100%;max-width:420px;padding:24px;text-align:left;position:relative;margin:auto;">
+      <button onclick="kymCloseModal()" style="position:absolute;top:16px;right:16px;background:rgba(15,32,68,.08);border:none;color:var(--navy);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;">✕</button>
+      <h3 id="kymModalTitle" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);margin:0 0 16px;padding-right:36px;">Add a Person</h3>
+
+      <!-- Step 1: Member or Seeker (Add only) -->
+      <div id="kymTypeStep">
+        <p style="font-size:13px;color:var(--gray);margin:0 0 16px;line-height:1.6;">Is this person already an established member, or someone you're still getting to know?</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button type="button" onclick="kymChooseAddType('Member')" style="width:100%;padding:16px;border:2px solid var(--border);border-radius:12px;background:#fff;text-align:left;cursor:pointer;font-family:inherit;">
+            <div style="font-weight:800;color:var(--navy);font-size:14px;">👤 Member</div>
+            <div style="font-size:12px;color:var(--gray);margin-top:2px;">An established member of your group</div>
+          </button>
+          <button type="button" onclick="kymChooseAddType('Seeker')" style="width:100%;padding:16px;border:2px solid var(--border);border-radius:12px;background:#fff;text-align:left;cursor:pointer;font-family:inherit;">
+            <div style="font-weight:800;color:var(--navy);font-size:14px;">🌱 Seeker</div>
+            <div style="font-size:12px;color:var(--gray);margin-top:2px;">Someone new you're still following up with</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Details form -->
+      <div id="kymDetailStep" style="display:none;">
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Full Name *</label>
+        <input id="kymNameInput" type="text" placeholder="Full name" style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
+
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Phone Number *</label>
+        <input id="kymPhoneInput" type="tel" placeholder="Phone number" style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
+
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Date of Birth *</label>
+        <input id="kymDobInput" type="date" style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
+
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Born Again? *</label>
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button type="button" class="yn-btn yes" id="kymBornAgainYes" data-field="bornAgain" data-val="yes" onclick="kymSetYN(this)">✅ Yes</button>
+          <button type="button" class="yn-btn no" id="kymBornAgainNo" data-field="bornAgain" data-val="no" onclick="kymSetYN(this)">❌ No</button>
+        </div>
+
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Are they in the church already? *</label>
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button type="button" class="yn-btn yes" id="kymInChurchYes" data-field="inChurch" data-val="yes" onclick="kymSetYN(this)">✅ Yes</button>
+          <button type="button" class="yn-btn no" id="kymInChurchNo" data-field="inChurch" data-val="no" onclick="kymSetYN(this)">❌ No</button>
+        </div>
+
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Occupation <span style="font-weight:400;color:#94a3b8">(optional)</span></label>
+        <select id="kymOccupationSelect" onchange="kymToggleOccupationOther()" style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:8px;background:#fff;">
+          <option value="">-- Select --</option>
+          <option value="Student">Student</option>
+          <option value="Employed">Employed</option>
+          <option value="Self-Employed">Self-Employed</option>
+          <option value="Unemployed">Unemployed</option>
+          <option value="Retired">Retired</option>
+          <option value="Other">Other</option>
+        </select>
+        <input id="kymOccupationOtherInput" type="text" placeholder="Please specify occupation" style="display:none;width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
+
+        <button id="kymSubmitBtn" onclick="kymSubmitPerson()" style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--navy);color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;">
+          Save
+        </button>
+        <p id="kymModalStatus" style="font-size:12px;color:var(--gray);margin:12px 0 0;"></p>
+      </div>
     </div>
   </div>
 
@@ -6913,22 +6983,12 @@
       showSection('secLanding');
     }
 
-    function showKnowYourMembers() {
-      var nameEl = document.getElementById(
-        'kymShepherdName');
-      if (nameEl) {
-        nameEl.textContent = state.shepherd || '';
-      }
-      
-      var list = document.getElementById(
-        'kymMembersList');
-      if (!list) {
-        showSection('secKnowYourMembers');
-        return;
-      }
-      
+    // Static baseline roster (churchData.js first, shepherdData fallback),
+    // normalized to {name, contact}. See kymMergeLiveMembers() below for why
+    // this alone isn't the full picture any more.
+    function kymBuildStaticMembers() {
       var members = [];
-      
+
       if (window.CHURCH_DATA) {
         if (state.shepherdType === 'sps') {
           var shepherd = window.CHURCH_DATA
@@ -6941,77 +7001,91 @@
         } else if (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') {
           var mcShepherd = null;
 
-          if (window.CHURCH_DATA && 
+          if (window.CHURCH_DATA &&
               window.CHURCH_DATA.mcShepherds) {
-            
+
             var shepherdName = (state.shepherd || '')
               .toLowerCase().trim();
-            
+
             mcShepherd = window.CHURCH_DATA
               .mcShepherds.find(function(s) {
                 var sName = (s.name || '')
                   .toLowerCase().trim();
                 var sMC = (s.microchurch || '')
                   .toLowerCase().trim();
-                
+
                 return sName === shepherdName ||
                   sName.indexOf(shepherdName) > -1 ||
                   shepherdName.indexOf(sName) > -1 ||
                   sMC === shepherdName ||
-                  sName.split('(')[0].trim() === 
+                  sName.split('(')[0].trim() ===
                     shepherdName.split('(')[0].trim();
               });
           }
-          
+
           if (mcShepherd && mcShepherd.members) {
             members = mcShepherd.members;
           }
         }
       }
-      
-      if (members.length === 0 && 
+
+      if (members.length === 0 &&
           state.shepherdType === 'sps' &&
           typeof shepherdData !== 'undefined' &&
           shepherdData[state.shepherd]) {
         var rawMembers = shepherdData[
           state.shepherd].members || [];
-        members = rawMembers.map(function(m) {
-          return typeof m === 'string' ? 
-            {name: m, contact: ''} : m;
-        });
+        members = rawMembers;
       }
-      
-      if (members.length === 0) {
+
+      return members.map(function(m) {
+        return typeof m === 'string' ?
+          {name: m, contact: ''} :
+          {name: m.name || '', contact: m.contact || m.phone || ''};
+      });
+    }
+
+    function kymRenderList(members) {
+      var list = document.getElementById('kymMembersList');
+      if (!list) return;
+
+      if (!members || members.length === 0) {
         var msg = (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ?
           'No members listed for this microchurch' :
           'No members assigned yet.';
-        
-        list.innerHTML = 
+
+        list.innerHTML =
           '<div style="text-align:center;' +
           'padding:40px;color:var(--gray);">' +
           '<div style="font-size:40px;' +
           'margin-bottom:8px;">👥</div>' +
           '<p>' + msg + '</p>' +
           '</div>';
-        showSection('secKnowYourMembers');
         return;
       }
-      
+
       list.innerHTML = members.map(function(m) {
-        var name = typeof m === 'string' ? 
-          m : (m.name || '');
-        var phone = typeof m === 'object' ? 
-          (m.contact || m.phone || '') : '';
-        
+        var name = m.name || '';
+        var phone = m.contact || '';
+
         var waNumber = phone.replace(/^0/, '233');
-        var hasPhone = phone && 
+        var hasPhone = phone &&
           phone.trim() !== '';
-        
+        var editBtn = m.memberId ?
+          '<button onclick="kymOpenEditModal(\'' + m.memberId + '\')" ' +
+          'style="background:#f0f5ff;border:none;color:var(--navy);' +
+          'width:36px;height:36px;border-radius:10px;font-size:15px;' +
+          'cursor:pointer;flex-shrink:0;">✏️</button>' : '';
+        var statusBadge = m.status === 'Seeker' ?
+          '<span style="font-size:10px;font-weight:800;padding:2px 8px;' +
+          'border-radius:999px;background:#fef3c7;color:#92400e;' +
+          'margin-left:6px;vertical-align:2px;">SEEKER</span>' : '';
+
         return '<div style="background:white;' +
           'border-radius:16px;padding:16px;' +
           'box-shadow:0 2px 8px ' +
           'rgba(0,0,0,0.06);">' +
-          
+
           '<div style="display:flex;' +
           'align-items:center;gap:12px;' +
           'margin-bottom:12px;">' +
@@ -7022,22 +7096,22 @@
           'justify-content:center;' +
           'color:white;font-weight:800;' +
           'font-size:16px;flex-shrink:0;">' +
-          name.charAt(0).toUpperCase() + 
+          name.charAt(0).toUpperCase() +
           '</div>' +
-          '<div style="flex:1;">' +
+          '<div style="flex:1;min-width:0;">' +
           '<div style="font-weight:800;' +
           'font-size:15px;color:var(--navy);">' +
-          name + '</div>' +
+          name + statusBadge + '</div>' +
           '<div style="font-size:13px;' +
           'color:var(--gray);margin-top:2px;">' +
-          (hasPhone ? '📞 ' + phone : 
-            '📞 No number yet') + 
+          (hasPhone ? '📞 ' + phone :
+            '📞 No number yet') +
           '</div>' +
-          '</div></div>' +
-          
-          (hasPhone ? 
+          '</div>' + editBtn + '</div>' +
+
+          (hasPhone ?
             '<div style="display:flex;gap:8px;">' +
-            
+
             '<a href="tel:' + phone + '" ' +
             'style="flex:1;padding:10px;' +
             'background:#22c55e;color:white;' +
@@ -7062,7 +7136,7 @@
             'text-decoration:none;font-weight:700;'+
             'font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;">'+
             ICON_SMS + ' SMS</a>' +
-            
+
             '</div>' :
             '<div style="text-align:center;' +
             'padding:8px;background:#f8fafc;' +
@@ -7072,8 +7146,337 @@
           ) +
           '</div>';
       }).join('');
-      
+    }
+
+    // The static baseline above goes stale the moment anyone is added via
+    // self-service Add or the public seeker sign-up link, so every time this
+    // screen opens we additionally fetch this shepherd's live Members-sheet
+    // slice and merge it in by name — same source getShepherdMembers/
+    // mergeDynamicSeekers already use for the report screen. Enriches
+    // existing entries with memberId/status/dob/etc (making them editable)
+    // and adds anyone live-only that isn't in the static list at all.
+    function kymMergeLiveMembers(baseMembers) {
+      var shepherdName = state.shepherd;
+      if (!shepherdName) return;
+
+      var cbName = 'onKymMembers_' + Date.now();
+      var done = false;
+      var s = document.createElement('script');
+
+      window[cbName] = function (data) {
+        if (done) return;
+        done = true;
+        window[cbName] = null;
+
+        var records = (data && data.members) || [];
+        var byNorm = {};
+        baseMembers.forEach(function(m) {
+          byNorm[(m.name || '').toLowerCase().trim()] = m;
+        });
+
+        records.forEach(function (r) {
+          if (!r.Name || r.Shepherd !== shepherdName) return;
+          var key = r.Name.toLowerCase().trim();
+          var existing = byNorm[key];
+          var extra = {
+            memberId: r.MemberID, status: r.Status,
+            dob: r.DOB || '', bornAgain: r.BornAgain || '',
+            inChurch: r.InChurch || '', occupation: r.Occupation || ''
+          };
+          if (existing) {
+            existing.contact = existing.contact || r.Phone || '';
+            Object.assign(existing, extra);
+          } else {
+            var fresh = Object.assign({name: r.Name, contact: r.Phone || ''}, extra);
+            baseMembers.push(fresh);
+            byNorm[key] = fresh;
+          }
+        });
+
+        kymMembersCache = baseMembers;
+        kymRenderList(baseMembers);
+
+        if (document.head.contains(s)) document.head.removeChild(s);
+      };
+
+      s.src = SCRIPT_URL + '?action=getShepherdMembers&shepherd=' + encodeURIComponent(shepherdName) + '&callback=' + cbName;
+      s.onerror = function () { if (window[cbName]) window[cbName]({}); };
+      document.head.appendChild(s);
+
+      setTimeout(function () { if (window[cbName]) window[cbName]({}); }, 6000);
+    }
+
+    function showKnowYourMembers() {
+      var nameEl = document.getElementById(
+        'kymShepherdName');
+      if (nameEl) {
+        nameEl.textContent = state.shepherd || '';
+      }
+
+      var list = document.getElementById(
+        'kymMembersList');
+      if (!list) {
+        showSection('secKnowYourMembers');
+        return;
+      }
+
+      var members = kymBuildStaticMembers();
+      kymMembersCache = members;
+      kymRenderList(members);
       showSection('secKnowYourMembers');
+
+      kymMergeLiveMembers(members);
+    }
+
+    // ── Know Your Members: Add / Edit modal ─────────────────────
+    var kymMembersCache = [];
+    var kymModalMode = 'add';       // 'add' | 'edit'
+    var kymModalPersonType = '';    // 'Member' | 'Seeker' (add only)
+    var kymModalMemberId = null;    // set when editing
+    var kymFormState = { bornAgain: '', inChurch: '' };
+
+    function kymResetModalFields() {
+      document.getElementById('kymNameInput').value = '';
+      document.getElementById('kymNameInput').disabled = false;
+      document.getElementById('kymPhoneInput').value = '';
+      document.getElementById('kymDobInput').value = '';
+      document.getElementById('kymOccupationSelect').value = '';
+      document.getElementById('kymOccupationOtherInput').value = '';
+      document.getElementById('kymOccupationOtherInput').style.display = 'none';
+      ['kymBornAgainYes', 'kymBornAgainNo', 'kymInChurchYes', 'kymInChurchNo'].forEach(function(id) {
+        document.getElementById(id).classList.remove('selected');
+      });
+      document.getElementById('kymModalStatus').textContent = '';
+      kymFormState = { bornAgain: '', inChurch: '' };
+    }
+
+    function kymOpenAddModal() {
+      kymModalMode = 'add';
+      kymModalPersonType = '';
+      kymModalMemberId = null;
+      kymResetModalFields();
+      document.getElementById('kymModalTitle').textContent = 'Add a Person';
+      document.getElementById('kymTypeStep').style.display = 'block';
+      document.getElementById('kymDetailStep').style.display = 'none';
+      document.getElementById('kymPersonModal').style.display = 'flex';
+    }
+
+    function kymChooseAddType(type) {
+      kymModalPersonType = type;
+      document.getElementById('kymModalTitle').textContent = 'Add a ' + type;
+      document.getElementById('kymTypeStep').style.display = 'none';
+      document.getElementById('kymDetailStep').style.display = 'block';
+    }
+
+    var KYM_OCCUPATIONS = ['Student', 'Employed', 'Self-Employed', 'Unemployed', 'Retired'];
+
+    function kymOpenEditModal(memberId) {
+      var m = kymMembersCache.find(function(x) { return x.memberId === memberId; });
+      if (!m) return;
+
+      kymModalMode = 'edit';
+      kymModalMemberId = memberId;
+      kymModalPersonType = m.status || 'Member';
+      kymResetModalFields();
+
+      document.getElementById('kymModalTitle').textContent = 'Edit ' + m.name;
+      document.getElementById('kymTypeStep').style.display = 'none';
+      document.getElementById('kymDetailStep').style.display = 'block';
+
+      document.getElementById('kymNameInput').value = m.name || '';
+      document.getElementById('kymNameInput').disabled = true;
+      document.getElementById('kymPhoneInput').value = m.contact || '';
+      document.getElementById('kymDobInput').value = m.dob || '';
+
+      var isKnownOccupation = KYM_OCCUPATIONS.indexOf(m.occupation) > -1;
+      document.getElementById('kymOccupationSelect').value = m.occupation ? (isKnownOccupation ? m.occupation : 'Other') : '';
+      kymToggleOccupationOther();
+      if (!isKnownOccupation && m.occupation) {
+        document.getElementById('kymOccupationOtherInput').value = m.occupation;
+      }
+
+      if (m.bornAgain === 'yes' || m.bornAgain === 'no') {
+        kymFormState.bornAgain = m.bornAgain;
+        document.getElementById('kymBornAgain' + (m.bornAgain === 'yes' ? 'Yes' : 'No')).classList.add('selected');
+      }
+      if (m.inChurch === 'yes' || m.inChurch === 'no') {
+        kymFormState.inChurch = m.inChurch;
+        document.getElementById('kymInChurch' + (m.inChurch === 'yes' ? 'Yes' : 'No')).classList.add('selected');
+      }
+
+      document.getElementById('kymPersonModal').style.display = 'flex';
+    }
+
+    function kymCloseModal() {
+      document.getElementById('kymPersonModal').style.display = 'none';
+    }
+
+    function kymSetYN(btn) {
+      var field = btn.dataset.field;
+      var val = btn.dataset.val;
+      kymFormState[field] = val;
+      btn.parentElement.querySelectorAll('.yn-btn').forEach(function(b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+    }
+
+    function kymToggleOccupationOther() {
+      var val = document.getElementById('kymOccupationSelect').value;
+      document.getElementById('kymOccupationOtherInput').style.display = val === 'Other' ? 'block' : 'none';
+    }
+
+    // Same verify-before-trusting-success pattern used by the Fellowship
+    // and seeker sign-up forms: a no-cors POST always looks like it
+    // succeeded from the browser's point of view even when the backend
+    // rejected it, so nothing is shown as saved until an independent GET
+    // confirms it actually landed.
+    function kymVerifyMemberId(memberId) {
+      return new Promise(function (resolve) {
+        var cbName = 'onKymAddCheck_' + Date.now();
+        var done = false;
+        var timer = setTimeout(function () {
+          if (done) return;
+          done = true;
+          window[cbName] = null;
+          resolve(false);
+        }, 6000);
+
+        window[cbName] = function (data) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          window[cbName] = null;
+          resolve(!!(data && data.exists));
+        };
+
+        var s = document.createElement('script');
+        s.src = SCRIPT_URL + '?action=checkFellowshipMember&memberId=' + encodeURIComponent(memberId) + '&callback=' + cbName + '&_=' + Date.now();
+        document.body.appendChild(s);
+      });
+    }
+
+    function kymVerifyEdit(memberId, expectedFields) {
+      return new Promise(function (resolve) {
+        var cbName = 'onKymEditCheck_' + Date.now();
+        var done = false;
+        var timer = setTimeout(function () {
+          if (done) return;
+          done = true;
+          window[cbName] = null;
+          resolve(false);
+        }, 6000);
+
+        window[cbName] = function (data) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          window[cbName] = null;
+          var records = (data && data.members) || [];
+          var rec = records.find(function(r) { return r.MemberID === memberId; });
+          resolve(!!(rec && (rec.Phone || '') === (expectedFields.phone || '')));
+        };
+
+        var s = document.createElement('script');
+        s.src = SCRIPT_URL + '?action=getShepherdMembers&shepherd=' + encodeURIComponent(state.shepherd) + '&callback=' + cbName + '&_=' + Date.now();
+        document.body.appendChild(s);
+      });
+    }
+
+    async function kymSubmitPerson() {
+      var name = document.getElementById('kymNameInput').value.trim();
+      var phone = document.getElementById('kymPhoneInput').value.trim();
+      var dob = document.getElementById('kymDobInput').value;
+      var occupation = document.getElementById('kymOccupationSelect').value;
+      var occupationOther = document.getElementById('kymOccupationOtherInput').value.trim();
+      var statusEl = document.getElementById('kymModalStatus');
+
+      if (!name || !phone || !dob || !kymFormState.bornAgain || !kymFormState.inChurch) {
+        statusEl.style.color = '#ef4444';
+        statusEl.textContent = 'Please fill in all required fields marked with *.';
+        return;
+      }
+
+      if (kymModalMode === 'add') {
+        var normName = name.toLowerCase().trim();
+        var dupe = kymMembersCache.find(function(m) { return (m.name || '').toLowerCase().trim() === normName; });
+        if (dupe) {
+          statusEl.style.color = '#ef4444';
+          statusEl.textContent = name + ' is already on your list — close this and use the ✏️ button on their card to edit them instead.';
+          return;
+        }
+      }
+
+      var btn = document.getElementById('kymSubmitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      statusEl.style.color = 'var(--gray)';
+      statusEl.textContent = '';
+
+      if (kymModalMode === 'add') {
+        var clientId = 'MEM-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        var payload = {
+          action: 'addMemberSelfService',
+          member: {
+            id: clientId, name: name, phone: phone, dob: dob,
+            bornAgain: kymFormState.bornAgain, inChurch: kymFormState.inChurch,
+            occupation: occupation, occupationOther: occupationOther
+          },
+          shepherd: state.shepherd,
+          shepherdType: (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ? 'mc' : 'sps',
+          status: kymModalPersonType
+        };
+
+        try {
+          await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+        } catch (e) {}
+
+        btn.textContent = 'Confirming…';
+        var confirmed = false;
+        for (var attempt = 0; attempt < 3 && !confirmed; attempt++) {
+          if (attempt > 0) await new Promise(function(r) { setTimeout(r, 1200); });
+          confirmed = await kymVerifyMemberId(clientId);
+        }
+
+        if (confirmed) {
+          kymCloseModal();
+          showKnowYourMembers();
+        } else {
+          statusEl.style.color = '#ef4444';
+          statusEl.textContent = 'We could not confirm this was saved. Check your connection and press Save again.';
+        }
+      } else {
+        var fields = {
+          phone: phone, dob: dob, bornAgain: kymFormState.bornAgain, inChurch: kymFormState.inChurch,
+          occupation: occupation === 'Other' ? (occupationOther || 'Other') : occupation
+        };
+        var editPayload = {
+          action: 'updateMemberDetails',
+          memberId: kymModalMemberId,
+          requestingShepherd: state.shepherd,
+          fields: fields
+        };
+
+        try {
+          await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(editPayload)});
+        } catch (e) {}
+
+        btn.textContent = 'Confirming…';
+        var editConfirmed = false;
+        for (var a2 = 0; a2 < 3 && !editConfirmed; a2++) {
+          if (a2 > 0) await new Promise(function(r) { setTimeout(r, 1200); });
+          editConfirmed = await kymVerifyEdit(kymModalMemberId, fields);
+        }
+
+        if (editConfirmed) {
+          kymCloseModal();
+          showKnowYourMembers();
+        } else {
+          statusEl.style.color = '#ef4444';
+          statusEl.textContent = 'We could not confirm your changes were saved. Check your connection and press Save again.';
+        }
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Save';
     }
 
     // ── PWA: Install App modal ──────────────────────────────────
