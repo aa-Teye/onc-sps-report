@@ -377,7 +377,12 @@
     // "succeeds" from the browser's point of view even if the backend
     // silently rejected it, which is exactly what caused real submissions
     // to be lost before this pattern existed on the Fellowship form.
-    function verifySubmission(memberId) {
+    // name/shepherd let this find the record even when the backend merged
+    // this submission into an existing person instead of creating a new
+    // row (same name+shepherd already on file) - that lands under a
+    // different MemberID than the one generated here, so checking by id
+    // alone would wrongly report failure on an actually-successful merge.
+    function verifySubmission(memberId, name, shepherd) {
       return new Promise(function (resolve) {
         var cbName = 'onSeekerCheck_' + Date.now();
         var done = false;
@@ -397,7 +402,9 @@
         };
 
         var s = document.createElement('script');
-        s.src = SCRIPT_URL + '?action=checkFellowshipMember&memberId=' + encodeURIComponent(memberId) + '&callback=' + cbName + '&_=' + Date.now();
+        s.src = SCRIPT_URL + '?action=checkFellowshipMember&memberId=' + encodeURIComponent(memberId) +
+          '&name=' + encodeURIComponent(name || '') + '&shepherd=' + encodeURIComponent(shepherd || '') +
+          '&callback=' + cbName + '&_=' + Date.now();
         document.body.appendChild(s);
       });
     }
@@ -454,7 +461,7 @@
       let confirmed = false;
       for (let attempt = 0; attempt < 3 && !confirmed; attempt++) {
         if (attempt > 0) await new Promise(function (r) { setTimeout(r, 1200); });
-        confirmed = await verifySubmission(payload.member.id);
+        confirmed = await verifySubmission(payload.member.id, payload.member.name, payload.member.shepherd);
       }
 
       if (confirmed) {

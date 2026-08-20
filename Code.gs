@@ -149,7 +149,7 @@ function doGet(e) {
     else if (action === 'logNotificationClick')   response = logNotificationClick(e.parameter.notificationId, e.parameter.shepherdName);
     else if (action === 'getNotificationLog')     response = getNotificationLog(e.parameter.notificationId);
     else if (action === 'getMembersRoster')       response = getMembersRoster();
-    else if (action === 'checkFellowshipMember')  response = checkFellowshipMember(e.parameter.memberId);
+    else if (action === 'checkFellowshipMember')  response = checkFellowshipMember(e.parameter.memberId, e.parameter.name, e.parameter.shepherd);
     else if (action === 'getShepherdMembers')     response = getShepherdMembers(e.parameter.shepherd);
     else if (action === 'getDynamicShepherds')    response = getDynamicShepherds();
     else if (action === 'approveSeeker')          response = approveSeeker(e.parameter.memberId, e.parameter.approvedBy);
@@ -2340,21 +2340,46 @@ function submitSeekerSelfSignup(data) {
     return jsonResponse({ status: 'error', message: 'Name and phone are required' });
 
   const sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  const records = getSheetRecords(sheet);
 
   // Avoid a duplicate row if this same submission is retried (e.g. after a
   // network/CORS hiccup even though the original submission succeeded).
-  if (m.id) {
-    const records = getSheetRecords(sheet);
-    if (records.some(function (r) { return String(r.MemberID) === String(m.id); })) {
-      return jsonResponse({ status: 'success' });
-    }
+  if (m.id && records.some(function (r) { return String(r.MemberID) === String(m.id); })) {
+    return jsonResponse({ status: 'success' });
   }
 
-  const now        = new Date();
   const occupation = m.occupation === 'Other' ? (m.occupationOther || 'Other') : (m.occupation || '');
   const shepherd   = (m.shepherd || '').toString().trim();
   const stream     = shepherd ? (m.shepherdType === 'mc' ? 'mc' : 'sps') : '';
 
+  // Same person submitting again under the same shepherd (retyped the form,
+  // or a shepherd already added them separately via Know Your Members)
+  // updates that existing record with any new details instead of creating
+  // a duplicate row - same name+shepherd matching key used everywhere else
+  // on this sheet, just resolved as a merge rather than a hard reject,
+  // since this is a public form and a rejection would leave the person
+  // with no way to know what to do next. Only applies when a shepherd was
+  // actually picked - matching on name alone across many different
+  // "no shepherd yet" submitters would risk merging two different people
+  // who happen to share a name.
+  if (shepherd) {
+    const dup = records.find(function (r) {
+      return r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase() &&
+        (r.Shepherd || '').toString().trim().toLowerCase() === shepherd.toLowerCase();
+    });
+    if (dup) {
+      sheet.getRange(dup._row, 3).setNumberFormat('@');
+      sheet.getRange(dup._row, 14).setNumberFormat('@');
+      if (phone)       sheet.getRange(dup._row, 3).setValue(phone);
+      if (m.dob)        sheet.getRange(dup._row, 14).setValue(m.dob);
+      if (m.bornAgain)  sheet.getRange(dup._row, 15).setValue(m.bornAgain);
+      if (occupation)   sheet.getRange(dup._row, 17).setValue(occupation);
+      logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_SELF_SIGNUP_MERGED', shepherd, name);
+      return jsonResponse({ status: 'success', memberId: dup.MemberID, merged: true });
+    }
+  }
+
+  const now = new Date();
   const newRow = sheet.getLastRow() + 1;
   sheet.getRange(newRow, 3).setNumberFormat('@');
   sheet.getRange(newRow, 14).setNumberFormat('@');
@@ -2516,28 +2541,47 @@ function addMemberSelfService(data) {
 }
 
 // Shepherd self-service: edit details of a member/seeker already on their
-// own list. Name is deliberately not editable here — it's the join key
-// state.attendance[name]/badge lookups key off throughout index.html, and
-// renaming is a bigger, separate change not required by today's ask.
-// Authorization matches the app's existing trust model (every other write
-// in this file trusts a client-supplied name the same way) — not new
-// security infrastructure, just consistent with how the rest of the app works.
+// own list, including their name (e.g. fixing a typo) — every screen that
+// reads the roster (attendance cards, Know Your Members, badges) rebuilds
+// its lists fresh from this sheet each time it's opened, so a rename here
+// just shows up correctly next time; already-submitted reports keep
+// whichever name was current at submission time, same as any other
+// snapshot-in-time record. Guards against renaming into a name collision
+// with another person already on this shepherd's list. Authorization
+// matches the app's existing trust model (every other write in this file
+// trusts a client-supplied name the same way) — not new security
+// infrastructure, just consistent with how the rest of the app works.
 function updateMemberDetails(data) {
   var memberId = data.memberId;
   var requestingShepherd = (data.requestingShepherd || '').toString().trim();
   if (!memberId) return jsonResponse({ status: 'error', message: 'Missing memberId' });
 
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
-  var rec = getSheetRecords(sheet).find(function (r) { return String(r.MemberID) === String(memberId); });
+  var records = getSheetRecords(sheet);
+  var rec = records.find(function (r) { return String(r.MemberID) === String(memberId); });
   if (!rec) return jsonResponse({ status: 'error', message: 'Member not found' });
   if ((rec.Shepherd || '').toString().trim().toLowerCase() !== requestingShepherd.toLowerCase()) {
     return jsonResponse({ status: 'error', message: 'This person is not on your list' });
   }
 
   var fields = data.fields || {};
+  var newName = (fields.name || '').toString().trim();
+
+  if (newName && newName.toLowerCase() !== (rec.Name || '').toString().trim().toLowerCase()) {
+    var collision = records.find(function (r) {
+      return String(r.MemberID) !== String(memberId) &&
+        (r.Shepherd || '').toString().trim().toLowerCase() === requestingShepherd.toLowerCase() &&
+        r.Name && r.Name.toString().trim().toLowerCase() === newName.toLowerCase();
+    });
+    if (collision) {
+      return jsonResponse({ status: 'error', message: newName + ' is already on your list under a different entry.' });
+    }
+  }
+
   sheet.getRange(rec._row, 3).setNumberFormat('@');
   sheet.getRange(rec._row, 14).setNumberFormat('@');
 
+  if (newName)               sheet.getRange(rec._row, 2).setValue(newName);
   if (fields.phone      !== undefined) sheet.getRange(rec._row, 3).setValue(fields.phone);
   if (fields.zone       !== undefined) sheet.getRange(rec._row, 5).setValue(fields.zone);
   if (fields.dob        !== undefined) sheet.getRange(rec._row, 14).setValue(fields.dob);
@@ -2546,7 +2590,7 @@ function updateMemberDetails(data) {
   if (fields.occupation !== undefined) sheet.getRange(rec._row, 17).setValue(fields.occupation);
   if (fields.address    !== undefined) sheet.getRange(rec._row, 18).setValue(fields.address);
 
-  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DETAILS_UPDATED', requestingShepherd, rec.Name);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DETAILS_UPDATED', requestingShepherd, (newName || rec.Name));
   return jsonResponse({ status: 'success' });
 }
 
@@ -2556,15 +2600,27 @@ function getMembersRoster() {
   return { status: 'success', members: getSheetRecords(sheet) };
 }
 
-// Lets the Fellowship sign-up form confirm a submission actually reached the
-// sheet before telling the person it succeeded, instead of trusting the
-// no-cors POST blindly (that silent-failure gap is what caused real
-// submissions to be lost before this existed — see 2026-07-24 incident).
-function checkFellowshipMember(memberId) {
+// Lets the Fellowship/seeker sign-up forms confirm a submission actually
+// reached the sheet before telling the person it succeeded, instead of
+// trusting the no-cors POST blindly (that silent-failure gap is what
+// caused real submissions to be lost before this existed — see 2026-07-24
+// incident). name/shepherd are an optional fallback match for
+// submitSeekerSelfSignup's merge-on-duplicate path, where a repeat
+// submission updates an *existing* row (a different MemberID than the one
+// the client generated) instead of creating a new one — without this
+// fallback the client's original id would never be found and a real
+// success would look like a failure.
+function checkFellowshipMember(memberId, name, shepherd) {
   if (!memberId) return { status: 'success', exists: false };
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
   var records = getSheetRecords(sheet);
   var exists = records.some(function (r) { return String(r.MemberID) === String(memberId); });
+  if (!exists && name && shepherd) {
+    exists = records.some(function (r) {
+      return r.Name && r.Name.toString().trim().toLowerCase() === name.toString().trim().toLowerCase() &&
+        (r.Shepherd || '').toString().trim().toLowerCase() === shepherd.toString().trim().toLowerCase();
+    });
+  }
   return { status: 'success', exists: exists };
 }
 

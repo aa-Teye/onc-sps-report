@@ -2200,6 +2200,15 @@
           </button>
         </div>
 
+        <div id="kymLoadingBanner"
+          style="display:none;text-align:center;
+          padding:10px;margin-bottom:12px;
+          background:#f0f5ff;border-radius:10px;
+          color:var(--navy);font-size:12px;
+          font-weight:700;">
+          ⏳ Loading your latest details — editing will be ready in a moment…
+        </div>
+
         <div id="kymMembersList"
           style="display:flex;
           flex-direction:column;gap:12px;">
@@ -7186,6 +7195,8 @@
 
         kymMembersCache = baseMembers;
         kymRenderList(baseMembers);
+        var banner = document.getElementById('kymLoadingBanner');
+        if (banner) banner.style.display = 'none';
 
         if (document.head.contains(s)) document.head.removeChild(s);
       };
@@ -7215,6 +7226,9 @@
       kymMembersCache = members;
       kymRenderList(members);
       showSection('secKnowYourMembers');
+
+      var banner = document.getElementById('kymLoadingBanner');
+      if (banner) banner.style.display = 'block';
 
       kymMergeLiveMembers(members);
     }
@@ -7275,7 +7289,7 @@
       document.getElementById('kymDetailStep').style.display = 'block';
 
       document.getElementById('kymNameInput').value = m.name || '';
-      document.getElementById('kymNameInput').disabled = true;
+      document.getElementById('kymNameInput').disabled = false;
       document.getElementById('kymPhoneInput').value = m.contact || '';
       document.getElementById('kymDobInput').value = m.dob || '';
 
@@ -7363,7 +7377,9 @@
           window[cbName] = null;
           var records = (data && data.members) || [];
           var rec = records.find(function(r) { return r.MemberID === memberId; });
-          resolve(!!(rec && (rec.Phone || '') === (expectedFields.phone || '')));
+          resolve(!!(rec &&
+            (rec.Phone || '') === (expectedFields.phone || '') &&
+            (rec.Name  || '') === (expectedFields.name  || rec.Name || '')));
         };
 
         var s = document.createElement('script');
@@ -7386,14 +7402,17 @@
         return;
       }
 
-      if (kymModalMode === 'add') {
-        var normName = name.toLowerCase().trim();
-        var dupe = kymMembersCache.find(function(m) { return (m.name || '').toLowerCase().trim() === normName; });
-        if (dupe) {
-          statusEl.style.color = '#ef4444';
-          statusEl.textContent = name + ' is already on your list — close this and use the ✏️ button on their card to edit them instead.';
-          return;
-        }
+      var normName = name.toLowerCase().trim();
+      var dupe = kymMembersCache.find(function(m) {
+        return (m.name || '').toLowerCase().trim() === normName &&
+          (kymModalMode !== 'edit' || m.memberId !== kymModalMemberId);
+      });
+      if (dupe) {
+        statusEl.style.color = '#ef4444';
+        statusEl.textContent = kymModalMode === 'add' ?
+          (name + ' is already on your list — close this and use the ✏️ button on their card to edit them instead.') :
+          (name + ' is already someone else on your list — please use a different name.');
+        return;
       }
 
       var btn = document.getElementById('kymSubmitBtn');
@@ -7436,7 +7455,7 @@
         }
       } else {
         var fields = {
-          phone: phone, dob: dob, bornAgain: kymFormState.bornAgain, inChurch: kymFormState.inChurch,
+          name: name, phone: phone, dob: dob, bornAgain: kymFormState.bornAgain, inChurch: kymFormState.inChurch,
           occupation: occupation === 'Other' ? (occupationOther || 'Other') : occupation
         };
         var editPayload = {
