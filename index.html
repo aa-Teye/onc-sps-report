@@ -573,7 +573,6 @@
   <script src="churchData.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 </head>
 
 <body>
@@ -3010,6 +3009,8 @@
 
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+    const CLOUDINARY_CLOUD_NAME = 'dhyzvuh42';
+    const CLOUDINARY_UPLOAD_PRESET = 'ONC SPS';
 
     // Firebase Cloud Messaging (push notifications)
     const FIREBASE_CONFIG = {
@@ -4802,29 +4803,25 @@
       });
     }
 
-    // Returns the ISO week number (1-53) for a given date
-    function getISOWeekNumber(date) {
-      var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-      var dayNum = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-      var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    }
-
-    // Uploads the selected proof-of-meeting photo to Firebase Storage and
-    // returns its download URL, or '' if there's no photo or the upload fails.
+    // Uploads the selected proof-of-meeting photo to Cloudinary (swapped
+    // from Firebase Storage after its free-tier quota filled up) and
+    // returns its secure URL, or '' if there's no photo or the upload
+    // fails. Unsigned preset "ONC SPS" already routes uploads into the
+    // meeting-photos asset folder, so no path-building needed here.
     async function uploadProofPhoto(type, shepherdName) {
       if (!proofPhotoFile) return '';
       try {
-        if (typeof firebase === 'undefined' || !firebase.apps.length) return '';
-        var now = new Date();
-        var year = now.getFullYear();
-        var weekNumber = getISOWeekNumber(now);
-        var safeName = String(shepherdName || 'unknown').replace(/[^a-zA-Z0-9]+/g, '-');
-        var path = 'meeting-photos/' + type + '/' + year + '/week-' + weekNumber + '/' + safeName + '-' + now.getTime() + '.jpg';
-        var storageRef = firebase.storage().ref(path);
-        await storageRef.put(proofPhotoFile);
-        return await storageRef.getDownloadURL();
+        var formData = new FormData();
+        formData.append('file', proofPhotoFile);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+        var resp = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/auto/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (!resp.ok) return '';
+        var data = await resp.json();
+        return data.secure_url || '';
       } catch (e) {
         showGlobalAlert('⚠️ Photo upload failed — submitting report without photo', 'warning');
         return '';

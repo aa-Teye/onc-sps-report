@@ -3981,6 +3981,8 @@
       const MC_HEAD_PIN = '4000';
       const FT_HEAD_PIN = '5000';
       const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+      const CLOUDINARY_CLOUD_NAME = 'dhyzvuh42';
+      const CLOUDINARY_UPLOAD_PRESET = 'ONC SPS';
 
       // Firebase Storage (used for uploading resource library PDFs)
       const FIREBASE_CONFIG = {
@@ -6142,6 +6144,11 @@
 
       // Uploads the selected PDF to Firebase Storage and returns its download
       // URL, or '' if no file is selected or the upload fails.
+      // NOTE: not yet swapped to Cloudinary like uploadProofPhoto in
+      // index.html - Cloudinary blocks public PDF delivery by default
+      // (returns 401) until "Allow delivery of PDF and ZIP files" is
+      // enabled in Settings > Security. Confirmed live via a real test
+      // upload before deciding not to ship this one broken.
       async function uploadResourcePdf(title) {
         if (!resPdfFile) return '';
         try {
