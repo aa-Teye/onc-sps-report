@@ -1302,7 +1302,6 @@
   <script src="churchData.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 </head>
 
 <body>
@@ -3984,7 +3983,8 @@
       const CLOUDINARY_CLOUD_NAME = 'dhyzvuh42';
       const CLOUDINARY_UPLOAD_PRESET = 'ONC SPS';
 
-      // Firebase Storage (used for uploading resource library PDFs)
+      // Firebase config (used for push notifications to Head roles only -
+      // resource PDFs and meeting photos moved to Cloudinary)
       const FIREBASE_CONFIG = {
         apiKey: "AIzaSyASBX11NesPvKgswxqH54r-ouf6kEHLNNE",
         authDomain: "onc-sps.firebaseapp.com",
@@ -6142,22 +6142,26 @@
         status.textContent = resPdfFile ? '📄 ' + resPdfFile.name + ' selected' : '';
       }
 
-      // Uploads the selected PDF to Firebase Storage and returns its download
-      // URL, or '' if no file is selected or the upload fails.
-      // NOTE: not yet swapped to Cloudinary like uploadProofPhoto in
-      // index.html - Cloudinary blocks public PDF delivery by default
-      // (returns 401) until "Allow delivery of PDF and ZIP files" is
-      // enabled in Settings > Security. Confirmed live via a real test
-      // upload before deciding not to ship this one broken.
+      // Uploads the selected PDF to Cloudinary (swapped from Firebase
+      // Storage after its free-tier quota filled up) and returns its
+      // secure URL, or '' if no file is selected or the upload fails.
+      // PDF/ZIP delivery had to be explicitly enabled in Cloudinary's
+      // Settings > Security first (off by default) - confirmed live with
+      // a real upload before switching this over.
       async function uploadResourcePdf(title) {
         if (!resPdfFile) return '';
         try {
-          if (typeof firebase === 'undefined' || !firebase.apps.length) return '';
-          var safeName = String(title || 'resource').replace(/[^a-zA-Z0-9]+/g, '-');
-          var path = 'resources/' + safeName + '-' + Date.now() + '.pdf';
-          var storageRef = firebase.storage().ref(path);
-          await storageRef.put(resPdfFile);
-          return await storageRef.getDownloadURL();
+          var formData = new FormData();
+          formData.append('file', resPdfFile);
+          formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+          var resp = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/auto/upload', {
+            method: 'POST',
+            body: formData
+          });
+          if (!resp.ok) return '';
+          var data = await resp.json();
+          return data.secure_url || '';
         } catch (e) {
           return '';
         }
