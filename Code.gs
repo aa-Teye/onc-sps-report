@@ -69,6 +69,9 @@ function doPost(e) {
     if (action === 'createBaptismCohort')     return createBaptismCohort(data);
     // ── Soul Tracker POST actions ─────────────────────────────────
     if (action === 'addSoul')                 return addSoul(data);
+    // ── Shepherd self-service Add/Edit (Know Your Members) ────────
+    if (action === 'addMemberSelfService')    return addMemberSelfService(data);
+    if (action === 'updateMemberDetails')     return updateMemberDetails(data);
     // ── Sprint 5 POST actions ─────────────────────────────────
     if (action === 'saveZoneConfig')          return saveZoneConfig(data);
     if (action === 'addShepherd')             return addShepherd(data);
@@ -421,7 +424,9 @@ function submitReport(data) {
 
   if (Array.isArray(data.newMembers)) {
     data.newMembers.forEach(function (m) {
-      if (m && m.name) addOrUpdateSeeker(m.name, m.phone, data.shepherd, 'sps', 'SPS New Member');
+      if (m && m.name) addOrUpdateSeeker(m.name, m.phone, data.shepherd, 'sps', 'SPS New Member', {
+        dob: m.dob, bornAgain: m.bornAgain, inChurch: m.inChurch, occupation: m.occupation
+      });
     });
   }
 
@@ -532,7 +537,9 @@ function submitMicrochurchReport(data) {
 
   if (Array.isArray(data.newSouls)) {
     data.newSouls.forEach(function (s) {
-      if (s && s.name) addOrUpdateSeeker(s.name, s.phone, data.shepherd, 'mc', 'MC New Soul');
+      if (s && s.name) addOrUpdateSeeker(s.name, s.phone, data.shepherd, 'mc', 'MC New Soul', {
+        dob: s.dob, bornAgain: s.bornAgain, inChurch: s.inChurch, occupation: s.occupation
+      });
     });
   }
 
@@ -2321,14 +2328,32 @@ function bulkImportMembers(data) {
   var importHeaders = ['ImportID', 'Date', 'ImportedBy', 'RowCount', 'Status'];
   var importSheet   = ensureSheet('BulkImports', importHeaders);
 
+  // Dedup guard, matched by name+shepherd (same convention as addOrUpdateSeeker) -
+  // without this, re-running an import (e.g. after a partial failure) creates
+  // duplicate rows instead of being safely re-runnable.
+  var existingKeys = {};
+  getSheetRecords(membersSheet).forEach(function (r) {
+    if (!r.Name) return;
+    existingKeys[r.Name.toString().trim().toLowerCase() + '|' + (r.Shepherd || '').toString().trim().toLowerCase()] = true;
+  });
+
   var now      = new Date();
   var importId = 'IMP-' + now.getTime();
   var count    = 0;
+  var skipped  = 0;
+  var nextRow  = membersSheet.getLastRow() + 1;
 
   data.members.forEach(function (m, i) {
     if (!m.name) return;
+    var key = m.name.toString().trim().toLowerCase() + '|' + (m.shepherd || '').toString().trim().toLowerCase();
+    if (existingKeys[key]) { skipped++; return; }
+    existingKeys[key] = true; // also guards against duplicates within this same batch
+
     // Bulk-imported rows are presumed already-established members, not seekers.
-    membersSheet.appendRow([
+    // Phone written as text so Sheets doesn't strip a leading zero, same guard
+    // used in submitFellowshipMember/addOrUpdateSeeker.
+    membersSheet.getRange(nextRow, 3).setNumberFormat('@');
+    membersSheet.getRange(nextRow, 1, 1, 13).setValues([[
       importId + '-' + (i + 1),
       m.name     || '',
       m.phone    || '',
@@ -2337,14 +2362,15 @@ function bulkImportMembers(data) {
       m.stream   || 'SPS',
       formatDate(now),
       'Member', 'BulkImport', '', '', '', ''
-    ]);
+    ]]);
+    nextRow++;
     count++;
   });
 
   importSheet.appendRow([importId, formatDate(now), data.importedBy || 'Admin', count, 'Completed']);
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'BULK_IMPORT', data.importedBy || 'Admin',
-    count + ' members imported (' + importId + ')');
-  return jsonResponse({ status: 'success', importId: importId, count: count });
+    count + ' members imported, ' + skipped + ' skipped as duplicates (' + importId + ')');
+  return jsonResponse({ status: 'success', importId: importId, count: count, skipped: skipped });
 }
 
 // Adds a person reported as a "new soul"/"new member" to the Members sheet
@@ -2353,9 +2379,10 @@ function bulkImportMembers(data) {
 // get reported as new every week, and admin/heads can review from the
 // Seekers tab. shepherdName/stream tag who they belong to; source records
 // which report flow created the entry (for audit only).
-function addOrUpdateSeeker(name, phone, shepherdName, stream, source) {
+function addOrUpdateSeeker(name, phone, shepherdName, stream, source, details) {
   name = (name || '').toString().trim();
   if (!name) return null;
+  details = details || {};
 
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
   var records = getSheetRecords(sheet);
@@ -2366,12 +2393,107 @@ function addOrUpdateSeeker(name, phone, shepherdName, stream, source) {
 
   var now = new Date();
   var memberId = 'MEM-' + now.getTime() + '-' + Math.floor(Math.random() * 1000);
-  sheet.appendRow([
+
+  // Write Phone (col 3) and DOB (col 14) as plain text so Sheets doesn't
+  // auto-convert them, same guard used in submitFellowshipMember.
+  var newRow = sheet.getLastRow() + 1;
+  sheet.getRange(newRow, 3).setNumberFormat('@');
+  sheet.getRange(newRow, 14).setNumberFormat('@');
+
+  sheet.getRange(newRow, 1, 1, 18).setValues([[
     memberId, name, phone || '', shepherdName || '', '', stream || '',
-    formatDate(now), 'Pending', source || '', '', '', '', ''
-  ]);
+    formatDate(now), 'Pending', source || '', '', '', '', '',
+    details.dob || '', details.bornAgain || '', details.inChurch || '', details.occupation || '', details.address || ''
+  ]]);
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_ADDED', shepherdName || '', name + ' (' + (source || '') + ')');
   return { MemberID: memberId, Name: name, Phone: phone || '', Shepherd: shepherdName || '', Zone: '', Stream: stream || '', Status: 'Pending' };
+}
+
+// Shepherd self-service: add a new Member or Seeker directly under themselves
+// from the "Know Your Members" screen, going live immediately (no admin
+// approval gate) — the shepherd explicitly chooses which type this is at
+// creation time, unlike addOrUpdateSeeker above which always lands Pending.
+// Modeled on submitFellowshipMember's full-column write + idempotent-retry
+// guard (client-generated id), since this hits the same live-network-on-a-
+// mobile-PWA reliability problem that motivated that pattern originally.
+function addMemberSelfService(data) {
+  var m        = data.member || {};
+  var name     = (m.name || '').toString().trim();
+  var shepherd = (data.shepherd || '').toString().trim();
+  var status   = data.status === 'Seeker' ? 'Seeker' : 'Member';
+  var stream   = (data.shepherdType === 'mc' || data.shepherdType === 'microchurch') ? 'mc' : 'sps';
+
+  if (!name)     return jsonResponse({ status: 'error', message: 'Name is required' });
+  if (!shepherd) return jsonResponse({ status: 'error', message: 'Shepherd is required' });
+
+  var sheet   = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  var records = getSheetRecords(sheet);
+
+  // Idempotent retry: if this exact submission already landed (matched by the
+  // client-generated id), don't create a second row on a retried request.
+  if (m.id && records.some(function (r) { return String(r.MemberID) === String(m.id); })) {
+    return jsonResponse({ status: 'success' });
+  }
+
+  var dup = records.find(function (r) {
+    return r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase() &&
+      (r.Shepherd || '').toString().trim().toLowerCase() === shepherd.toLowerCase();
+  });
+  if (dup) {
+    return jsonResponse({ status: 'duplicate', message: name + ' is already on your list — edit them instead.', memberId: dup.MemberID });
+  }
+
+  var now       = new Date();
+  var memberId  = m.id || 'MEM-' + now.getTime() + '-' + Math.floor(Math.random() * 1000);
+  var occupation = m.occupation === 'Other' ? (m.occupationOther || 'Other') : (m.occupation || '');
+
+  var newRow = sheet.getLastRow() + 1;
+  sheet.getRange(newRow, 3).setNumberFormat('@');
+  sheet.getRange(newRow, 14).setNumberFormat('@');
+
+  sheet.getRange(newRow, 1, 1, 18).setValues([[
+    memberId, name, m.phone || '', shepherd, data.zone || '', stream,
+    formatDate(now), status, 'Shepherd Self-Service', '', '', '', '',
+    m.dob || '', m.bornAgain || '', m.inChurch || '', occupation, m.address || ''
+  ]]);
+
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_SELF_ADDED', shepherd, name + ' (' + status + ')');
+  return jsonResponse({ status: 'success', memberId: memberId });
+}
+
+// Shepherd self-service: edit details of a member/seeker already on their
+// own list. Name is deliberately not editable here — it's the join key
+// state.attendance[name]/badge lookups key off throughout index.html, and
+// renaming is a bigger, separate change not required by today's ask.
+// Authorization matches the app's existing trust model (every other write
+// in this file trusts a client-supplied name the same way) — not new
+// security infrastructure, just consistent with how the rest of the app works.
+function updateMemberDetails(data) {
+  var memberId = data.memberId;
+  var requestingShepherd = (data.requestingShepherd || '').toString().trim();
+  if (!memberId) return jsonResponse({ status: 'error', message: 'Missing memberId' });
+
+  var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  var rec = getSheetRecords(sheet).find(function (r) { return String(r.MemberID) === String(memberId); });
+  if (!rec) return jsonResponse({ status: 'error', message: 'Member not found' });
+  if ((rec.Shepherd || '').toString().trim().toLowerCase() !== requestingShepherd.toLowerCase()) {
+    return jsonResponse({ status: 'error', message: 'This person is not on your list' });
+  }
+
+  var fields = data.fields || {};
+  sheet.getRange(rec._row, 3).setNumberFormat('@');
+  sheet.getRange(rec._row, 14).setNumberFormat('@');
+
+  if (fields.phone      !== undefined) sheet.getRange(rec._row, 3).setValue(fields.phone);
+  if (fields.zone       !== undefined) sheet.getRange(rec._row, 5).setValue(fields.zone);
+  if (fields.dob        !== undefined) sheet.getRange(rec._row, 14).setValue(fields.dob);
+  if (fields.bornAgain  !== undefined) sheet.getRange(rec._row, 15).setValue(fields.bornAgain);
+  if (fields.inChurch   !== undefined) sheet.getRange(rec._row, 16).setValue(fields.inChurch);
+  if (fields.occupation !== undefined) sheet.getRange(rec._row, 17).setValue(fields.occupation);
+  if (fields.address    !== undefined) sheet.getRange(rec._row, 18).setValue(fields.address);
+
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DETAILS_UPDATED', requestingShepherd, rec.Name);
+  return jsonResponse({ status: 'success' });
 }
 
 // Full Members roster (Pending/Seeker/Member) — used by the admin Seekers tab.
