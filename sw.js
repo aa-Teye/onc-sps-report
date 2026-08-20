@@ -61,18 +61,21 @@ self.addEventListener('notificationclick', function (event) {
 });
 
 // ── Cache ────────────────────────────────────────────────────────
-const CACHE_NAME = 'onc-sps-v56';
+const CACHE_NAME = 'onc-sps-v57';
 const CACHE_URLS = [
   '/onc-sps-report/',
   '/onc-sps-report/index.html',
   '/onc-sps-report/admin.html',
   '/onc-sps-report/churchData.js',
   '/onc-sps-report/logo.png',
+  '/onc-sps-report/manifest.json',
+  '/onc-sps-report/admin-manifest.json',
   '/onc-sps-report/members.html',
   '/onc-sps-report/pipeline.html',
   '/onc-sps-report/schools.html',
   '/onc-sps-report/sunday.html',
-  '/onc-sps-report/visitation.html'
+  '/onc-sps-report/visitation.html',
+  '/onc-sps-report/go-dashboard.html'
 ];
 
 self.addEventListener('install', function (event) {
