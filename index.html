@@ -2445,6 +2445,13 @@
           <label>Member Concerns <span style="font-weight:400;color:#94a3b8">(optional — attended only)</span></label>
           <div id="concernFields" style="display:flex;flex-direction:column;gap:10px;"></div>
         </div>
+        <div class="field">
+          <label>Notes / Testimony <span style="font-weight:400;color:#94a3b8">(optional — general update or testimony from today)</span></label>
+          <textarea id="sessionNotesInput" rows="3"
+            oninput="state.notes = this.value"
+            placeholder="Anything else you'd like to share about today's session..."
+            style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+        </div>
         <div class="nav-btns">
           <button class="btn-back" onclick="goBack(3)">← Back</button>
           <button class="btn-next" onclick="goNext(3)">Next →</button>
@@ -2774,6 +2781,13 @@
         <div class="card-title"><span class="dot"></span>Member Concerns</div>
         <p style="color:#64748b;font-size:13px;margin-bottom:14px;">Any concern or prayer request? (optional — attended only)</p>
         <div id="mcConcernFields" style="display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;padding-right:4px;"></div>
+        <div class="field" style="margin-top:14px;">
+          <label>Notes / Testimony <span style="font-weight:400;color:#94a3b8">(optional — general update or testimony from today)</span></label>
+          <textarea id="mcSessionNotesInput" rows="3"
+            oninput="state.notes = this.value"
+            placeholder="Anything else you'd like to share about today's meeting..."
+            style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+        </div>
         <div class="nav-btns">
           <button class="btn-back" onclick="goBackMC(5)">← Back</button>
           <button class="btn-next" onclick="goNextMC(5)">Next →</button>
@@ -3185,7 +3199,8 @@
     let state = {
       shepherdType: '', shepherd: '', sessionDate: '', sessionDay: '', sessionTime: '',
       attendance: {}, topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', offeringGiven: '', offeringAmount: '', concerns: {},
-      newMember: { name: '', contact: '' }, newMembersCount: 0, newMembers: [], meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: ''
+      newMember: { name: '', contact: '' }, newMembersCount: 0, newMembers: [], meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: '',
+      notes: ''
     };
 
     var indexResourcesList  = [];
@@ -4099,7 +4114,8 @@
         '<div class="review-item"><span class="review-label">Prayer Done</span><span class="review-value"><span class="badge ' + (state.prayerDone||'no') + '">' + (state.prayerDone||'N/A').toUpperCase() + '</span></span></div>' +
         '<div class="review-item"><span class="review-label">Offering Given</span><span class="review-value"><span class="badge ' + (state.offeringGiven||'no') + '">' + (state.offeringGiven||'N/A').toUpperCase() + '</span></span></div>' +
         (state.offeringGiven === 'yes' && state.offeringAmount ? '<div class="review-item"><span class="review-label">Offering Amount</span><span class="review-value">' + state.offeringAmount + '</span></div>' : '') +
-        '<div class="review-item"><span class="review-label">New Souls Won</span><span class="review-value">' + (state.newSoulsCount > 0 ? state.newSoulsCount + ' (' + (state.newSouls.map(s => s.name).filter(Boolean).join(', ') || 'No names yet') + ')' : 'No') + '</span></div>';
+        '<div class="review-item"><span class="review-label">New Souls Won</span><span class="review-value">' + (state.newSoulsCount > 0 ? state.newSoulsCount + ' (' + (state.newSouls.map(s => s.name).filter(Boolean).join(', ') || 'No names yet') + ')' : 'No') + '</span></div>' +
+        (state.notes ? '<div class="review-item"><span class="review-label">Notes</span><span class="review-value" style="font-size:13px;">' + state.notes + '</span></div>' : '');
       present.forEach(m => {
         if (state.concerns[m]) {
           html += '<div class="review-item"><span class="review-label">' + m + '</span><span class="review-value" style="font-size:13px;">' + state.concerns[m] + '</span></div>';
@@ -4190,7 +4206,7 @@
         }) : [],
         concerns: state.concerns,
         photoUrl: photoUrl || '',
-        notes: ''
+        notes: state.notes || ''
       };
       try {
         await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
@@ -4375,6 +4391,9 @@
         newMembersLabel = state.newMembersCount + ' (' + (names || 'No names') + ')';
       }
       html += '<div class="review-item"><span class="review-label">New Members Joined</span><span class="review-value">' + newMembersLabel + '</span></div>';
+      if (state.notes) {
+        html += '<div class="review-item"><span class="review-label">Notes</span><span class="review-value" style="font-size:13px;">' + state.notes + '</span></div>';
+      }
       present.forEach(function(m) {
         if (state.concerns[m]) {
           html += '<div class="review-item"><span class="review-label">' + m + '</span><span class="review-value" style="font-size:13px;">' + state.concerns[m] + '</span></div>';
@@ -4485,7 +4504,7 @@
           contact: state.newMembers[0].phone
         } : { name: '', contact: '' },
         photoUrl: photoUrl || '',
-        notes: ''
+        notes: state.notes || ''
       };
       try {
         await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
@@ -4505,7 +4524,8 @@
       state = { 
         shepherdType: '', shepherd: '', sessionDate: '', sessionDay: '', sessionTime: '', attendance: {}, 
         topicCovered: '', bibleTopic: '', actualTopic: '', prayerDone: '', offeringGiven: '', offeringAmount: '', concerns: {},
-        newMember: { name: '', contact: '' }, newMembersCount: 0, newMembers: [], meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: ''
+        newMember: { name: '', contact: '' }, newMembersCount: 0, newMembers: [], meetingType: '', newSoulsCount: 0, newSouls: [], newSoulNames: '',
+        notes: ''
       };
       currentStep = 1;
       document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
@@ -4541,6 +4561,11 @@
       });
 
       document.querySelectorAll('.yn-btn').forEach(function(b){ b.classList.remove('selected'); });
+
+      ['sessionNotesInput', 'mcSessionNotesInput'].forEach(function(id) {
+        var ta = document.getElementById(id);
+        if (ta) ta.value = '';
+      });
     }
 
     function showToast(msg) {
