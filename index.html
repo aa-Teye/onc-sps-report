@@ -3832,20 +3832,11 @@
 
     document.getElementById('shepherdSelect').addEventListener('change', function() {
       state.shepherd = this.value;
-      if (!this.value) {
-        document.getElementById('sessionInfo').style.display = 'none';
-        document.getElementById('sessionPlaceholder').style.display = 'block';
-        return;
-      }
+      if (!this.value) return;
       const now = new Date();
       state.sessionDate = now.toLocaleDateString('en-GB');
       state.sessionDay  = now.toLocaleDateString('en-GB', {weekday:'long'});
       state.sessionTime = now.toLocaleTimeString('en-GB');
-      document.getElementById('dispDate').textContent = state.sessionDate;
-      document.getElementById('dispDay').textContent  = state.sessionDay;
-      document.getElementById('dispTime').textContent = state.sessionTime;
-      document.getElementById('sessionInfo').style.display = 'block';
-      document.getElementById('sessionPlaceholder').style.display = 'none';
       state.attendance = {};
       (shepherdData[this.value] ? shepherdData[this.value].members : []).forEach(m => state.attendance[m] = false);
     });
