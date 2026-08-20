@@ -3651,6 +3651,11 @@
         state.shepherd = shepherdName;
         state.shepherdType = shepherdType;
 
+        // Kick this off now (fire-and-forget) so Know Your Members' live
+        // data is usually already warm by the time it's opened, instead
+        // of every visit waiting on Apps Script's ~2-4s baseline latency.
+        kymPrefetchLiveMembers();
+
         // Log login activity
         fetch(SCRIPT_URL, {
           method: 'POST',
@@ -7155,10 +7160,23 @@
     // mergeDynamicSeekers already use for the report screen. Enriches
     // existing entries with memberId/status/dob/etc (making them editable)
     // and adds anyone live-only that isn't in the static list at all.
-    function kymMergeLiveMembers(baseMembers) {
-      var shepherdName = state.shepherd;
-      if (!shepherdName) return;
+    // Google Apps Script's web app platform has a real, unavoidable ~2-4s
+    // baseline latency per request regardless of how little work the
+    // function does (confirmed: even a no-op request takes this long) —
+    // not something fixable by optimizing the backend function itself. So
+    // instead: cache the raw response for a short window and kick the
+    // fetch off proactively at login (kymPrefetchLiveMembers), so by the
+    // time a shepherd actually opens Know Your Members the data is
+    // usually already sitting there and the loading banner never shows.
+    var kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
+    var KYM_CACHE_TTL_MS = 90000;
 
+    function kymCacheIsFresh(shepherdName) {
+      return kymRawRecordsCache.shepherd === shepherdName &&
+        (Date.now() - kymRawRecordsCache.timestamp) < KYM_CACHE_TTL_MS;
+    }
+
+    function kymFetchRawRecords(shepherdName, onDone) {
       var cbName = 'onKymMembers_' + Date.now();
       var done = false;
       var s = document.createElement('script');
@@ -7167,8 +7185,31 @@
         if (done) return;
         done = true;
         window[cbName] = null;
-
         var records = (data && data.members) || [];
+        kymRawRecordsCache = { shepherd: shepherdName, records: records, timestamp: Date.now() };
+        if (document.head.contains(s)) document.head.removeChild(s);
+        onDone(records);
+      };
+
+      s.src = SCRIPT_URL + '?action=getShepherdMembers&shepherd=' + encodeURIComponent(shepherdName) + '&callback=' + cbName;
+      s.onerror = function () { if (window[cbName]) window[cbName]({}); };
+      document.head.appendChild(s);
+
+      setTimeout(function () { if (window[cbName]) window[cbName]({}); }, 6000);
+    }
+
+    // Fire-and-forget prefetch, called right after login so this is
+    // usually already warm by the time Know Your Members is opened.
+    function kymPrefetchLiveMembers() {
+      if (!state.shepherd) return;
+      kymFetchRawRecords(state.shepherd, function () {});
+    }
+
+    function kymMergeLiveMembers(baseMembers) {
+      var shepherdName = state.shepherd;
+      if (!shepherdName) return;
+
+      function applyRecords(records) {
         var byNorm = {};
         baseMembers.forEach(function(m) {
           byNorm[(m.name || '').toLowerCase().trim()] = m;
@@ -7197,15 +7238,14 @@
         kymRenderList(baseMembers);
         var banner = document.getElementById('kymLoadingBanner');
         if (banner) banner.style.display = 'none';
+      }
 
-        if (document.head.contains(s)) document.head.removeChild(s);
-      };
+      if (kymCacheIsFresh(shepherdName)) {
+        applyRecords(kymRawRecordsCache.records);
+        return;
+      }
 
-      s.src = SCRIPT_URL + '?action=getShepherdMembers&shepherd=' + encodeURIComponent(shepherdName) + '&callback=' + cbName;
-      s.onerror = function () { if (window[cbName]) window[cbName]({}); };
-      document.head.appendChild(s);
-
-      setTimeout(function () { if (window[cbName]) window[cbName]({}); }, 6000);
+      kymFetchRawRecords(shepherdName, applyRecords);
     }
 
     function showKnowYourMembers() {
@@ -7228,7 +7268,7 @@
       showSection('secKnowYourMembers');
 
       var banner = document.getElementById('kymLoadingBanner');
-      if (banner) banner.style.display = 'block';
+      if (banner) banner.style.display = kymCacheIsFresh(state.shepherd) ? 'none' : 'block';
 
       kymMergeLiveMembers(members);
     }
@@ -7447,6 +7487,7 @@
         }
 
         if (confirmed) {
+          kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
           kymCloseModal();
           showKnowYourMembers();
         } else {
@@ -7477,6 +7518,7 @@
         }
 
         if (editConfirmed) {
+          kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
           kymCloseModal();
           showKnowYourMembers();
         } else {
