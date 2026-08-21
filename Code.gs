@@ -76,6 +76,7 @@ function doPost(e) {
     // ── Sprint 5 POST actions ─────────────────────────────────
     if (action === 'saveZoneConfig')          return saveZoneConfig(data);
     if (action === 'addShepherd')             return addShepherd(data);
+    if (action === 'updateShepherdZone')      return updateShepherdZone(data);
     if (action === 'bulkImportMembers')       return bulkImportMembers(data);
     if (action === 'calculateShepherdScores') return calculateShepherdScores(data);
     // ── FCM Push Notifications ────────────────────────────────
@@ -2728,10 +2729,17 @@ function addShepherd(data) {
   var now = new Date();
   var shepherdId = 'SHP-' + now.getTime();
   var pin = '0000';
-  sheet.appendRow([
+
+  // Contact and PIN are numeric-looking strings - write as plain text first
+  // or Sheets strips the leading zero (breaks Ghanaian numbers and turns
+  // "0000" into 0), same guard used throughout Code.gs for phone columns.
+  var newRow = sheet.getLastRow() + 1;
+  sheet.getRange(newRow, 3).setNumberFormat('@');
+  sheet.getRange(newRow, 6).setNumberFormat('@');
+  sheet.getRange(newRow, 1, 1, 8).setValues([[
     shepherdId, name, data.contact || '', type, data.zoneOrGroup || '', pin,
     data.addedBy || 'Admin', formatDate(now)
-  ]);
+  ]]);
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SHEPHERD_ADDED', data.addedBy || 'Admin', name + ' (' + type + ')');
 
   return jsonResponse({
@@ -2746,6 +2754,45 @@ function addShepherd(data) {
 function getDynamicShepherds() {
   var sheet = ensureSheet(SHEPHERDS_SHEET, SHEPHERDS_HEADERS);
   return { status: 'success', shepherds: getSheetRecords(sheet) };
+}
+
+// Moves a shepherd (SPS zone or microchurch group) to a different
+// zone/group. Works for shepherds already in this sheet (added via
+// addShepherd) by updating their row directly. For one of the original
+// static-roster shepherds (churchData.js, no row here yet) this creates
+// their first row here - admin.html then treats a matching Shepherds-sheet
+// row as the authoritative zone/group, overriding the static value, while
+// PIN/contact/members for that shepherd keep coming from the static files
+// as before (only the zone/group label moves here).
+function updateShepherdZone(data) {
+  var name = (data.name || '').toString().trim();
+  var type = (data.type || '').toString().toUpperCase();
+  var newGroup = (data.zoneOrGroup || '').toString().trim();
+  if (!name) return jsonResponse({ status: 'error', message: 'Shepherd name is required' });
+  if (type !== 'SPS' && type !== 'MC') return jsonResponse({ status: 'error', message: 'Type must be SPS or MC' });
+  if (!newGroup) return jsonResponse({ status: 'error', message: (type === 'MC' ? 'Microchurch name' : 'Zone') + ' is required' });
+
+  var sheet = ensureSheet(SHEPHERDS_SHEET, SHEPHERDS_HEADERS);
+  var records = getSheetRecords(sheet);
+  var existing = records.find(function (r) {
+    return r.Type === type && r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase();
+  });
+
+  if (existing) {
+    sheet.getRange(existing._row, 5).setValue(newGroup); // col 5 = ZoneOrGroup
+  } else {
+    var now = new Date();
+    var newRow = sheet.getLastRow() + 1;
+    sheet.getRange(newRow, 3).setNumberFormat('@');
+    sheet.getRange(newRow, 6).setNumberFormat('@');
+    sheet.getRange(newRow, 1, 1, 8).setValues([[
+      'SHP-' + now.getTime(), name, data.contact || '', type, newGroup, '0000',
+      data.updatedBy || 'Admin', formatDate(now)
+    ]]);
+  }
+
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SHEPHERD_ZONE_CHANGED', data.updatedBy || 'Admin', name + ' -> ' + newGroup);
+  return jsonResponse({ status: 'success', name: name, zoneOrGroup: newGroup });
 }
 
 // ============================================================

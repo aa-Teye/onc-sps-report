@@ -3840,6 +3840,28 @@
       </div>
     </div>
 
+    <!-- REASSIGN SHEPHERD (move to a different zone / microchurch) -->
+    <div id="reassignShepherdModal" onclick="closeReassignShepherdModal()"
+      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px;">
+      <div onclick="event.stopPropagation()"
+        style="background:#fff;border-radius:24px;border:3px solid #0a1628;width:100%;max-width:420px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#0f2044;font-family:'Outfit',sans-serif;position:relative;">
+        <button onclick="closeReassignShepherdModal()"
+          style="position:absolute;top:20px;right:20px;background:rgba(15,32,68,0.08);border:none;color:#0f2044;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">✕</button>
+        <div style="font-size:32px;margin-bottom:6px;">🔀</div>
+        <div style="font-weight:800;font-size:18px;margin-bottom:4px;">Reassign Shepherd</div>
+        <div id="reassignShepherdName" style="color:#64748b;font-size:13px;margin-bottom:18px;"></div>
+
+        <label id="reassignShepherdGroupLabel" style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">New Zone</label>
+        <input id="reassignShepherdGroupInput" type="text" list="reassignShepherdGroupList" placeholder="Type or pick existing"
+          style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin:6px 0 18px;">
+        <datalist id="reassignShepherdGroupList"></datalist>
+
+        <p id="reassignShepherdErrorMsg" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-bottom:14px;"></p>
+        <button type="button" id="reassignShepherdSubmitBtn" onclick="submitReassignShepherd()"
+          style="width:100%;padding:16px;background:#0f2044;color:#fff;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 12px rgba(15,32,68,0.15);">🔀 Reassign</button>
+      </div>
+    </div>
+
     <script>
       // Register service worker for PWA offline support
       // (shares sw.js / cache with index.html — same scope, can't register a separate worker)
@@ -7153,7 +7175,10 @@
             : '<div style="color:#94a3b8;font-size:12px;' +
             'margin-top:8px;">No contact number</div>';
 
-          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? (lastRep.sessionDate || lastRep.date || '') : 'Never') + '</div></div>' + badge + '</div>' + contactBtns + '<div class="shepherd-details">' + repsHtml + renderShepherdMembersBlock(s.name, 'sps') + '</div></div>';
+          var reassignShepBtn = '<button type="button" onclick="event.stopPropagation();openReassignShepherdModal(\'' + s.name.replace(/'/g,"\\'") + '\',\'SPS\',\'' + (s.zone||'').replace(/'/g,"\\'") + '\',\'' + (s.contact||'').replace(/'/g,"\\'") + '\')" ' +
+            'style="width:100%;margin-top:8px;padding:6px;background:#f0f5ff;color:#0f2044;border:none;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer;">🔀 Change Zone</button>';
+
+          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? (lastRep.sessionDate || lastRep.date || '') : 'Never') + '</div></div>' + badge + '</div>' + contactBtns + reassignShepBtn + '<div class="shepherd-details">' + repsHtml + renderShepherdMembersBlock(s.name, 'sps') + '</div></div>';
         });
         grid.innerHTML = html || '<div class="empty"><div class="icon">👥</div><p>No shepherds found</p></div>';
       }
@@ -7182,6 +7207,85 @@
         }
         names = names.filter(Boolean);
         return names.filter(function (g, i) { return names.indexOf(g) === i; }).sort();
+      }
+
+      // ── REASSIGN SHEPHERD (move to a different zone / microchurch) ──
+      // Works for any shepherd - one already in the Shepherds sheet (added
+      // via Add Shepherd) or one of the original static-roster shepherds,
+      // who gets their first Shepherds-sheet row created here. Either way,
+      // updateShepherdZone makes that row the authoritative zone/group,
+      // which loadDynamicShepherdsAdmin's merge now overrides onto.
+      var reassignShepherdTarget = null;
+
+      function openReassignShepherdModal(name, type, currentGroup, contact) {
+        reassignShepherdTarget = { name: name, type: type, contact: contact || '' };
+        var isMc = type === 'MC';
+        document.getElementById('reassignShepherdName').textContent =
+          name + ' — currently ' + (currentGroup || (isMc ? 'no microchurch' : 'no zone'));
+        document.getElementById('reassignShepherdGroupLabel').textContent = isMc ? 'New Microchurch' : 'New Zone';
+        document.getElementById('reassignShepherdGroupInput').placeholder = isMc ? 'e.g. Tesano 5' : 'e.g. Zone 1';
+        document.getElementById('reassignShepherdGroupInput').value = '';
+        document.getElementById('reassignShepherdGroupList').innerHTML =
+          getExistingGroupNames(type).map(function (g) { return '<option value="' + g.replace(/"/g, '&quot;') + '">'; }).join('');
+        var err = document.getElementById('reassignShepherdErrorMsg');
+        if (err) err.style.display = 'none';
+        document.getElementById('reassignShepherdModal').style.display = 'flex';
+      }
+
+      function closeReassignShepherdModal() {
+        document.getElementById('reassignShepherdModal').style.display = 'none';
+      }
+
+      function submitReassignShepherd() {
+        var newGroup = document.getElementById('reassignShepherdGroupInput').value.trim();
+        var err = document.getElementById('reassignShepherdErrorMsg');
+        if (!newGroup) {
+          err.textContent = 'Please enter a ' + (reassignShepherdTarget.type === 'MC' ? 'microchurch name' : 'zone') + '.';
+          err.style.display = 'block';
+          return;
+        }
+
+        var btn = document.getElementById('reassignShepherdSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'updateShepherdZone',
+            name: reassignShepherdTarget.name,
+            type: reassignShepherdTarget.type,
+            zoneOrGroup: newGroup,
+            contact: reassignShepherdTarget.contact,
+            updatedBy: currentRoleName || currentRole || 'Admin'
+          })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (response) {
+          btn.disabled = false;
+          btn.textContent = '🔀 Reassign';
+          if (response && response.status === 'success') {
+            if (reassignShepherdTarget.type === 'MC') {
+              var s = ALL_MC_SHEPHERDS.find(function (x) { return x.name === reassignShepherdTarget.name; });
+              if (s) s.microchurch = newGroup;
+            } else {
+              var s2 = ALL_SHEPHERDS.find(function (x) { return x.name === reassignShepherdTarget.name; });
+              if (s2) s2.zone = newGroup;
+            }
+            closeReassignShepherdModal();
+            renderAll();
+            adminToast('🔀 ' + reassignShepherdTarget.name + ' moved to ' + newGroup);
+          } else {
+            err.textContent = (response && response.message) || 'Could not reassign shepherd.';
+            err.style.display = 'block';
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = '🔀 Reassign';
+          err.textContent = 'Network error — please try again.';
+          err.style.display = 'block';
+        });
       }
 
       function openAddShepherdModal(type) {
@@ -7318,12 +7422,22 @@
           records.forEach(function (r) {
             if (!r.Name) return;
             if (r.Type === 'MC') {
-              if (!ALL_MC_SHEPHERDS.some(function (s) { return s.name === r.Name; })) {
+              var existingMc = ALL_MC_SHEPHERDS.find(function (s) { return s.name === r.Name; });
+              if (existingMc) {
+                // A Shepherds-sheet row for a name already in the static
+                // roster means their zone/group was reassigned via
+                // updateShepherdZone - that row is now the authoritative
+                // value, overriding the static churchData.js one.
+                if (r.ZoneOrGroup) existingMc.microchurch = r.ZoneOrGroup;
+              } else {
                 ALL_MC_SHEPHERDS.push({ name: r.Name, microchurch: r.ZoneOrGroup || '', contact: r.Contact || '' });
                 window.mcMemberData[r.Name] = window.mcMemberData[r.Name] || [];
               }
             } else {
-              if (!ALL_SHEPHERDS.some(function (s) { return s.name === r.Name; })) {
+              var existingSps = ALL_SHEPHERDS.find(function (s) { return s.name === r.Name; });
+              if (existingSps) {
+                if (r.ZoneOrGroup) existingSps.zone = r.ZoneOrGroup;
+              } else {
                 ALL_SHEPHERDS.push({ name: r.Name, contact: r.Contact || '', zone: r.ZoneOrGroup || '' });
               }
             }
@@ -9048,6 +9162,9 @@
               : '<div style="color:#94a3b8;font-size:12px;' +
               'margin-top:8px;">No contact number</div>';
 
+            var reassignShepBtn = '<button type="button" onclick="event.stopPropagation();openReassignShepherdModal(\'' + s.name.replace(/'/g,"\\'") + '\',\'MC\',\'' + (s.microchurch||'').replace(/'/g,"\\'") + '\',\'' + (s.contact||'').replace(/'/g,"\\'") + '\')" ' +
+              'style="width:100%;margin-top:8px;padding:6px;background:#f0f5ff;color:#0f2044;border:none;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer;">🔀 Change Microchurch</button>';
+
             return '<div class="shepherd-card" style="border-left:4px solid ' + statusColor + '">' +
               '<div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div>' +
               '<div style="font-size:12px;color:#3b82f6;margin-bottom:8px">' + s.microchurch + '</div>' +
@@ -9057,6 +9174,7 @@
               '<div class="shepherd-meta">Last report: ' + (lastReport ? (lastReport.submissionDate || 'Never') : 'No reports yet') + '</div>' +
               '<span style="display:inline-block;margin-top:8px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:' + statusColor + '20;color:' + statusColor + '">' + status + '</span>' +
               contactBtns +
+              reassignShepBtn +
               '<details style="margin-top:10px;" onclick="event.stopPropagation()"><summary style="cursor:pointer;font-size:12px;font-weight:700;color:#3b82f6;">👥 View Members &amp; Seekers</summary>' + renderShepherdMembersBlock(s.name, 'mc') + '</details>' +
               '</div>';
           }).join('') || '<div class="empty"><div class="icon">👥</div><p>No shepherds configured</p></div>';
