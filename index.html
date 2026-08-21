@@ -4759,8 +4759,8 @@
       var file = input.files[0];
       if (!file) return;
 
-      if (file.size > 5 * 1024 * 1024) {
-        showGlobalAlert('❌ Photo is too large. Please choose an image under 5MB.', 'error');
+      if (file.size > 10 * 1024 * 1024) {
+        showGlobalAlert('❌ Photo is too large. Please choose an image under 10MB.', 'error');
         input.value = '';
         return;
       }
