@@ -77,6 +77,7 @@ function doPost(e) {
     if (action === 'saveZoneConfig')          return saveZoneConfig(data);
     if (action === 'addShepherd')             return addShepherd(data);
     if (action === 'updateShepherdZone')      return updateShepherdZone(data);
+    if (action === 'deleteMemberRecord')      return deleteMemberRecord(data);
     if (action === 'bulkImportMembers')       return bulkImportMembers(data);
     if (action === 'calculateShepherdScores') return calculateShepherdScores(data);
     // ── FCM Push Notifications ────────────────────────────────
@@ -2702,6 +2703,19 @@ function reassignMember(memberId, newShepherd, newZone, reassignedBy) {
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_REASSIGNED', reassignedBy || 'Admin',
     rec.Name + ': ' + oldShepherd + ' -> ' + newShepherd);
   return { status: 'success' };
+}
+
+// Admin self-service: permanently removes a row from the Members sheet
+// (seeker, self-signup, bulk-import, or migrated static-roster member).
+// Mirrors deleteResourceRecord's pattern.
+function deleteMemberRecord(data) {
+  if (!data.memberId) return jsonResponse({ status: 'error', message: 'Missing memberId' });
+  var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
+  var rec = getSheetRecords(sheet).find(function (r) { return r.MemberID === data.memberId; });
+  if (!rec) return jsonResponse({ status: 'error', message: 'Member not found' });
+  sheet.deleteRow(rec._row);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DELETED', data.deletedBy || 'Admin', rec.Name);
+  return jsonResponse({ status: 'success' });
 }
 
 // ============================================================
