@@ -8330,16 +8330,16 @@
         var collapsed = sidebar.classList.toggle('collapsed');
         document.body.classList.toggle('sidebar-collapsed', collapsed);
         document.getElementById('sidebarToggleBtn').textContent = collapsed ? '→' : '☰';
-        localStorage.setItem('onc_sidebar_collapsed', collapsed ? '1' : '0');
       }
+      // Always start squeezed to the icon-only rail on desktop - too many
+      // tabs to land on fully expanded every time. Click the toggle to
+      // open it back up for the current visit.
       function initSidebar() {
         if (window.innerWidth <= 768) return;
-        if (localStorage.getItem('onc_sidebar_collapsed') === '1') {
-          var sidebar = document.getElementById('mainSidebar');
-          sidebar.classList.add('collapsed');
-          document.body.classList.add('sidebar-collapsed');
-          document.getElementById('sidebarToggleBtn').textContent = '→';
-        }
+        var sidebar = document.getElementById('mainSidebar');
+        sidebar.classList.add('collapsed');
+        document.body.classList.add('sidebar-collapsed');
+        document.getElementById('sidebarToggleBtn').textContent = '→';
       }
       initSidebar();
 
