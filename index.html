@@ -5171,12 +5171,20 @@
       return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // Link straight to Drive's preview page. Drive's own Download button
-    // there reliably handles the "can't scan for viruses" interstitial for
-    // large files, which the uc?export=download rewrite did not.
+    // Drive/Docs links go straight to Drive's preview page - Drive's own
+    // Download button there reliably handles the "can't scan for viruses"
+    // interstitial for large files, which the uc?export=download rewrite
+    // did not. Cloudinary-hosted PDFs (the resource-upload path) have no
+    // such interstitial, so those get Cloudinary's fl_attachment flag
+    // instead, which forces a real Content-Disposition: attachment - the
+    // phone saves the file to Downloads/Files instead of just opening it
+    // in an in-browser viewer, so it's still readable with no connection.
     function getResourceLinkBtn(url) {
       url = url || 'https://drive.google.com';
-      return '<a href="' + escRes(url) + '" target="_blank" rel="noopener" style="padding:10px;background:#0f2044;color:#fff;border-radius:10px;text-align:center;text-decoration:none;font-size:13px;font-weight:700;display:block;transition:background 0.2s;">📖 Open Resource</a>';
+      var isCloudinary = url.indexOf('res.cloudinary.com') > -1;
+      var dlUrl = isCloudinary ? url.replace('/upload/', '/upload/fl_attachment/') : url;
+      var label = isCloudinary ? '⬇️ Download to Read Offline' : '📖 Open Resource';
+      return '<a href="' + escRes(dlUrl) + '" target="_blank" rel="noopener" style="padding:10px;background:#0f2044;color:#fff;border-radius:10px;text-align:center;text-decoration:none;font-size:13px;font-weight:700;display:block;transition:background 0.2s;">' + label + '</a>';
     }
 
     function showSection(id) {
