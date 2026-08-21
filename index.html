@@ -2956,7 +2956,11 @@
         <input id="kymPhoneInput" type="tel" placeholder="Phone number" style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
 
         <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Date of Birth *</label>
-        <input id="kymDobInput" type="date" style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <input id="kymDobDay" type="number" placeholder="Day" min="1" max="31" style="flex:1;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;">
+          <input id="kymDobMonth" type="number" placeholder="Month" min="1" max="12" style="flex:1;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;">
+          <input id="kymDobYear" type="number" placeholder="Year" style="flex:1.4;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;">
+        </div>
 
         <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Born Again? *</label>
         <div style="display:flex;gap:8px;margin-bottom:14px;">
@@ -7083,6 +7087,28 @@
           'border-radius:999px;background:#fef3c7;color:#92400e;' +
           'margin-left:6px;vertical-align:2px;">SEEKER</span>' : '';
 
+        // Extra details a seeker filled in on their own self-signup form
+        // (gender, contact, testimony, etc.) — only shown when at least
+        // one is present, so regular members without this data don't get
+        // an empty section on their card.
+        var kymDetailRows = [
+          ['Gender', m.gender], ['Email', m.email], ['Location', m.location],
+          ['Marital Status', m.maritalStatus], ['Workplace', m.workPlace],
+          ['Belongs to Overcomers?', m.belongsToOvercomers === 'yes' ? 'Yes' : (m.belongsToOvercomers === 'no' ? 'No' : '')],
+          ['Church Name', m.churchName], ['Testimony', m.testimony],
+          ['Prayer Request', m.prayerRequest], ['Comments', m.comments]
+        ].filter(function (row) { return row[1]; });
+
+        var kymDetailsBlock = kymDetailRows.length ?
+          '<details style="margin-top:10px;">' +
+          '<summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--accent);">📋 More Details</summary>' +
+          '<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">' +
+          kymDetailRows.map(function (row) {
+            return '<div style="font-size:12px;line-height:1.5;"><span style="color:var(--gray);font-weight:700;">' +
+              escapeHtml(row[0]) + ':</span> <span style="color:var(--navy);">' + escapeHtml(row[1]) + '</span></div>';
+          }).join('') +
+          '</div></details>' : '';
+
         return '<div style="background:white;' +
           'border-radius:16px;padding:16px;' +
           'box-shadow:0 2px 8px ' +
@@ -7146,6 +7172,7 @@
             'font-size:12px;">'+
             'No contact number available</div>'
           ) +
+          kymDetailsBlock +
           '</div>';
       }).join('');
     }
@@ -7219,7 +7246,11 @@
           var extra = {
             memberId: r.MemberID, status: r.Status,
             dob: r.DOB || '', bornAgain: r.BornAgain || '',
-            inChurch: r.InChurch || '', occupation: r.Occupation || ''
+            inChurch: r.InChurch || '', occupation: r.Occupation || '',
+            gender: r.Gender || '', email: r.Email || '', location: r.Location || '',
+            maritalStatus: r.MaritalStatus || '', workPlace: r.WorkPlace || '',
+            belongsToOvercomers: r.BelongsToOvercomers || '', churchName: r.ChurchName || '',
+            testimony: r.Testimony || '', prayerRequest: r.PrayerRequest || '', comments: r.Comments || ''
           };
           if (existing) {
             existing.contact = existing.contact || r.Phone || '';
@@ -7281,7 +7312,9 @@
       document.getElementById('kymNameInput').value = '';
       document.getElementById('kymNameInput').disabled = false;
       document.getElementById('kymPhoneInput').value = '';
-      document.getElementById('kymDobInput').value = '';
+      document.getElementById('kymDobDay').value = '';
+      document.getElementById('kymDobMonth').value = '';
+      document.getElementById('kymDobYear').value = '';
       document.getElementById('kymOccupationSelect').value = '';
       document.getElementById('kymOccupationOtherInput').value = '';
       document.getElementById('kymOccupationOtherInput').style.display = 'none';
@@ -7312,6 +7345,26 @@
 
     var KYM_OCCUPATIONS = ['Student', 'Employed', 'Self-Employed', 'Unemployed', 'Retired'];
 
+    // Member DOBs on file come from two eras: the old native date input
+    // (stored as ISO yyyy-mm-dd) and the newer plain Day/Month/Year fields
+    // used here and on the Salvation/Guest/self-signup forms (stored as
+    // d/m/yyyy). Parse either back into the three inputs below.
+    function kymParseDob(dob) {
+      if (!dob) return { day: '', month: '', year: '' };
+      var iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dob);
+      if (iso) return { day: String(+iso[3]), month: String(+iso[2]), year: iso[1] };
+      var dmy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(dob);
+      if (dmy) return { day: dmy[1], month: dmy[2], year: dmy[3] };
+      return { day: '', month: '', year: '' };
+    }
+
+    function kymGetDobValue() {
+      var d = document.getElementById('kymDobDay').value;
+      var m = document.getElementById('kymDobMonth').value;
+      var y = document.getElementById('kymDobYear').value;
+      return (d && m && y) ? (d + '/' + m + '/' + y) : '';
+    }
+
     function kymOpenEditModal(memberId) {
       var m = kymMembersCache.find(function(x) { return x.memberId === memberId; });
       if (!m) return;
@@ -7328,7 +7381,10 @@
       document.getElementById('kymNameInput').value = m.name || '';
       document.getElementById('kymNameInput').disabled = false;
       document.getElementById('kymPhoneInput').value = m.contact || '';
-      document.getElementById('kymDobInput').value = m.dob || '';
+      var kymDobParts = kymParseDob(m.dob);
+      document.getElementById('kymDobDay').value = kymDobParts.day;
+      document.getElementById('kymDobMonth').value = kymDobParts.month;
+      document.getElementById('kymDobYear').value = kymDobParts.year;
 
       var isKnownOccupation = KYM_OCCUPATIONS.indexOf(m.occupation) > -1;
       document.getElementById('kymOccupationSelect').value = m.occupation ? (isKnownOccupation ? m.occupation : 'Other') : '';
@@ -7428,7 +7484,7 @@
     async function kymSubmitPerson() {
       var name = document.getElementById('kymNameInput').value.trim();
       var phone = document.getElementById('kymPhoneInput').value.trim();
-      var dob = document.getElementById('kymDobInput').value;
+      var dob = kymGetDobValue();
       var occupation = document.getElementById('kymOccupationSelect').value;
       var occupationOther = document.getElementById('kymOccupationOtherInput').value.trim();
       var statusEl = document.getElementById('kymModalStatus');
