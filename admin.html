@@ -3807,6 +3807,39 @@
       </div>
     </div>
 
+    <!-- ADD MEMBER DIRECTLY TO A SHEPHERD -->
+    <div id="addMemberModal" onclick="closeAddMemberModal()"
+      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px;">
+      <div onclick="event.stopPropagation()"
+        style="background:#fff;border-radius:24px;border:3px solid #0a1628;width:100%;max-width:420px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#0f2044;font-family:'Outfit',sans-serif;position:relative;">
+        <button onclick="closeAddMemberModal()"
+          style="position:absolute;top:20px;right:20px;background:rgba(15,32,68,0.08);border:none;color:#0f2044;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">✕</button>
+        <div style="font-size:32px;margin-bottom:6px;">➕</div>
+        <div style="font-weight:800;font-size:18px;margin-bottom:4px;">Add Member</div>
+        <div id="addMemberShepherdName" style="color:#64748b;font-size:13px;margin-bottom:18px;"></div>
+
+        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Full Name *</label>
+        <input id="addMemberNameInput" type="text" placeholder="Full name"
+          style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin:6px 0 14px;">
+
+        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Phone Number</label>
+        <input id="addMemberPhoneInput" type="tel" placeholder="Phone number (optional)"
+          style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin:6px 0 14px;">
+
+        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Status</label>
+        <div style="display:flex;gap:8px;margin:6px 0 18px;">
+          <button type="button" id="addMemberStatusMember" onclick="setAddMemberStatus('Member')"
+            style="flex:1;padding:12px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;border:2px solid #0f2044;background:#0f2044;color:#fff;">👤 Established Member</button>
+          <button type="button" id="addMemberStatusSeeker" onclick="setAddMemberStatus('Seeker')"
+            style="flex:1;padding:12px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;border:2px solid #dce7f7;background:#fff;color:#0f2044;">🌱 New Seeker</button>
+        </div>
+
+        <p id="addMemberErrorMsg" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-bottom:14px;"></p>
+        <button type="button" id="addMemberSubmitBtn" onclick="submitAddMember()"
+          style="width:100%;padding:16px;background:#0f2044;color:#fff;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 12px rgba(15,32,68,0.15);">➕ Add Member</button>
+      </div>
+    </div>
+
     <script>
       // Register service worker for PWA offline support
       // (shares sw.js / cache with index.html — same scope, can't register a separate worker)
@@ -4650,6 +4683,95 @@
             err.textContent = (response && response.message) || 'Could not reassign member.';
             err.style.display = 'block';
           }
+        });
+      }
+
+      // ── ADD MEMBER DIRECTLY TO A SHEPHERD (new or existing) ─────────
+      // Wraps the same addMemberSelfService backend action the shepherd's
+      // own Know Your Members "+ Add" button uses, so admin/Heads can drop
+      // a brand-new person onto any shepherd's roster without that
+      // shepherd having to log in first.
+      var addMemberShepherd = null;
+      var addMemberStream = 'sps';
+      var addMemberStatus = 'Member';
+
+      function openAddMemberModal(shepherdName, stream) {
+        addMemberShepherd = shepherdName;
+        addMemberStream = stream === 'mc' ? 'mc' : 'sps';
+        document.getElementById('addMemberShepherdName').textContent = 'Adding to ' + shepherdName;
+        document.getElementById('addMemberNameInput').value = '';
+        document.getElementById('addMemberPhoneInput').value = '';
+        setAddMemberStatus('Member');
+        var err = document.getElementById('addMemberErrorMsg');
+        if (err) err.style.display = 'none';
+        document.getElementById('addMemberModal').style.display = 'flex';
+      }
+
+      function closeAddMemberModal() {
+        document.getElementById('addMemberModal').style.display = 'none';
+      }
+
+      function setAddMemberStatus(status) {
+        addMemberStatus = status;
+        var memberBtn = document.getElementById('addMemberStatusMember');
+        var seekerBtn = document.getElementById('addMemberStatusSeeker');
+        var active = 'border:2px solid #0f2044;background:#0f2044;color:#fff;';
+        var inactive = 'border:2px solid #dce7f7;background:#fff;color:#0f2044;';
+        memberBtn.style.cssText = memberBtn.style.cssText.replace(/border:[^;]+;background:[^;]+;color:[^;]+;/, status === 'Member' ? active : inactive);
+        seekerBtn.style.cssText = seekerBtn.style.cssText.replace(/border:[^;]+;background:[^;]+;color:[^;]+;/, status === 'Seeker' ? active : inactive);
+      }
+
+      function submitAddMember() {
+        var name  = document.getElementById('addMemberNameInput').value.trim();
+        var phone = document.getElementById('addMemberPhoneInput').value.trim();
+        var err   = document.getElementById('addMemberErrorMsg');
+
+        if (!name) {
+          err.textContent = 'Please enter a name.';
+          err.style.display = 'block';
+          return;
+        }
+
+        var zone = addMemberStream === 'mc'
+          ? (ALL_MC_SHEPHERDS.find(function (s) { return s.name === addMemberShepherd; }) || {}).microchurch || ''
+          : (ALL_SHEPHERDS.find(function (s) { return s.name === addMemberShepherd; }) || {}).zone || '';
+
+        var btn = document.getElementById('addMemberSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+
+        // addMemberSelfService is a doPost-only action expecting a nested
+        // member object, unlike the GET/JSONP actions fetchDataQuery calls -
+        // needs a real POST here, same as addShepherd() above.
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'addMemberSelfService',
+            member: { id: 'MEM-' + Date.now() + '-' + Math.floor(Math.random() * 1000), name: name, phone: phone },
+            shepherd: addMemberShepherd,
+            shepherdType: addMemberStream,
+            status: addMemberStatus,
+            zone: zone
+          })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (response) {
+          btn.disabled = false;
+          btn.textContent = '➕ Add Member';
+          if (response && response.status === 'success') {
+            closeAddMemberModal();
+            loadSeekers(function () { renderAll(); });
+            adminToast('➕ ' + name + ' added to ' + addMemberShepherd);
+          } else {
+            err.textContent = (response && response.message) || 'Could not add member.';
+            err.style.display = 'block';
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = '➕ Add Member';
+          err.textContent = 'Network error — please try again.';
+          err.style.display = 'block';
         });
       }
 
@@ -6905,11 +7027,23 @@
           return r.Shepherd === shepherdName && (r.Status === 'Pending' || r.Status === 'Seeker');
         });
       }
+      // Members added straight from admin (via the Add Member modal below,
+      // or self-added by the shepherd) land in the Members sheet with
+      // Status='Member' - separate from spsMembersFor/mcMembersFor, which
+      // only reflect the static churchData.js roster.
+      function dynamicMembersFor(shepherdName) {
+        return (seekersData || []).filter(function (r) {
+          return r.Shepherd === shepherdName && r.Status === 'Member';
+        });
+      }
       function renderShepherdMembersBlock(shepherdName, stream) {
         var members = stream === 'mc' ? mcMembersFor(shepherdName) : spsMembersFor(shepherdName);
+        var dynMembers = dynamicMembersFor(shepherdName);
         var seekers = seekersFor(shepherdName);
-        var memberList = members.length
-          ? members.map(function (m) { return '<div style="font-size:12px;padding:3px 0;color:#334155;">• ' + m + '</div>'; }).join('')
+        var totalMembers = members.length + dynMembers.length;
+        var memberList = totalMembers
+          ? members.map(function (m) { return '<div style="font-size:12px;padding:3px 0;color:#334155;">• ' + m + '</div>'; }).join('') +
+            dynMembers.map(function (r) { return '<div style="font-size:12px;padding:3px 0;color:#334155;">• ' + (r.Name || '') + ' <span style="font-size:10px;color:#64748b;">(added ' + (r.ImportDate || '') + ')</span></div>'; }).join('')
           : '<div style="font-size:12px;color:#94a3b8;">No assigned members</div>';
         var seekerList = seekers.length
           ? seekers.map(function (r) {
@@ -6917,11 +7051,14 @@
               return '<div style="font-size:12px;padding:3px 0;color:#15803d;">• ' + (r.Name || '') + ' <span style="font-size:10px;color:#64748b;">(' + tag + ')</span></div>';
             }).join('')
           : '<div style="font-size:12px;color:#94a3b8;">No new seekers</div>';
+        var addBtn = '<button type="button" onclick="event.stopPropagation();openAddMemberModal(\'' + shepherdName.replace(/'/g,"\\'") + '\',\'' + stream + '\')" ' +
+          'style="margin-top:10px;width:100%;padding:8px;background:#f0f5ff;color:#0f2044;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">➕ Add Member</button>';
         return '<div style="margin-top:10px;">' +
-          '<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">👥 Members (' + members.length + ')</div>' +
+          '<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">👥 Members (' + totalMembers + ')</div>' +
           memberList +
           '<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px;">🌱 New Seekers (' + seekers.length + ')</div>' +
           seekerList +
+          addBtn +
           '</div>';
       }
 
@@ -7153,7 +7290,8 @@
 
           closeAddShepherdModal();
           renderAll();
-          alert('✅ ' + name + ' added as an ' + addShepherdType + ' shepherd. They can sign in on the shepherd app with default PIN 0000.');
+          adminToast('✅ ' + name + ' added as an ' + addShepherdType + ' shepherd (PIN 0000)');
+          openAddMemberModal(name, addShepherdType === 'MC' ? 'mc' : 'sps');
         })
         .catch(function () {
           btn.disabled = false;
