@@ -267,7 +267,11 @@
 
       <div class="field">
         <label>Date of Birth *</label>
-        <input type="date" id="fDob">
+        <div style="display:flex;gap:8px;">
+          <input type="number" id="fDobDay" placeholder="Day" min="1" max="31" style="flex:1;">
+          <input type="number" id="fDobMonth" placeholder="Month" min="1" max="12" style="flex:1;">
+          <input type="number" id="fDobYear" placeholder="Year" style="flex:1.6;">
+        </div>
       </div>
 
       <div class="field">
@@ -370,7 +374,10 @@
       const phone = document.getElementById('fPhone').value.trim();
       const satelliteLocation = document.getElementById('fSatellite').value.trim();
       const address = document.getElementById('fAddress').value.trim();
-      const dob = document.getElementById('fDob').value;
+      const dobDay = document.getElementById('fDobDay').value;
+      const dobMonth = document.getElementById('fDobMonth').value;
+      const dobYear = document.getElementById('fDobYear').value;
+      const dob = (dobDay && dobMonth && dobYear) ? (dobDay + '/' + dobMonth + '/' + dobYear) : '';
       const occupation = document.getElementById('fOccupation').value;
       const occupationOther = document.getElementById('fOccupationOther').value.trim();
 
@@ -433,7 +440,9 @@
       document.getElementById('fPhone').value = '';
       document.getElementById('fSatellite').value = '';
       document.getElementById('fAddress').value = '';
-      document.getElementById('fDob').value = '';
+      document.getElementById('fDobDay').value = '';
+      document.getElementById('fDobMonth').value = '';
+      document.getElementById('fDobYear').value = '';
       document.getElementById('fOccupation').value = '';
       document.getElementById('fOccupationOther').value = '';
       document.getElementById('fOccupationOther').style.display = 'none';

@@ -283,7 +283,11 @@
 
       <div class="field">
         <label>Date of Birth *</label>
-        <input type="date" id="fDob">
+        <div style="display:flex;gap:8px;">
+          <input type="number" id="fDobDay" placeholder="Day" min="1" max="31" style="flex:1;">
+          <input type="number" id="fDobMonth" placeholder="Month" min="1" max="12" style="flex:1;">
+          <input type="number" id="fDobYear" placeholder="Year" style="flex:1.6;">
+        </div>
       </div>
 
       <div class="field">
@@ -296,7 +300,7 @@
       </div>
 
       <div class="field">
-        <label>Email *</label>
+        <label>Email <span style="font-weight:400;text-transform:none;">(optional)</span></label>
         <input type="email" id="fEmail" placeholder="Your email address">
       </div>
 
@@ -345,7 +349,7 @@
       </div>
 
       <div class="field">
-        <label>Do You Belong to Overcomers Haatso Church? *</label>
+        <label>Do You Belong to Overcomers Nation Church? *</label>
         <div class="yn-row">
           <button type="button" class="yn-btn yes" data-field="belongsToOvercomers" data-val="yes" onclick="setYN(this)">Yes</button>
           <button type="button" class="yn-btn no" data-field="belongsToOvercomers" data-val="no" onclick="setYN(this)">No</button>
@@ -495,7 +499,10 @@
       const shepherd = shepherdSelect.value;
       const shepherdOpt = shepherdSelect.options[shepherdSelect.selectedIndex];
       const shepherdType = shepherdOpt ? shepherdOpt.dataset.stream : '';
-      const dob = document.getElementById('fDob').value;
+      const dobDay = document.getElementById('fDobDay').value;
+      const dobMonth = document.getElementById('fDobMonth').value;
+      const dobYear = document.getElementById('fDobYear').value;
+      const dob = (dobDay && dobMonth && dobYear) ? (dobDay + '/' + dobMonth + '/' + dobYear) : '';
       const gender = document.getElementById('fGender').value;
       const email = document.getElementById('fEmail').value.trim();
       const location = document.getElementById('fLocation').value.trim();
@@ -508,7 +515,7 @@
       const prayerRequest = document.getElementById('fPrayerRequest').value.trim();
       const comments = document.getElementById('fComments').value.trim();
 
-      if (!name || !phone || !dob || !gender || !email || !location || !maritalStatus ||
+      if (!name || !phone || !dob || !gender || !location || !maritalStatus ||
           !state.bornAgain || !workPlace || !state.belongsToOvercomers ||
           (state.belongsToOvercomers === 'no' && !churchName)) {
         showError('Please fill in all required fields marked with *.');
@@ -581,7 +588,9 @@
       document.getElementById('fName').value = '';
       document.getElementById('fPhone').value = '';
       document.getElementById('fShepherd').value = '';
-      document.getElementById('fDob').value = '';
+      document.getElementById('fDobDay').value = '';
+      document.getElementById('fDobMonth').value = '';
+      document.getElementById('fDobYear').value = '';
       document.getElementById('fGender').value = '';
       document.getElementById('fEmail').value = '';
       document.getElementById('fLocation').value = '';
