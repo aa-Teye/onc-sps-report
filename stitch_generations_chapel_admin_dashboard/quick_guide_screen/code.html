@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Generations Chapel - Quick Guide</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700&amp;family=Work+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#91d78a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#79542a",
+                        "primary": "#00450d",
+                        "error": "#ba1a1a",
+                        "surface-container": "#edeeef",
+                        "secondary-fixed-dim": "#efbd8a",
+                        "secondary-fixed": "#ffdcbc",
+                        "surface-bright": "#f8f9fa",
+                        "primary-fixed": "#acf4a4",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed": "#cbf160",
+                        "primary-container": "#1b5e20",
+                        "on-tertiary-fixed-variant": "#3b4d00",
+                        "tertiary-container": "#455900",
+                        "tertiary": "#314000",
+                        "surface-container-highest": "#e1e3e4",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#614018",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#b0d446",
+                        "on-primary-container": "#90d689",
+                        "surface-variant": "#e1e3e4",
+                        "inverse-primary": "#91d78a",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#41493e",
+                        "outline": "#717a6d",
+                        "on-primary-fixed-variant": "#0c5216",
+                        "on-error": "#ffffff",
+                        "on-surface": "#191c1d",
+                        "background": "#f8f9fa",
+                        "on-primary-fixed": "#002203",
+                        "inverse-surface": "#2e3132",
+                        "secondary-container": "#fecb97",
+                        "surface-tint": "#2a6b2c",
+                        "on-tertiary-fixed": "#161f00",
+                        "secondary": "#7c572d",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#c0c9bb",
+                        "surface-dim": "#d9dadb",
+                        "surface": "#f8f9fa",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-container-low": "#f3f4f5",
+                        "on-background": "#191c1d",
+                        "surface-container-high": "#e7e8e9",
+                        "on-tertiary-container": "#afd345",
+                        "on-secondary-fixed": "#2c1700"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "lg": "48px",
+                        "base": "8px",
+                        "margin": "16px",
+                        "xl": "80px",
+                        "sm": "12px",
+                        "xs": "4px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "h1": ["Plus Jakarta Sans"],
+                        "h2": ["Plus Jakarta Sans"],
+                        "label": ["Work Sans"],
+                        "small": ["Work Sans"],
+                        "body": ["Work Sans"]
+                    },
+                    "fontSize": {
+                        "h1": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "h2": ["23px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "small": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body antialiased">
+<!-- Header Section -->
+<header class="bg-surface-container-lowest px-gutter py-md flex items-center justify-between border-b-2 border-secondary-container sticky top-0 z-10 shadow-sm">
+<div class="flex items-center gap-sm">
+<button aria-label="Go back" class="p-2 rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<div>
+<h1 class="font-h2 text-h2 text-primary">Submit Weekly Report</h1>
+<p class="font-small text-small text-on-surface-variant">Quick Guide</p>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-grow p-gutter flex justify-center items-start pt-lg">
+<div class="w-full max-w-2xl bg-surface-container-lowest rounded-lg border-2 border-primary p-md shadow-sm">
+<h2 class="font-h2 text-h2 text-primary mb-md border-b border-outline-variant pb-sm">SPS Shepherd Process</h2>
+<div class="space-y-lg relative before:absolute before:inset-0 before:ml-[1.75rem] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-outline-variant before:to-transparent">
+<!-- Step 1 -->
+<div class="relative flex items-start gap-md group">
+<div class="flex items-center justify-center w-14 h-14 rounded-full border-[3px] border-surface-container-lowest bg-surface-container shadow-sm z-10 text-[32px] shrink-0 transition-transform group-hover:scale-110 duration-200">
+                        📋
+                    </div>
+<div class="pt-sm bg-surface-bright p-md rounded-lg border border-outline-variant shadow-sm flex-grow">
+<h3 class="font-body text-body font-bold text-on-background mb-xs" style="font-size: 18px;">1. Mark Attendance</h3>
+<p class="font-small text-small text-on-surface-variant" style="font-size: 14px;">Review your member list and mark who is present for the current session.</p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="relative flex items-start gap-md group">
+<div class="flex items-center justify-center w-14 h-14 rounded-full border-[3px] border-surface-container-lowest bg-surface-container shadow-sm z-10 text-[32px] shrink-0 transition-transform group-hover:scale-110 duration-200">
+                        📝
+                    </div>
+<div class="pt-sm bg-surface-bright p-md rounded-lg border border-outline-variant shadow-sm flex-grow">
+<h3 class="font-body text-body font-bold text-on-background mb-xs" style="font-size: 18px;">2. Fill Session Details</h3>
+<p class="font-small text-small text-on-surface-variant" style="font-size: 14px;">Enter key information such as the Bible topic covered, prayer requests, offering collected, and any general notes.</p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="relative flex items-start gap-md group">
+<div class="flex items-center justify-center w-14 h-14 rounded-full border-[3px] border-surface-container-lowest bg-surface-container shadow-sm z-10 text-[32px] shrink-0 transition-transform group-hover:scale-110 duration-200">
+                        ✅
+                    </div>
+<div class="pt-sm bg-surface-bright p-md rounded-lg border border-outline-variant shadow-sm flex-grow">
+<h3 class="font-body text-body font-bold text-on-background mb-xs" style="font-size: 18px;">3. Review &amp; Submit</h3>
+<p class="font-small text-small text-on-surface-variant" style="font-size: 14px;">Double-check all entered information for accuracy, then submit your final weekly report.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Action Bar -->
+<footer class="bg-surface-container-lowest p-gutter border-t border-outline-variant sticky bottom-0 z-10">
+<div class="max-w-2xl mx-auto w-full">
+<button class="w-full bg-[#B4D84A] text-primary font-body text-body font-bold py-md px-lg rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                Proceed to Fill Form
+            </button>
+</div>
+</footer>
+</body></html>

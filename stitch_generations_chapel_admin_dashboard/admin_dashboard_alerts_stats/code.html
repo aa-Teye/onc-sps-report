@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Generations Chapel Admin Dashboard</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config injected from instructions -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c0c9bb",
+                        "on-secondary-fixed": "#2c1700",
+                        "surface": "#f8f9fa",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f3f4f5",
+                        "inverse-surface": "#2e3132",
+                        "inverse-primary": "#91d78a",
+                        "on-primary-container": "#90d689",
+                        "on-surface": "#191c1d",
+                        "on-tertiary-fixed": "#161f00",
+                        "primary": "#00450d",
+                        "on-secondary-container": "#79542a",
+                        "primary-container": "#1b5e20",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#fecb97",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#614018",
+                        "on-surface-variant": "#41493e",
+                        "on-tertiary-fixed-variant": "#3b4d00",
+                        "surface-tint": "#2a6b2c",
+                        "tertiary-container": "#455900",
+                        "background": "#f8f9fa",
+                        "surface-container-high": "#e7e8e9",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#cbf160",
+                        "secondary-fixed-dim": "#efbd8a",
+                        "outline": "#717a6d",
+                        "on-primary-fixed-variant": "#0c5216",
+                        "on-background": "#191c1d",
+                        "surface-bright": "#f8f9fa",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "primary-fixed": "#acf4a4",
+                        "secondary": "#7c572d",
+                        "surface-dim": "#d9dadb",
+                        "surface-container": "#edeeef",
+                        "on-tertiary-container": "#afd345",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#002203",
+                        "surface-container-highest": "#e1e3e4",
+                        "primary-fixed-dim": "#91d78a",
+                        "secondary-fixed": "#ffdcbc",
+                        "tertiary-fixed-dim": "#b0d446",
+                        "tertiary": "#314000",
+                        "on-error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "48px",
+                        "xl": "80px",
+                        "base": "8px",
+                        "xs": "4px",
+                        "margin": "16px",
+                        "md": "24px",
+                        "sm": "12px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "label": ["Work Sans", "sans-serif"],
+                        "h2": ["Plus Jakarta Sans", "sans-serif"],
+                        "small": ["Work Sans", "sans-serif"],
+                        "h1": ["Plus Jakarta Sans", "sans-serif"],
+                        "body": ["Work Sans", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "h2": ["23px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "small": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "h1": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700&amp;family=Work+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+</head>
+<body class="bg-surface text-on-surface font-body font-body min-h-screen">
+<!-- SideNavBar (from JSON) -->
+<!-- "name": "SideNavBar" -->
+<!-- "style_bg_color": "bg-surface-container-lowest dark:bg-surface-container-low" -->
+<!-- "style_primary_color": "text-primary dark:text-primary-fixed" -->
+<!-- "style_component_shape": "w-64 h-screen fixed left-0 top-0" -->
+<!-- "style_separation_logic": "border-r border-outline-variant" -->
+<!-- "style_shell_layout": "flex flex-col p-md gap-base" -->
+<aside class="bg-surface-container-lowest w-64 h-screen fixed left-0 top-0 border-r border-outline-variant flex flex-col p-md gap-base z-50">
+<!-- Header / Logo Area -->
+<div class="mb-lg flex flex-col gap-xs">
+<div class="flex items-center gap-sm">
+<!-- Avatar placeholder -->
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high shrink-0">
+<img alt="Admin User Profile" class="w-full h-full object-cover" data-alt="A small, professional portrait photo of a diverse church administrator smiling warmly in a well-lit office, with soft focus background indicating a modern religious setting. The style is bright and approachable, fitting a community leader." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKQJ7ukrC1FLiEu-W9lZkDk2-vx1cbfACzradEaB8QNbrDw0RJV7i1jw2DwH6W3MlLFHes8DAoBe03-6Vh3-dE1-f4LMQymimOFrTd1p-c9AWlYKJ6VG9KX9LWQVRp2ZyFT6wJaqikBPKWh-C_xaX-PL0LrF6RB5jj7FSOsrtfKAi1mHZZM-z5PcEmXe2cVO1pMgnPt3Ppf2YX6r-IBBcvNvg6gnO6pITE-bpzBw9oOBXLoCcnJmvJSw"/>
+</div>
+<div>
+<!-- "style_brand_logo": "font-h2 text-h2 text-primary dark:text-primary-fixed" -->
+<h2 class="font-h2 text-h2 text-primary">Generations Chapel</h2>
+<p class="font-label text-label text-on-surface-variant">Management System</p>
+</div>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 flex flex-col gap-xs">
+<!-- Active: Dashboard -->
+<!-- "style_active_navigation": "bg-primary text-on-primary rounded-lg font-bold" -->
+<!-- "style_shell_layout" (implied item layout): flex gap, padding -->
+<a class="bg-primary text-on-primary rounded-lg font-bold flex items-center gap-sm px-sm py-sm duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Inactive -->
+<!-- "style_inactive_navigation": "text-on-surface-variant hover:bg-surface-container-high" -->
+<a class="text-on-surface-variant hover:bg-surface-container-high rounded-lg flex items-center gap-sm px-sm py-sm hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span>SPS Reports</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high rounded-lg flex items-center gap-sm px-sm py-sm hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+<span>Attendance</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high rounded-lg flex items-center gap-sm px-sm py-sm hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span>Members</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high rounded-lg flex items-center gap-sm px-sm py-sm hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="person_add">person_add</span>
+<span>First Timers</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high rounded-lg flex items-center gap-sm px-sm py-sm hover:text-on-surface transition-colors duration-200 ease-in-out mt-auto mb-lg" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<!-- Footer / Logout -->
+<div class="mt-auto">
+<a class="text-error hover:bg-error-container rounded-lg flex items-center gap-sm px-sm py-sm transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-bold">Logout</span>
+</a>
+</div>
+</aside>
+<!-- TopAppBar & Main Content Wrapper -->
+<div class="ml-64 flex flex-col min-h-screen">
+<!-- TopAppBar (from JSON) -->
+<!-- "name": "TopAppBar" -->
+<!-- "style_bg_color": "bg-surface-container-lowest" -->
+<!-- "style_component_shape": "docked full-width top" -->
+<!-- "style_separation_logic": "border-b-2 border-secondary-container" -->
+<!-- "style_shell_layout": "flex justify-between items-center px-gutter py-sm" -->
+<header class="bg-surface-container-lowest border-b-2 border-secondary-container flex justify-between items-center px-gutter py-sm sticky top-0 z-40">
+<div class="flex items-center gap-lg">
+<!-- "style_brand_logo": "font-h1 text-h1 text-primary" -->
+<h1 class="font-h1 text-h1 text-primary">Generations Chapel Admin</h1>
+<!-- Horizontal Tabs (implied from layout instructions, but matching active state rules) -->
+<nav class="hidden lg:flex gap-md">
+<!-- Active Tab: SPS -->
+<!-- "style_active_navigation": "border-b-2 border-primary text-primary font-bold pb-1" -->
+<a class="border-b-2 border-primary text-primary font-bold pb-1 mt-1" href="#">SPS</a>
+<!-- Inactive Tabs -->
+<!-- "style_inactive_navigation": "text-on-surface-variant hover:text-primary" -->
+<!-- "style_universal_hover": "hover:text-primary transition-colors" -->
+<!-- "style_interactions": "duration-200" -->
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 pb-1 mt-1 border-b-2 border-transparent" href="#">Attendance</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 pb-1 mt-1 border-b-2 border-transparent" href="#">Members</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 pb-1 mt-1 border-b-2 border-transparent" href="#">First Timers</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 pb-1 mt-1 border-b-2 border-transparent" href="#">Leaderboard</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button aria-label="Notifications" class="text-on-surface-variant hover:text-primary transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-sm cursor-pointer hover:opacity-80 transition-opacity">
+<span class="font-label text-label text-on-surface-variant hidden md:block">Admin User</span>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high border border-outline-variant">
+<img alt="Admin Profile" class="w-full h-full object-cover" data-alt="A small circular avatar placeholder showing a generic user icon in soft gray tones, suitable for an admin profile when a photo is missing. High contrast for readability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZPc43zZ2C-hUfkpjQDJhETdxGCfkFGTfkAmWSpUnCzDD0iBa3z8Kzu1OAEpxq1gvEjAQ6c0EL_yeyywdJVVOEN1eKbE6IjrVG89kY3EFhHY0TnsZeiVBdHFzbUCFhLEJrDgS4YGiXVJ29KS-JlX1tDLCA5Rtm95220-cap-pep8kgrIQgw6XQzfhCp8_1uqW_NLCkVBM8FprgwdJaSs7iy8ltgOR72TAFuS77Bd_INQJ_MWSoJEfGPQ"/>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant hidden md:block" data-icon="account_circle" style="display:none;">account_circle</span> <!-- Hidden actual icon from JSON to prefer avatar image -->
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 p-gutter bg-surface"><section class="mb-lg bg-[#FEE2E2] border-l-4 border-[#E74C3C] p-margin rounded-r-lg shadow-sm">
+<div class="flex items-center gap-sm mb-sm">
+<span class="material-symbols-outlined text-[#E74C3C]">warning</span>
+<h2 class="font-bold text-on-surface">Alerts (3)</h2>
+</div>
+<ul class="flex flex-col gap-xs">
+<li class="flex items-center justify-between gap-sm">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[#E74C3C] text-[20px]">warning</span>
+<span class="text-small text-on-surface">3 groups over max size</span>
+</div>
+<a class="text-[#1B5E20] font-semibold text-small hover:underline" href="#">View Groups</a>
+</li>
+<li class="flex items-center justify-between gap-sm">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[#E67E22] text-[20px]">trending_down</span>
+<span class="text-small text-on-surface">5 groups with low attendance (&lt;50%)</span>
+</div>
+<a class="text-[#1B5E20] font-semibold text-small hover:underline" href="#">View Groups</a>
+</li>
+<li class="flex items-center justify-between gap-sm">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[#E67E22] text-[20px]">schedule</span>
+<span class="text-small text-on-surface">2 groups with no report this week</span>
+</div>
+<a class="text-[#1B5E20] font-semibold text-small hover:underline" href="#">View Groups</a>
+</li>
+</ul>
+</section>
+<!-- Header & Breadcrumbs -->
+<div class="mb-lg">
+<nav aria-label="Breadcrumb" class="text-small text-on-surface-variant mb-xs flex items-center gap-2">
+<a class="hover:text-primary transition-colors" href="#">Dashboard</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-primary font-semibold">SPS Reports</span>
+</nav>
+<h1 class="font-h1 text-h1 text-on-surface">Welcome back, Admin</h1>
+</div>
+<!-- Bento Grid / Dashboard Content Area -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Main SPS Module Placeholder (Bento Card style) -->
+<section class="col-span-1 md:col-span-8 bg-surface-container-lowest rounded-xl border border-outline-variant p-md flex flex-col min-h-[400px]">
+<div class="flex justify-between items-center mb-md pb-sm border-b border-outline-variant">
+<h2 class="font-h2 text-h2 text-primary">SPS Reports Overview</h2>
+<button class="bg-primary text-on-primary font-label text-label px-margin py-sm rounded hover:bg-secondary transition-colors duration-200">
+                            Generate New Report
+                        </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-margin">
+<!-- Card 1: Total Attendance -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-margin shadow-sm hover:shadow-md transition-shadow duration-200">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-xs rounded bg-[#B4D84A]/10">
+<span class="material-symbols-outlined text-[#B4D84A]" data-icon="calendar_today">calendar_today</span>
+</div>
+</div>
+<div class="text-h1 font-h1 text-on-surface">1,450</div>
+<div class="text-label font-label text-on-surface-variant uppercase tracking-wider">Total Attendance (This Week)</div>
+<div class="text-small text-on-surface-variant mt-xs">Up 12% from last week</div>
+</div>
+<!-- Card 2: Souls Won -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-margin shadow-sm hover:shadow-md transition-shadow duration-200">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-xs rounded bg-[#D4A574]/10">
+<span class="material-symbols-outlined text-[#D4A574]" data-icon="trophy">trophy</span>
+</div>
+</div>
+<div class="text-h1 font-h1 text-on-surface">28</div>
+<div class="text-label font-label text-on-surface-variant uppercase tracking-wider">Souls Won (4-month cycle)</div>
+<div class="text-small text-on-surface-variant mt-xs">Target: 40 souls</div>
+</div>
+<!-- Card 3: Active SPS Groups -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-margin shadow-sm hover:shadow-md transition-shadow duration-200">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-xs rounded bg-[#1B5E20]/10">
+<span class="material-symbols-outlined text-[#1B5E20]" data-icon="groups">groups</span>
+</div>
+</div>
+<div class="text-h1 font-h1 text-on-surface">178</div>
+<div class="text-label font-label text-on-surface-variant uppercase tracking-wider">Active SPS Groups</div>
+<div class="text-small text-on-surface-variant mt-xs">7 zones</div>
+</div>
+<!-- Card 4: Zones/Councils -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-margin shadow-sm hover:shadow-md transition-shadow duration-200">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-xs rounded bg-[#2196F3]/10">
+<span class="material-symbols-outlined text-[#2196F3]" data-icon="explore">explore</span>
+</div>
+</div>
+<div class="text-h1 font-h1 text-on-surface">7</div>
+<div class="text-label font-label text-on-surface-variant uppercase tracking-wider">Zones/Councils</div>
+<div class="text-small text-on-surface-variant mt-xs">All active</div>
+</div>
+</div>
+</section>
+<!-- Side Info Cards (Bento style) -->
+<div class="col-span-1 md:col-span-4 flex flex-col gap-gutter">
+<!-- Quick Stats Card -->
+<article class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md">
+<h3 class="font-label text-label text-on-surface-variant mb-sm uppercase tracking-wider">Weekly Attendance</h3>
+<div class="flex items-baseline gap-sm mb-xs">
+<span class="text-4xl font-h1 text-primary">1,245</span>
+<span class="text-small text-tertiary flex items-center">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+                                12%
+                            </span>
+</div>
+<p class="text-small text-on-surface-variant">vs last week</p>
+<!-- Simple visual bar -->
+<div class="w-full h-2 bg-surface-container rounded-full mt-margin overflow-hidden">
+<div class="w-3/4 h-full bg-primary-container rounded-full"></div>
+</div>
+</article>
+<!-- Recent Activity Card -->
+<article class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md flex-1">
+<h3 class="font-label text-label text-on-surface-variant mb-sm uppercase tracking-wider">Recent Activity</h3>
+<ul class="flex flex-col gap-sm mt-margin">
+<li class="flex items-start gap-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-[16px] text-on-secondary-container" data-icon="person_add">person_add</span>
+</div>
+<div>
+<p class="font-body text-small text-on-surface"><span class="font-semibold">Sarah Jenkins</span> joined First Timers list.</p>
+<p class="text-xs text-on-surface-variant">2 hours ago</p>
+</div>
+</li>
+<li class="flex items-start gap-sm">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-[16px] text-on-primary-container" data-icon="fact_check">fact_check</span>
+</div>
+<div>
+<p class="font-body text-small text-on-surface">Sunday Service attendance verified.</p>
+<p class="text-xs text-on-surface-variant">Yesterday</p>
+</div>
+</li>
+</ul>
+</article>
+</div>
+</div>
+</main>
+</div>
+</body></html>

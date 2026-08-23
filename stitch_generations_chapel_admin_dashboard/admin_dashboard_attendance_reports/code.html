@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Attendance Reports - Generations Chapel</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error": "#ba1a1a",
+                      "surface-container-highest": "#e1e3e4",
+                      "background": "#f8f9fa",
+                      "on-secondary-container": "#79542a",
+                      "primary-container": "#1b5e20",
+                      "on-primary-container": "#90d689",
+                      "outline": "#717a6d",
+                      "on-tertiary-fixed": "#161f00",
+                      "on-surface-variant": "#41493e",
+                      "tertiary-container": "#455900",
+                      "on-primary-fixed-variant": "#0c5216",
+                      "tertiary": "#314000",
+                      "secondary-fixed": "#ffdcbc",
+                      "secondary-container": "#fecb97",
+                      "secondary": "#7c572d",
+                      "on-surface": "#191c1d",
+                      "surface-dim": "#d9dadb",
+                      "tertiary-fixed": "#cbf160",
+                      "surface": "#f8f9fa",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-high": "#e7e8e9",
+                      "primary": "#00450d",
+                      "secondary-fixed-dim": "#efbd8a",
+                      "surface-container-low": "#f3f4f5",
+                      "on-secondary-fixed": "#2c1700",
+                      "surface-container": "#edeeef",
+                      "on-secondary-fixed-variant": "#614018",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed-dim": "#b0d446",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary-fixed": "#002203",
+                      "surface-tint": "#2a6b2c",
+                      "on-error-container": "#93000a",
+                      "error-container": "#ffdad6",
+                      "outline-variant": "#c0c9bb",
+                      "inverse-primary": "#91d78a",
+                      "surface-bright": "#f8f9fa",
+                      "inverse-surface": "#2e3132",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-container": "#afd345",
+                      "inverse-on-surface": "#f0f1f2",
+                      "on-background": "#191c1d",
+                      "on-secondary": "#ffffff",
+                      "primary-fixed-dim": "#91d78a",
+                      "primary-fixed": "#acf4a4",
+                      "on-tertiary-fixed-variant": "#3b4d00",
+                      "surface-variant": "#e1e3e4"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "24px",
+                      "sm": "12px",
+                      "gutter": "24px",
+                      "base": "8px",
+                      "lg": "48px",
+                      "xl": "80px",
+                      "xs": "4px",
+                      "margin": "16px"
+              },
+              "fontFamily": {
+                      "h2": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "body": [
+                              "Work Sans"
+                      ],
+                      "h1": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "label": [
+                              "Work Sans"
+                      ],
+                      "small": [
+                              "Work Sans"
+                      ]
+              },
+              "fontSize": {
+                      "h2": [
+                              "23px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "h1": [
+                              "28px",
+                              {
+                                      "lineHeight": "36px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "small": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .table-zebra tr:nth-child(even) {
+            background-color: #F8F9FA;
+        }
+        .table-zebra tr:nth-child(odd) {
+            background-color: #FFFFFF;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body font-sans antialiased">
+<!-- Shared SideNavBar Component -->
+<nav class="bg-surface-container-lowest dark:bg-surface-container-low w-64 h-screen fixed left-0 top-0 border-r border-outline-variant flex flex-col p-md gap-base z-50">
+<div class="mb-lg">
+<h1 class="font-h1 text-h1 text-primary dark:text-primary-fixed mb-xs">Generations Chapel</h1>
+<p class="font-small text-small text-on-surface-variant">Management System</p>
+</div>
+<div class="flex-1 flex flex-col gap-sm">
+<a class="flex items-center gap-sm px-sm py-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-body text-body" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-body text-body" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span>SPS Reports</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-xs rounded-lg bg-primary text-on-primary font-bold duration-200 ease-in-out font-body text-body" href="#">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+<span>Attendance</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-body text-body" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span>Members</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-body text-body" href="#">
+<span class="material-symbols-outlined" data-icon="person_add">person_add</span>
+<span>First Timers</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-body text-body" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</div>
+<div class="mt-auto">
+<a class="flex items-center gap-sm px-sm py-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-body text-body" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</nav>
+<!-- Shared TopAppBar Component -->
+<header class="bg-surface-container-lowest dark:bg-surface-container-low docked full-width top ml-64 border-b-2 border-secondary-container flex justify-between items-center px-gutter py-sm w-[calc(100%-16rem)] fixed z-40">
+<h2 class="font-h2 text-h2 text-primary dark:text-primary-fixed">Generations Chapel Admin</h2>
+<div class="hidden md:flex gap-lg items-center font-body text-body">
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">SPS</a>
+<a class="border-b-2 border-primary text-primary font-bold pb-1 transition-colors duration-200" href="#">Attendance</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Members</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">First Timers</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Leaderboard</a>
+</div>
+<div class="flex gap-md items-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 mt-20 p-gutter flex flex-col gap-lg min-h-screen">
+<!-- Page Header -->
+<div>
+<h1 class="font-h1 text-h1 text-on-surface mb-xs">Attendance Reports</h1>
+<p class="font-body text-body text-on-surface-variant">Monitor and analyze weekly service attendance across all branches.</p>
+</div>
+<!-- Trend Chart Section -->
+<section class="bg-surface-container-lowest rounded-lg border border-outline-variant p-md">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-h2 text-h2 text-on-surface">Attendance Trend (Last 8 Weeks)</h2>
+<div class="flex gap-sm">
+<button class="bg-surface-container-lowest border border-primary text-primary font-label text-label px-sm py-xs rounded hover:bg-surface-container-high transition-colors">Weekly</button>
+<button class="bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-label text-label px-sm py-xs rounded hover:bg-surface-container-high transition-colors">Monthly</button>
+</div>
+</div>
+<div class="h-64 w-full">
+<canvas id="attendanceChart"></canvas>
+</div>
+</section>
+<!-- Attendance Table Section -->
+<section class="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden flex flex-col">
+<!-- Table Toolbar / Filters -->
+<div class="p-md border-b border-outline-variant flex flex-wrap gap-md items-end">
+<div class="flex flex-col gap-xs flex-1 min-w-[200px]">
+<label class="font-label text-label text-on-surface-variant">Branch</label>
+<select class="bg-surface-container-lowest border border-outline-variant rounded px-sm py-xs font-body text-body focus:border-primary focus:ring-1 focus:ring-primary outline-none w-full">
+<option>All Branches</option>
+<option>Main Branch</option>
+<option>Zone 1</option>
+<option>Zone 2</option>
+</select>
+</div>
+<div class="flex flex-col gap-xs flex-1 min-w-[150px]">
+<label class="font-label text-label text-on-surface-variant">Date From</label>
+<input class="bg-surface-container-lowest border border-outline-variant rounded px-sm py-xs font-body text-body focus:border-primary focus:ring-1 focus:ring-primary outline-none w-full" type="date"/>
+</div>
+<div class="flex flex-col gap-xs flex-1 min-w-[150px]">
+<label class="font-label text-label text-on-surface-variant">Date To</label>
+<input class="bg-surface-container-lowest border border-outline-variant rounded px-sm py-xs font-body text-body focus:border-primary focus:ring-1 focus:ring-primary outline-none w-full" type="date"/>
+</div>
+<div class="flex flex-col gap-xs flex-1 min-w-[200px]">
+<label class="font-label text-label text-on-surface-variant">Search</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" data-icon="search">search</span>
+<input class="bg-surface-container-lowest border border-outline-variant rounded pl-8 pr-sm py-xs font-body text-body focus:border-primary focus:ring-1 focus:ring-primary outline-none w-full" placeholder="Search records..." type="text"/>
+</div>
+</div>
+<button class="bg-primary-container text-on-primary border border-transparent font-label text-label px-md py-xs rounded h-[38px] hover:bg-[#D4A574] hover:text-on-surface transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="download">download</span> Export
+                </button>
+</div>
+<!-- Table Header (Desktop) -->
+<div class="hidden md:grid grid-cols-9 gap-sm p-sm bg-[#1B5E20] text-on-primary font-label text-label sticky top-0 z-10 border-b border-outline-variant items-center text-left">
+<div class="col-span-2">Branch Name</div>
+<div>Service Date</div>
+<div class="text-right">Men</div>
+<div class="text-right">Women</div>
+<div class="text-right">Children</div>
+<div class="text-right">Youth</div>
+<div class="text-right font-bold">Total</div>
+<div class="text-right text-[#D4A574]">1st Timers</div>
+</div>
+<!-- Table Body -->
+<div class="flex flex-col divide-y divide-outline-variant table-zebra">
+<!-- Row 1 -->
+<div class="grid grid-cols-1 md:grid-cols-9 gap-xs md:gap-sm p-md md:p-sm hover:bg-surface-container-high transition-colors font-body text-body items-center group">
+<div class="col-span-1 md:col-span-2 flex flex-col md:block">
+<span class="md:hidden font-label text-label text-on-surface-variant mb-1">Branch Name</span>
+<span class="font-medium text-on-surface">Main Branch</span>
+<span class="text-small text-on-surface-variant md:hidden">Amos Mensah</span>
+</div>
+<div class="flex justify-between md:block">
+<span class="md:hidden font-label text-label text-on-surface-variant">Service Date</span>
+<span>Aug 4, 2026</span>
+</div>
+<!-- Grid for numbers on mobile -->
+<div class="grid grid-cols-2 gap-sm mt-sm md:mt-0 md:contents">
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Men</span>
+<span>45</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Women</span>
+<span>52</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Children</span>
+<span>18</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Youth</span>
+<span>25</span>
+</div>
+</div>
+<!-- Totals on mobile -->
+<div class="flex justify-between md:block md:text-right mt-sm md:mt-0 pt-sm border-t border-outline-variant md:border-t-0 md:pt-0">
+<span class="md:hidden font-label text-label text-on-surface-variant">Total</span>
+<span class="font-bold text-on-surface">143</span>
+</div>
+<div class="flex justify-between md:block md:text-right mt-xs md:mt-0">
+<span class="md:hidden font-label text-label text-on-surface-variant">First Timers</span>
+<span class="text-primary font-medium">3</span>
+</div>
+<!-- Submitted By (Desktop Only, replacing a column or as tooltip/extra row? Sticking to spec) -->
+<!-- Spec asks for 9 columns but lists 9 items. Let's adjust grid slightly or hide on mobile -->
+</div>
+<!-- Row 2 -->
+<div class="grid grid-cols-1 md:grid-cols-9 gap-xs md:gap-sm p-md md:p-sm hover:bg-surface-container-high transition-colors font-body text-body items-center">
+<div class="col-span-1 md:col-span-2 flex flex-col md:block">
+<span class="md:hidden font-label text-label text-on-surface-variant mb-1">Branch Name</span>
+<span class="font-medium text-on-surface">Zone 1</span>
+</div>
+<div class="flex justify-between md:block">
+<span class="md:hidden font-label text-label text-on-surface-variant">Service Date</span>
+<span>Aug 4, 2026</span>
+</div>
+<div class="grid grid-cols-2 gap-sm mt-sm md:mt-0 md:contents">
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Men</span>
+<span>30</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Women</span>
+<span>35</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Children</span>
+<span>12</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Youth</span>
+<span>15</span>
+</div>
+</div>
+<div class="flex justify-between md:block md:text-right mt-sm md:mt-0 pt-sm border-t border-outline-variant md:border-t-0 md:pt-0">
+<span class="md:hidden font-label text-label text-on-surface-variant">Total</span>
+<span class="font-bold text-on-surface">92</span>
+</div>
+<div class="flex justify-between md:block md:text-right mt-xs md:mt-0">
+<span class="md:hidden font-label text-label text-on-surface-variant">First Timers</span>
+<span class="text-primary font-medium">1</span>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="grid grid-cols-1 md:grid-cols-9 gap-xs md:gap-sm p-md md:p-sm hover:bg-surface-container-high transition-colors font-body text-body items-center">
+<div class="col-span-1 md:col-span-2 flex flex-col md:block">
+<span class="md:hidden font-label text-label text-on-surface-variant mb-1">Branch Name</span>
+<span class="font-medium text-on-surface">Main Branch</span>
+</div>
+<div class="flex justify-between md:block">
+<span class="md:hidden font-label text-label text-on-surface-variant">Service Date</span>
+<span>Jul 28, 2026</span>
+</div>
+<div class="grid grid-cols-2 gap-sm mt-sm md:mt-0 md:contents">
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Men</span>
+<span>42</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Women</span>
+<span>50</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Children</span>
+<span>20</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Youth</span>
+<span>28</span>
+</div>
+</div>
+<div class="flex justify-between md:block md:text-right mt-sm md:mt-0 pt-sm border-t border-outline-variant md:border-t-0 md:pt-0">
+<span class="md:hidden font-label text-label text-on-surface-variant">Total</span>
+<span class="font-bold text-on-surface">140</span>
+</div>
+<div class="flex justify-between md:block md:text-right mt-xs md:mt-0">
+<span class="md:hidden font-label text-label text-on-surface-variant">First Timers</span>
+<span class="text-primary font-medium">5</span>
+</div>
+</div>
+<!-- Row 4 -->
+<div class="grid grid-cols-1 md:grid-cols-9 gap-xs md:gap-sm p-md md:p-sm hover:bg-surface-container-high transition-colors font-body text-body items-center">
+<div class="col-span-1 md:col-span-2 flex flex-col md:block">
+<span class="md:hidden font-label text-label text-on-surface-variant mb-1">Branch Name</span>
+<span class="font-medium text-on-surface">Zone 2</span>
+</div>
+<div class="flex justify-between md:block">
+<span class="md:hidden font-label text-label text-on-surface-variant">Service Date</span>
+<span>Jul 28, 2026</span>
+</div>
+<div class="grid grid-cols-2 gap-sm mt-sm md:mt-0 md:contents">
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Men</span>
+<span>25</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Women</span>
+<span>28</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Children</span>
+<span>10</span>
+</div>
+<div class="flex justify-between md:block md:text-right">
+<span class="md:hidden font-label text-label text-on-surface-variant">Youth</span>
+<span>12</span>
+</div>
+</div>
+<div class="flex justify-between md:block md:text-right mt-sm md:mt-0 pt-sm border-t border-outline-variant md:border-t-0 md:pt-0">
+<span class="md:hidden font-label text-label text-on-surface-variant">Total</span>
+<span class="font-bold text-on-surface">75</span>
+</div>
+<div class="flex justify-between md:block md:text-right mt-xs md:mt-0">
+<span class="md:hidden font-label text-label text-on-surface-variant">First Timers</span>
+<span class="text-primary font-medium">0</span>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="p-sm border-t border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+<span class="font-small text-small text-on-surface-variant">Showing 1 to 4 of 32 entries</span>
+<div class="flex gap-xs">
+<button class="px-sm py-xs border border-outline-variant rounded hover:bg-surface-container-high disabled:opacity-50 text-on-surface-variant font-label text-label" disabled="">Prev</button>
+<button class="px-sm py-xs border border-primary bg-primary text-on-primary rounded font-label text-label">1</button>
+<button class="px-sm py-xs border border-outline-variant rounded hover:bg-surface-container-high text-on-surface-variant font-label text-label">2</button>
+<button class="px-sm py-xs border border-outline-variant rounded hover:bg-surface-container-high text-on-surface-variant font-label text-label">3</button>
+<button class="px-sm py-xs border border-outline-variant rounded hover:bg-surface-container-high text-on-surface-variant font-label text-label">Next</button>
+</div>
+</div>
+</section>
+</main>
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            
+            // Brand Dark Green: #1B5E20
+            const brandColor = '#1B5E20';
+            const gridColor = '#E0E0E0';
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                    datasets: [{
+                        label: 'Overall Attendance',
+                        data: [125, 132, 128, 145, 140, 152, 148, 155],
+                        borderColor: brandColor,
+                        backgroundColor: 'rgba(27, 94, 32, 0.1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#FFFFFF',
+                        pointBorderColor: brandColor,
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(25, 28, 29, 0.9)',
+                            titleFont: {
+                                family: 'Work Sans',
+                                size: 12
+                            },
+                            bodyFont: {
+                                family: 'Work Sans',
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            padding: 12,
+                            cornerRadius: 4,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 120,
+                            max: 160,
+                            ticks: {
+                                stepSize: 10,
+                                font: {
+                                    family: 'Work Sans',
+                                    size: 12
+                                },
+                                color: '#41493e'
+                            },
+                            grid: {
+                                color: gridColor,
+                                drawBorder: false,
+                            },
+                            border: {
+                                display: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: 'Work Sans',
+                                    size: 12
+                                },
+                                color: '#41493e'
+                            },
+                            grid: {
+                                display: false,
+                                drawBorder: false,
+                            },
+                            border: {
+                                display: false
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                }
+            });
+        });
+    </script>
+</body></html>

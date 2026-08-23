@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Session Details - SPS Shepherd</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-error": "#ffffff",
+                        "on-surface": "#191c1d",
+                        "inverse-primary": "#91d78a",
+                        "primary": "#00450d",
+                        "tertiary-fixed-dim": "#b0d446",
+                        "surface-container-high": "#e7e8e9",
+                        "on-tertiary-container": "#afd345",
+                        "on-secondary-fixed": "#2c1700",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#ffdcbc",
+                        "background": "#f8f9fa",
+                        "tertiary": "#314000",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-secondary-container": "#79542a",
+                        "on-tertiary-fixed": "#161f00",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#f8f9fa",
+                        "outline-variant": "#c0c9bb",
+                        "surface-variant": "#e1e3e4",
+                        "surface-tint": "#2a6b2c",
+                        "primary-fixed": "#acf4a4",
+                        "on-secondary-fixed-variant": "#614018",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#cbf160",
+                        "primary-container": "#1b5e20",
+                        "secondary-container": "#fecb97",
+                        "surface-container": "#edeeef",
+                        "on-background": "#191c1d",
+                        "on-primary-container": "#90d689",
+                        "primary-fixed-dim": "#91d78a",
+                        "secondary": "#7c572d",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-surface-variant": "#41493e",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d9dadb",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "#2e3132",
+                        "outline": "#717a6d",
+                        "surface-container-low": "#f3f4f5",
+                        "on-primary-fixed": "#002203",
+                        "on-primary-fixed-variant": "#0c5216",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#efbd8a",
+                        "tertiary-container": "#455900",
+                        "on-tertiary-fixed-variant": "#3b4d00",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f8f9fa"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "md": "24px",
+                        "margin": "16px",
+                        "gutter": "24px",
+                        "sm": "12px",
+                        "lg": "48px",
+                        "xl": "80px",
+                        "xs": "4px",
+                        "base": "8px"
+                    },
+                    fontFamily: {
+                        "body": ["Work Sans"],
+                        "h1": ["Plus Jakarta Sans"],
+                        "label": ["Work Sans"],
+                        "h2": ["Plus Jakarta Sans"],
+                        "small": ["Work Sans"]
+                    },
+                    fontSize: {
+                        "body": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "h1": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "label": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600" }],
+                        "h2": ["23px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "700" }],
+                        "small": ["14px", { lineHeight: "20px", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #f8f9fa; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid #c0c9bb;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body text-on-background min-h-screen flex flex-col antialiased">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky border-b-2 border-secondary-container dark:border-secondary bg-surface dark:bg-on-background flat no shadows z-50">
+<div class="flex justify-between items-center px-margin md:px-lg py-md max-w-[1200px] mx-auto w-full">
+<div class="flex items-center gap-sm">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A small, elegant circular logo of a church featuring a stylized golden cross surrounded by green leaves, set against a pristine white background. The style is modern corporate identity with a peaceful, natural vibe, utilizing high-quality vector-style rendering and soft lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEEpaDF6eIYBs_zpqE2kVhk5epjL0FAkjkwhVPP8SHFBdWkYjWPG4VyvpUrxT-MyjJPJM08FMLwaNXkcotQD2532k9oVLN7vikAmXwySI9to05DgqY-x89dn2ENroL19l8BwvO85gHDZOV48CpUKYwvALt-nTLyxu8wqJu_AGckTVcpA25JUHSVKKmMcFxgYLU__8_Mo-HMCFF7BV3_EUvpktvMY-cK921kvXqmghcGxqN82dONuoi-Q"/>
+<h1 class="font-h1 text-h2 text-primary dark:text-primary-fixed">Generations Chapel</h1>
+</div>
+<button class="font-label text-label text-primary dark:text-primary-fixed cursor-pointer active:opacity-80 hover:text-secondary dark:hover:text-secondary-fixed transition-colors flex items-center gap-xs">
+                Logout
+                <span class="material-symbols-outlined" data-icon="logout">logout</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-[1200px] mx-auto px-margin md:px-lg py-lg">
+<!-- Header / Progress -->
+<div class="mb-lg">
+<div class="flex items-center gap-sm mb-xs">
+<span class="font-label text-label text-primary bg-primary-fixed-dim/20 px-sm py-xs rounded-full">Step 2 of 3</span>
+</div>
+<h2 class="font-h1 text-h1 text-primary mb-sm">Session Details</h2>
+<p class="font-body text-body text-on-surface-variant">Please provide the details of your recent SPS Shepherd meeting.</p>
+</div>
+<!-- Bento Grid Form -->
+<form class="grid grid-cols-1 md:grid-cols-12 gap-gutter" onsubmit="event.preventDefault();">
+<!-- Left Column: Core Details (8 cols) -->
+<div class="md:col-span-8 flex flex-col gap-gutter">
+<!-- Bible Study Topic -->
+<div class="glass-card rounded-xl p-md">
+<label class="block font-h2 text-h2 text-primary mb-xs">Bible Study Topic</label>
+<p class="font-small text-small text-on-surface-variant mb-sm">Confirm or update the main topic discussed.</p>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body text-body text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container" type="text" value="The Book of Romans: Chapter 8"/>
+<div class="absolute right-3 top-3 text-secondary flex items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]" data-icon="info">info</span>
+<span class="font-small text-small">Pre-filled</span>
+</div>
+</div>
+</div>
+<!-- Proof of Meeting (Photo) -->
+<div class="glass-card rounded-xl p-md">
+<label class="block font-h2 text-h2 text-primary mb-xs">Proof of Meeting</label>
+<p class="font-small text-small text-on-surface-variant mb-sm">Upload a photo showing the group gathering.</p>
+<div class="border-2 border-dashed border-outline-variant rounded-lg p-lg text-center bg-surface hover:bg-surface-container transition-colors cursor-pointer flex flex-col items-center justify-center">
+<span class="material-symbols-outlined text-[48px] text-primary-container mb-sm" data-icon="add_a_photo">add_a_photo</span>
+<span class="font-body text-body text-primary-container mb-xs">Tap to upload a photo</span>
+<span class="font-small text-small text-on-surface-variant">JPG, PNG up to 10MB</span>
+</div>
+<!-- Gallery Preview (Mock) -->
+<div class="mt-sm flex gap-sm overflow-x-auto pb-xs">
+<div class="relative w-24 h-24 rounded-lg overflow-hidden border border-outline-variant shrink-0">
+<img class="w-full h-full object-cover" data-alt="A clear, brightly lit photograph of a small group of diverse adults sitting in a circle in a cozy living room, holding Bibles and engaged in discussion. The mood is warm, peaceful, and communal, with natural sunlight streaming through a nearby window. High-quality lifestyle photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNRTXZ4w8FOlJ_TpLNgwqftK5gk9Krd9Pc6w6Il7mZjd6ibCtOv6mZqfrpSPgTsKmulvr1yBH3pDKAbn1ejpZjiru8hUxIY8DUgHYv55NknDpdjLCsLwpG2jpMx6uOh-E6uGlW_5rGNDXBcFbqZlNTgRV8XZNN8kq5F_Akwu9qm68EOs1TDYcH0L87liLhTZ-YtnHRp8ezcZLdxmQfELzIvh9MrtdHLlyEAP9M0ZNL5cyqnXL65YWM9w"/>
+<button class="absolute top-1 right-1 bg-error text-on-error rounded-full w-6 h-6 flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]" data-icon="close">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Member Concerns -->
+<div class="glass-card rounded-xl p-md">
+<label class="block font-h2 text-h2 text-primary mb-xs">Member Concerns &amp; Prayer Requests</label>
+<p class="font-small text-small text-on-surface-variant mb-sm">Note any specific needs shared by the group.</p>
+<textarea class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body text-body text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container resize-none" placeholder="Enter concerns here..." rows="4"></textarea>
+</div>
+</div>
+<!-- Right Column: Quick Toggles (4 cols) -->
+<div class="md:col-span-4 flex flex-col gap-gutter">
+<!-- Prayer -->
+<div class="glass-card rounded-xl p-md">
+<label class="block font-h2 text-h2 text-primary mb-xs">Opening/Closing Prayer</label>
+<p class="font-small text-small text-on-surface-variant mb-sm">Was prayer conducted during the session?</p>
+<div class="flex gap-sm">
+<label class="flex-1 cursor-pointer">
+<input checked="" class="peer sr-only" name="prayer" type="radio" value="yes"/>
+<div class="text-center py-sm rounded-lg border border-outline-variant peer-checked:bg-primary-container peer-checked:text-on-primary peer-checked:border-primary-container font-body text-body transition-colors">Yes</div>
+</label>
+<label class="flex-1 cursor-pointer">
+<input class="peer sr-only" name="prayer" type="radio" value="no"/>
+<div class="text-center py-sm rounded-lg border border-outline-variant peer-checked:bg-surface-variant peer-checked:text-on-surface peer-checked:border-outline font-body text-body transition-colors">No</div>
+</label>
+</div>
+</div>
+<!-- Offering -->
+<div class="glass-card rounded-xl p-md">
+<label class="block font-h2 text-h2 text-primary mb-xs">Offering Collected</label>
+<p class="font-small text-small text-on-surface-variant mb-sm">Did the group collect an offering?</p>
+<div class="flex gap-sm mb-md">
+<label class="flex-1 cursor-pointer">
+<input class="peer sr-only" name="offering" onchange="document.getElementById('offering-amount').classList.remove('hidden')" type="radio" value="yes"/>
+<div class="text-center py-sm rounded-lg border border-outline-variant peer-checked:bg-primary-container peer-checked:text-on-primary peer-checked:border-primary-container font-body text-body transition-colors">Yes</div>
+</label>
+<label class="flex-1 cursor-pointer">
+<input checked="" class="peer sr-only" name="offering" onchange="document.getElementById('offering-amount').classList.add('hidden')" type="radio" value="no"/>
+<div class="text-center py-sm rounded-lg border border-outline-variant peer-checked:bg-surface-variant peer-checked:text-on-surface peer-checked:border-outline font-body text-body transition-colors">No</div>
+</label>
+</div>
+<div class="hidden" id="offering-amount">
+<label class="block font-label text-label text-on-surface mb-xs">Amount</label>
+<div class="relative">
+<span class="absolute left-3 top-3 font-body text-body text-on-surface-variant">$</span>
+<input class="w-full pl-8 bg-surface-container-lowest border border-outline-variant rounded-lg py-sm font-body text-body text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container" placeholder="0.00" type="number"/>
+</div>
+</div>
+</div>
+<!-- New Members -->
+<div class="glass-card rounded-xl p-md">
+<label class="block font-h2 text-h2 text-primary mb-xs">New Members</label>
+<p class="font-small text-small text-on-surface-variant mb-sm">Were there any first-time attendees?</p>
+<div class="flex gap-sm mb-md">
+<label class="flex-1 cursor-pointer">
+<input checked="" class="peer sr-only" name="new_members" type="radio" value="yes"/>
+<div class="text-center py-sm rounded-lg border border-outline-variant peer-checked:bg-primary-container peer-checked:text-on-primary peer-checked:border-primary-container font-body text-body transition-colors">Yes</div>
+</label>
+<label class="flex-1 cursor-pointer">
+<input class="peer sr-only" name="new_members" type="radio" value="no"/>
+<div class="text-center py-sm rounded-lg border border-outline-variant peer-checked:bg-surface-variant peer-checked:text-on-surface peer-checked:border-outline font-body text-body transition-colors">No</div>
+</label>
+</div>
+<!-- Dynamic Cards for New Members -->
+<div class="flex flex-col gap-sm">
+<div class="bg-surface p-sm rounded-lg border border-outline-variant flex items-center gap-sm">
+<div class="flex-1">
+<input class="w-full bg-transparent border-none p-0 font-body text-body text-on-surface focus:ring-0 mb-1" placeholder="Name" type="text" value="Sarah Jenkins"/>
+<input class="w-full bg-transparent border-none p-0 font-small text-small text-on-surface-variant focus:ring-0" placeholder="Phone" type="tel" value="555-0192"/>
+</div>
+<button class="text-error hover:bg-error-container p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+<button class="w-full py-2 border border-dashed border-primary-container text-primary-container rounded-lg font-label text-label flex items-center justify-center gap-xs hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+                            Add Another
+                        </button>
+</div>
+</div>
+</div>
+<!-- Bottom Actions (Full Width) -->
+<div class="col-span-1 md:col-span-12 flex justify-between items-center mt-md pt-md border-t border-outline-variant">
+<button class="px-md py-sm rounded-lg border border-primary text-primary hover:bg-surface-container font-body text-body transition-colors shadow-sm" type="button">
+                    Back
+                </button>
+<button class="px-md py-sm rounded-lg bg-primary-container text-on-primary hover:bg-secondary transition-colors font-body text-body shadow-md" type="button">
+                    Next Step
+                </button>
+</div>
+</form>
+</main>
+<!-- Footer -->
+<footer class="w-full bottom-0 border-t border-outline-variant bg-surface-container dark:bg-surface-container-highest flat no shadows">
+<div class="w-full py-md px-margin md:px-lg flex flex-col md:flex-row justify-between items-center max-w-[1200px] mx-auto gap-sm">
+<span class="font-small text-small text-on-surface-variant">© 2024 Generations Chapel. All rights reserved.</span>
+<div class="flex items-center gap-md">
+<a class="font-small text-small text-on-surface-variant opacity-90 hover:opacity-100 hover:text-secondary underline transition-all" href="#">Privacy Policy</a>
+<a class="font-small text-small text-on-surface-variant opacity-90 hover:opacity-100 hover:text-secondary underline transition-all" href="#">Support</a>
+<a class="font-small text-small text-on-surface-variant opacity-90 hover:opacity-100 hover:text-secondary underline transition-all" href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+</body></html>
