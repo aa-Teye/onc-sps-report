@@ -1,0 +1,100 @@
+Step 1/100: chore: initialize FastAPI backend project structure
+Step 2/100: config: setup requirements.txt for Uvicorn and FastAPI 0.110
+Step 3/100: config: add SQLAlchemy 2.0 ORM dependencies
+Step 4/100: config: add psycopg2-binary PostgreSQL driver for Neon DB
+Step 5/100: config: add Pydantic v2 data validation schemas
+Step 6/100: config: add Cloudinary Python SDK v1.39
+Step 7/100: config: add python-multipart for file upload support
+Step 8/100: config: add PyJWT and passlib for authentication
+Step 9/100: env: configure Neon PostgreSQL connection string template
+Step 10/100: env: configure Cloudinary Cloud Name and API keys template
+Step 11/100: db: initialize SQLAlchemy Base model class
+Step 12/100: db: add UUID primary key generator function
+Step 13/100: db: configure Neon PostgreSQL connection pooling
+Step 14/100: db: enable pool_pre_ping for serverless reconnection stability
+Step 15/100: db: configure max_overflow and pool_size settings
+Step 16/100: db: add get_db() session generator for FastAPI dependency injection
+Step 17/100: db: setup environment variable fallback for local development
+Step 18/100: db: add automatic schema SSL mode enforcement
+Step 19/100: db: configure SessionLocal sessionmaker
+Step 20/100: db: document database initialization workflow
+Step 21/100: models: add User database table schema
+Step 22/100: models: add User full_name, phone_number, and hashed_pin columns
+Step 23/100: models: add User role and zone/branch association columns
+Step 24/100: models: add SPSReport database table schema
+Step 25/100: models: add SPSReport attendance and souls_won metrics
+Step 26/100: models: add SPSReport photo_proof_url column for Cloudinary CDN
+Step 27/100: models: add SPSReport status classification column
+Step 28/100: models: add ZoneReport database table schema
+Step 29/100: models: add ZoneReport issue tracking and priority columns
+Step 30/100: models: add SundayAttendance headcount breakdown table
+Step 31/100: models: add SundayAttendance offering_ghc column
+Step 32/100: models: add StudyResource weekly guide database table
+Step 33/100: models: add StudyResource file_url column for Cloudinary PDF storage
+Step 34/100: models: add Announcement broadcast database table
+Step 35/100: models: add Announcement badge and category tags
+Step 36/100: models: add Meeting scheduled session database table
+Step 37/100: models: add Meeting venue and target group columns
+Step 38/100: models: add BoardEscalation pastoral request database table
+Step 39/100: models: add BoardEscalation budget_requested column
+Step 40/100: models: add Member church directory database table
+Step 41/100: schemas: add SPSReportCreate request validation model
+Step 42/100: schemas: add SPSReportResponse serialization model
+Step 43/100: schemas: add ZoneReportCreate request validation model
+Step 44/100: schemas: add ZoneReportResponse serialization model
+Step 45/100: schemas: add SundayAttendanceCreate request validation model
+Step 46/100: schemas: add SundayAttendanceResponse serialization model
+Step 47/100: schemas: add AnnouncementCreate request validation model
+Step 48/100: schemas: add AnnouncementResponse serialization model
+Step 49/100: schemas: add MeetingCreate request validation model
+Step 50/100: schemas: add MeetingResponse serialization model
+Step 51/100: cloudinary: setup Cloudinary SDK credentials configuration
+Step 52/100: cloudinary: add secure HTTPS asset delivery setting
+Step 53/100: cloudinary: implement upload_meeting_photo screenshot handler
+Step 54/100: cloudinary: add auto-cropping and image compression pipeline
+Step 55/100: cloudinary: add mobile-optimized image format transformation
+Step 56/100: cloudinary: implement upload_study_resource_file raw PDF handler
+Step 57/100: cloudinary: add public_id naming policy for study guide outlines
+Step 58/100: cloudinary: add exception handling for media upload failures
+Step 59/100: cloudinary: test meeting photo screenshot upload pipeline
+Step 60/100: cloudinary: test weekly study guide PDF upload pipeline
+Step 61/100: auth: add password/PIN hashing utility using bcrypt
+Step 62/100: auth: add JWT access token generation function
+Step 63/100: auth: add JWT token verification middleware
+Step 64/100: auth: add Shepherd login endpoint (Phone + PIN)
+Step 65/100: auth: add Admin/Pastor login endpoint (Email/Phone + Password)
+Step 66/100: auth: add current_user dependency injection helper
+Step 67/100: auth: enforce role-based access control (RBAC)
+Step 68/100: auth: add token expiration timestamp enforcement
+Step 69/100: auth: secure sensitive pastoral credentials
+Step 70/100: auth: add login audit logging
+Step 71/100: api: initialize FastAPI application instance
+Step 72/100: api: set application title and version metadata
+Step 73/100: api: configure CORS middleware for Vercel deployment frontend
+Step 74/100: api: add root health check endpoint GET /
+Step 75/100: api: add GET /api/sps-reports endpoint
+Step 76/100: api: add POST /api/sps-reports endpoint with photo file upload
+Step 77/100: api: implement automatic group health status determination
+Step 78/100: api: add GET /api/zone-reports endpoint
+Step 79/100: api: add POST /api/zone-reports endpoint
+Step 80/100: api: add GET /api/sunday-attendance endpoint
+Step 81/100: api: add POST /api/sunday-attendance endpoint
+Step 82/100: api: add GET /api/resources/studies endpoint
+Step 83/100: api: add POST /api/resources/studies endpoint with PDF file upload
+Step 84/100: api: add GET /api/announcements endpoint
+Step 85/100: api: add POST /api/announcements endpoint
+Step 86/100: api: add DELETE /api/announcements/{id} endpoint
+Step 87/100: api: add GET /api/meetings endpoint
+Step 88/100: api: add POST /api/meetings endpoint
+Step 89/100: api: add DELETE /api/meetings/{id} endpoint
+Step 90/100: api: add GET /api/members directory endpoint
+Step 91/100: api: add POST /api/members directory record creation endpoint
+Step 92/100: api: add GET /api/escalations board request endpoint
+Step 93/100: api: add POST /api/escalations board response endpoint
+Step 94/100: docs: generate interactive OpenAPI Swagger UI at /docs
+Step 95/100: docs: add comprehensive README.md with Render deployment steps
+Step 96/100: docs: add Neon.tech PostgreSQL setup documentation
+Step 97/100: docs: add Cloudinary media storage configuration guide
+Step 98/100: config: add render.yaml infrastructure as code specification
+Step 99/100: ci: verify full FastAPI backend API test suite
+Step 100/100: release: final v2.0.0 production backend release for Generational Chapel
