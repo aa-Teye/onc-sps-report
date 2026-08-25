@@ -1,10 +1,10 @@
 # Generational Chapel International - Production FastAPI Backend API
 
-This backend is built using **Python FastAPI**, **Neon PostgreSQL** serverless database, and **Cloudinary** media storage CDN.
+This backend is built using Python FastAPI, Neon PostgreSQL serverless database, and Cloudinary media storage CDN.
 
 ---
 
-## 🚀 How to Run Locally
+## How to Run Locally
 
 ### 1. Install Dependencies
 ```bash
@@ -33,15 +33,15 @@ Fill in:
 ```bash
 uvicorn app.main:app --reload --port 8000
 ```
-Open **`http://localhost:8000/docs`** to test the automatic Swagger API documentation!
+Open **`http://localhost:8000/docs`** to test the automatic Swagger API documentation.
 
 ---
 
-## 🌐 Deploying to Render.com (Free 24/7 Hosting)
+## Deploying to Render.com (Free 24/7 Hosting)
 
-1. Create a free account on [Render.com](https://render.com).
+1. Create a free account on Render.com (https://render.com).
 2. Click **New +** -> **Web Service**.
-3. Connect your GitHub Repository: `https://github.com/aa-Teye/onc-sps-report`.
+3. Connect your GitHub Repository: `https://github.com/aa-Teye/Generational-chapel-backend-`.
 4. Set the following build settings:
    - **Root Directory**: `backend`
    - **Environment**: `Python 3`
@@ -56,6 +56,6 @@ Open **`http://localhost:8000/docs`** to test the automatic Swagger API document
 
 ---
 
-## 📸 Media Upload Capabilities
+## Media Upload Capabilities
 - **Meeting Proof Photos**: Uploaded via `POST /api/sps-reports` (JPG/PNG compressed and stored on Cloudinary).
 - **Weekly Study Guide PDFs**: Uploaded via `POST /api/resources/studies` (PDF/DOCX stored on Cloudinary raw storage).
