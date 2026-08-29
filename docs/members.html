@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ONC — Member Intelligence</title>
+  <link rel="icon" href="./logo.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:   #0a1628;
+      --blue:   #1a3a6b;
+      --accent: #3b82f6;
+      --gold:   #f59e0b;
+      --green:  #22c55e;
+      --red:    #ef4444;
+      --orange: #f97316;
+      --gray:   #64748b;
+      --light:  #f1f5f9;
+      --white:  #fff;
+      --border: #e2e8f0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--navy); min-height:100vh; }
+
+    /* LOGIN */
+    #loginScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+    .login-box { background:var(--white); border-radius:24px; padding:40px 32px; width:100%; max-width:360px; text-align:center; box-shadow:0 24px 64px rgba(0,0,0,.4); }
+    .login-logo { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,var(--gold),#fbbf24); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-weight:800; font-size:18px; color:var(--navy); }
+    .login-box h2 { font-size:22px; font-weight:800; color:var(--navy); margin-bottom:4px; }
+    .login-box p { color:var(--gray); font-size:14px; margin-bottom:24px; }
+    .login-box input { width:100%; padding:14px; border:2px solid var(--border); border-radius:12px; font-size:18px; text-align:center; letter-spacing:6px; outline:none; color:var(--navy); font-family:inherit; transition:border-color .2s; margin-bottom:10px; }
+    .login-box input:focus { border-color:var(--accent); }
+    .login-btn { width:100%; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--blue)); color:var(--white); font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; transition:opacity .2s; }
+    .login-btn:hover { opacity:.9; }
+    .login-error { color:var(--red); font-size:13px; margin-top:10px; display:none; }
+
+    /* DASHBOARD */
+    #dashboard { display:none; background:var(--light); min-height:100vh; }
+    .topbar { background:var(--white); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .topbar-left { display:flex; align-items:center; gap:14px; }
+    .back-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:2px solid var(--border); border-radius:10px; background:var(--white); color:var(--navy); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; text-decoration:none; transition:all .2s; }
+    .back-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .topbar h1 { font-size:20px; font-weight:800; color:var(--navy); }
+    .page-wrap { max-width:1200px; margin:0 auto; padding:28px; }
+
+    /* CARDS */
+    .section-card { background:var(--white); border-radius:16px; padding:24px; box-shadow:0 1px 8px rgba(0,0,0,.06); margin-bottom:24px; }
+    .section-title { font-size:16px; font-weight:800; color:var(--navy); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .pill { padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; background:var(--light); color:var(--accent); }
+
+    /* FILTER BAR */
+    .filter-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+    .filter-bar select, .filter-bar input { padding:8px 12px; border:2px solid var(--border); border-radius:10px; font-family:inherit; font-size:13px; color:var(--navy); background:var(--white); outline:none; }
+    .filter-bar select:focus, .filter-bar input:focus { border-color:var(--accent); }
+    .btn { padding:9px 18px; border:none; border-radius:10px; font-family:inherit; font-weight:700; font-size:13px; cursor:pointer; transition:all .2s; }
+    .btn-primary { background:var(--accent); color:var(--white); }
+    .btn-primary:hover { opacity:.9; }
+    .btn-outline { background:none; border:2px solid var(--accent); color:var(--accent); }
+    .btn-outline:hover { background:var(--accent); color:var(--white); }
+    .btn-gold { background:var(--gold); color:var(--navy); }
+    .btn-gold:hover { opacity:.9; }
+
+    /* TABLE */
+    .table-wrap { border-radius:12px; overflow:auto; border:1px solid var(--border); }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead tr { background:var(--navy); }
+    thead th { padding:12px 14px; text-align:left; color:rgba(255,255,255,.8); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; white-space:nowrap; }
+    tbody tr { border-bottom:1px solid var(--border); cursor:pointer; transition:background .15s; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { filter:brightness(.97); }
+    td { padding:11px 14px; color:var(--navy); }
+    .row-green { background:#f0fdf4; }
+    .row-amber { background:#fffbeb; }
+    .row-red   { background:#fef2f2; }
+    .row-grey  { background:#f8fafc; }
+
+    /* BADGES */
+    .badge { display:inline-flex; align-items:center; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; }
+    .badge-green  { background:#dcfce7; color:#15803d; }
+    .badge-amber  { background:#fef9c3; color:#92400e; }
+    .badge-red    { background:#fee2e2; color:#991b1b; }
+    .badge-grey   { background:#e2e8f0; color:#475569; }
+    .badge-blue   { background:#dbeafe; color:#1e40af; }
+    .badge-purple { background:#ede9fe; color:#6d28d9; }
+    .badge-sps    { background:#eff6ff; color:#3b82f6; }
+    .badge-mc     { background:#ecfdf5; color:#10b981; }
+
+    /* SEARCH */
+    .search-wrap { position:relative; }
+    .search-wrap input { width:100%; padding:11px 16px 11px 42px; border:2px solid var(--border); border-radius:12px; font-family:inherit; font-size:14px; color:var(--navy); outline:none; transition:border-color .2s; }
+    .search-wrap input:focus { border-color:var(--accent); }
+    .search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:16px; }
+    .search-results { margin-top:10px; display:flex; flex-direction:column; gap:6px; max-height:320px; overflow-y:auto; }
+    .search-item { padding:12px 16px; background:var(--white); border-radius:10px; border:2px solid var(--border); cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:border-color .2s; }
+    .search-item:hover { border-color:var(--accent); }
+    .search-name { font-weight:700; font-size:14px; color:var(--navy); }
+    .search-meta { font-size:12px; color:var(--gray); margin-top:2px; }
+
+    /* PROFILE PANEL */
+    .panel-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200; backdrop-filter:blur(2px); }
+    .panel-overlay.open { display:block; }
+    .profile-panel { position:fixed; top:0; right:0; width:420px; max-width:100vw; height:100vh; background:var(--white); z-index:201; transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); overflow-y:auto; box-shadow:-8px 0 32px rgba(0,0,0,.15); }
+    .profile-panel.open { transform:translateX(0); }
+    .panel-header { background:var(--navy); padding:20px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; }
+    .panel-header h2 { color:var(--white); font-size:17px; font-weight:800; }
+    .panel-close { background:none; border:none; color:rgba(255,255,255,.7); font-size:22px; cursor:pointer; line-height:1; }
+    .panel-close:hover { color:var(--white); }
+    .panel-body { padding:20px 24px; }
+    .panel-section { margin-bottom:20px; }
+    .panel-section-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--gray); margin-bottom:10px; }
+    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .info-item label { font-size:11px; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.5px; }
+    .info-item span { display:block; font-size:14px; font-weight:600; color:var(--navy); margin-top:2px; }
+    .attendance-dots { display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; }
+    .dot { width:14px; height:14px; border-radius:50%; }
+    .dot-present { background:var(--green); }
+    .dot-absent  { background:var(--red); }
+    .dot-grey    { background:#cbd5e1; }
+    .note-item { padding:12px; background:var(--light); border-radius:10px; margin-bottom:8px; }
+    .note-item-type { font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; margin-bottom:4px; }
+    .note-item-text { font-size:13px; color:var(--navy); }
+    .note-item-meta { font-size:11px; color:var(--gray); margin-top:4px; }
+    .panel-actions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+    .panel-actions .btn { font-size:12px; padding:7px 14px; }
+
+    /* MODAL */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--white); border-radius:20px; padding:28px; width:100%; max-width:440px; box-shadow:0 24px 64px rgba(0,0,0,.3); }
+    .modal h3 { font-size:18px; font-weight:800; color:var(--navy); margin-bottom:20px; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; font-size:12px; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+    .form-group select, .form-group textarea, .form-group input { width:100%; padding:10px 12px; border:2px solid var(--border); border-radius:10px; font-family:inherit; font-size:14px; color:var(--navy); outline:none; transition:border-color .2s; }
+    .form-group select:focus, .form-group textarea:focus, .form-group input:focus { border-color:var(--accent); }
+    .form-group textarea { resize:vertical; min-height:90px; }
+    .modal-actions { display:flex; gap:10px; margin-top:20px; }
+    .modal-actions .btn { flex:1; padding:12px; }
+    .btn-cancel { background:var(--light); color:var(--navy); border:none; border-radius:10px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; padding:12px; flex:1; }
+    .btn-cancel:hover { background:var(--border); }
+
+    /* EMPTY */
+    .empty { text-align:center; padding:40px 20px; color:var(--gray); }
+    .empty .icon { font-size:36px; margin-bottom:10px; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .animate { animation:fadeUp .25s ease; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">ONC</div>
+    <h2>Member Intelligence</h2>
+    <p>Admin access required</p>
+    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6"
+      onkeydown="if(event.key==='Enter')checkPin()">
+    <button class="login-btn" onclick="checkPin()">🔐 Enter</button>
+    <p class="login-error" id="loginError">❌ Incorrect PIN</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="admin.html" class="back-btn">← Back to Admin</a>
+      <h1>👥 Member Intelligence</h1>
+    </div>
+    <button class="btn btn-outline" onclick="loadAll()">🔄 Refresh</button>
+  </div>
+
+  <div class="page-wrap">
+
+    <!-- SECTION 1: RETENTION OVERVIEW -->
+    <div class="section-card animate">
+      <div class="section-title">
+        Retention Overview
+        <span class="pill" id="memberCount">Loading…</span>
+      </div>
+      <div class="filter-bar">
+        <select id="filtZone" onchange="renderTable()">
+          <option value="">All Zones / MCs</option>
+        </select>
+        <select id="filtShepherd" onchange="renderTable()">
+          <option value="">All Shepherds</option>
+        </select>
+        <select id="filtStream" onchange="renderTable()">
+          <option value="">All Streams</option>
+          <option value="SPS">SPS</option>
+          <option value="MC">MC</option>
+        </select>
+        <select id="filtFlag" onchange="renderTable()">
+          <option value="">All Statuses</option>
+          <option value="green">Active (seen &lt;7d)</option>
+          <option value="amber">At Risk (7–14d)</option>
+          <option value="red">Critical (15d+)</option>
+          <option value="grey">Never Seen</option>
+        </select>
+        <input type="search" id="tableSearch" placeholder="Search name…" oninput="renderTable()" style="min-width:160px;">
+        <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Member Name</th>
+              <th>Shepherd</th>
+              <th>Stream</th>
+              <th>Zone / MC</th>
+              <th>Last Seen</th>
+              <th>Sessions (30d)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="retentionBody">
+            <tr><td colspan="7" class="empty">Loading member data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION 2: MEMBER SEARCH -->
+    <div class="section-card animate">
+      <div class="section-title">Member Search &amp; Profile</div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="memberSearch" placeholder="Type a member name…" oninput="renderSearch()">
+      </div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <!-- SECTION 3: BAPTISM TRACKING -->
+    <div class="section-card animate" id="baptismSection">
+      <div class="section-title">
+        🕊️ Baptism Tracking
+        <span class="pill" id="baptismCount">Loading…</span>
+        <button class="btn btn-primary" onclick="openCreateCohortModal()" style="margin-left:auto;font-size:12px;padding:7px 14px;">+ Create Cohort</button>
+      </div>
+
+      <!-- Summary Bar -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;" id="baptismSummary">
+        <div style="background:var(--light);border-radius:12px;padding:14px;text-align:center;border-left:4px solid var(--accent);">
+          <div style="font-size:24px;font-weight:900;color:var(--navy);" id="bapTotal">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray);margin-top:3px;">Total Tracked</div>
+        </div>
+        <div style="background:var(--light);border-radius:12px;padding:14px;text-align:center;border-left:4px solid var(--green);">
+          <div style="font-size:24px;font-weight:900;color:var(--navy);" id="bapCompleted">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray);margin-top:3px;">Baptised</div>
+        </div>
+        <div style="background:var(--light);border-radius:12px;padding:14px;text-align:center;border-left:4px solid #f59e0b;">
+          <div style="font-size:24px;font-weight:900;color:var(--navy);" id="bapPreparing">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray);margin-top:3px;">Preparing</div>
+        </div>
+        <div style="background:var(--light);border-radius:12px;padding:14px;text-align:center;border-left:4px solid var(--gray);">
+          <div style="font-size:24px;font-weight:900;color:var(--navy);" id="bapNotStarted">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray);margin-top:3px;">Not Started</div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <select id="filtBapStatus" onchange="renderBaptismTable()">
+          <option value="">All Statuses</option>
+          <option value="Not Started">Not Started</option>
+          <option value="Preparing">Preparing</option>
+          <option value="Ready">Ready</option>
+          <option value="Completed">Completed</option>
+        </select>
+        <select id="filtBapShepherd" onchange="renderBaptismTable()">
+          <option value="">All Shepherds</option>
+        </select>
+        <input type="search" id="bapSearch" placeholder="Search member…" oninput="renderBaptismTable()" style="min-width:160px;">
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px;"><input type="checkbox" id="bapSelectAll" onchange="toggleSelectAll(this)"></th>
+              <th>Member Name</th>
+              <th>Shepherd</th>
+              <th>Stream</th>
+              <th>Baptism Status</th>
+              <th>Baptism Date</th>
+              <th>Cohort</th>
+              <th>Update</th>
+            </tr>
+          </thead>
+          <tbody id="baptismBody">
+            <tr><td colspan="8" class="empty">Loading baptism data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /page-wrap -->
+</div><!-- /dashboard -->
+
+<!-- PANEL OVERLAY -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
+
+<!-- PROFILE PANEL -->
+<div class="profile-panel" id="profilePanel">
+  <div class="panel-header">
+    <h2 id="panelName">Member Profile</h2>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="panelBody">
+    <div class="empty"><div class="icon">👤</div><p>Select a member</p></div>
+  </div>
+</div>
+
+<!-- ADD NOTE MODAL -->
+<div class="modal-overlay" id="noteModal">
+  <div class="modal">
+    <h3>📝 Add Pastoral Note</h3>
+    <div class="form-group">
+      <label>Note Type</label>
+      <select id="noteType">
+        <option value="Welfare">Welfare</option>
+        <option value="Prayer">Prayer</option>
+        <option value="Concern">Concern</option>
+        <option value="Discipleship">Discipleship</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="noteText" placeholder="Enter note…"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Follow-up Required?</label>
+      <select id="noteFollowUp" onchange="toggleFollowUpDate()">
+        <option value="No">No</option>
+        <option value="Yes">Yes</option>
+      </select>
+    </div>
+    <div class="form-group" id="followUpDateWrap" style="display:none;">
+      <label>Follow-up Date</label>
+      <input type="date" id="noteFollowUpDate">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('noteModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNote()">Save Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN MENTOR MODAL -->
+<div class="modal-overlay" id="mentorModal">
+  <div class="modal">
+    <h3>🤝 Assign Mentor</h3>
+    <div class="form-group">
+      <label>Mentor</label>
+      <select id="mentorSelect"></select>
+    </div>
+    <div class="form-group">
+      <label>Start Date</label>
+      <input type="date" id="mentorStart">
+    </div>
+    <div class="form-group">
+      <label>Target End Date (auto: +3 months)</label>
+      <input type="date" id="mentorEnd" readonly style="background:var(--light);">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('mentorModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitMentor()">Assign Mentor</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPDATE STAGE MODAL -->
+<div class="modal-overlay" id="stageModal">
+  <div class="modal">
+    <h3>🚶 Update Discipleship Stage</h3>
+    <div class="form-group">
+      <label>Stage</label>
+      <select id="stageSelect">
+        <option value="1">1 — First-Timer</option>
+        <option value="2">2 — Follow-Up Active</option>
+        <option value="3">3 — Foundations School</option>
+        <option value="4">4 — Membership School</option>
+        <option value="5">5 — Integrated</option>
+        <option value="6">6 — Established Member</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('stageModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitStage()">Update Stage</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPDATE BAPTISM STATUS MODAL -->
+<div class="modal-overlay" id="baptismStatusModal">
+  <div class="modal">
+    <h3>🕊️ Update Baptism Status</h3>
+    <p id="baptismMemberLabel" style="font-size:13px;color:var(--gray);margin-bottom:14px;font-weight:600;"></p>
+    <div class="form-group">
+      <label>Baptism Status</label>
+      <select id="baptismStatusSelect">
+        <option value="Not Started">Not Started</option>
+        <option value="Preparing">Preparing</option>
+        <option value="Ready">Ready</option>
+        <option value="Completed">Completed</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Baptism Date (if applicable)</label>
+      <input type="date" id="baptismDateInput">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('baptismStatusModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitBaptismStatus()">Update</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE BAPTISM COHORT MODAL -->
+<div class="modal-overlay" id="createCohortModal">
+  <div class="modal" style="max-width:520px;">
+    <h3>✝️ Create Baptism Cohort</h3>
+    <div class="form-group">
+      <label>Cohort Name</label>
+      <input type="text" id="cohortName" placeholder="e.g. Pentecost 2026 Baptism Class">
+    </div>
+    <div class="form-group">
+      <label>Baptism Date</label>
+      <input type="date" id="cohortDate">
+    </div>
+    <div class="form-group">
+      <label>Selected Members (<span id="selectedMembersCount">0</span>)</label>
+      <p style="font-size:12px;color:var(--gray);margin-bottom:6px;">Check members in the table first, then create cohort.</p>
+      <div id="selectedMembersList" style="max-height:160px;overflow-y:auto;background:var(--light);border-radius:8px;padding:10px;font-size:12px;color:var(--gray);">No members selected</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('createCohortModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCreateCohort()">Create Cohort</button>
+    </div>
+  </div>
+</div>
+
+<script src="churchData.js?v=20260607"></script>
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+  const VALID_PINS = [
+    localStorage.getItem('onc_pin')       || '2500',
+    localStorage.getItem('onc_pin_admin') || '1500'
+  ];
+
+  var allMembers   = [];   // built from churchData.js
+  var retentionMap = {};   // name → { lastSeen, sessions30d, stream }
+  var flagsData    = [];
+  var journeyData  = [];
+  var activeMember = null; // currently open in profile panel
+
+  // ── AUTH ──────────────────────────────────────────────────────
+  function checkPin() {
+    var pin = document.getElementById('pinInput').value.trim();
+    if (VALID_PINS.includes(pin)) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display   = 'block';
+      init();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('pinInput').value = '';
+    }
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────
+  function init() {
+    buildMemberList();
+    populateFilters();
+    loadAll();
+  }
+
+  function buildMemberList() {
+    allMembers = [];
+    var cd = window.CHURCH_DATA;
+    if (!cd) return;
+
+    cd.spsShepherds.forEach(function (s) {
+      var zone = cd.zones.find(function (z) { return z.shepherds.includes(s.name); });
+      (s.members || []).forEach(function (m) {
+        allMembers.push({
+          name:      m.name,
+          contact:   m.contact || '',
+          shepherd:  s.name,
+          zone:      zone ? zone.name : 'Unknown',
+          microchurch: '',
+          stream:    'SPS',
+          id:        m.name.toLowerCase().replace(/\s+/g, '_') + '_sps'
+        });
+      });
+    });
+
+    cd.mcShepherds.forEach(function (s) {
+      (s.members || []).forEach(function (m) {
+        allMembers.push({
+          name:      m.name,
+          contact:   m.contact || '',
+          shepherd:  s.name,
+          zone:      '',
+          microchurch: s.microchurch || '',
+          stream:    'MC',
+          id:        m.name.toLowerCase().replace(/\s+/g, '_') + '_mc'
+        });
+      });
+    });
+  }
+
+  function populateFilters() {
+    var cd = window.CHURCH_DATA;
+    if (!cd) return;
+
+    var zoneSet = [];
+    cd.zones.forEach(function (z) { zoneSet.push(z.name); });
+    cd.mcShepherds.forEach(function (s) { if (s.microchurch) zoneSet.push(s.microchurch); });
+
+    var zSel = document.getElementById('filtZone');
+    zoneSet.forEach(function (z) {
+      var o = document.createElement('option');
+      o.value = z; o.textContent = z;
+      zSel.appendChild(o);
+    });
+
+    var sheps = [];
+    cd.spsShepherds.forEach(function (s) { sheps.push(s.name); });
+    cd.mcShepherds.forEach(function (s) { sheps.push(s.name); });
+    var sSel = document.getElementById('filtShepherd');
+    sheps.sort().forEach(function (n) {
+      var o = document.createElement('option');
+      o.value = n; o.textContent = n;
+      sSel.appendChild(o);
+    });
+
+    // Populate mentor select
+    var mSel = document.getElementById('mentorSelect');
+    sheps.forEach(function (n) {
+      var o = document.createElement('option');
+      o.value = n; o.textContent = n;
+      mSel.appendChild(o);
+    });
+  }
+
+  // ── DATA LOADING ──────────────────────────────────────────────
+  function fetchData(action, params, callback) {
+    var cbName = '_cbm_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    var called = false;
+    var script = document.createElement('script');
+
+    window[cbName] = function (data) {
+      if (called) return;
+      called = true;
+      callback(data);
+      if (document.body.contains(script)) document.body.removeChild(script);
+      delete window[cbName];
+    };
+
+    var query = '?action=' + encodeURIComponent(action) + '&callback=' + cbName;
+    if (params) {
+      Object.keys(params).forEach(function (k) {
+        query += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      });
+    }
+    query += '&_=' + Date.now();
+    script.src = SCRIPT_URL + query;
+    script.onerror = function () { if (!called) window[cbName]({ status: 'error' }); };
+    document.body.appendChild(script);
+    setTimeout(function () { if (!called) window[cbName]({ status: 'timeout' }); }, 10000);
+  }
+
+  function loadAll() {
+    fetchData('getRetentionData', null, function (data) {
+      if (data && data.retention) retentionMap = data.retention;
+      renderTable();
+    });
+    fetchData('getFlags', null, function (data) {
+      if (data && data.records) flagsData = data.records;
+    });
+    fetchData('getDiscipleshipJourney', null, function (data) {
+      if (data && data.records) journeyData = data.records;
+    });
+    loadBaptism();
+  }
+
+  // ── RETENTION TABLE ───────────────────────────────────────────
+  var STAGE_LABELS = { 1:'First-Timer', 2:'Follow-Up Active', 3:'Foundations School',
+    4:'Membership School', 5:'Integrated', 6:'Established Member' };
+
+  function getStatus(member) {
+    var r = retentionMap[member.name];
+    if (!r || !r.lastSeen) return 'grey';
+    var parts  = r.lastSeen.split('/');
+    var lastDt = parts.length === 3 ? new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0])) : null;
+    if (!lastDt || isNaN(lastDt)) return 'grey';
+    var days = Math.floor((Date.now() - lastDt.getTime()) / 86400000);
+    if (days <= 7)  return 'green';
+    if (days <= 14) return 'amber';
+    return 'red';
+  }
+
+  function getFlagBadge(name) {
+    var open = flagsData.filter(function (f) { return f.MemberName === name && !f.ResolutionDate; });
+    if (!open.length) return '';
+    var types = { Yellow:'amber', Orange:'amber', Red:'red', Purple:'purple', StageStall:'grey' };
+    var f = open[0];
+    var cls = types[f.FlagType] || 'grey';
+    return ' <span class="badge badge-' + cls + '" style="margin-left:4px;">' + f.FlagType + '</span>';
+  }
+
+  function renderTable() {
+    var zone    = document.getElementById('filtZone').value;
+    var shep    = document.getElementById('filtShepherd').value;
+    var stream  = document.getElementById('filtStream').value;
+    var flagFil = document.getElementById('filtFlag').value;
+    var search  = (document.getElementById('tableSearch').value || '').toLowerCase();
+
+    var filtered = allMembers.filter(function (m) {
+      if (zone   && m.zone !== zone && m.microchurch !== zone) return false;
+      if (shep   && m.shepherd !== shep)  return false;
+      if (stream && m.stream !== stream)  return false;
+      if (search && !m.name.toLowerCase().includes(search)) return false;
+      if (flagFil) {
+        var s = getStatus(m);
+        if (s !== flagFil) return false;
+      }
+      return true;
+    });
+
+    // Sort: red first, amber, green, grey
+    var order = { red:0, amber:1, green:2, grey:3 };
+    filtered.sort(function (a, b) { return (order[getStatus(a)] || 3) - (order[getStatus(b)] || 3); });
+
+    document.getElementById('memberCount').textContent = filtered.length + ' members';
+
+    if (!filtered.length) {
+      document.getElementById('retentionBody').innerHTML =
+        '<tr><td colspan="7"><div class="empty"><div class="icon">🔍</div><p>No members match filters</p></div></td></tr>';
+      return;
+    }
+
+    document.getElementById('retentionBody').innerHTML = filtered.map(function (m) {
+      var status  = getStatus(m);
+      var rowCls  = 'row-' + status;
+      var r       = retentionMap[m.name] || {};
+      var lastSeen = r.lastSeen || '—';
+      var sessions = r.sessions30d != null ? r.sessions30d : '—';
+      var statusBadge = {
+        green: '<span class="badge badge-green">Active</span>',
+        amber: '<span class="badge badge-amber">At Risk</span>',
+        red:   '<span class="badge badge-red">Critical</span>',
+        grey:  '<span class="badge badge-grey">Never Seen</span>'
+      }[status];
+      var streamBadge = m.stream === 'SPS'
+        ? '<span class="badge badge-sps">SPS</span>'
+        : '<span class="badge badge-mc">MC</span>';
+      var location = m.stream === 'SPS' ? m.zone : m.microchurch;
+
+      return '<tr class="' + rowCls + '" onclick="openMember(' + JSON.stringify(m).replace(/"/g,'&quot;') + ')">' +
+        '<td style="font-weight:700;">' + m.name + getFlagBadge(m.name) + '</td>' +
+        '<td>' + m.shepherd + '</td>' +
+        '<td>' + streamBadge + '</td>' +
+        '<td>' + (location || '—') + '</td>' +
+        '<td>' + lastSeen + '</td>' +
+        '<td style="text-align:center;">' + sessions + '</td>' +
+        '<td>' + statusBadge + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // ── SEARCH ────────────────────────────────────────────────────
+  function renderSearch() {
+    var q   = (document.getElementById('memberSearch').value || '').toLowerCase().trim();
+    var box = document.getElementById('searchResults');
+    if (q.length < 2) { box.innerHTML = ''; return; }
+
+    var hits = allMembers.filter(function (m) { return m.name.toLowerCase().includes(q); }).slice(0, 12);
+    if (!hits.length) {
+      box.innerHTML = '<div class="empty" style="padding:20px"><div class="icon">🔍</div><p>No matches</p></div>';
+      return;
+    }
+    box.innerHTML = hits.map(function (m) {
+      var r = retentionMap[m.name] || {};
+      return '<div class="search-item" onclick="openMember(' + JSON.stringify(m).replace(/"/g,'&quot;') + ')">' +
+        '<div><div class="search-name">' + m.name + '</div>' +
+        '<div class="search-meta">' + m.shepherd + ' · ' + m.stream + (m.zone ? ' · ' + m.zone : (m.microchurch ? ' · ' + m.microchurch : '')) + '</div></div>' +
+        '<span class="badge badge-' + getStatus(m) + '">' + (r.lastSeen || 'Never') + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  // ── PROFILE PANEL ─────────────────────────────────────────────
+  function openMember(m) {
+    activeMember = m;
+    document.getElementById('panelName').textContent = m.name;
+    document.getElementById('panelOverlay').classList.add('open');
+    document.getElementById('profilePanel').classList.add('open');
+    renderPanelBase(m);
+    // Load notes for this member
+    fetchData('getPastoralNotes', { memberId: m.id }, function (data) {
+      renderNotes(data && data.notes ? data.notes : []);
+    });
+  }
+
+  function renderPanelBase(m) {
+    var r      = retentionMap[m.name] || {};
+    var status = getStatus(m);
+    var statusLabel = { green:'Active', amber:'At Risk', red:'Critical', grey:'Never Seen' }[status];
+
+    // Journey
+    var journey = journeyData.find(function (j) { return j.MemberName === m.name; });
+    var stage   = journey ? (STAGE_LABELS[journey.CurrentStage] || 'Stage ' + journey.CurrentStage) : 'Not on record';
+
+    // Open flags
+    var openFlags = flagsData.filter(function (f) { return f.MemberName === m.name && !f.ResolutionDate; });
+
+    // Build attendance dots from retention
+    var dots = '';
+    for (var i = 0; i < 12; i++) {
+      if (i < (r.sessions30d || 0)) {
+        dots += '<div class="dot dot-present" title="Present"></div>';
+      } else {
+        dots += '<div class="dot dot-grey" title="No record"></div>';
+      }
+    }
+
+    document.getElementById('panelBody').innerHTML =
+      '<div class="panel-actions">' +
+        '<button class="btn btn-primary" onclick="openModal(\'noteModal\')">📝 Add Note</button>' +
+        '<button class="btn btn-gold" onclick="openModal(\'mentorModal\')">🤝 Assign Mentor</button>' +
+        '<button class="btn btn-outline" onclick="openModal(\'stageModal\')">🚶 Update Stage</button>' +
+      '</div>' +
+
+      '<div class="panel-section">' +
+        '<div class="panel-section-title">Member Info</div>' +
+        '<div class="info-grid">' +
+          '<div class="info-item"><label>Name</label><span>' + m.name + '</span></div>' +
+          '<div class="info-item"><label>Contact</label><span>' + (m.contact || '—') + '</span></div>' +
+          '<div class="info-item"><label>Shepherd</label><span>' + m.shepherd + '</span></div>' +
+          '<div class="info-item"><label>Stream</label><span>' + m.stream + '</span></div>' +
+          '<div class="info-item"><label>' + (m.stream === 'SPS' ? 'Zone' : 'Microchurch') + '</label>' +
+            '<span>' + (m.zone || m.microchurch || '—') + '</span></div>' +
+          '<div class="info-item"><label>Status</label><span class="badge badge-' + status + '">' + statusLabel + '</span></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="panel-section">' +
+        '<div class="panel-section-title">Last Seen</div>' +
+        '<div style="font-size:18px;font-weight:800;color:var(--navy);">' + (r.lastSeen || 'Never recorded') + '</div>' +
+        '<div style="font-size:12px;color:var(--gray);margin-top:2px;">Sessions last 30 days: <strong>' + (r.sessions30d || 0) + '</strong></div>' +
+      '</div>' +
+
+      '<div class="panel-section">' +
+        '<div class="panel-section-title">Attendance (last 12 sessions)</div>' +
+        '<div class="attendance-dots">' + dots + '</div>' +
+      '</div>' +
+
+      '<div class="panel-section">' +
+        '<div class="panel-section-title">Discipleship Stage</div>' +
+        '<div style="font-size:15px;font-weight:700;color:var(--navy);">' + stage + '</div>' +
+      '</div>' +
+
+      (openFlags.length ? '<div class="panel-section">' +
+        '<div class="panel-section-title">Open Flags</div>' +
+        openFlags.map(function (f) {
+          return '<div class="note-item"><div class="note-item-type">' + f.FlagType + '</div>' +
+            '<div class="note-item-text">' + (f.TriggerReason || '—') + '</div>' +
+            '<div class="note-item-meta">Flagged: ' + (f.FlagDate || '—') + '</div></div>';
+        }).join('') +
+      '</div>' : '') +
+
+      '<div class="panel-section">' +
+        '<div class="panel-section-title">Pastoral Notes</div>' +
+        '<div id="notesList"><div class="empty" style="padding:16px"><p>Loading notes…</p></div></div>' +
+      '</div>';
+  }
+
+  function renderNotes(notes) {
+    var el = document.getElementById('notesList');
+    if (!el) return;
+    if (!notes.length) {
+      el.innerHTML = '<div class="empty" style="padding:16px"><div class="icon">📭</div><p>No notes yet</p></div>';
+      return;
+    }
+    el.innerHTML = notes.slice().reverse().map(function (n) {
+      return '<div class="note-item">' +
+        '<div class="note-item-type">' + (n.NoteType || 'Note') + (n.FollowUpRequired === 'Yes' ? ' · <span style="color:var(--orange)">Follow-up: ' + (n.FollowUpDate || 'TBD') + '</span>' : '') + '</div>' +
+        '<div class="note-item-text">' + (n.Note || '—') + '</div>' +
+        '<div class="note-item-meta">' + (n.ShepherdName || '—') + ' · ' + (n.Date || '—') + '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function closePanel() {
+    document.getElementById('panelOverlay').classList.remove('open');
+    document.getElementById('profilePanel').classList.remove('open');
+  }
+
+  // ── MODALS ────────────────────────────────────────────────────
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    if (id === 'mentorModal') {
+      var today = new Date();
+      document.getElementById('mentorStart').value = today.toISOString().slice(0, 10);
+      var end = new Date(today); end.setMonth(end.getMonth() + 3);
+      document.getElementById('mentorEnd').value = end.toISOString().slice(0, 10);
+    }
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  function toggleFollowUpDate() {
+    var show = document.getElementById('noteFollowUp').value === 'Yes';
+    document.getElementById('followUpDateWrap').style.display = show ? 'block' : 'none';
+  }
+
+  document.getElementById('mentorStart').addEventListener('change', function () {
+    var d = new Date(this.value); d.setMonth(d.getMonth() + 3);
+    document.getElementById('mentorEnd').value = d.toISOString().slice(0, 10);
+  });
+
+  function submitNote() {
+    if (!activeMember) return;
+    var note = document.getElementById('noteText').value.trim();
+    if (!note) { alert('Please enter a note.'); return; }
+    var payload = {
+      action:          'addPastoralNote',
+      memberId:        activeMember.id,
+      memberName:      activeMember.name,
+      shepherdName:    activeMember.shepherd,
+      noteType:        document.getElementById('noteType').value,
+      note:            note,
+      followUpRequired: document.getElementById('noteFollowUp').value,
+      followUpDate:    document.getElementById('noteFollowUpDate').value || ''
+    };
+    fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(payload) })
+      .then(function () {
+        closeModal('noteModal');
+        document.getElementById('noteText').value = '';
+        fetchData('getPastoralNotes', { memberId: activeMember.id }, function (data) {
+          renderNotes(data && data.notes ? data.notes : []);
+        });
+      }).catch(function () { closeModal('noteModal'); });
+  }
+
+  function submitMentor() {
+    if (!activeMember) return;
+    var payload = {
+      action:        'createAssignment',
+      memberId:      activeMember.id,
+      memberName:    activeMember.name,
+      mentorName:    document.getElementById('mentorSelect').value,
+      startDate:     document.getElementById('mentorStart').value,
+      targetEndDate: document.getElementById('mentorEnd').value,
+      status:        'Active'
+    };
+    fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(payload) })
+      .then(function () { closeModal('mentorModal'); alert('Mentor assigned successfully.'); })
+      .catch(function () { closeModal('mentorModal'); });
+  }
+
+  function submitStage() {
+    if (!activeMember) return;
+    var stage = document.getElementById('stageSelect').value;
+    var payload = {
+      action:    'updateMemberStage',
+      memberId:  activeMember.id,
+      memberName: activeMember.name,
+      newStage:  stage,
+      updatedBy: 'Admin'
+    };
+    fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(payload) })
+      .then(function () {
+        closeModal('stageModal');
+        fetchData('getDiscipleshipJourney', null, function (data) {
+          if (data && data.records) { journeyData = data.records; renderPanelBase(activeMember); }
+        });
+      }).catch(function () { closeModal('stageModal'); });
+  }
+
+  // ── BAPTISM TRACKING ──────────────────────────────────────────
+  var baptismData      = [];
+  var activeBapMember  = null;
+  var selectedBapIds   = {};
+
+  function loadBaptism() {
+    fetchData('getBaptismRecords', null, function (data) {
+      if (data && data.records) {
+        baptismData = data.records;
+        populateBapShepherdFilter();
+        renderBaptismTable();
+      }
+    });
+  }
+
+  function populateBapShepherdFilter() {
+    var sel = document.getElementById('filtBapShepherd');
+    var sheps = {};
+    allMembers.forEach(function (m) { sheps[m.shepherd] = true; });
+    Object.keys(sheps).sort().forEach(function (n) {
+      var o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
+    });
+  }
+
+  function getBapStatus(memberId) {
+    var rec = baptismData.find(function (r) { return r.MemberID.toString() === memberId; });
+    return rec || { Status: 'Not Started', BaptismDate: '', CohortName: '' };
+  }
+
+  var statusBadgeBap = {
+    'Not Started': '<span class="badge badge-grey">Not Started</span>',
+    'Preparing':   '<span class="badge badge-amber">Preparing</span>',
+    'Ready':       '<span class="badge badge-blue">Ready</span>',
+    'Completed':   '<span class="badge badge-green">Completed</span>'
+  };
+
+  function renderBaptismTable() {
+    var statusFil = document.getElementById('filtBapStatus').value;
+    var shepFil   = document.getElementById('filtBapShepherd').value;
+    var search    = (document.getElementById('bapSearch').value || '').toLowerCase();
+
+    var rows = allMembers.filter(function (m) {
+      if (shepFil && m.shepherd !== shepFil) return false;
+      if (search && !m.name.toLowerCase().includes(search)) return false;
+      var bap = getBapStatus(m.id);
+      if (statusFil && bap.Status !== statusFil) return false;
+      return true;
+    });
+
+    var total       = allMembers.length;
+    var completed   = baptismData.filter(function (r) { return r.Status === 'Completed'; }).length;
+    var preparing   = baptismData.filter(function (r) { return r.Status === 'Preparing' || r.Status === 'Ready'; }).length;
+    var notStarted  = total - completed - preparing;
+
+    document.getElementById('baptismCount').textContent  = rows.length + ' members';
+    document.getElementById('bapTotal').textContent      = total;
+    document.getElementById('bapCompleted').textContent  = completed;
+    document.getElementById('bapPreparing').textContent  = preparing;
+    document.getElementById('bapNotStarted').textContent = Math.max(0, notStarted);
+
+    if (!rows.length) {
+      document.getElementById('baptismBody').innerHTML =
+        '<tr><td colspan="8"><div class="empty"><div class="icon">🔍</div><p>No members match filters</p></div></td></tr>';
+      return;
+    }
+
+    document.getElementById('baptismBody').innerHTML = rows.map(function (m) {
+      var bap = getBapStatus(m.id);
+      var checked = selectedBapIds[m.id] ? 'checked' : '';
+      var badgeHtml = statusBadgeBap[bap.Status] || statusBadgeBap['Not Started'];
+      var streamBadge = m.stream === 'SPS' ? '<span class="badge badge-sps">SPS</span>' : '<span class="badge badge-mc">MC</span>';
+      return '<tr>' +
+        '<td><input type="checkbox" ' + checked + ' onchange="toggleBapSelect(\'' + m.id.replace(/'/g,"\\'") + '\',this)"></td>' +
+        '<td style="font-weight:700;">' + m.name + '</td>' +
+        '<td>' + m.shepherd + '</td>' +
+        '<td>' + streamBadge + '</td>' +
+        '<td>' + badgeHtml + '</td>' +
+        '<td>' + (bap.BaptismDate || '—') + '</td>' +
+        '<td style="font-size:12px;color:var(--gray);">' + (bap.CohortName || '—') + '</td>' +
+        '<td><button class="btn btn-outline" style="font-size:11px;padding:5px 10px;" onclick="openBaptismStatusModal(' +
+          JSON.stringify(m).replace(/"/g,'&quot;') + ')">Edit</button></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function toggleSelectAll(cb) {
+    var rows = document.querySelectorAll('#baptismBody input[type="checkbox"]');
+    rows.forEach(function (r) { r.checked = cb.checked; });
+    selectedBapIds = {};
+    if (cb.checked) {
+      allMembers.forEach(function (m) { selectedBapIds[m.id] = m; });
+    }
+  }
+
+  function toggleBapSelect(memberId, cb) {
+    var m = allMembers.find(function (x) { return x.id === memberId; });
+    if (cb.checked && m) selectedBapIds[memberId] = m;
+    else delete selectedBapIds[memberId];
+  }
+
+  function openBaptismStatusModal(member) {
+    activeBapMember = member;
+    var bap = getBapStatus(member.id);
+    document.getElementById('baptismMemberLabel').textContent = member.name + ' · ' + member.shepherd;
+    document.getElementById('baptismStatusSelect').value = bap.Status || 'Not Started';
+    document.getElementById('baptismDateInput').value = bap.BaptismDate || '';
+    document.getElementById('baptismStatusModal').classList.add('open');
+  }
+
+  function submitBaptismStatus() {
+    if (!activeBapMember) return;
+    var status      = document.getElementById('baptismStatusSelect').value;
+    var baptismDate = document.getElementById('baptismDateInput').value;
+    var payload = {
+      action:      'updateBaptismStatus',
+      memberId:    activeBapMember.id,
+      memberName:  activeBapMember.name,
+      shepherdName: activeBapMember.shepherd,
+      status:      status,
+      baptismDate: baptismDate,
+      updatedBy:   'Admin'
+    };
+    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+      .then(function () {
+        closeModal('baptismStatusModal');
+        var existing = baptismData.find(function (r) { return r.MemberID.toString() === activeBapMember.id; });
+        if (existing) { existing.Status = status; if (baptismDate) existing.BaptismDate = baptismDate; }
+        else baptismData.push({ MemberID: activeBapMember.id, MemberName: activeBapMember.name, ShepherdName: activeBapMember.shepherd, Status: status, BaptismDate: baptismDate, CohortName: '' });
+        renderBaptismTable();
+      }).catch(function () { closeModal('baptismStatusModal'); });
+  }
+
+  function openCreateCohortModal() {
+    var selected = Object.values(selectedBapIds);
+    document.getElementById('selectedMembersCount').textContent = selected.length;
+    var listEl = document.getElementById('selectedMembersList');
+    if (!selected.length) {
+      listEl.textContent = 'No members selected. Check the checkboxes in the table first.';
+    } else {
+      listEl.innerHTML = selected.map(function (m) {
+        return '<div style="padding:3px 0;border-bottom:1px solid var(--border);">✓ ' + m.name + ' <span style="color:var(--gray);">(' + m.shepherd + ')</span></div>';
+      }).join('');
+    }
+    document.getElementById('cohortName').value = '';
+    document.getElementById('cohortDate').value = '';
+    document.getElementById('createCohortModal').classList.add('open');
+  }
+
+  function submitCreateCohort() {
+    var cohortName = document.getElementById('cohortName').value.trim();
+    var cohortDate = document.getElementById('cohortDate').value;
+    var selected   = Object.values(selectedBapIds);
+    if (!cohortName) { alert('Please enter a cohort name.'); return; }
+    if (!selected.length) { alert('Please select at least one member.'); return; }
+    var payload = {
+      action:      'createBaptismCohort',
+      cohortName:  cohortName,
+      baptismDate: cohortDate,
+      createdBy:   'Admin',
+      members:     selected.map(function (m) {
+        return { memberId: m.id, memberName: m.name, shepherdName: m.shepherd };
+      })
+    };
+    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+      .then(function () {
+        closeModal('createCohortModal');
+        selectedBapIds = {};
+        var allCheck = document.getElementById('bapSelectAll');
+        if (allCheck) allCheck.checked = false;
+        selected.forEach(function (m) {
+          var existing = baptismData.find(function (r) { return r.MemberID.toString() === m.id; });
+          if (existing) { existing.CohortName = cohortName; existing.BaptismDate = cohortDate; if (!existing.Status || existing.Status === 'Not Started') existing.Status = 'Preparing'; }
+          else baptismData.push({ MemberID: m.id, MemberName: m.name, ShepherdName: m.shepherd, Status: 'Preparing', BaptismDate: cohortDate, CohortName: cohortName });
+        });
+        renderBaptismTable();
+        alert('✅ Cohort "' + cohortName + '" created for ' + selected.length + ' member(s)!');
+      }).catch(function () { closeModal('createCohortModal'); });
+  }
+
+  // ── EXPORT CSV ────────────────────────────────────────────────
+  function exportCSV() {
+    var rows = [['Name','Shepherd','Stream','Zone/MC','Last Seen','Sessions (30d)','Status']];
+    allMembers.forEach(function (m) {
+      var r = retentionMap[m.name] || {};
+      rows.push([m.name, m.shepherd, m.stream, m.zone || m.microchurch, r.lastSeen || '', r.sessions30d || 0, getStatus(m)]);
+    });
+    var csv = rows.map(function (r) {
+      return r.map(function (c) { return '"' + String(c).replace(/"/g,'""') + '"'; }).join(',');
+    }).join('\n');
+    var a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'members_retention_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+  }
+</script>
+</body>
+</html>

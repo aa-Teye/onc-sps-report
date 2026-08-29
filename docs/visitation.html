@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ONC — Visitation Tracker</title>
+  <link rel="icon" href="./logo.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:   #0a1628;
+      --blue:   #1a3a6b;
+      --accent: #3b82f6;
+      --gold:   #f59e0b;
+      --green:  #22c55e;
+      --red:    #ef4444;
+      --orange: #f97316;
+      --gray:   #64748b;
+      --light:  #f1f5f9;
+      --white:  #fff;
+      --border: #e2e8f0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--navy); min-height:100vh; }
+
+    /* LOGIN */
+    #loginScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+    .login-box { background:var(--white); border-radius:24px; padding:40px 32px; width:100%; max-width:360px; text-align:center; box-shadow:0 24px 64px rgba(0,0,0,.4); }
+    .login-logo { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,var(--gold),#fbbf24); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-weight:800; font-size:18px; color:var(--navy); }
+    .login-box h2 { font-size:22px; font-weight:800; color:var(--navy); margin-bottom:4px; }
+    .login-box p { color:var(--gray); font-size:14px; margin-bottom:24px; }
+    .login-box input { width:100%; padding:14px; border:2px solid var(--border); border-radius:12px; font-size:18px; text-align:center; letter-spacing:6px; outline:none; color:var(--navy); font-family:inherit; transition:border-color .2s; margin-bottom:10px; }
+    .login-box input:focus { border-color:var(--accent); }
+    .login-btn { width:100%; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--blue)); color:var(--white); font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; transition:opacity .2s; }
+    .login-btn:hover { opacity:.9; }
+    .login-error { color:var(--red); font-size:13px; margin-top:10px; display:none; }
+
+    /* DASHBOARD */
+    #dashboard { display:none; background:var(--light); min-height:100vh; }
+    .topbar { background:var(--white); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .topbar-left { display:flex; align-items:center; gap:14px; }
+    .back-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:2px solid var(--border); border-radius:10px; background:var(--white); color:var(--navy); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; text-decoration:none; transition:all .2s; }
+    .back-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .topbar h1 { font-size:20px; font-weight:800; color:var(--navy); }
+    .page-wrap { max-width:1200px; margin:0 auto; padding:28px; }
+
+    /* STAT CARDS */
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+    .stat-card { background:var(--white); border-radius:16px; padding:18px 20px; box-shadow:0 1px 8px rgba(0,0,0,.06); }
+    .stat-card .label { font-size:11px; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.6px; }
+    .stat-card .value { font-size:28px; font-weight:800; color:var(--navy); margin-top:6px; }
+    .stat-card .sub { font-size:12px; color:var(--gray); margin-top:4px; }
+    .stat-pending .value { color:var(--orange); }
+    .stat-progress .value { color:var(--accent); }
+    .stat-done .value { color:var(--green); }
+    .stat-overdue .value { color:var(--red); }
+
+    /* CARDS */
+    .section-card { background:var(--white); border-radius:16px; padding:24px; box-shadow:0 1px 8px rgba(0,0,0,.06); margin-bottom:24px; }
+    .section-title { font-size:16px; font-weight:800; color:var(--navy); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .pill { padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; background:var(--light); color:var(--accent); }
+
+    /* FILTER BAR */
+    .filter-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+    .filter-bar select, .filter-bar input { padding:8px 12px; border:2px solid var(--border); border-radius:10px; font-family:inherit; font-size:13px; color:var(--navy); background:var(--white); outline:none; }
+    .filter-bar select:focus, .filter-bar input:focus { border-color:var(--accent); }
+    .btn { padding:9px 18px; border:none; border-radius:10px; font-family:inherit; font-weight:700; font-size:13px; cursor:pointer; transition:all .2s; }
+    .btn-primary { background:var(--accent); color:var(--white); }
+    .btn-primary:hover { opacity:.9; }
+    .btn-outline { background:none; border:2px solid var(--accent); color:var(--accent); }
+    .btn-outline:hover { background:var(--accent); color:var(--white); }
+    .btn-gold { background:var(--gold); color:var(--navy); }
+    .btn-gold:hover { opacity:.9; }
+    .btn-sm { padding:6px 12px; font-size:11px; border-radius:8px; }
+    .btn-ghost { background:var(--light); color:var(--navy); }
+    .btn-ghost:hover { background:var(--border); }
+
+    /* TABLE */
+    .table-wrap { border-radius:12px; overflow:auto; border:1px solid var(--border); }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead tr { background:var(--navy); }
+    thead th { padding:12px 14px; text-align:left; color:rgba(255,255,255,.8); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; white-space:nowrap; }
+    tbody tr { border-bottom:1px solid var(--border); transition:background .15s; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { filter:brightness(.97); }
+    td { padding:11px 14px; color:var(--navy); white-space:nowrap; }
+    .guest-cell { font-weight:700; }
+    .row-overdue { background:#fef2f2; }
+
+    /* BADGES */
+    .badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+    .badge-pending  { background:#ffedd5; color:#9a3412; }
+    .badge-assigned { background:#dbeafe; color:#1e40af; }
+    .badge-visited  { background:#ede9fe; color:#6d28d9; }
+    .badge-closed   { background:#dcfce7; color:#15803d; }
+    .badge-escalated{ background:#fee2e2; color:#991b1b; }
+    .badge-overdue  { background:#fee2e2; color:#991b1b; }
+
+    .step-track { display:flex; gap:3px; }
+    .step-dot { width:16px; height:6px; border-radius:4px; background:var(--border); }
+    .step-dot.filled { background:var(--accent); }
+    .step-dot.escalated { background:var(--red); }
+
+    /* MODAL */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--white); border-radius:20px; padding:28px; width:100%; max-width:460px; box-shadow:0 24px 64px rgba(0,0,0,.3); }
+    .modal h3 { font-size:18px; font-weight:800; color:var(--navy); margin-bottom:6px; }
+    .modal .sub { font-size:13px; color:var(--gray); margin-bottom:18px; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; font-size:12px; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+    .form-group select, .form-group textarea, .form-group input { width:100%; padding:10px 12px; border:2px solid var(--border); border-radius:10px; font-family:inherit; font-size:14px; color:var(--navy); outline:none; transition:border-color .2s; }
+    .form-group select:focus, .form-group textarea:focus, .form-group input:focus { border-color:var(--accent); }
+    .form-group textarea { resize:vertical; min-height:80px; }
+    .modal-actions { display:flex; gap:10px; margin-top:20px; }
+    .modal-actions .btn { flex:1; padding:12px; }
+    .btn-cancel { background:var(--light); color:var(--navy); border:none; border-radius:10px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; padding:12px; flex:1; }
+    .btn-cancel:hover { background:var(--border); }
+
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--navy); color:var(--white); padding:12px 22px; border-radius:12px; font-size:13px; font-weight:600; box-shadow:0 12px 32px rgba(0,0,0,.3); z-index:400; transition:transform .3s ease; }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+
+    /* EMPTY */
+    .empty { text-align:center; padding:40px 20px; color:var(--gray); }
+    .empty .icon { font-size:36px; margin-bottom:10px; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .animate { animation:fadeUp .25s ease; }
+
+    @media (max-width: 800px) {
+      .stat-grid { grid-template-columns:repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">ONC</div>
+    <h2>Visitation Tracker</h2>
+    <p>First Timers leadership access required</p>
+    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6"
+      onkeydown="if(event.key==='Enter')checkPin()">
+    <button class="login-btn" onclick="checkPin()">🔐 Enter</button>
+    <p class="login-error" id="loginError">❌ Incorrect PIN</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="admin.html" class="back-btn">← Back to Admin</a>
+      <h1>🚗 First-Timer Visitation Tracker</h1>
+    </div>
+    <button class="btn btn-outline" onclick="loadAll()">🔄 Refresh</button>
+  </div>
+
+  <div class="page-wrap">
+
+    <!-- STATS -->
+    <div class="stat-grid">
+      <div class="stat-card stat-pending animate">
+        <div class="label">Pending</div>
+        <div class="value" id="statPending">—</div>
+        <div class="sub">Awaiting assignment</div>
+      </div>
+      <div class="stat-card stat-progress animate">
+        <div class="label">In Progress</div>
+        <div class="value" id="statProgress">—</div>
+        <div class="sub">Assigned / visited</div>
+      </div>
+      <div class="stat-card stat-done animate">
+        <div class="label">Closed</div>
+        <div class="value" id="statDone">—</div>
+        <div class="sub">Connected &amp; closed</div>
+      </div>
+      <div class="stat-card stat-overdue animate">
+        <div class="label">Overdue</div>
+        <div class="value" id="statOverdue">—</div>
+        <div class="sub">Past due date, unresolved</div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="section-card animate">
+      <div class="section-title">
+        First Timers — Visitation Pipeline
+        <span class="pill" id="totalCount">Loading…</span>
+      </div>
+      <div class="filter-bar">
+        <select id="filtStatus" onchange="renderTable()">
+          <option value="">All Statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="Assigned">Assigned</option>
+          <option value="Visited">Visited</option>
+          <option value="Escalated">Escalated</option>
+          <option value="Closed">Closed</option>
+        </select>
+        <select id="filtOverdue" onchange="renderTable()">
+          <option value="">All Records</option>
+          <option value="overdue">Overdue Only</option>
+        </select>
+        <input type="search" id="tableSearch" placeholder="Search guest name…" oninput="renderTable()" style="min-width:200px;">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Phone</th>
+              <th>Registered</th>
+              <th>Due</th>
+              <th>Assigned To</th>
+              <th>Escalation</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="visitBody">
+            <tr><td colspan="8" class="empty">Loading visitation data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ASSIGN MODAL -->
+<div class="modal-overlay" id="assignModal">
+  <div class="modal">
+    <h3>Assign Visitation</h3>
+    <p class="sub" id="assignModalSub"></p>
+    <div class="form-group">
+      <label>Assign To</label>
+      <input type="text" id="assignTo" placeholder="e.g. Sister Akosua Mensah" list="teamList">
+      <datalist id="teamList"></datalist>
+    </div>
+    <div class="form-group">
+      <label>Scheduled Visit Date</label>
+      <input type="date" id="assignScheduledDate">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('assignModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAssign()">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- OUTCOME MODAL -->
+<div class="modal-overlay" id="outcomeModal">
+  <div class="modal">
+    <h3>Record Visit Outcome</h3>
+    <p class="sub" id="outcomeModalSub"></p>
+    <div class="form-group">
+      <label>Outcome</label>
+      <select id="outcomeSelect">
+        <option value="Connected">✅ Connected — settling in well</option>
+        <option value="No Answer">📵 No Answer / Unreachable</option>
+        <option value="Rescheduled">🔁 Rescheduled — visit again</option>
+        <option value="Not Interested">🚫 Not Interested</option>
+        <option value="Moved">📦 Relocated / Moved Away</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="outcomeNotes" placeholder="What happened during the visit / call…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('outcomeModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitOutcome()">Save Outcome</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="churchData.js?v=20260607"></script>
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+  const VALID_PINS = [
+    localStorage.getItem('onc_pin')        || '2500',
+    localStorage.getItem('onc_pin_admin')  || '1500',
+    localStorage.getItem('onc_pin_ftshead')|| '5000'
+  ];
+
+  const ESCALATION_LABELS = {
+    1: 'Step 1 — Initial Contact',
+    2: 'Step 2 — Follow-Up Call',
+    3: 'Step 3 — Home Visit',
+    4: 'Step 4 — Pastoral Referral',
+    5: 'Step 5 — Final Review'
+  };
+
+  var visitations  = [];
+  var activeRecord = null;
+
+  // ── AUTH ──────────────────────────────────────────────────────
+  function checkPin() {
+    var pin = document.getElementById('pinInput').value.trim();
+    if (VALID_PINS.includes(pin)) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display   = 'block';
+      init();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('pinInput').value = '';
+    }
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────
+  function init() {
+    populateTeamList();
+    loadAll();
+  }
+
+  function populateTeamList() {
+    var cd = window.CHURCH_DATA;
+    var dl = document.getElementById('teamList');
+    if (!cd) return;
+    var names = [];
+    cd.spsShepherds.forEach(function (s) { names.push(s.name); });
+    cd.mcShepherds.forEach(function (s) { names.push(s.name); });
+    dl.innerHTML = names.map(function (n) { return '<option value="' + escAttr(n) + '">'; }).join('');
+  }
+
+  // ── DATA FETCH (JSONP) ────────────────────────────────────────
+  function fetchData(action, params, callback) {
+    var cbName = '_cbv_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    var called = false;
+    var script = document.createElement('script');
+
+    window[cbName] = function (data) {
+      if (called) return;
+      called = true;
+      callback(data);
+      if (document.body.contains(script)) document.body.removeChild(script);
+      delete window[cbName];
+    };
+
+    var query = '?action=' + encodeURIComponent(action) + '&callback=' + cbName;
+    if (params) {
+      Object.keys(params).forEach(function (k) {
+        query += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      });
+    }
+    query += '&_=' + Date.now();
+    script.src = SCRIPT_URL + query;
+    script.onerror = function () { if (!called) window[cbName]({ status: 'error' }); };
+    document.body.appendChild(script);
+    setTimeout(function () { if (!called) window[cbName]({ status: 'timeout' }); }, 10000);
+  }
+
+  function loadAll() {
+    fetchData('getVisitations', null, function (data) {
+      if (data && data.status === 'success') {
+        visitations = data.visitations || [];
+        renderStats();
+        renderTable();
+      } else {
+        showToast('Could not load visitation data');
+      }
+    });
+  }
+
+  // ── DATE HELPERS ──────────────────────────────────────────────
+  function parseDate(val) {
+    if (!val) return null;
+    if (typeof val === 'string' && val.indexOf('T') !== -1) {
+      var p = val.split('T')[0].split('-');
+      return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+    }
+    if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      var p = val.split('-');
+      return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+    }
+    if (typeof val === 'string' && val.indexOf('/') !== -1) {
+      var p = val.split('/');
+      if (p.length === 3) {
+        var a = parseInt(p[0]), b = parseInt(p[1]), c = parseInt(p[2]);
+        return c > 1000 ? new Date(c, b - 1, a) : new Date(a, b - 1, c);
+      }
+    }
+    var d = new Date(val);
+    return isNaN(d) ? null : d;
+  }
+  function fmtDate(val) {
+    var d = parseDate(val);
+    if (!d) return '—';
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  }
+  function isOverdue(r) {
+    if (r.Status === 'Closed') return false;
+    var due = parseDate(r.DueDate);
+    if (!due) return false;
+    return due.getTime() < new Date().setHours(0,0,0,0);
+  }
+
+  // ── STATS ─────────────────────────────────────────────────────
+  function renderStats() {
+    var pending = 0, progress = 0, done = 0, overdue = 0;
+    visitations.forEach(function (r) {
+      if (r.Status === 'Pending') pending++;
+      else if (r.Status === 'Closed') done++;
+      else progress++;
+      if (isOverdue(r)) overdue++;
+    });
+    document.getElementById('statPending').textContent  = pending;
+    document.getElementById('statProgress').textContent = progress;
+    document.getElementById('statDone').textContent     = done;
+    document.getElementById('statOverdue').textContent  = overdue;
+    document.getElementById('totalCount').textContent   = visitations.length + ' total';
+  }
+
+  // ── TABLE ─────────────────────────────────────────────────────
+  function renderTable() {
+    var status  = document.getElementById('filtStatus').value;
+    var overdue = document.getElementById('filtOverdue').value;
+    var search  = (document.getElementById('tableSearch').value || '').toLowerCase();
+    var body    = document.getElementById('visitBody');
+
+    var rows = visitations.filter(function (r) {
+      if (status  && r.Status !== status) return false;
+      if (overdue === 'overdue' && !isOverdue(r)) return false;
+      if (search  && String(r.GuestName || '').toLowerCase().indexOf(search) === -1) return false;
+      return true;
+    });
+
+    // Sort: overdue first, then by due date ascending
+    rows = rows.slice().sort(function (a, b) {
+      var oa = isOverdue(a) ? 0 : 1, ob = isOverdue(b) ? 0 : 1;
+      if (oa !== ob) return oa - ob;
+      var da = parseDate(a.DueDate), db = parseDate(b.DueDate);
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      return da - db;
+    });
+
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="8" class="empty"><div class="icon">🚗</div>No visitation records match your filters.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = rows.map(function (r) {
+      var overdueFlag = isOverdue(r);
+      var statusBadge = badgeForStatus(r.Status, overdueFlag);
+      var step = parseInt(r.EscalationStep) || 1;
+      var stepDots = [1,2,3,4,5].map(function (i) {
+        var cls = i <= step ? (r.Status === 'Escalated' ? 'filled escalated' : 'filled') : '';
+        return '<span class="step-dot ' + cls + '" title="' + esc(ESCALATION_LABELS[i]) + '"></span>';
+      }).join('');
+
+      var actions = '';
+      if (r.Status === 'Pending') {
+        actions += '<button class="btn btn-sm btn-primary" onclick="openAssign(\'' + escAttr(r.VisitationID) + '\')">Assign</button> ';
+      } else if (r.Status === 'Assigned' || r.Status === 'Visited' || r.Status === 'Escalated') {
+        actions += '<button class="btn btn-sm btn-primary" onclick="openOutcome(\'' + escAttr(r.VisitationID) + '\')">Log Outcome</button> ';
+        actions += '<button class="btn btn-sm btn-ghost" onclick="openAssign(\'' + escAttr(r.VisitationID) + '\')">Reassign</button> ';
+        if (step < 5) {
+          actions += '<button class="btn btn-sm btn-ghost" onclick="escalate(\'' + escAttr(r.VisitationID) + '\')" title="' + esc(ESCALATION_LABELS[step + 1]) + '">⬆ Escalate</button>';
+        }
+      } else {
+        actions = '<span style="color:var(--gray);font-size:12px;">—</span>';
+      }
+
+      return '<tr class="' + (overdueFlag ? 'row-overdue' : '') + '">' +
+        '<td class="guest-cell">' + esc(r.GuestName) + (overdueFlag ? ' <span class="badge badge-overdue">Overdue</span>' : '') + '</td>' +
+        '<td>' + esc(r.GuestPhone || '—') + '</td>' +
+        '<td>' + fmtDate(r.RegistrationDate) + '</td>' +
+        '<td>' + fmtDate(r.DueDate) + '</td>' +
+        '<td>' + esc(r.AssignedTo || '—') + '</td>' +
+        '<td><div class="step-track">' + stepDots + '</div></td>' +
+        '<td>' + statusBadge + '</td>' +
+        '<td>' + actions + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function badgeForStatus(status, overdue) {
+    var map = {
+      'Pending':   ['badge-pending',   '⏳ Pending'],
+      'Assigned':  ['badge-assigned',  '📌 Assigned'],
+      'Visited':   ['badge-visited',   '🚗 Visited'],
+      'Escalated': ['badge-escalated', '⬆ Escalated'],
+      'Closed':    ['badge-closed',    '✅ Closed']
+    };
+    var entry = map[status] || ['badge-pending', esc(status || 'Pending')];
+    return '<span class="badge ' + entry[0] + '">' + entry[1] + '</span>';
+  }
+
+  // ── ASSIGN MODAL ──────────────────────────────────────────────
+  function openAssign(visitationId) {
+    activeRecord = visitations.find(function (r) { return r.VisitationID === visitationId; });
+    if (!activeRecord) return;
+
+    document.getElementById('assignModalSub').textContent =
+      'Assigning a visitation team member to ' + activeRecord.GuestName + ' (registered ' + fmtDate(activeRecord.RegistrationDate) + ').';
+    document.getElementById('assignTo').value = activeRecord.AssignedTo || '';
+
+    var today = new Date();
+    document.getElementById('assignScheduledDate').value =
+      today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+    document.getElementById('assignModal').classList.add('open');
+  }
+
+  function submitAssign() {
+    if (!activeRecord) return;
+    var assignedTo = document.getElementById('assignTo').value.trim();
+    var schedDate  = document.getElementById('assignScheduledDate').value;
+    if (!assignedTo) { showToast('Please enter who this is assigned to'); return; }
+
+    fetchData('assignVisitation', {
+      visitationId:   activeRecord.VisitationID,
+      assignedTo:     assignedTo,
+      scheduledDate:  schedDate ? dmyFromIso(schedDate) : '',
+      assignedBy:     'FTS Lead'
+    }, function (data) {
+      if (data && data.status === 'success') {
+        showToast('Assigned to ' + assignedTo);
+        closeModal('assignModal');
+        loadAll();
+      } else {
+        showToast((data && data.message) || 'Assignment failed');
+      }
+    });
+  }
+
+  // ── OUTCOME MODAL ─────────────────────────────────────────────
+  function openOutcome(visitationId) {
+    activeRecord = visitations.find(function (r) { return r.VisitationID === visitationId; });
+    if (!activeRecord) return;
+
+    document.getElementById('outcomeModalSub').textContent =
+      'Recording the outcome of the visit/call with ' + activeRecord.GuestName + '.';
+    document.getElementById('outcomeSelect').value = 'Connected';
+    document.getElementById('outcomeNotes').value  = '';
+
+    document.getElementById('outcomeModal').classList.add('open');
+  }
+
+  function submitOutcome() {
+    if (!activeRecord) return;
+    var outcome = document.getElementById('outcomeSelect').value;
+    var notes   = document.getElementById('outcomeNotes').value.trim();
+
+    fetchData('updateVisitation', {
+      visitationId: activeRecord.VisitationID,
+      outcome:      outcome,
+      notes:        notes,
+      updatedBy:    'FTS Lead'
+    }, function (data) {
+      if (data && data.status === 'success') {
+        showToast('Outcome recorded — ' + outcome);
+        closeModal('outcomeModal');
+        loadAll();
+      } else {
+        showToast((data && data.message) || 'Could not save outcome');
+      }
+    });
+  }
+
+  // ── ESCALATE ──────────────────────────────────────────────────
+  function escalate(visitationId) {
+    var record = visitations.find(function (r) { return r.VisitationID === visitationId; });
+    if (!record) return;
+    var step = parseInt(record.EscalationStep) || 1;
+    if (step >= 5) return;
+
+    if (!confirm('Escalate ' + record.GuestName + ' to "' + ESCALATION_LABELS[step + 1] + '"?')) return;
+
+    fetchData('escalateVisitation', {
+      visitationId: visitationId,
+      escalatedBy:  'FTS Lead'
+    }, function (data) {
+      if (data && data.status === 'success') {
+        showToast('Escalated to ' + ESCALATION_LABELS[data.newStep || (step + 1)]);
+        loadAll();
+      } else {
+        showToast((data && data.message) || 'Escalation failed');
+      }
+    });
+  }
+
+  // ── MODAL HELPERS ─────────────────────────────────────────────
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    activeRecord = null;
+  }
+
+  function dmyFromIso(iso) {
+    var p = iso.split('-');
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+
+  // ── UTIL ──────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+  function escAttr(s) { return esc(s).replace(/\\/g, '\\\\'); }
+
+  var toastTimer = null;
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2800);
+  }
+</script>
+</body>
+</html>

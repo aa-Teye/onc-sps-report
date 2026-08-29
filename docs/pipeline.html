@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ONC — Shepherd Pipeline</title>
+  <link rel="icon" href="./logo.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:   #0a1628;
+      --blue:   #1a3a6b;
+      --accent: #3b82f6;
+      --gold:   #f59e0b;
+      --green:  #22c55e;
+      --red:    #ef4444;
+      --orange: #f97316;
+      --gray:   #64748b;
+      --light:  #f1f5f9;
+      --white:  #fff;
+      --border: #e2e8f0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--navy); min-height:100vh; }
+
+    /* LOGIN */
+    #loginScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+    .login-box { background:var(--white); border-radius:24px; padding:40px 32px; width:100%; max-width:360px; text-align:center; box-shadow:0 24px 64px rgba(0,0,0,.4); }
+    .login-logo { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,var(--gold),#fbbf24); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-weight:800; font-size:18px; color:var(--navy); }
+    .login-box h2 { font-size:22px; font-weight:800; color:var(--navy); margin-bottom:4px; }
+    .login-box p { color:var(--gray); font-size:14px; margin-bottom:24px; }
+    .login-box input { width:100%; padding:14px; border:2px solid var(--border); border-radius:12px; font-size:18px; text-align:center; letter-spacing:6px; outline:none; color:var(--navy); font-family:inherit; transition:border-color .2s; margin-bottom:10px; }
+    .login-box input:focus { border-color:var(--accent); }
+    .login-btn { width:100%; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--blue)); color:var(--white); font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; transition:opacity .2s; }
+    .login-btn:hover { opacity:.9; }
+    .login-error { color:var(--red); font-size:13px; margin-top:10px; display:none; }
+
+    /* DASHBOARD */
+    #dashboard { display:none; background:var(--light); min-height:100vh; }
+    .topbar { background:var(--white); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .topbar-left { display:flex; align-items:center; gap:14px; }
+    .back-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:2px solid var(--border); border-radius:10px; background:var(--white); color:var(--navy); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; text-decoration:none; transition:all .2s; }
+    .back-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .topbar h1 { font-size:20px; font-weight:800; color:var(--navy); }
+    .page-wrap { max-width:1200px; margin:0 auto; padding:28px; display:flex; flex-direction:column; gap:24px; }
+
+    /* CARDS */
+    .section-card { background:var(--white); border-radius:16px; padding:24px; box-shadow:0 1px 8px rgba(0,0,0,.06); }
+    .section-title { font-size:16px; font-weight:800; color:var(--navy); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .pill { padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; background:var(--light); color:var(--accent); }
+
+    /* PROGRESS BAR */
+    .progress-hero { text-align:center; padding:8px 0 20px; }
+    .progress-hero h2 { font-size:26px; font-weight:900; color:var(--navy); margin-bottom:6px; }
+    .progress-hero p { color:var(--gray); font-size:14px; margin-bottom:24px; }
+    .progress-track { background:var(--light); border-radius:999px; height:28px; overflow:hidden; position:relative; margin-bottom:12px; }
+    .progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),#60a5fa); border-radius:999px; transition:width 1s ease; display:flex; align-items:center; justify-content:flex-end; padding-right:12px; }
+    .progress-fill span { font-size:12px; font-weight:800; color:var(--white); white-space:nowrap; }
+    .progress-stats { display:flex; justify-content:center; gap:32px; }
+    .pstat { text-align:center; }
+    .pstat-val { font-size:28px; font-weight:900; color:var(--navy); }
+    .pstat-lbl { font-size:12px; color:var(--gray); margin-top:2px; }
+    .timeline { display:flex; justify-content:space-between; margin-top:20px; position:relative; }
+    .timeline::before { content:''; position:absolute; top:12px; left:0; right:0; height:2px; background:var(--border); z-index:0; }
+    .tm-step { text-align:center; flex:1; position:relative; z-index:1; }
+    .tm-dot { width:24px; height:24px; border-radius:50%; background:var(--border); border:3px solid var(--white); margin:0 auto 6px; box-shadow:0 0 0 2px var(--border); }
+    .tm-dot.active { background:var(--accent); box-shadow:0 0 0 2px var(--accent); }
+    .tm-dot.done   { background:var(--green); box-shadow:0 0 0 2px var(--green); }
+    .tm-lbl { font-size:11px; font-weight:700; color:var(--gray); }
+    .tm-lbl.active { color:var(--accent); }
+
+    /* BUTTONS */
+    .btn { padding:9px 18px; border:none; border-radius:10px; font-family:inherit; font-weight:700; font-size:13px; cursor:pointer; transition:all .2s; }
+    .btn-primary { background:var(--accent); color:var(--white); }
+    .btn-primary:hover { opacity:.9; }
+    .btn-outline { background:none; border:2px solid var(--accent); color:var(--accent); }
+    .btn-outline:hover { background:var(--accent); color:var(--white); }
+    .btn-gold { background:var(--gold); color:var(--navy); border:none; }
+    .btn-gold:hover { opacity:.9; }
+    .btn-sm { padding:5px 12px; font-size:12px; border-radius:8px; }
+
+    /* TABLE */
+    .table-wrap { border-radius:12px; overflow:auto; border:1px solid var(--border); }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead tr { background:var(--navy); }
+    thead th { padding:12px 14px; text-align:left; color:rgba(255,255,255,.8); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; white-space:nowrap; }
+    tbody tr { border-bottom:1px solid var(--border); }
+    tbody tr:last-child { border-bottom:none; }
+    td { padding:11px 14px; color:var(--navy); vertical-align:top; }
+
+    /* COHORT EXPAND */
+    .cohort-row { cursor:pointer; }
+    .cohort-row:hover td { background:var(--light); }
+    .cohort-expand { display:none; background:#f8fafc; }
+    .cohort-expand td { padding:0; }
+    .expand-inner { padding:16px 20px; }
+    .candidate-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+    .candidate-row:last-child { border-bottom:none; }
+    .cand-name { font-weight:700; color:var(--navy); min-width:180px; }
+    .stc-grid { display:flex; gap:6px; flex-wrap:wrap; }
+    .stc-cb { display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer; }
+    .stc-cb input { width:16px; height:16px; accent-color:var(--accent); cursor:pointer; }
+
+    /* BADGES */
+    .badge { display:inline-flex; align-items:center; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+    .badge-green    { background:#dcfce7; color:#15803d; }
+    .badge-blue     { background:#dbeafe; color:#1e40af; }
+    .badge-amber    { background:#fef9c3; color:#92400e; }
+    .badge-grey     { background:#e2e8f0; color:#475569; }
+    .badge-purple   { background:#ede9fe; color:#6d28d9; }
+    .badge-gold     { background:#fef3c7; color:#92400e; }
+
+    /* FORM */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media (max-width:600px) { .form-grid { grid-template-columns:1fr; } }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-group label { font-size:12px; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.5px; }
+    .form-group select, .form-group input, .form-group textarea {
+      padding:10px 12px; border:2px solid var(--border); border-radius:10px;
+      font-family:inherit; font-size:14px; color:var(--navy); outline:none;
+      transition:border-color .2s; background:var(--white);
+    }
+    .form-group select:focus, .form-group input:focus, .form-group textarea:focus { border-color:var(--accent); }
+    .form-group textarea { resize:vertical; min-height:80px; }
+    .form-footer { margin-top:16px; display:flex; gap:10px; }
+
+    /* EMPTY */
+    .empty { text-align:center; padding:40px 20px; color:var(--gray); }
+    .empty .icon { font-size:36px; margin-bottom:10px; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .animate { animation:fadeUp .25s ease; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">ONC</div>
+    <h2>Shepherd Pipeline</h2>
+    <p>Admin access required</p>
+    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6"
+      onkeydown="if(event.key==='Enter')checkPin()">
+    <button class="login-btn" onclick="checkPin()">🔐 Enter</button>
+    <p class="login-error" id="loginError">❌ Incorrect PIN</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="admin.html" class="back-btn">← Back to Admin</a>
+      <h1>🔄 Shepherd Pipeline</h1>
+    </div>
+    <button class="btn btn-outline" onclick="loadAll()">🔄 Refresh</button>
+  </div>
+
+  <div class="page-wrap">
+
+    <!-- SECTION 1: GROWTH PROGRESS -->
+    <div class="section-card animate" id="progressSection">
+      <div class="section-title">Shepherd Growth Progress</div>
+      <div class="progress-hero">
+        <h2 id="progressHeadline">45 → 200 Shepherds</h2>
+        <p>ONC Shepherd Growth Initiative · Target: 200 active shepherds</p>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width:0%">
+            <span id="progressPct">0%</span>
+          </div>
+        </div>
+        <div class="progress-stats">
+          <div class="pstat"><div class="pstat-val" id="statCurrent">—</div><div class="pstat-lbl">Current Shepherds</div></div>
+          <div class="pstat"><div class="pstat-val" style="color:var(--gold)">200</div><div class="pstat-lbl">Target</div></div>
+          <div class="pstat"><div class="pstat-val" id="statNeeded">—</div><div class="pstat-lbl">Still Needed</div></div>
+          <div class="pstat"><div class="pstat-val" id="statOnTrack">—</div><div class="pstat-lbl">On Track</div></div>
+        </div>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: COHORT MANAGEMENT -->
+    <div class="section-card animate">
+      <div class="section-title">
+        Cohort Management
+        <span class="pill" id="cohortCount">0 cohorts</span>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="document.getElementById('createCohortSection').scrollIntoView({behavior:'smooth'})">+ New Cohort</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Cohort</th>
+              <th>Start Date</th>
+              <th>Target End</th>
+              <th>Candidates</th>
+              <th>Graduated</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="cohortBody">
+            <tr><td colspan="7"><div class="empty"><p>Loading cohorts…</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION 3: NOMINATE CANDIDATE -->
+    <div class="section-card animate">
+      <div class="section-title">Nominate a Candidate</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Candidate Name</label>
+          <select id="candidateName">
+            <option value="">Select member…</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nominated By</label>
+          <select id="nominatedBy">
+            <option value="">Select shepherd…</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Cohort Assignment</label>
+          <select id="candidateCohort">
+            <option value="">Select cohort…</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <input type="text" id="nominationNotes" placeholder="Optional notes">
+        </div>
+      </div>
+      <div class="form-footer">
+        <button class="btn btn-primary" onclick="submitCandidate()">Submit Nomination</button>
+      </div>
+    </div>
+
+    <!-- SECTION 4: CREATE COHORT -->
+    <div class="section-card animate" id="createCohortSection">
+      <div class="section-title">Create New Cohort</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Cohort Number</label>
+          <input type="text" id="cohortNumber" placeholder="e.g. 5">
+        </div>
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" id="cohortStart">
+        </div>
+        <div class="form-group">
+          <label>Target Graduation Date</label>
+          <input type="date" id="cohortEnd">
+        </div>
+      </div>
+      <div class="form-footer">
+        <button class="btn btn-gold" onclick="submitCohort()">Create Cohort</button>
+      </div>
+    </div>
+
+  </div><!-- /page-wrap -->
+</div><!-- /dashboard -->
+
+<script src="churchData.js?v=20260607"></script>
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
+  const VALID_PINS = [
+    localStorage.getItem('onc_pin')       || '2500',
+    localStorage.getItem('onc_pin_admin') || '1500'
+  ];
+  const TARGET = 200;
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  var cohorts  = [];
+  var pipeline = [];
+
+  // ── AUTH ──────────────────────────────────────────────────────
+  function checkPin() {
+    var pin = document.getElementById('pinInput').value.trim();
+    if (VALID_PINS.includes(pin)) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display   = 'block';
+      init();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('pinInput').value = '';
+    }
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────
+  function init() {
+    populateForms();
+    renderProgress();
+    loadAll();
+  }
+
+  function populateForms() {
+    var cd = window.CHURCH_DATA;
+    if (!cd) return;
+
+    // All members for candidate dropdown
+    var cSel = document.getElementById('candidateName');
+    var allMembers = [];
+    cd.spsShepherds.forEach(function (s) { (s.members || []).forEach(function (m) { allMembers.push(m.name); }); });
+    cd.mcShepherds.forEach(function  (s) { (s.members || []).forEach(function (m) { allMembers.push(m.name); }); });
+    allMembers.sort().forEach(function (n) {
+      var o = document.createElement('option'); o.value = n; o.textContent = n; cSel.appendChild(o);
+    });
+
+    // Shepherd dropdowns
+    var sheps = [];
+    cd.spsShepherds.forEach(function (s) { sheps.push(s.name); });
+    cd.mcShepherds.forEach(function  (s) { sheps.push(s.name); });
+    sheps.sort();
+    var nSel = document.getElementById('nominatedBy');
+    sheps.forEach(function (n) { var o = document.createElement('option'); o.value = n; o.textContent = n; nSel.appendChild(o); });
+  }
+
+  // ── PROGRESS BAR ──────────────────────────────────────────────
+  function renderProgress() {
+    var cd = window.CHURCH_DATA;
+    var current = cd ? (cd.spsShepherds.length + cd.mcShepherds.length) : 45;
+    var pct     = Math.min(100, Math.round((current / TARGET) * 100));
+    var needed  = Math.max(0, TARGET - current);
+
+    document.getElementById('progressHeadline').textContent = current + ' → ' + TARGET + ' Shepherds';
+    document.getElementById('statCurrent').textContent = current;
+    document.getElementById('statNeeded').textContent  = needed;
+    document.getElementById('statOnTrack').innerHTML   = pct >= 50
+      ? '<span style="color:var(--green)">✓ Yes</span>'
+      : '<span style="color:var(--orange)">⚠ Needs Push</span>';
+
+    setTimeout(function () {
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressPct').textContent  = pct + '%';
+    }, 200);
+
+    // 5-month timeline
+    var now = new Date();
+    var tl  = document.getElementById('timeline');
+    var html = '';
+    for (var i = 0; i < 5; i++) {
+      var d    = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      var isNow = i === 0;
+      html += '<div class="tm-step">' +
+        '<div class="tm-dot ' + (i < 1 ? 'done' : (isNow ? 'active' : '')) + '"></div>' +
+        '<div class="tm-lbl' + (isNow ? ' active' : '') + '">' + MONTHS[d.getMonth()] + ' ' + d.getFullYear() + '</div>' +
+        '</div>';
+    }
+    tl.innerHTML = html;
+  }
+
+  // ── DATA LOADING ──────────────────────────────────────────────
+  function fetchData(action, params, callback) {
+    var cbName = '_cbp_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    var called = false;
+    var script = document.createElement('script');
+
+    window[cbName] = function (data) {
+      if (called) return;
+      called = true;
+      callback(data);
+      if (document.body.contains(script)) document.body.removeChild(script);
+      delete window[cbName];
+    };
+
+    var query = '?action=' + encodeURIComponent(action) + '&callback=' + cbName + '&_=' + Date.now();
+    if (params) Object.keys(params).forEach(function (k) {
+      query += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    });
+    script.src = SCRIPT_URL + query;
+    script.onerror = function () { if (!called) window[cbName]({ status: 'error' }); };
+    document.body.appendChild(script);
+    setTimeout(function () { if (!called) window[cbName]({ status: 'timeout' }); }, 10000);
+  }
+
+  function loadAll() {
+    fetchData('getCohorts', null, function (data) {
+      cohorts = data && data.cohorts ? data.cohorts : [];
+      fetchData('getPipeline', null, function (data2) {
+        pipeline = data2 && data2.pipeline ? data2.pipeline : [];
+        renderCohorts();
+        populateCohortDropdown();
+      });
+    });
+  }
+
+  // ── COHORT TABLE ──────────────────────────────────────────────
+  function statusBadge(c) {
+    var today = new Date();
+    var end   = c.TargetEndDate ? new Date(String(c.TargetEndDate).replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1')) : null;
+    if (end && today > end) return '<span class="badge badge-green">Completed</span>';
+    var start = c.StartDate ? new Date(String(c.StartDate).replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1')) : null;
+    if (start && today >= start) return '<span class="badge badge-blue">In Progress</span>';
+    return '<span class="badge badge-grey">Upcoming</span>';
+  }
+
+  function candidateBadge(c) {
+    var allDone = ['STC1','STC2','STC3','STC4','STC5','STC6','STC7'].every(function (m) { return c[m] === 'Y'; });
+    if (c.Status === 'Graduated' || c.Status === 'Deployed')    return '<span class="badge badge-green">' + c.Status + '</span>';
+    if (allDone || c.Status === 'Promotion Ready') return '<span class="badge badge-gold">⭐ Promotion Ready</span>';
+    if (c.Status === 'In Training') return '<span class="badge badge-blue">In Training</span>';
+    return '<span class="badge badge-grey">Nominated</span>';
+  }
+
+  function renderCohorts() {
+    document.getElementById('cohortCount').textContent = cohorts.length + ' cohort' + (cohorts.length !== 1 ? 's' : '');
+    var body = document.getElementById('cohortBody');
+    if (!cohorts.length) {
+      body.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="icon">📋</div><p>No cohorts yet. Create one below.</p></div></td></tr>';
+      return;
+    }
+
+    var html = '';
+    cohorts.forEach(function (c, idx) {
+      var cands  = pipeline.filter(function (p) { return String(p.CohortNumber) === String(c.CohortNumber); });
+      var grads  = cands.filter(function (p) { return p.Status === 'Graduated' || p.Status === 'Deployed' || p.Status === 'Promotion Ready'; }).length;
+      html += '<tr class="cohort-row" onclick="toggleCohort(' + idx + ')" id="crow-' + idx + '">' +
+        '<td style="text-align:center;font-size:18px;">▶</td>' +
+        '<td style="font-weight:800;">Cohort ' + (c.CohortNumber || '—') + '</td>' +
+        '<td>' + (c.StartDate || '—') + '</td>' +
+        '<td>' + (c.TargetEndDate || '—') + '</td>' +
+        '<td style="text-align:center;">' + cands.length + '</td>' +
+        '<td style="text-align:center;">' + grads + '</td>' +
+        '<td>' + statusBadge(c) + '</td>' +
+        '</tr>' +
+        '<tr class="cohort-expand" id="cexp-' + idx + '">' +
+        '<td colspan="7"><div class="expand-inner" id="cinner-' + idx + '">' +
+        renderCandidates(c, cands) +
+        '</div></td></tr>';
+    });
+    body.innerHTML = html;
+  }
+
+  function renderCandidates(cohort, cands) {
+    if (!cands.length) return '<div class="empty" style="padding:16px"><p>No candidates in this cohort yet.</p></div>';
+    var stcMods = ['STC1','STC2','STC3','STC4','STC5','STC6','STC7'];
+    return '<div style="margin-bottom:10px;font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;">Candidates — STC Modules</div>' +
+      cands.map(function (p) {
+        var stcs = stcMods.map(function (mod) {
+          var checked = p[mod] === 'Y' ? 'checked' : '';
+          return '<label class="stc-cb" title="' + mod + '">' +
+            '<input type="checkbox" ' + checked + ' onchange="updateSTC(\'' + p.CandidateID + '\',\'' + mod + '\',this.checked)">' +
+            mod + '</label>';
+        }).join('');
+        return '<div class="candidate-row">' +
+          '<div class="cand-name">' + (p.CandidateName || '—') + '</div>' +
+          '<div class="stc-grid">' + stcs + '</div>' +
+          '<div style="margin-left:auto;">' + candidateBadge(p) + '</div>' +
+          '</div>';
+      }).join('');
+  }
+
+  function toggleCohort(idx) {
+    var row  = document.getElementById('cexp-' + idx);
+    var icon = document.querySelector('#crow-' + idx + ' td:first-child');
+    var open = row.style.display === 'table-row';
+    row.style.display = open ? 'none' : 'table-row';
+    if (icon) icon.textContent = open ? '▶' : '▼';
+  }
+
+  function populateCohortDropdown() {
+    var sel = document.getElementById('candidateCohort');
+    sel.innerHTML = '<option value="">Select cohort…</option>';
+    cohorts.forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c.CohortNumber;
+      o.textContent = 'Cohort ' + c.CohortNumber + (c.StartDate ? ' (' + c.StartDate + ')' : '');
+      sel.appendChild(o);
+    });
+  }
+
+  // ── STC MODULE UPDATE ─────────────────────────────────────────
+  function updateSTC(candidateId, module, checked) {
+    var payload = {
+      action:      'updateSTCModule',
+      candidateId: candidateId,
+      module:      module,
+      value:       checked ? 'Y' : 'N'
+    };
+    fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(payload) })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res && res.status === 'success') {
+          // Update local data
+          var c = pipeline.find(function (p) { return p.CandidateID === candidateId; });
+          if (c) { c[module] = checked ? 'Y' : 'N'; }
+        }
+      }).catch(function () {});
+  }
+
+  // ── NOMINATE CANDIDATE ────────────────────────────────────────
+  function submitCandidate() {
+    var name   = document.getElementById('candidateName').value;
+    var nomBy  = document.getElementById('nominatedBy').value;
+    var cohort = document.getElementById('candidateCohort').value;
+    if (!name || !nomBy) { alert('Please select a candidate and nominator.'); return; }
+
+    var payload = {
+      action:        'addCandidate',
+      candidateName: name,
+      nominatedBy:   nomBy,
+      cohortNumber:  cohort,
+      status:        'Nominated'
+    };
+    fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(payload) })
+      .then(function () {
+        alert('Candidate nominated successfully.');
+        document.getElementById('candidateName').value  = '';
+        document.getElementById('nominatedBy').value    = '';
+        document.getElementById('candidateCohort').value = '';
+        loadAll();
+      }).catch(function () { alert('Nomination submitted (offline mode).'); });
+  }
+
+  // ── CREATE COHORT ──────────────────────────────────────────────
+  function submitCohort() {
+    var num   = document.getElementById('cohortNumber').value.trim();
+    var start = document.getElementById('cohortStart').value;
+    var end   = document.getElementById('cohortEnd').value;
+    if (!num || !start || !end) { alert('Please fill in all cohort fields.'); return; }
+
+    // Format dates to DD/MM/YYYY
+    function fmtDate(iso) {
+      var p = iso.split('-');
+      return p[2] + '/' + p[1] + '/' + p[0];
+    }
+
+    var payload = { action:'createCohort', cohortNumber:num, startDate:fmtDate(start), targetEndDate:fmtDate(end) };
+    fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(payload) })
+      .then(function () {
+        alert('Cohort ' + num + ' created.');
+        document.getElementById('cohortNumber').value = '';
+        document.getElementById('cohortStart').value  = '';
+        document.getElementById('cohortEnd').value    = '';
+        loadAll();
+      }).catch(function () { alert('Cohort created (offline mode).'); });
+  }
+</script>
+</body>
+</html>
