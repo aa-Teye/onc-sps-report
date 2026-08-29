@@ -7095,8 +7095,73 @@
         var elSouls = document.getElementById('s-souls');
         if (elSouls) elSouls.textContent = totalSoulsThisWeek;
 
-        // Un-shimmer stat cards
-        ['s-sessions', 's-reported', 's-avgatt', 's-prayer', 's-concerns', 's-bible', 's-souls'].forEach(function(id) {
+        // ── MICROCHURCH STATS CALCULATION (FOR OVERVIEW TAB) ──
+        var mcWeekly = (allMicrochurchReports || []).filter(function(r) {
+          if (activeWeek === 'all') return true;
+          return getReportWeekNumber(r) === activeWeek;
+        });
+
+        var mcShepSet = new Set();
+        mcWeekly.forEach(function(r) { if (r && r.shepherd) mcShepSet.add(r.shepherd); });
+
+        var mcAvgAtt = 0;
+        if (mcWeekly.length) {
+          var mcTotalAtt = mcWeekly.reduce(function (a, r) {
+            if (r.attendanceRate !== undefined && r.attendanceRate !== null && r.attendanceRate !== '') {
+              var rate = parseFloat(r.attendanceRate);
+              return a + (rate <= 1 ? Math.round(rate * 100) : Math.round(rate));
+            }
+            return a + getMcRate(r);
+          }, 0);
+          mcAvgAtt = Math.round(mcTotalAtt / mcWeekly.length);
+        }
+
+        var mcPrayers = mcWeekly.filter(function (r) { return r && (r.prayerDone === 'yes' || r.prayerDone === 'Yes'); }).length;
+        var mcBibleYes = mcWeekly.filter(function (r) { return r && (r.topicCovered === 'yes' || r.topicCovered === 'Yes'); }).length;
+
+        var mcTotalSouls = mcWeekly.reduce(function (sum, r) {
+          if (!r) return sum;
+          var count = parseSouls(r.newSouls);
+          if (!count && r.newMembers) {
+            if (Array.isArray(r.newMembers)) count = r.newMembers.length;
+            else {
+              try {
+                var p = JSON.parse(r.newMembers);
+                if (Array.isArray(p)) count = p.length;
+              } catch(e) {
+                if (typeof r.newMembers === 'string' && r.newMembers.trim() && r.newMembers.toLowerCase() !== 'none') {
+                  count = r.newMembers.split(',').length;
+                }
+              }
+            }
+          }
+          return sum + count;
+        }, 0);
+
+        var totalMcShepherds = (window.ALL_MC_SHEPHERDS && ALL_MC_SHEPHERDS.length) ? ALL_MC_SHEPHERDS.length : 20;
+
+        var elMcSessions = document.getElementById('ov-mc-s-sessions');
+        if (elMcSessions) elMcSessions.textContent = mcWeekly.length;
+        var elMcReported = document.getElementById('ov-mc-s-reported');
+        if (elMcReported) elMcReported.textContent = mcShepSet.size + '/' + totalMcShepherds;
+        var elMcAvgAtt = document.getElementById('ov-mc-s-attendance');
+        if (elMcAvgAtt) elMcAvgAtt.textContent = mcAvgAtt + '%';
+        var elMcPrayer = document.getElementById('ov-mc-s-prayer');
+        if (elMcPrayer) elMcPrayer.textContent = mcPrayers;
+        var elMcSouls = document.getElementById('ov-mc-s-souls');
+        if (elMcSouls) elMcSouls.textContent = mcTotalSouls;
+        var elMcBible = document.getElementById('ov-mc-s-bible');
+        if (elMcBible) elMcBible.textContent = mcBibleYes + '/' + (mcWeekly.length || '0');
+
+        // Render First Timers overview counts
+        safeExec(renderFirstTimers, 'renderFirstTimers');
+
+        // Un-shimmer all stat cards
+        [
+          's-sessions', 's-reported', 's-avgatt', 's-prayer', 's-concerns', 's-bible', 's-souls',
+          'ov-mc-s-sessions', 'ov-mc-s-reported', 'ov-mc-s-attendance', 'ov-mc-s-prayer', 'ov-mc-s-souls', 'ov-mc-s-bible',
+          'ftTotalGuestsOverview', 'ftNeedsFollowUpOverview', 'ftContactedOverview', 'ftConvertedOverview'
+        ].forEach(function(id) {
           var el = document.getElementById(id);
           if (el) el.classList.remove('shimmer');
         });
@@ -10163,26 +10228,14 @@
       var allMembersList = [];
 
       function loadFirstTimers() {
-        window.onGuestsLoaded = function(data) {
-          window.onGuestsLoaded = null;
+        fetchViaScriptOrFetch('getGuests').then(function(data) {
           if (data && data.guests) {
             allGuestReports = data.guests.filter(Boolean);
           }
           renderFirstTimers();
-        };
-
-        var old = document.getElementById('guestsScript');
-        if (old && old.parentNode)
-          old.parentNode.removeChild(old);
-
-        var script = document.createElement('script');
-        script.id = 'guestsScript';
-        script.src = SCRIPT_URL +
-          '?action=getGuests&callback=onGuestsLoaded&_=' + Date.now();
-        script.onerror = function() {
+        }).catch(function() {
           renderFirstTimers();
-        };
-        document.head.appendChild(script);
+        });
 
         loadSalvationRecords();
       }
@@ -10190,26 +10243,14 @@
       var allSalvationRecords = [];
 
       function loadSalvationRecords() {
-        window.onSalvationsLoaded = function(data) {
-          window.onSalvationsLoaded = null;
+        fetchViaScriptOrFetch('getSalvations').then(function(data) {
           if (data && data.salvations) {
             allSalvationRecords = data.salvations.filter(Boolean);
           }
           renderSalvationRecords();
-        };
-
-        var old = document.getElementById('salvationsScript');
-        if (old && old.parentNode)
-          old.parentNode.removeChild(old);
-
-        var script = document.createElement('script');
-        script.id = 'salvationsScript';
-        script.src = SCRIPT_URL +
-          '?action=getSalvations&callback=onSalvationsLoaded&_=' + Date.now();
-        script.onerror = function() {
+        }).catch(function() {
           renderSalvationRecords();
-        };
-        document.head.appendChild(script);
+        });
       }
 
       function renderSalvationRecords() {
