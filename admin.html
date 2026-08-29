@@ -1675,54 +1675,54 @@
             <!-- MC Stats Cards -->
             <div class="stat-card blue mc-stat-card">
               <div class="stat-label">MC Sessions This Week</div>
-              <div class="stat-value" id="ov-mc-s-sessions">—</div>
+              <div class="stat-value" id="ov-mc-s-sessions">0</div>
               <div class="stat-sub">Submissions this week</div>
             </div>
             <div class="stat-card green mc-stat-card" onclick="showReportStatusModal('mc')" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to see who has and hasn't reported">
               <div class="stat-label">MC Shepherds Reported</div>
-              <div class="stat-value" id="ov-mc-s-reported">—</div>
+              <div class="stat-value" id="ov-mc-s-reported">0/20</div>
               <div class="stat-sub">of 20 shepherds</div>
             </div>
             <div class="stat-card blue mc-stat-card">
               <div class="stat-label">MC Avg Attendance</div>
-              <div class="stat-value" id="ov-mc-s-attendance">—</div>
+              <div class="stat-value" id="ov-mc-s-attendance">0%</div>
               <div class="stat-sub">Attendance rate</div>
             </div>
             <div class="stat-card green mc-stat-card">
               <div class="stat-label">MC Prayer Sessions</div>
-              <div class="stat-value" id="ov-mc-s-prayer">—</div>
+              <div class="stat-value" id="ov-mc-s-prayer">0</div>
               <div class="stat-sub">Covered by prayer</div>
             </div>
             <div class="stat-card gold mc-stat-card" onclick="switchTab('soul-reports', document.querySelector('.tab-btn[onclick*=\'soul-reports\']'))" style="cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to view souls">
               <div class="stat-label">MC New Souls This Week</div>
-              <div class="stat-value" id="ov-mc-s-souls">—</div>
+              <div class="stat-value" id="ov-mc-s-souls">0</div>
               <div class="stat-sub">Souls won this week</div>
             </div>
             <div class="stat-card blue mc-stat-card">
               <div class="stat-label">MC Bible Coverage</div>
-              <div class="stat-value" id="ov-mc-s-bible">—</div>
+              <div class="stat-value" id="ov-mc-s-bible">0/0</div>
               <div class="stat-sub">Covered topic</div>
             </div>
 
             <!-- First Timers Stats Cards -->
             <div class="stat-card blue ft-stat-card">
               <div class="stat-label">FT Total Guests</div>
-              <div class="stat-value" id="ftTotalGuestsOverview">—</div>
+              <div class="stat-value" id="ftTotalGuestsOverview">0</div>
               <div class="stat-sub">Registered guests</div>
             </div>
             <div class="stat-card red ft-stat-card">
               <div class="stat-label">FT Needs Follow Up</div>
-              <div class="stat-value" id="ftNeedsFollowUpOverview">—</div>
+              <div class="stat-value" id="ftNeedsFollowUpOverview">0</div>
               <div class="stat-sub">Pending follow-up</div>
             </div>
             <div class="stat-card gold ft-stat-card">
               <div class="stat-label">FT Contacted</div>
-              <div class="stat-value" id="ftContactedOverview">—</div>
+              <div class="stat-value" id="ftContactedOverview">0</div>
               <div class="stat-sub">Contacted guests</div>
             </div>
             <div class="stat-card green ft-stat-card">
               <div class="stat-label">FT Converted to Member</div>
-              <div class="stat-value" id="ftConvertedOverview">—</div>
+              <div class="stat-value" id="ftConvertedOverview">0</div>
               <div class="stat-sub">Converted guests</div>
             </div>
           </div>
@@ -5117,19 +5117,29 @@
           // Load cached data instantly
           var cachedReports = localStorage.getItem('onc_cached_reports');
           var cachedMc = localStorage.getItem('onc_cached_mc_reports');
+          var cachedGuests = localStorage.getItem('onc_cached_guests');
           if (cachedReports) {
             try {
               allReports = JSON.parse(cachedReports).filter(Boolean);
             } catch(e) {
               allReports = [];
             }
+          }
+          if (cachedMc) {
             try {
-              allMicrochurchReports = cachedMc ? JSON.parse(cachedMc).filter(Boolean) : [];
+              allMicrochurchReports = JSON.parse(cachedMc).filter(Boolean);
             } catch(e) {
               allMicrochurchReports = [];
             }
-            renderAll();
           }
+          if (cachedGuests) {
+            try {
+              allGuestReports = JSON.parse(cachedGuests).filter(Boolean);
+            } catch(e) {
+              allGuestReports = [];
+            }
+          }
+          renderAll();
 
           // Then fetch fresh data
           loadAll();

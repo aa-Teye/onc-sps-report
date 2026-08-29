@@ -1,19 +1,20 @@
-# Generational Chapel International - SPS & Executive Board Reporting System
+# Overcomers Nations Church — SPS & Executive Admin Portal
 
-Production repository containing the frontend web application and backend API services for Generational Chapel International.
-
----
-
-## Repository Structure
-
-- `generations-chapel-cms/`: React + TypeScript + Vite frontend web application.
-- `backend/`: Python FastAPI + SQLAlchemy + Neon PostgreSQL backend service.
+Production repository for the Overcomers Nations Church Shepherd Performance System (SPS), Microchurch Reports, First Timers Management, and Executive Leadership Dashboard.
 
 ---
 
-## Deployment Architecture
+## 🏛️ System Architecture
 
-- **Frontend**: Vercel
-- **Backend API**: Render.com Web Service
-- **Database**: Neon.tech Serverless PostgreSQL
-- **Media CDN**: Cloudinary
+- **Shepherd Portal (`index.html`)**: Mobile-first PWA for SPS Shepherds, Microchurch Shepherds, and First Timers Unit.
+- **Admin Dashboard (`admin.html`)**: Executive management console for Overview, Reports, Shepherds, Members, Journey, Schools, Announcements, and Analytics.
+- **Backend Service (`Code.gs`)**: Google Apps Script web service connecting to Google Sheets database.
+- **Service Worker (`sw.js`)**: Offline caching, background sync, and Firebase Cloud Messaging (FCM) push notifications.
+- **Static Data (`churchData.js`)**: Shepherd rosters, zones, and member lists.
+
+---
+
+## 🚀 Live Access & Deployment
+
+- **GitHub Pages**: `https://aa-teye.github.io/onc-sps-report/`
+- **Backend API URL**: Google Apps Script Web App Endpoint
