@@ -8838,15 +8838,15 @@
         document.body.classList.toggle('sidebar-collapsed', collapsed);
         document.getElementById('sidebarToggleBtn').textContent = collapsed ? '→' : '☰';
       }
-      // Always start squeezed to the icon-only rail on desktop - too many
-      // tabs to land on fully expanded every time. Click the toggle to
-      // open it back up for the current visit.
+      // Sidebar is open by default on desktop. Click the toggle to collapse.
       function initSidebar() {
-        if (window.innerWidth <= 768) return;
         var sidebar = document.getElementById('mainSidebar');
-        sidebar.classList.add('collapsed');
-        document.body.classList.add('sidebar-collapsed');
-        document.getElementById('sidebarToggleBtn').textContent = '→';
+        if (sidebar) {
+          sidebar.classList.remove('collapsed');
+        }
+        document.body.classList.remove('sidebar-collapsed');
+        var btn = document.getElementById('sidebarToggleBtn');
+        if (btn) btn.textContent = '☰';
       }
       initSidebar();
 
