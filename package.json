@@ -1,0 +1,17 @@
+{
+  "name": "onc-sps-portal",
+  "version": "1.0.0",
+  "description": "Overcomers Nations Church - SPS Portal & Admin Dashboard",
+  "scripts": {
+    "dev": "npx serve -l 8080 .",
+    "start": "npx serve -l 8080 ."
+  },
+  "keywords": [
+    "onc",
+    "sps",
+    "portal",
+    "dashboard"
+  ],
+  "author": "Overcomers Nations Church",
+  "license": "ISC"
+}

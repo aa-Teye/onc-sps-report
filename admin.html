@@ -1627,7 +1627,13 @@
             Members tab.
           </div>
 
-          <h2 id="overviewTitle" style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px;">📊 Overview</h2>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <h2 id="overviewTitle" style="font-size:18px;font-weight:800;color:var(--navy);margin:0;">📊 Overview</h2>
+            <div id="overviewWeekSelectorWrap" style="display:flex;align-items:center;gap:8px;background:white;padding:4px 10px;border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+              <span style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;">Week:</span>
+              <select id="overviewWeekSelect" onchange="changeOverviewWeek(this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);background:#f8fafc;outline:none;cursor:pointer;"></select>
+            </div>
+          </div>
 
           <div class="stats-grid">
             <div class="stat-card blue sps-stat-card">
@@ -6526,45 +6532,82 @@
       // screen. A duplicate unconditional interval used to live here too,
       // which is why this looked like it was pinging constantly.
 
+      // ── RESILIENT DUAL-MODE DATA FETCHER (JSONP + DIRECT FETCH FALLBACK) ──
+      function fetchViaScriptOrFetch(action) {
+        return new Promise(function(resolve) {
+          var resolved = false;
+          var timeoutTimer = setTimeout(function() {
+            if (!resolved) {
+              // Trigger direct fetch fallback if JSONP hasn't responded in 4s
+              fetch(SCRIPT_URL + '?action=' + encodeURIComponent(action) + '&_=' + Date.now())
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                  if (!resolved) {
+                    resolved = true;
+                    resolve(data);
+                  }
+                })
+                .catch(function() {
+                  if (!resolved) {
+                    resolved = true;
+                    resolve(null);
+                  }
+                });
+            }
+          }, 4000);
+
+          var cbName = '_cb_' + action + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+          window[cbName] = function(data) {
+            if (!resolved) {
+              resolved = true;
+              clearTimeout(timeoutTimer);
+              try { delete window[cbName]; } catch (e) {}
+              resolve(data);
+            }
+          };
+
+          var script = document.createElement('script');
+          script.src = SCRIPT_URL + '?action=' + encodeURIComponent(action) + '&callback=' + cbName + '&_=' + Date.now();
+          script.onerror = function() {
+            if (!resolved) {
+              fetch(SCRIPT_URL + '?action=' + encodeURIComponent(action) + '&_=' + Date.now())
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                  if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timeoutTimer);
+                    try { delete window[cbName]; } catch (e) {}
+                    resolve(data);
+                  }
+                })
+                .catch(function() {
+                  if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timeoutTimer);
+                    try { delete window[cbName]; } catch (e) {}
+                    resolve(null);
+                  }
+                });
+            }
+          };
+          document.head.appendChild(script);
+        });
+      }
+
       window.onSpsReportsLoaded = function(data) {
         if (data && data.reports) {
           allReports = data.reports.filter(Boolean);
-          localStorage.setItem('onc_cached_reports',
-            JSON.stringify(allReports));
+          localStorage.setItem('onc_cached_reports', JSON.stringify(allReports));
         }
-
-        var old = document.getElementById('mcReportsScript');
-        if (old && old.parentNode) 
-          old.parentNode.removeChild(old);
-
-        var script = document.createElement('script');
-        script.id = 'mcReportsScript';
-        script.src = SCRIPT_URL + 
-          '?action=getMicrochurchReports' +
-          '&callback=onMcReportsLoaded' +
-          '&_=' + Date.now();
-        script.onerror = function() {
-          console.error('MC reports load failed');
-          _loadAllRunning = false;
-          hideShimmer();
-        };
-        document.head.appendChild(script);
+        renderAll();
       };
 
       window.onMcReportsLoaded = function(data) {
         if (data && data.reports) {
           allMicrochurchReports = data.reports.filter(Boolean);
-          localStorage.setItem('onc_cached_mc_reports',
-            JSON.stringify(allMicrochurchReports));
+          localStorage.setItem('onc_cached_mc_reports', JSON.stringify(allMicrochurchReports));
         }
-        _loadAllRunning = false;
-        hideShimmer();
         renderAll();
-        loadSoulReports();
-        loadFirstTimers();
-        var now = new Date();
-        var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('lastUpdated').textContent = 'Updated ' + timeStr;
       };
 
       function loadAll() {
@@ -6572,25 +6615,41 @@
         if (_loadAllRunning) return;
         _loadAllRunning = true;
         showShimmer();
-        document.getElementById('lastUpdated').textContent = 'Loading...';
+        var lastUpEl = document.getElementById('lastUpdated');
+        if (lastUpEl) lastUpEl.textContent = 'Loading...';
         loadDynamicShepherdsAdmin();
 
-        var old2 = document.getElementById('spsReportsScript');
-        if (old2 && old2.parentNode) 
-          old2.parentNode.removeChild(old2);
+        Promise.all([
+          fetchViaScriptOrFetch('getReports'),
+          fetchViaScriptOrFetch('getMicrochurchReports')
+        ]).then(function(results) {
+          var spsData = results[0];
+          var mcData = results[1];
 
-        var script2 = document.createElement('script');
-        script2.id = 'spsReportsScript';
-        script2.src = SCRIPT_URL + 
-          '?action=getReports' +
-          '&callback=onSpsReportsLoaded' +
-          '&_=' + Date.now();
-        script2.onerror = function() {
-          console.error('SPS reports load failed');
+          if (spsData && spsData.reports) {
+            allReports = spsData.reports.filter(Boolean);
+            localStorage.setItem('onc_cached_reports', JSON.stringify(allReports));
+          }
+          if (mcData && mcData.reports) {
+            allMicrochurchReports = mcData.reports.filter(Boolean);
+            localStorage.setItem('onc_cached_mc_reports', JSON.stringify(allMicrochurchReports));
+          }
+
           _loadAllRunning = false;
           hideShimmer();
-        };
-        document.head.appendChild(script2);
+          renderAll();
+          loadSoulReports();
+          loadFirstTimers();
+
+          var now = new Date();
+          var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          if (lastUpEl) lastUpEl.textContent = 'Updated ' + timeStr;
+        }).catch(function(err) {
+          console.error('loadAll error:', err);
+          _loadAllRunning = false;
+          hideShimmer();
+          renderAll();
+        });
       }
       var loadAllData = loadAll; // alias — both names work
 
@@ -6656,21 +6715,62 @@
         return day + '/' + month + '/' + year;
       }
 
-      function isThisWeek(r) {
-        const now = new Date();
-        const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-        const dayNum = d.getUTCDay() || 7;
-        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        const currentWeek = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-        if (r.weekNumber) return parseInt(r.weekNumber) === currentWeek;
-        const pd = parseRobustDate(r.submissionDate || r.sessionDate);
-        if (!pd || isNaN(pd)) return false;
-        const d2 = new Date(Date.UTC(pd.getFullYear(), pd.getMonth(), pd.getDate()));
-        const dn2 = d2.getUTCDay() || 7;
-        d2.setUTCDate(d2.getUTCDate() + 4 - dn2);
-        const ys2 = new Date(Date.UTC(d2.getUTCFullYear(), 0, 1));
-        return Math.ceil((((d2 - ys2) / 86400000) + 1) / 7) === currentWeek;
+      var overviewSelectedWeek = null;
+
+      function getISOWeekNumber(d) {
+        if (!d || !(d instanceof Date) || isNaN(d.getTime())) return null;
+        var target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        var dayNr = target.getUTCDay() || 7;
+        target.setUTCDate(target.getUTCDate() + 4 - dayNr);
+        var yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+        return Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
+      }
+
+      function getCurrentISOWeek() {
+        return getISOWeekNumber(new Date()) || 35;
+      }
+
+      function getReportWeekNumber(r) {
+        if (r.weekNumber && !isNaN(parseInt(r.weekNumber))) {
+          return parseInt(r.weekNumber);
+        }
+        var pd = parseRobustDate(r.submissionDate || r.sessionDate || r.date || r.timestamp);
+        if (pd && !isNaN(pd.getTime())) {
+          return getISOWeekNumber(pd);
+        }
+        return null;
+      }
+
+      function isThisWeek(r, targetWeek) {
+        var wk = targetWeek || overviewSelectedWeek || getCurrentISOWeek();
+        if (wk === 'all') return true;
+        var rWk = getReportWeekNumber(r);
+        return rWk !== null && rWk === wk;
+      }
+
+      window.changeOverviewWeek = function(val) {
+        overviewSelectedWeek = val === 'all' ? 'all' : parseInt(val);
+        renderOverview();
+      };
+
+      function populateOverviewWeekDropdown(availableWeeks, activeWeek) {
+        var select = document.getElementById('overviewWeekSelect');
+        if (!select) return;
+        var currentVal = overviewSelectedWeek !== null ? String(overviewSelectedWeek) : String(activeWeek);
+
+        var options = [];
+        var currWk = getCurrentISOWeek();
+        options.push('<option value="' + currWk + '">Week ' + currWk + (currWk === activeWeek ? ' (Current)' : '') + '</option>');
+
+        availableWeeks.forEach(function(w) {
+          if (w !== currWk) {
+            options.push('<option value="' + w + '">Week ' + w + '</option>');
+          }
+        });
+        options.push('<option value="all">All Weeks Combined</option>');
+
+        select.innerHTML = options.join('');
+        select.value = currentVal;
       }
 
       function getRate(r) {
@@ -6887,31 +6987,59 @@
         }
       };
 
+      function safeExec(fn, name) {
+        try {
+          if (typeof fn === 'function') fn();
+        } catch (e) {
+          console.error('Error in ' + name + ':', e);
+        }
+      }
+
       function renderAll() {
-        console.log('renderAll called');
-        console.log('allReports:', allReports.length);
-        console.log('allMicrochurchReports:', allMicrochurchReports.length);
-        console.log('ALL_MC_SHEPHERDS:', ALL_MC_SHEPHERDS.length);
-        renderPendingSouls();
-        renderOverview();
-        renderShepherds();
-        renderMembers();
-        renderReports();
-        renderTopics();
-        renderAttendance();
-        renderExport();
-        renderMcOverview();
-        renderMcShepherds();
-        renderMcMembers();
-        renderMcReports();
-        renderLeaderboard();
-        renderSoulReports();
-        renderFlags();
+        console.log('renderAll called with', (allReports || []).length, 'SPS reports and', (allMicrochurchReports || []).length, 'MC reports');
+        safeExec(renderPendingSouls, 'renderPendingSouls');
+        safeExec(renderOverview, 'renderOverview');
+        safeExec(renderShepherds, 'renderShepherds');
+        safeExec(renderMembers, 'renderMembers');
+        safeExec(renderReports, 'renderReports');
+        safeExec(renderTopics, 'renderTopics');
+        safeExec(renderAttendance, 'renderAttendance');
+        safeExec(renderExport, 'renderExport');
+        safeExec(renderMcOverview, 'renderMcOverview');
+        safeExec(renderMcShepherds, 'renderMcShepherds');
+        safeExec(renderMcMembers, 'renderMcMembers');
+        safeExec(renderMcReports, 'renderMcReports');
+        safeExec(renderLeaderboard, 'renderLeaderboard');
+        safeExec(renderSoulReports, 'renderSoulReports');
+        safeExec(renderFlags, 'renderFlags');
       }
 
       function renderOverview() {
-        var weekly = allReports.filter(isThisWeek);
-        console.log('This week reports:', weekly.length, 'of', allReports.length, 'total');
+        var currWk = getCurrentISOWeek();
+        var allCombined = (allReports || []).concat(allMicrochurchReports || []);
+
+        // Discover all week numbers present in reports
+        var weekSet = new Set();
+        allCombined.forEach(function(r) {
+          var w = getReportWeekNumber(r);
+          if (w) weekSet.add(w);
+        });
+        var availableWeeks = Array.from(weekSet).sort(function(a, b) { return b - a; });
+
+        // If no week explicitly selected, choose currentWeek if it has reports, else latest active week
+        var currentWeekHasReports = (allReports || []).some(function(r) { return getReportWeekNumber(r) === currWk; });
+        var activeWeek = overviewSelectedWeek !== null
+          ? overviewSelectedWeek
+          : (currentWeekHasReports || !availableWeeks.length ? currWk : availableWeeks[0]);
+
+        populateOverviewWeekDropdown(availableWeeks, activeWeek);
+
+        var weekly = (allReports || []).filter(function(r) {
+          if (activeWeek === 'all') return true;
+          return getReportWeekNumber(r) === activeWeek;
+        });
+
+        console.log('Overview rendering for week', activeWeek, ':', weekly.length, 'SPS reports');
         var shepSet = new Set(weekly.map(function (r) { return r.shepherd; }));
 
         // Avg attendance — use attendanceRate if available, else calculate from members
@@ -6931,34 +7059,76 @@
         var concerns = weekly.filter(function (r) { return countConcerns(r) > 0; }).length;
         var bibleYes = weekly.filter(function (r) { return r.topicCovered === 'yes' || r.topicCovered === 'Yes'; }).length;
 
-        document.getElementById('s-sessions').textContent = weekly.length;
-        document.getElementById('s-reported').textContent = shepSet.size + '/' + ALL_SHEPHERDS.length;
-        document.getElementById('s-shepherd-total').textContent = 'of ' + ALL_SHEPHERDS.length + ' shepherds';
-        document.getElementById('s-avgatt').textContent = avgAtt + '%';
-        document.getElementById('s-prayer').textContent = prayers;
-        document.getElementById('s-concerns').textContent = concerns;
-        document.getElementById('s-bible').textContent = bibleYes + '/' + weekly.length;
+        // Count new souls / members reported in this week
+        var totalSoulsThisWeek = weekly.reduce(function(acc, r) {
+          var count = 0;
+          if (r.newMembers) {
+            if (Array.isArray(r.newMembers)) count += r.newMembers.length;
+            else {
+              try {
+                var p = JSON.parse(r.newMembers);
+                if (Array.isArray(p)) count += p.length;
+              } catch(e) {
+                if (typeof r.newMembers === 'string' && r.newMembers.trim() && r.newMembers.toLowerCase() !== 'none') {
+                  count += r.newMembers.split(',').length;
+                }
+              }
+            }
+          }
+          return acc + count;
+        }, 0);
+
+        var elSessions = document.getElementById('s-sessions');
+        if (elSessions) elSessions.textContent = weekly.length;
+        var elReported = document.getElementById('s-reported');
+        if (elReported) elReported.textContent = shepSet.size + '/' + ALL_SHEPHERDS.length;
+        var elShepTotal = document.getElementById('s-shepherd-total');
+        if (elShepTotal) elShepTotal.textContent = 'of ' + ALL_SHEPHERDS.length + ' shepherds';
+        var elAvgAtt = document.getElementById('s-avgatt');
+        if (elAvgAtt) elAvgAtt.textContent = avgAtt + '%';
+        var elPrayer = document.getElementById('s-prayer');
+        if (elPrayer) elPrayer.textContent = prayers;
+        var elConcerns = document.getElementById('s-concerns');
+        if (elConcerns) elConcerns.textContent = concerns;
+        var elBible = document.getElementById('s-bible');
+        if (elBible) elBible.textContent = bibleYes + '/' + (weekly.length || '0');
+        var elSouls = document.getElementById('s-souls');
+        if (elSouls) elSouls.textContent = totalSoulsThisWeek;
+
+        // Un-shimmer stat cards
+        ['s-sessions', 's-reported', 's-avgatt', 's-prayer', 's-concerns', 's-bible', 's-souls'].forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.classList.remove('shimmer');
+        });
 
         var silent = ALL_SHEPHERDS.filter(function (s) { return !shepSet.has(s.name); });
         var alertSilent = document.getElementById('alert-silent');
-        if (!silent.length) {
-          alertSilent.innerHTML = '<li style="color:#15803d;font-weight:600;">✨ All shepherds reported!</li>';
-        } else {
-          var shown = silent.slice(0, silentShowCount);
-          var liHtml = shown.map(function (s) { return '<li>' + s.name + '</li>'; }).join('');
-          if (silent.length > silentShowCount) {
-            liHtml += '<li onclick="expandSilentList(event)" style="cursor:pointer;color:var(--accent);font-weight:700;margin-top:6px;display:flex;align-items:center;gap:4px;list-style:none;user-select:none;">➕ ' + (silent.length - silentShowCount) + ' more</li>';
+        if (alertSilent) {
+          if (!silent.length) {
+            alertSilent.innerHTML = '<li style="color:#15803d;font-weight:600;">✨ All shepherds reported!</li>';
+          } else {
+            var shown = silent.slice(0, silentShowCount);
+            var liHtml = shown.map(function (s) { return '<li>' + s.name + '</li>'; }).join('');
+            if (silent.length > silentShowCount) {
+              liHtml += '<li onclick="expandSilentList(event)" style="cursor:pointer;color:var(--accent);font-weight:700;margin-top:6px;display:flex;align-items:center;gap:4px;list-style:none;user-select:none;">➕ ' + (silent.length - silentShowCount) + ' more</li>';
+            }
+            alertSilent.innerHTML = liHtml;
           }
-          alertSilent.innerHTML = liHtml;
         }
 
         var absentSet = {};
         weekly.forEach(function (r) { toArray(r.membersAbsent).forEach(function (m) { absentSet[m] = (absentSet[m] || 0) + 1; }); });
         var topAbsent = Object.entries(absentSet).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 6);
-        document.getElementById('alert-absent').innerHTML = topAbsent.length ? topAbsent.map(function (e) { return '<li>' + e[0] + ' (' + e[1] + 'x)</li>'; }).join('') : '<li style="color:#15803d">No absences recorded</li>';
+        var alertAbsent = document.getElementById('alert-absent');
+        if (alertAbsent) {
+          alertAbsent.innerHTML = topAbsent.length ? topAbsent.map(function (e) { return '<li>' + e[0] + ' (' + e[1] + 'x)</li>'; }).join('') : '<li style="color:#15803d">No absences recorded</li>';
+        }
 
         var highAct = ALL_SHEPHERDS.filter(function (s) { return weekly.filter(function (r) { return r.shepherd === s.name; }).length >= 3; });
-        document.getElementById('alert-active').innerHTML = highAct.length ? highAct.map(function (s) { return '<li>' + s.name + '</li>'; }).join('') : '<li style="color:#64748b">None yet this week</li>';
+        var alertActive = document.getElementById('alert-active');
+        if (alertActive) {
+          alertActive.innerHTML = highAct.length ? highAct.map(function (s) { return '<li>' + s.name + '</li>'; }).join('') : '<li style="color:#64748b">None yet this week</li>';
+        }
 
         var list = [];
         var showSps = (currentRole !== 'mchead' && currentRole !== 'ftshead');
@@ -7011,22 +7181,26 @@
           return (b.reportId || '').localeCompare(a.reportId || '');
         }).slice(0, 10);
 
-        document.getElementById('activity-count').textContent = list.length + ' total';
-        document.getElementById('activity-feed').innerHTML = recent.length ? recent.map(function (r) {
-          var badgeColor = r.type === 'SPS' ? 'background:#eff6ff;color:#3b82f6;' : 'background:#ecfdf5;color:#10b981;';
-          var typeBadge = '<span style="padding:2px 6px;border-radius:4px;font-size:10px;font-weight:800;margin-left:8px;vertical-align:middle;text-transform:uppercase;' + badgeColor + '">' + r.type + '</span>';
+        var actCount = document.getElementById('activity-count');
+        if (actCount) actCount.textContent = list.length + ' total';
+        var actFeed = document.getElementById('activity-feed');
+        if (actFeed) {
+          actFeed.innerHTML = recent.length ? recent.map(function (r) {
+            var badgeColor = r.type === 'SPS' ? 'background:#eff6ff;color:#3b82f6;' : 'background:#ecfdf5;color:#10b981;';
+            var typeBadge = '<span style="padding:2px 6px;border-radius:4px;font-size:10px;font-weight:800;margin-left:8px;vertical-align:middle;text-transform:uppercase;' + badgeColor + '">' + r.type + '</span>';
 
-          return '<div class="activity-item">' +
-            '<div>' +
-              '<div class="activity-name">' + r.shepherd + typeBadge + '</div>' +
-              '<div class="activity-meta">' +
-                formatReportDate(r.date) + ' · ' + (formatTime(r.time) || '—') + ' · ' +
-                r.present + '/' + r.total + ' members' +
+            return '<div class="activity-item">' +
+              '<div>' +
+                '<div class="activity-name">' + r.shepherd + typeBadge + '</div>' +
+                '<div class="activity-meta">' +
+                  formatReportDate(r.date) + ' · ' + (formatTime(r.time) || '—') + ' · ' +
+                  r.present + '/' + r.total + ' members' +
+                '</div>' +
               '</div>' +
-            '</div>' +
-            '<div class="activity-rate">' + r.rate + '%</div>' +
-          '</div>';
-        }).join('') : '<div class="empty"><div class="icon">📭</div><p>No activity yet</p></div>';
+              '<div class="activity-rate">' + r.rate + '%</div>' +
+            '</div>';
+          }).join('') : '<div class="empty"><div class="icon">📭</div><p>No activity yet</p></div>';
+        }
       }
 
       window.expandSilentList = function(event) {
