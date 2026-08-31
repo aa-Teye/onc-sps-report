@@ -1,4 +1,4 @@
-# Generational Chapel International - Production FastAPI Backend API
+# Generations Chapel International - Production FastAPI Backend API
 
 This backend is built using Python FastAPI, Neon PostgreSQL serverless database, and Cloudinary media storage CDN.
 
@@ -41,7 +41,7 @@ Open **`http://localhost:8000/docs`** to test the automatic Swagger API document
 
 1. Create a free account on Render.com (https://render.com).
 2. Click **New +** -> **Web Service**.
-3. Connect your GitHub Repository: `https://github.com/aa-Teye/Generational-chapel-backend-`.
+3. Connect your GitHub Repository: `https://github.com/aa-Teye/Generations-chapel-backend-`.
 4. Set the following build settings:
    - **Root Directory**: `backend`
    - **Environment**: `Python 3`

@@ -12,7 +12,7 @@ from .cloudinary_config import upload_meeting_photo, upload_study_resource_file
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Generational Chapel International - Executive SPS API",
+    title="Generations Chapel International - Executive SPS API",
     description="Production REST API backend connected to Neon PostgreSQL and Cloudinary CDN.",
     version="2.0.0"
 )
@@ -36,7 +36,7 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {
-        "church": "Generational Chapel International",
+        "church": "Generations Chapel International",
         "system": "Executive SPS & Pastoral Portal API",
         "status": "Online",
         "database": "Neon PostgreSQL Connected",

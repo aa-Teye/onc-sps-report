@@ -9,7 +9,7 @@ backend_dir = r"d:\MYCODING FILES\ONC PROJECTS\ONC_SPS\backend"
 
 # Ensure git repository is configured
 run("git init", cwd=backend_dir)
-run("git remote set-url origin https://github.com/aa-Teye/Generational-chapel-backend-.git", cwd=backend_dir)
+run("git remote set-url origin https://github.com/aa-Teye/Generations-chapel-backend-.git", cwd=backend_dir)
 
 # List of 100 granular, descriptive commit tasks
 commit_messages = [
@@ -131,7 +131,7 @@ commit_messages = [
     "docs: add Cloudinary media storage configuration guide",
     "config: add render.yaml infrastructure as code specification",
     "ci: verify full FastAPI backend API test suite",
-    "release: final v2.0.0 production backend release for Generational Chapel"
+    "release: final v2.0.0 production backend release for Generations Chapel"
 ]
 
 print(f"Total commits planned: {len(commit_messages)}")

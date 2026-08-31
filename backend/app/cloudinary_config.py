@@ -19,7 +19,7 @@ def upload_meeting_photo(file_bytes, filename: str) -> str:
     """
     result = cloudinary.uploader.upload(
         file_bytes,
-        folder="generational_chapel/sps_photos",
+        folder="generations_chapel/sps_photos",
         resource_type="image",
         transformation=[
             {"width": 1200, "crop": "limit"},
@@ -36,7 +36,7 @@ def upload_study_resource_file(file_bytes, filename: str) -> str:
     """
     result = cloudinary.uploader.upload(
         file_bytes,
-        folder="generational_chapel/study_guides",
+        folder="generations_chapel/study_guides",
         resource_type="raw",
         public_id=f"study_{filename}"
     )
