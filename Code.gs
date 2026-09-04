@@ -72,7 +72,7 @@ function doPost(e) {
     if (action === 'addSoul')                 return addSoul(data);
     // ── Shepherd self-service Add/Edit (Know Your Members) ────────
     if (action === 'addMemberSelfService')    return addMemberSelfService(data);
-    if (action === 'updateMemberDetails')     return updateMemberDetails(data);
+    if (action === 'updateMemberDetails')     return jsonResponse(updateMemberDetails(data));
     // ── Sprint 5 POST actions ─────────────────────────────────
     if (action === 'saveZoneConfig')          return saveZoneConfig(data);
     if (action === 'addShepherd')             return addShepherd(data);
@@ -156,8 +156,31 @@ function doGet(e) {
     else if (action === 'getDynamicShepherds')    response = getDynamicShepherds();
     else if (action === 'approveSeeker')          response = approveSeeker(e.parameter.memberId, e.parameter.approvedBy);
     else if (action === 'markSeekerAsMember')     response = markSeekerAsMember(e.parameter.memberId, e.parameter.graduatedBy);
-    else if (action === 'reassignMember')         response = reassignMember(e.parameter.memberId, e.parameter.newShepherd, e.parameter.newZone, e.parameter.reassignedBy);
-    else if (action === 'deleteMemberRecord' || action === 'deleteSeeker') response = deleteMemberRecord({ memberId: e.parameter.memberId, deletedBy: e.parameter.deletedBy });
+    else if (action === 'reassignMember')         response = reassignMember(e.parameter.memberId, e.parameter.newShepherd, e.parameter.newZone, e.parameter.reassignedBy, e.parameter.name, e.parameter.stream);
+    else if (action === 'updateMemberDetails') {
+      response = updateMemberDetails({
+        memberId: e.parameter.memberId,
+        requestingRole: e.parameter.requestingRole,
+        updatedBy: e.parameter.updatedBy,
+        fields: {
+          name: e.parameter.name,
+          phone: e.parameter.phone,
+          dob: e.parameter.dob,
+          occupation: e.parameter.occupation,
+          address: e.parameter.address,
+          bornAgain: e.parameter.bornAgain,
+          inChurch: e.parameter.inChurch
+        }
+      });
+    }
+    else if (action === 'deleteMemberRecord' || action === 'deleteSeeker') {
+      response = deleteMemberRecord({
+        memberId: e.parameter.memberId,
+        name: e.parameter.name,
+        shepherd: e.parameter.shepherd,
+        deletedBy: e.parameter.deletedBy
+      });
+    }
     else                                          response = { status: 'ok', message: 'ONC SPS Backend v4.0 Running' };
   } catch (err) {
     response = { status: 'error', message: err.toString() };
@@ -2580,16 +2603,22 @@ function addMemberSelfService(data) {
 // trusts a client-supplied name the same way) — not new security
 // infrastructure, just consistent with how the rest of the app works.
 function updateMemberDetails(data) {
+  data = data || {};
   var memberId = data.memberId;
-  var requestingShepherd = (data.requestingShepherd || '').toString().trim();
-  if (!memberId) return jsonResponse({ status: 'error', message: 'Missing memberId' });
+  var requestingRole = (data.requestingRole || '').toString().toLowerCase();
+  var isLeadership = (requestingRole === 'superadmin' || requestingRole === 'admin' || requestingRole === 'ituser' || !data.requestingShepherd);
+
+  if (!memberId) return { status: 'error', message: 'Missing memberId' };
 
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
   var records = getSheetRecords(sheet);
   var rec = records.find(function (r) { return String(r.MemberID) === String(memberId); });
-  if (!rec) return jsonResponse({ status: 'error', message: 'Member not found' });
-  if ((rec.Shepherd || '').toString().trim().toLowerCase() !== requestingShepherd.toLowerCase()) {
-    return jsonResponse({ status: 'error', message: 'This person is not on your list' });
+  if (!rec) return { status: 'error', message: 'Member not found' };
+
+  if (!isLeadership && data.requestingShepherd) {
+    if ((rec.Shepherd || '').toString().trim().toLowerCase() !== data.requestingShepherd.toLowerCase()) {
+      return { status: 'error', message: 'This person is not on your list' };
+    }
   }
 
   var fields = data.fields || {};
@@ -2598,18 +2627,18 @@ function updateMemberDetails(data) {
   if (newName && newName.toLowerCase() !== (rec.Name || '').toString().trim().toLowerCase()) {
     var collision = records.find(function (r) {
       return String(r.MemberID) !== String(memberId) &&
-        (r.Shepherd || '').toString().trim().toLowerCase() === requestingShepherd.toLowerCase() &&
+        (r.Shepherd || '').toString().trim().toLowerCase() === (rec.Shepherd || '').toString().trim().toLowerCase() &&
         r.Name && r.Name.toString().trim().toLowerCase() === newName.toLowerCase();
     });
     if (collision) {
-      return jsonResponse({ status: 'error', message: newName + ' is already on your list under a different entry.' });
+      return { status: 'error', message: newName + ' is already on this list under a different entry.' };
     }
   }
 
   sheet.getRange(rec._row, 3).setNumberFormat('@');
   sheet.getRange(rec._row, 14).setNumberFormat('@');
 
-  if (newName)               sheet.getRange(rec._row, 2).setValue(newName);
+  if (newName)                          sheet.getRange(rec._row, 2).setValue(newName);
   if (fields.phone      !== undefined) sheet.getRange(rec._row, 3).setValue(fields.phone);
   if (fields.zone       !== undefined) sheet.getRange(rec._row, 5).setValue(fields.zone);
   if (fields.dob        !== undefined) sheet.getRange(rec._row, 14).setValue(fields.dob);
@@ -2618,8 +2647,8 @@ function updateMemberDetails(data) {
   if (fields.occupation !== undefined) sheet.getRange(rec._row, 17).setValue(fields.occupation);
   if (fields.address    !== undefined) sheet.getRange(rec._row, 18).setValue(fields.address);
 
-  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DETAILS_UPDATED', requestingShepherd, (newName || rec.Name));
-  return jsonResponse({ status: 'success' });
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DETAILS_UPDATED', data.updatedBy || data.requestingRole || 'Admin', (newName || rec.Name));
+  return { status: 'success' };
 }
 
 // Full Members roster (Pending/Seeker/Member) — used by the admin Seekers tab.
@@ -2698,33 +2727,79 @@ function markSeekerAsMember(memberId, graduatedBy) {
 // a code deploy. Does not touch the static churchData.js roster, so it
 // only covers members already tracked in this sheet -- see the roadmap
 // plan for the full roster migration this is a first step toward.
-function reassignMember(memberId, newShepherd, newZone, reassignedBy) {
-  if (!memberId) return { status: 'error', message: 'Missing memberId' };
+function reassignMember(memberId, newShepherd, newZone, reassignedBy, memberName, stream) {
   if (!newShepherd) return { status: 'error', message: 'Missing newShepherd' };
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
-  var rec = getSheetRecords(sheet).find(function (r) { return r.MemberID === memberId; });
-  if (!rec) return { status: 'error', message: 'Member not found' };
+  var records = getSheetRecords(sheet);
+  var rec = null;
 
-  var oldShepherd = rec.Shepherd || '(none)';
-  sheet.getRange(rec._row, 4).setValue(newShepherd);
-  if (newZone) sheet.getRange(rec._row, 5).setValue(newZone);
-  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_REASSIGNED', reassignedBy || 'Admin',
-    rec.Name + ': ' + oldShepherd + ' -> ' + newShepherd);
-  return { status: 'success' };
+  if (memberId) {
+    rec = records.find(function (r) { return String(r.MemberID).trim().toLowerCase() === String(memberId).trim().toLowerCase(); });
+  }
+  if (!rec && memberName) {
+    rec = records.find(function (r) {
+      return r.Name && r.Name.toString().trim().toLowerCase() === memberName.toString().trim().toLowerCase();
+    });
+  }
+
+  if (rec) {
+    var oldShepherd = rec.Shepherd || '(none)';
+    sheet.getRange(rec._row, 4).setValue(newShepherd);
+    if (newZone) sheet.getRange(rec._row, 5).setValue(newZone);
+    if (stream) sheet.getRange(rec._row, 6).setValue(stream);
+    logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_REASSIGNED', reassignedBy || 'Admin',
+      (rec.Name || memberName) + ': ' + oldShepherd + ' -> ' + newShepherd + (newZone ? ' (' + newZone + ')' : ''));
+    return { status: 'success' };
+  }
+
+  // If member is from static roster and doesn't have a row in Members sheet yet, insert them
+  if (memberName) {
+    var now = new Date();
+    var newId = 'MEM-' + now.getTime() + '-' + Math.floor(Math.random() * 1000);
+    var newRow = sheet.getLastRow() + 1;
+    sheet.getRange(newRow, 3).setNumberFormat('@');
+    sheet.getRange(newRow, 7).setNumberFormat('@');
+    sheet.getRange(newRow, 1, 1, 8).setValues([[
+      newId, memberName, '', newShepherd, newZone || '', stream || 'sps', formatDate(now), 'Member'
+    ]]);
+    logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_REASSIGNED', reassignedBy || 'Admin',
+      memberName + ' (Roster): -> ' + newShepherd + (newZone ? ' (' + newZone + ')' : ''));
+    return { status: 'success', memberId: newId };
+  }
+
+  return { status: 'error', message: 'Member not found' };
 }
 
 // Admin self-service: permanently removes a row from the Members sheet
 // (seeker, self-signup, bulk-import, or migrated static-roster member).
 function deleteMemberRecord(data) {
   data = data || {};
-  var memberId = data.memberId;
-  if (!memberId) return { status: 'error', message: 'Missing memberId' };
+  var memberId = data.memberId ? String(data.memberId).trim() : '';
+  var name = (data.name || '').toString().trim().toLowerCase();
+  var shepherd = (data.shepherd || '').toString().trim().toLowerCase();
+
+  if (!memberId && !name) return { status: 'error', message: 'Missing memberId or name' };
+
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
   var records = getSheetRecords(sheet);
-  var rec = records.find(function (r) { return String(r.MemberID) === String(memberId); });
+  var rec = null;
+
+  if (memberId) {
+    rec = records.find(function (r) {
+      return r.MemberID && String(r.MemberID).trim().toLowerCase() === memberId.toLowerCase();
+    });
+  }
+  if (!rec && name) {
+    rec = records.find(function (r) {
+      var matchName = r.Name && r.Name.toString().trim().toLowerCase() === name;
+      var matchShep = !shepherd || (r.Shepherd && r.Shepherd.toString().trim().toLowerCase() === shepherd);
+      return matchName && matchShep;
+    });
+  }
   if (!rec) return { status: 'error', message: 'Member not found' };
+
   sheet.deleteRow(rec._row);
-  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DELETED', data.deletedBy || 'Admin', rec.Name || memberId);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DELETED', data.deletedBy || 'Admin', (rec.Name || memberId));
   return { status: 'success' };
 }
 

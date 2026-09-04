@@ -2929,6 +2929,50 @@
   </script>
 
   <script>
+    // ── GLOBAL DATE FORMATTER & PARSER (STRICT DAY / MONTH / YEAR) ──
+    window.parseDayMonthYearDate = function (val) {
+      if (!val) return null;
+      if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+      if (typeof val === 'number') return new Date(val);
+      var str = String(val).trim();
+      if (!str || str === '—' || str === 'N/A') return null;
+
+      if (str.includes('T')) {
+        var datePart = str.split('T')[0];
+        var p = datePart.split('-');
+        if (p.length === 3) return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+      }
+      if (str.includes('/')) {
+        var p = str.split('/');
+        if (p.length === 3) {
+          var a = parseInt(p[0], 10), b = parseInt(p[1], 10), c = parseInt(p[2], 10);
+          if (c > 1000) return new Date(c, b - 1, a); // DD/MM/YYYY
+          if (a > 1000) return new Date(a, b - 1, c); // YYYY/MM/DD
+          return new Date(c + 2000, b - 1, a);
+        }
+      }
+      if (str.includes('-')) {
+        var p = str.split('-');
+        if (p.length === 3) {
+          var a = parseInt(p[0], 10), b = parseInt(p[1], 10), c = parseInt(p[2], 10);
+          if (a > 1000) return new Date(a, b - 1, c); // YYYY-MM-DD
+          if (c > 1000) return new Date(c, b - 1, a); // DD-MM-YYYY
+        }
+      }
+      var d = new Date(str);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    window.formatDayMonthYear = function (val) {
+      if (!val || val === '—') return '';
+      var d = window.parseDayMonthYearDate(val);
+      if (!d) return String(val);
+      var day = String(d.getDate()).padStart(2, '0');
+      var month = String(d.getMonth() + 1).padStart(2, '0');
+      var year = d.getFullYear();
+      return day + '/' + month + '/' + year;
+    };
+
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
     const CLOUDINARY_CLOUD_NAME = 'dhyzvuh42';
     const CLOUDINARY_UPLOAD_PRESET = 'ONC SPS';

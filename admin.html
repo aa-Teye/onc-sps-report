@@ -1458,6 +1458,11 @@
             <span class="tab-btn-label">Seekers</span>
           </button>
           <button class="tab-btn"
+            onclick="switchTab('reassignment', this)">
+            <span class="icon">🔀</span>
+            <span class="tab-btn-label">Reassignment</span>
+          </button>
+          <button class="tab-btn"
             onclick="switchTab('membership', this)">
             <span class="icon">👥</span>
             <span class="tab-btn-label">Membership</span>
@@ -1597,7 +1602,6 @@
             <div class="live-badge">
               <div class="live-dot"></div><span id="lastUpdated">Loading...</span>
             </div>
-            <button class="btn-refresh" id="tourBtn" onclick="startTour()">🧭 Take a Tour</button>
             <button class="btn-refresh" onclick="loadAll()">🔄 Refresh</button>
           </div>
         </div>
@@ -3090,6 +3094,134 @@
             </div>
           </div>
 
+          <!-- TAB: REASSIGNMENT -->
+          <div class="tab-panel" id="panel-reassignment">
+            <h2 style="margin-bottom:8px;font-size:22px;font-weight:800;color:#0a1628;">
+              🔀 Member Reassignment
+            </h2>
+            <p style="color:#64748b;font-size:13px;margin-bottom:24px;">
+              Seamlessly transfer any member between Shepherds, SPS groups, or Microchurches.
+              Works across database records and existing rosters with live audit tracking.
+            </p>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:20px;margin-bottom:28px;">
+              <!-- 1. SELECT MEMBER -->
+              <div style="background:white;border-radius:18px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
+                <h3 style="font-size:15px;font-weight:800;color:#0f2044;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+                  <span>🔍</span> 1. Select Member to Reassign
+                </h3>
+
+                <div style="margin-bottom:14px;">
+                  <label style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Search by Name or Phone</label>
+                  <input type="text" id="reassignSearchInput" oninput="filterReassignMemberList()" placeholder="Type member name..."
+                    style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:6px;">
+                </div>
+
+                <div style="max-height:240px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:6px;" id="reassignSearchResultsList">
+                  <div style="color:#94a3b8;font-size:12px;text-align:center;padding:24px;">Search for a member above or choose from the list</div>
+                </div>
+              </div>
+
+              <!-- CURRENT PLACEMENT -->
+              <div style="background:white;border-radius:18px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
+                <h3 style="font-size:15px;font-weight:800;color:#0f2044;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+                  <span>👤</span> Current Placement
+                </h3>
+
+                <div id="reassignCurrentPlaceholder" style="text-align:center;padding:45px 20px;color:#94a3b8;font-size:13px;">
+                  👈 Select a member from the left to view their current placement
+                </div>
+
+                <div id="reassignCurrentDetails" style="display:none;">
+                  <div style="background:#f1f5f9;border-radius:12px;padding:14px;margin-bottom:14px;">
+                    <div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;">Member Name</div>
+                    <div id="reassignCurrentName" style="font-size:17px;font-weight:800;color:#0f2044;margin-top:2px;">—</div>
+                    <div id="reassignCurrentPhone" style="font-size:12px;color:#64748b;margin-top:2px;">—</div>
+                  </div>
+
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
+                      <div style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;">Stream</div>
+                      <div id="reassignCurrentStream" style="font-size:13px;font-weight:800;color:#0f2044;margin-top:2px;">—</div>
+                    </div>
+                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
+                      <div style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;">Current Shepherd</div>
+                      <div id="reassignCurrentShepherd" style="font-size:13px;font-weight:800;color:#0f2044;margin-top:2px;">—</div>
+                    </div>
+                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;grid-column:span 2;">
+                      <div style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;">Zone / Location</div>
+                      <div id="reassignCurrentZone" style="font-size:13px;font-weight:800;color:#0f2044;margin-top:2px;">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. NEW PLACEMENT -->
+              <div style="background:white;border-radius:18px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e2e8f0;grid-column:1 / -1;">
+                <h3 style="font-size:15px;font-weight:800;color:#0f2044;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+                  <span>🎯</span> 2. New Placement Destination
+                </h3>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;margin-bottom:16px;">
+                  <div>
+                    <label style="font-size:11px;font-weight:800;color:#0f2044;text-transform:uppercase;letter-spacing:0.5px;">Target Stream</label>
+                    <select id="reassignTargetStream" onchange="onReassignStreamChange()"
+                      style="width:100%;box-sizing:border-box;padding:11px 12px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:6px;">
+                      <option value="sps">🌱 SPS (Sunday School)</option>
+                      <option value="mc">🏠 Microchurch (Fellowship)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style="font-size:11px;font-weight:800;color:#0f2044;text-transform:uppercase;letter-spacing:0.5px;">Target Shepherd *</label>
+                    <select id="reassignTargetShepherd" onchange="onReassignShepherdChange()"
+                      style="width:100%;box-sizing:border-box;padding:11px 12px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:6px;">
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style="font-size:11px;font-weight:800;color:#0f2044;text-transform:uppercase;letter-spacing:0.5px;">Target Zone / Satellite</label>
+                    <input type="text" id="reassignTargetZone" placeholder="Auto-populated with shepherd"
+                      style="width:100%;box-sizing:border-box;padding:11px 12px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:6px;">
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:10px;">
+                  <span id="reassignStatusMsg" style="font-size:13px;font-weight:700;color:#ef4444;display:none;"></span>
+                  <button type="button" id="reassignSubmitBtn" onclick="executeReassignment()"
+                    style="padding:14px 28px;background:#0f2044;color:#fff;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 12px rgba(15,32,68,0.15);margin-left:auto;">
+                    🔀 Confirm Reassignment
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- REASSIGNMENT AUDIT LOG -->
+            <div style="background:white;border-radius:18px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h3 style="font-size:15px;font-weight:800;color:#0f2044;">📋 Recent Reassignments Log</h3>
+                <button onclick="renderReassignAuditLog()" style="padding:6px 12px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;color:#475569;">🔄 Refresh</button>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:680px;">
+                  <thead>
+                    <tr style="background:#0a1628;color:white;">
+                      <th style="padding:10px;text-align:left;">Member</th>
+                      <th style="padding:10px;text-align:left;">Previous Shepherd</th>
+                      <th style="padding:10px;text-align:left;">New Shepherd</th>
+                      <th style="padding:10px;text-align:left;">Zone / Stream</th>
+                      <th style="padding:10px;text-align:center;">Date & Time</th>
+                      <th style="padding:10px;text-align:center;">Reassigned By</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reassignAuditLogBody">
+                    <tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8;">No recent reassignments in this session.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <div class="tab-panel" id="panel-membership">
             <h2 style="margin-bottom:24px;font-size:22px;
               font-weight:800;color:#0a1628;">
@@ -3813,6 +3945,78 @@
       </div>
     </div>
 
+    <!-- EDIT PERSON / SEEKER DETAILS MODAL -->
+    <div id="editSeekerModal" onclick="closeEditSeekerModal()"
+      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px;box-sizing:border-box;">
+      <div onclick="event.stopPropagation()"
+        style="background:#fff;border-radius:24px;border:3px solid #0a1628;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#0f2044;font-family:'Outfit',sans-serif;position:relative;">
+        <button onclick="closeEditSeekerModal()"
+          style="position:absolute;top:20px;right:20px;background:rgba(15,32,68,0.08);border:none;color:#0f2044;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">✕</button>
+        <div style="font-size:32px;margin-bottom:6px;">✏️</div>
+        <div style="font-weight:800;font-size:18px;margin-bottom:4px;">Edit Person Details</div>
+        <div id="editSeekerSubTitle" style="color:#64748b;font-size:13px;margin-bottom:18px;">General Overseer & Admin Management</div>
+        
+        <input type="hidden" id="editSeekerMemberId">
+
+        <div style="margin-bottom:14px;">
+          <label style="font-weight:800;font-size:11px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Full Name *</label>
+          <input id="editSeekerNameInput" type="text" placeholder="Full name"
+            style="width:100%;box-sizing:border-box;padding:10px 12px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:4px;">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div>
+            <label style="font-weight:800;font-size:11px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Phone Number</label>
+            <input id="editSeekerPhoneInput" type="tel" placeholder="e.g. 0244123456"
+              style="width:100%;box-sizing:border-box;padding:10px 12px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:4px;">
+          </div>
+          <div>
+            <label style="font-weight:800;font-size:11px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Date of Birth</label>
+            <input id="editSeekerDobInput" type="text" placeholder="DD/MM/YYYY"
+              style="width:100%;box-sizing:border-box;padding:10px 12px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:4px;">
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-weight:800;font-size:11px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Occupation / Profession</label>
+          <input id="editSeekerOccupationInput" type="text" placeholder="e.g. Student, Banker, Nurse"
+            style="width:100%;box-sizing:border-box;padding:10px 12px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:4px;">
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-weight:800;font-size:11px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Address / Hostel</label>
+          <input id="editSeekerAddressInput" type="text" placeholder="e.g. Evandy Hostel, Block B"
+            style="width:100%;box-sizing:border-box;padding:10px 12px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:4px;">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+          <div>
+            <label style="font-weight:800;font-size:11px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Born Again?</label>
+            <select id="editSeekerBornAgainSelect"
+              style="width:100%;box-sizing:border-box;padding:10px 12px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:4px;">
+              <option value="">— Select —</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight:800;font-size:11px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">In Church?</label>
+            <select id="editSeekerInChurchSelect"
+              style="width:100%;box-sizing:border-box;padding:10px 12px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:4px;">
+              <option value="">— Select —</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+        </div>
+
+        <p id="editSeekerErrorMsg" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-bottom:14px;"></p>
+
+        <button type="button" id="editSeekerSaveBtn" onclick="saveSeekerDetailsAction()"
+          style="width:100%;padding:14px;background:#0f2044;color:#fff;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 12px rgba(15,32,68,0.15);">💾 Save Changes</button>
+      </div>
+    </div>
+
     <!-- ADD MEMBER DIRECTLY TO A SHEPHERD -->
     <div id="addMemberModal" onclick="closeAddMemberModal()"
       style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px;">
@@ -4035,6 +4239,66 @@
         "Akpene Komedio Anatsui": ["Blessing Donkor", "Elizabeth Ashie", "Gifty Donkor", "Empress", "Felix", "Peniel", "Winifred Aickins", "Samuel Donkor", "Blessing Bimbim", "Antoinette", "Emefa Blebo", "Quad", "Stephen Tetteh", "Joel"]
       };
 
+      // ── GLOBAL DATE FORMATTER & PARSER (STRICT DAY / MONTH / YEAR) ──
+      // Standardizes all date input/output across the platform to DD/MM/YYYY
+      window.parseDayMonthYearDate = function (val) {
+        if (!val) return null;
+        if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+        if (typeof val === 'number') return new Date(val);
+        var str = String(val).trim();
+        if (!str || str === '—' || str === 'N/A' || str === 'null' || str === 'undefined') return null;
+
+        // 1. ISO string with T (e.g. 2026-09-04T00:00:00.000Z)
+        if (str.includes('T')) {
+          var datePart = str.split('T')[0];
+          var p = datePart.split('-');
+          if (p.length === 3) return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+        }
+        // 2. Slashes (e.g. 04/09/2026 or 2026/09/04)
+        if (str.includes('/')) {
+          var p = str.split('/');
+          if (p.length === 3) {
+            var a = parseInt(p[0], 10), b = parseInt(p[1], 10), c = parseInt(p[2], 10);
+            if (c > 1000) return new Date(c, b - 1, a); // DD/MM/YYYY
+            if (a > 1000) return new Date(a, b - 1, c); // YYYY/MM/DD
+            return new Date(c + 2000, b - 1, a); // DD/MM/YY
+          }
+        }
+        // 3. Dashes (e.g. 04-09-2026 or 2026-09-04)
+        if (str.includes('-')) {
+          var p = str.split('-');
+          if (p.length === 3) {
+            var a = parseInt(p[0], 10), b = parseInt(p[1], 10), c = parseInt(p[2], 10);
+            if (a > 1000) return new Date(a, b - 1, c); // YYYY-MM-DD
+            if (c > 1000) return new Date(c, b - 1, a); // DD-MM-YYYY
+          }
+        }
+        // 4. Dots (e.g. 04.09.2026)
+        if (str.includes('.')) {
+          var p = str.split('.');
+          if (p.length === 3) {
+            var a = parseInt(p[0], 10), b = parseInt(p[1], 10), c = parseInt(p[2], 10);
+            if (c > 1000) return new Date(c, b - 1, a); // DD.MM.YYYY
+          }
+        }
+        var d = new Date(str);
+        return isNaN(d.getTime()) ? null : d;
+      };
+
+      window.formatDayMonthYear = function (val) {
+        if (!val || val === '—' || val === 'N/A') return '—';
+        var d = window.parseDayMonthYearDate(val);
+        if (!d) return String(val);
+        var day = String(d.getDate()).padStart(2, '0');
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var year = d.getFullYear();
+        return day + '/' + month + '/' + year;
+      };
+
+      // Aliases ensuring existing code routes through the global Day/Month/Year logic
+      window.formatReportDate = window.formatDayMonthYear;
+      window.formatSeekerDate = window.formatDayMonthYear;
+      window.parseRobustDate = window.parseDayMonthYearDate;
 
       const ADMIN_PIN = '2500';
       const SPS_HEAD_PIN = '3000';
@@ -4556,20 +4820,7 @@
       }
 
       function formatSeekerDate(val) {
-        if (!val) return '—';
-        if (typeof formatReportDate === 'function') {
-          return formatReportDate(val);
-        }
-        try {
-          var d = new Date(val);
-          if (isNaN(d.getTime())) return String(val);
-          var day = String(d.getDate()).padStart(2, '0');
-          var month = String(d.getMonth() + 1).padStart(2, '0');
-          var year = d.getFullYear();
-          return day + '/' + month + '/' + year;
-        } catch (e) {
-          return String(val);
-        }
+        return window.formatDayMonthYear(val);
       }
 
       function visibleSeekerStream() {
@@ -4602,7 +4853,12 @@
             '<div style="font-size:32px;font-weight:900;color:#0a1628;">' + s.count + '</div></div>';
         }).join('');
 
+        var canAdmin = (currentRole === 'admin' || currentRole === 'superadmin' || currentRole === 'ituser');
+        var canGraduate = (currentRole === 'admin' || currentRole === 'superadmin');
+
         pendingBody.innerHTML = pending.length ? pending.map(function (r) {
+          var editBtn = canAdmin ? '<button onclick="openEditSeekerModal(\'' + (r.MemberID || '') + '\')" style="padding:8px 14px;background:#2563eb;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">✏️ Edit</button>' : '';
+          var deleteBtn = canAdmin ? '<button onclick="deleteSeekerAction(\'' + (r.MemberID || '') + '\', \'' + escAttrAdmin(r.Name) + '\', \'' + escAttrAdmin(r.Shepherd) + '\')" style="padding:8px 14px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🗑️ Delete</button>' : '';
           return '<tr style="border-bottom:1px solid #e2e8f0;">' +
             '<td style="padding:10px;font-weight:700;color:#0f2044;">' + (r.Name || '—') + '</td>' +
             '<td style="padding:10px;color:#64748b;">' + (r.Phone || '—') + '</td>' +
@@ -4611,14 +4867,17 @@
             '<td style="padding:10px;color:#64748b;">' + (r.Zone || '—') + '</td>' +
             '<td style="padding:10px;color:#64748b;">' + (r.AddressOrHostel || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;color:#0f2044;">' + formatSeekerDate(r.ImportDate) + '</td>' +
-            '<td style="padding:10px;text-align:center;display:flex;gap:6px;justify-content:center;"><button onclick="approveSeekerAction(\'' + r.MemberID + '\')" style="padding:8px 14px;background:#16a34a;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">✅ Approve</button>' +
+            '<td style="padding:10px;text-align:center;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;"><button onclick="approveSeekerAction(\'' + r.MemberID + '\')" style="padding:8px 14px;background:#16a34a;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">✅ Approve</button>' +
             '<button onclick="openReassignMemberModal(\'' + r.MemberID + '\', \'' + escAttrAdmin(r.Name) + '\', \'' + escAttrAdmin(r.Shepherd) + '\', \'' + escAttrAdmin(r.Stream || 'sps') + '\')" style="padding:8px 14px;background:#f0a500;color:#0f2044;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🔀 Reassign</button>' +
-            '<button onclick="deleteSeekerAction(\'' + r.MemberID + '\', \'' + escAttrAdmin(r.Name) + '\')" style="padding:8px 14px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🗑️ Delete</button></td>' +
+            editBtn +
+            deleteBtn +
+            '</td>' +
             '</tr>';
         }).join('') : '<tr><td colspan="8" style="text-align:center;padding:30px;color:#64748b;">No pending seekers right now.</td></tr>';
 
-        var canGraduate = (currentRole === 'admin' || currentRole === 'superadmin');
         activeBody.innerHTML = active.length ? active.map(function (r) {
+          var editBtn = canAdmin ? '<button onclick="openEditSeekerModal(\'' + (r.MemberID || '') + '\')" style="padding:8px 14px;background:#2563eb;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">✏️ Edit</button>' : '';
+          var deleteBtn = canAdmin ? '<button onclick="deleteSeekerAction(\'' + (r.MemberID || '') + '\', \'' + escAttrAdmin(r.Name) + '\', \'' + escAttrAdmin(r.Shepherd) + '\')" style="padding:8px 14px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🗑️ Delete</button>' : '';
           return '<tr style="border-bottom:1px solid #e2e8f0;">' +
             '<td style="padding:10px;font-weight:700;color:#0f2044;">' + (r.Name || '—') + '</td>' +
             '<td style="padding:10px;color:#64748b;">' + (r.Phone || '—') + '</td>' +
@@ -4627,11 +4886,13 @@
             '<td style="padding:10px;color:#64748b;">' + (r.Zone || '—') + '</td>' +
             '<td style="padding:10px;color:#64748b;">' + (r.AddressOrHostel || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;color:#0f2044;">' + formatSeekerDate(r.ApprovedDate) + '</td>' +
-            '<td style="padding:10px;text-align:center;display:flex;gap:6px;justify-content:center;">' + (canGraduate ?
+            '<td style="padding:10px;text-align:center;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">' + (canGraduate ?
               '<button onclick="graduateSeekerAction(\'' + r.MemberID + '\')" style="padding:8px 14px;background:#1d4ed8;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🎓 Mark as Member</button>' :
               '<span style="color:#94a3b8;font-size:12px;">Awaiting graduation</span>') +
             '<button onclick="openReassignMemberModal(\'' + r.MemberID + '\', \'' + escAttrAdmin(r.Name) + '\', \'' + escAttrAdmin(r.Shepherd) + '\', \'' + escAttrAdmin(r.Stream || 'sps') + '\')" style="padding:8px 14px;background:#f0a500;color:#0f2044;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🔀 Reassign</button>' +
-            '<button onclick="deleteSeekerAction(\'' + r.MemberID + '\', \'' + escAttrAdmin(r.Name) + '\')" style="padding:8px 14px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🗑️ Delete</button></td>' +
+            editBtn +
+            deleteBtn +
+            '</td>' +
             '</tr>';
         }).join('') : '<tr><td colspan="8" style="text-align:center;padding:30px;color:#64748b;">No active seekers right now.</td></tr>';
       }
@@ -4665,12 +4926,14 @@
         });
       }
 
-      function deleteSeekerAction(memberId, memberName) {
+      function deleteSeekerAction(memberId, memberName, shepherd) {
         var displayName = memberName ? ('"' + memberName + '"') : 'this person';
         if (!confirm('Are you sure you want to permanently delete ' + displayName + ' from the system?')) return;
         adminToast('⏳ Deleting record...');
         fetchDataQuery('deleteMemberRecord', {
-          memberId: memberId,
+          memberId: memberId || '',
+          name: memberName || '',
+          shepherd: shepherd || '',
           deletedBy: currentRoleName || currentRole || 'Admin'
         }, function (response) {
           if (response && response.status === 'success') {
@@ -4680,6 +4943,331 @@
             adminToast('❌ Could not delete: ' + ((response && response.message) || 'Error'));
           }
         });
+      }
+
+      function openEditSeekerModal(memberId) {
+        var rec = (seekersData || []).find(function (s) { return String(s.MemberID) === String(memberId); });
+        if (!rec) {
+          adminToast('❌ Record not found');
+          return;
+        }
+        document.getElementById('editSeekerMemberId').value = rec.MemberID || '';
+        document.getElementById('editSeekerNameInput').value = rec.Name || '';
+        document.getElementById('editSeekerPhoneInput').value = rec.Phone || '';
+        document.getElementById('editSeekerDobInput').value = rec.DOB || '';
+        document.getElementById('editSeekerOccupationInput').value = rec.Occupation || '';
+        document.getElementById('editSeekerAddressInput').value = rec.AddressOrHostel || '';
+        document.getElementById('editSeekerBornAgainSelect').value = rec.BornAgain || '';
+        document.getElementById('editSeekerInChurchSelect').value = rec.InChurch || '';
+        document.getElementById('editSeekerSubTitle').textContent = 'Editing: ' + (rec.Name || 'Seeker') + ' (' + (rec.Shepherd || 'No Shepherd') + ')';
+
+        var err = document.getElementById('editSeekerErrorMsg');
+        if (err) err.style.display = 'none';
+
+        document.getElementById('editSeekerModal').style.display = 'flex';
+      }
+
+      function closeEditSeekerModal() {
+        document.getElementById('editSeekerModal').style.display = 'none';
+      }
+
+      function saveSeekerDetailsAction() {
+        var memberId = document.getElementById('editSeekerMemberId').value;
+        var name = document.getElementById('editSeekerNameInput').value.trim();
+        var phone = document.getElementById('editSeekerPhoneInput').value.trim();
+        var dob = document.getElementById('editSeekerDobInput').value.trim();
+        var occ = document.getElementById('editSeekerOccupationInput').value.trim();
+        var addr = document.getElementById('editSeekerAddressInput').value.trim();
+        var bornAgain = document.getElementById('editSeekerBornAgainSelect').value;
+        var inChurch = document.getElementById('editSeekerInChurchSelect').value;
+        var err = document.getElementById('editSeekerErrorMsg');
+
+        if (!name) {
+          err.textContent = 'Please enter full name.';
+          err.style.display = 'block';
+          return;
+        }
+
+        var btn = document.getElementById('editSeekerSaveBtn');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        fetchDataQuery('updateMemberDetails', {
+          memberId: memberId,
+          name: name,
+          phone: phone,
+          dob: dob,
+          occupation: occ,
+          address: addr,
+          bornAgain: bornAgain,
+          inChurch: inChurch,
+          requestingRole: currentRole || 'admin',
+          updatedBy: currentRoleName || currentRole || 'Admin'
+        }, function (resp) {
+          btn.disabled = false;
+          btn.textContent = '💾 Save Changes';
+          if (resp && resp.status === 'success') {
+            closeEditSeekerModal();
+            loadSeekers();
+            adminToast('✅ Details updated successfully');
+          } else {
+            err.textContent = (resp && resp.message) || 'Could not update details.';
+            err.style.display = 'block';
+          }
+        });
+      }
+
+      // ── REASSIGNMENT TAB CONTROLLERS ──
+      var reassignSelectedMember = null;
+      var reassignAuditLogList = [];
+
+      function getUnifiedMemberList() {
+        var map = {};
+        (seekersData || []).forEach(function (s) {
+          if (!s.Name) return;
+          var key = s.Name.trim().toLowerCase();
+          map[key] = {
+            name: s.Name,
+            phone: s.Phone || '',
+            shepherd: s.Shepherd || '',
+            stream: s.Stream || 'sps',
+            zone: s.Zone || '',
+            memberId: s.MemberID || ''
+          };
+        });
+        if (typeof memberData === 'object') {
+          Object.keys(memberData).forEach(function (name) {
+            var key = name.trim().toLowerCase();
+            if (!map[key]) {
+              var shep = memberData[name];
+              var shepObj = ALL_SHEPHERDS.find(function (s) { return s.name === shep; });
+              map[key] = {
+                name: name,
+                phone: '',
+                shepherd: shep,
+                stream: 'sps',
+                zone: (shepObj && shepObj.zone) || '',
+                memberId: ''
+              };
+            }
+          });
+        }
+        if (window.mcMemberData && typeof window.mcMemberData === 'object') {
+          Object.keys(window.mcMemberData).forEach(function (shep) {
+            var list = window.mcMemberData[shep] || [];
+            var shepObj = (typeof ALL_MC_SHEPHERDS !== 'undefined' ? ALL_MC_SHEPHERDS : []).find(function (s) { return s.name === shep; });
+            list.forEach(function (mName) {
+              var key = mName.trim().toLowerCase();
+              if (!map[key]) {
+                map[key] = {
+                  name: mName,
+                  phone: '',
+                  shepherd: shep,
+                  stream: 'mc',
+                  zone: (shepObj && shepObj.microchurch) || '',
+                  memberId: ''
+                };
+              }
+            });
+          });
+        }
+        return Object.values(map).sort(function (a, b) {
+          return a.name.localeCompare(b.name);
+        });
+      }
+
+      function initReassignmentTab() {
+        populateReassignShepherdDropdown('sps');
+        filterReassignMemberList();
+        renderReassignAuditLog();
+      }
+
+      function populateReassignShepherdDropdown(stream) {
+        var sel = document.getElementById('reassignTargetShepherd');
+        if (!sel) return;
+        var isSps = stream !== 'mc';
+        var list = (isSps ? ALL_SHEPHERDS : (typeof ALL_MC_SHEPHERDS !== 'undefined' ? ALL_MC_SHEPHERDS : [])).slice().sort(function (a, b) {
+          return a.name.localeCompare(b.name);
+        });
+        sel.innerHTML = '<option value="">— Select Shepherd —</option>' + list.map(function (s) {
+          var z = s.zone || s.microchurch || '';
+          return '<option value="' + escAttrAdmin(s.name) + '" data-zone="' + escAttrAdmin(z) + '">' +
+            s.name + (isSps ? '' : ' (' + (s.microchurch || 'MC') + ')') + '</option>';
+        }).join('');
+        onReassignShepherdChange();
+      }
+
+      function onReassignStreamChange() {
+        var stream = document.getElementById('reassignTargetStream').value;
+        populateReassignShepherdDropdown(stream);
+      }
+
+      function onReassignShepherdChange() {
+        var sel = document.getElementById('reassignTargetShepherd');
+        var opt = sel.options[sel.selectedIndex];
+        var zoneInput = document.getElementById('reassignTargetZone');
+        if (opt && opt.getAttribute('data-zone')) {
+          zoneInput.value = opt.getAttribute('data-zone');
+        } else {
+          zoneInput.value = '';
+        }
+      }
+
+      function filterReassignMemberList() {
+        var query = (document.getElementById('reassignSearchInput') ? document.getElementById('reassignSearchInput').value : '').toLowerCase().trim();
+        var container = document.getElementById('reassignSearchResultsList');
+        if (!container) return;
+
+        var all = getUnifiedMemberList();
+        var filtered = all.filter(function (m) {
+          if (!query) return true;
+          return (m.name && m.name.toLowerCase().includes(query)) ||
+                 (m.shepherd && m.shepherd.toLowerCase().includes(query)) ||
+                 (m.phone && m.phone.includes(query));
+        });
+
+        if (!filtered.length) {
+          container.innerHTML = '<div style="color:#94a3b8;font-size:12px;text-align:center;padding:24px;">No members match "' + query + '"</div>';
+          return;
+        }
+
+        container.innerHTML = filtered.slice(0, 60).map(function (m, idx) {
+          var isSel = reassignSelectedMember && reassignSelectedMember.name === m.name;
+          return '<div onclick="selectReassignMember(' + idx + ')" style="padding:10px 12px;border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:' + (isSel ? '#dbeafe' : 'white') + ';border:1px solid ' + (isSel ? '#3b82f6' : '#e2e8f0') + ';">' +
+            '<div>' +
+            '<div style="font-weight:800;font-size:13px;color:#0f2044;">' + m.name + '</div>' +
+            '<div style="font-size:11px;color:#64748b;">Under: ' + (m.shepherd || 'Unassigned') + ' (' + (m.stream === 'mc' ? 'Microchurch' : 'SPS') + ')</div>' +
+            '</div>' +
+            '<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:' + (m.stream === 'mc' ? '#fef3c7;color:#92400e;' : '#e0f2fe;color:#0369a1;') + ' font-weight:700;">' + (m.stream === 'mc' ? 'MC' : 'SPS') + '</span>' +
+            '</div>';
+        }).join('');
+        window._filteredReassignMembers = filtered;
+      }
+
+      function selectReassignMember(idx) {
+        var m = (window._filteredReassignMembers || [])[idx];
+        if (!m) return;
+        reassignSelectedMember = m;
+
+        document.getElementById('reassignCurrentPlaceholder').style.display = 'none';
+        document.getElementById('reassignCurrentDetails').style.display = 'block';
+
+        document.getElementById('reassignCurrentName').textContent = m.name;
+        document.getElementById('reassignCurrentPhone').textContent = m.phone ? ('📞 ' + m.phone) : 'No phone recorded';
+        document.getElementById('reassignCurrentStream').textContent = m.stream === 'mc' ? 'Microchurch (Fellowship)' : 'SPS (Sunday School)';
+        document.getElementById('reassignCurrentShepherd').textContent = m.shepherd || '(none)';
+        document.getElementById('reassignCurrentZone').textContent = m.zone || 'Not Specified';
+
+        filterReassignMemberList();
+      }
+
+      function executeReassignment() {
+        if (!reassignSelectedMember) {
+          alert('Please select a member to reassign.');
+          return;
+        }
+        var targetStream = document.getElementById('reassignTargetStream').value;
+        var targetShep = document.getElementById('reassignTargetShepherd').value;
+        var targetZone = document.getElementById('reassignTargetZone').value.trim();
+        var statusMsg = document.getElementById('reassignStatusMsg');
+        statusMsg.style.display = 'none';
+
+        if (!targetShep) {
+          statusMsg.textContent = 'Please choose a target shepherd.';
+          statusMsg.style.display = 'inline';
+          return;
+        }
+
+        if (reassignSelectedMember.shepherd === targetShep && reassignSelectedMember.stream === targetStream) {
+          statusMsg.textContent = 'Member is already under ' + targetShep + ' in this stream.';
+          statusMsg.style.display = 'inline';
+          return;
+        }
+
+        if (!confirm('Reassign ' + reassignSelectedMember.name + ' from ' + (reassignSelectedMember.shepherd || 'none') + ' to ' + targetShep + '?')) {
+          return;
+        }
+
+        var btn = document.getElementById('reassignSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Reassigning...';
+
+        fetchDataQuery('reassignMember', {
+          memberId: reassignSelectedMember.memberId || '',
+          name: reassignSelectedMember.name,
+          newShepherd: targetShep,
+          newZone: targetZone,
+          stream: targetStream,
+          reassignedBy: currentRoleName || currentRole || 'Admin'
+        }, function (resp) {
+          btn.disabled = false;
+          btn.textContent = '🔀 Confirm Reassignment';
+
+          if (resp && resp.status === 'success') {
+            var logEntry = {
+              name: reassignSelectedMember.name,
+              prevShepherd: reassignSelectedMember.shepherd || '(none)',
+              newShepherd: targetShep,
+              zoneStream: (targetZone || '') + ' (' + (targetStream === 'mc' ? 'MC' : 'SPS') + ')',
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              date: new Date().toLocaleDateString('en-GB'),
+              by: currentRoleName || currentRole || 'Admin'
+            };
+            reassignAuditLogList.unshift(logEntry);
+            try {
+              localStorage.setItem('onc_reassign_audit', JSON.stringify(reassignAuditLogList.slice(0, 30)));
+            } catch (e) { }
+
+            adminToast('✅ ' + reassignSelectedMember.name + ' reassigned to ' + targetShep);
+
+            if (reassignSelectedMember.memberId) {
+              var rec = (seekersData || []).find(function (s) { return String(s.MemberID) === String(reassignSelectedMember.memberId); });
+              if (rec) {
+                rec.Shepherd = targetShep;
+                rec.Zone = targetZone;
+                rec.Stream = targetStream;
+              }
+            }
+            if (targetStream === 'sps' && typeof memberData === 'object') {
+              memberData[reassignSelectedMember.name] = targetShep;
+            }
+
+            loadSeekers();
+            reassignSelectedMember.shepherd = targetShep;
+            reassignSelectedMember.zone = targetZone;
+            reassignSelectedMember.stream = targetStream;
+            selectReassignMember(0);
+            renderReassignAuditLog();
+          } else {
+            statusMsg.textContent = (resp && resp.message) || 'Failed to reassign member.';
+            statusMsg.style.display = 'inline';
+          }
+        });
+      }
+
+      function renderReassignAuditLog() {
+        var tbody = document.getElementById('reassignAuditLogBody');
+        if (!tbody) return;
+        if (!reassignAuditLogList.length) {
+          try {
+            var saved = localStorage.getItem('onc_reassign_audit');
+            if (saved) reassignAuditLogList = JSON.parse(saved);
+          } catch (e) { }
+        }
+        if (!reassignAuditLogList.length) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8;">No recent reassignments recorded yet.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = reassignAuditLogList.slice(0, 15).map(function (item) {
+          return '<tr style="border-bottom:1px solid #e2e8f0;">' +
+            '<td style="padding:10px;font-weight:700;color:#0f2044;">' + item.name + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + item.prevShepherd + '</td>' +
+            '<td style="padding:10px;font-weight:700;color:#16a34a;">' + item.newShepherd + '</td>' +
+            '<td style="padding:10px;color:#64748b;">' + item.zoneStream + '</td>' +
+            '<td style="padding:10px;text-align:center;color:#64748b;font-size:12px;">' + item.date + ' ' + item.time + '</td>' +
+            '<td style="padding:10px;text-align:center;font-size:12px;font-weight:700;color:#0f2044;">' + item.by + '</td>' +
+            '</tr>';
+        }).join('');
       }
 
       window.forceCacheUpdate = function () {
@@ -5218,10 +5806,6 @@
             renderKnowYourHeads();
           });
 
-          // Guided tour highlights the sidebar, which is desktop-only (see #tourBtn media query above)
-          if (window.innerWidth > 768) {
-            setTimeout(startTour, 500);
-          }
         } else {
           document.getElementById('loginError').style.display = 'block';
           document.getElementById('pinInput').value = '';
@@ -5823,7 +6407,7 @@
         'mc-overview': 'Microchurch Overview', 'mc-shepherds': 'Microchurch Shepherds', 'mc-members': 'Microchurch Members', 'mc-reports': 'Microchurch Reports Logs',
         'leaderboard': 'Performance Leaderboard', resources: 'Resource Library', settings: 'Settings', analytics: 'Analytics Dashboard',
         'soul-reports': 'Sunday Soul Reports', 'first-timers': 'First Timers', 'membership': 'Church Membership',
-        'journey': 'Discipleship Journey', 'soul-tracker': 'Soul Tracker', 'flags': 'Flags & Alerts', 'schools': 'School Tracking', 'seekers': 'Seekers',
+        'journey': 'Discipleship Journey', 'soul-tracker': 'Soul Tracker', 'flags': 'Flags & Alerts', 'schools': 'School Tracking', 'seekers': 'Seekers', 'reassignment': 'Member Reassignment',
         'activity-log': 'Activity Log',
         'announcements': 'Announcements',
         'role-pins': 'Portal PINs',
@@ -6103,6 +6687,11 @@
         if (id === 'seekers') {
           setTimeout(function() {
             loadSeekers();
+          }, 150);
+        }
+        if (id === 'reassignment') {
+          setTimeout(function() {
+            initReassignmentTab();
           }, 150);
         }
         if (id === 'journey') {
@@ -6754,36 +7343,11 @@
       }
 
       function parseRobustDate(val) {
-        if (!val) return null;
-        if (typeof val === 'string' && val.includes('T')) {
-          const parts = val.split('T')[0].split('-');
-          return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-        }
-        if (typeof val === 'string' && val.includes('/')) {
-          const parts = val.split('/');
-          if (parts.length === 3) {
-            const a = parseInt(parts[0]);
-            const b = parseInt(parts[1]);
-            const c = parseInt(parts[2]);
-            if (c > 1000) return new Date(c, b - 1, a); // DD/MM/YYYY
-            return new Date(a, b - 1, c);
-          }
-        }
-        if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}$/)) {
-          const parts = val.split('-');
-          return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-        }
-        return new Date(val);
+        return window.parseDayMonthYearDate(val);
       }
 
       function formatReportDate(val) {
-        if (!val) return '—';
-        var d = parseRobustDate(val);
-        if (!d || isNaN(d.getTime())) return val;
-        var day = String(d.getDate()).padStart(2, '0');
-        var month = String(d.getMonth() + 1).padStart(2, '0');
-        var year = d.getFullYear();
-        return day + '/' + month + '/' + year;
+        return window.formatDayMonthYear(val);
       }
 
       var overviewSelectedWeek = null;
@@ -7463,7 +8027,7 @@
           var repsHtml = reps.length ? reps.slice(0, 5).map(function (r) {
             var cText = formatConcernText(r);
             var concernHtml = cText ? '<div style="margin-top:4px;padding:6px 8px;background:#fff7ed;border-radius:6px;border-left:2px solid #f97316;color:#7c2d12;font-size:11px;text-align:left;">⚠ ' + cText + '</div>' : '';
-            return '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f1f5f9;color:#475569;">' + (r.sessionDate || r.date || '') + ' — ' + toArray(r.membersPresent).length + '/' + (r.totalMembers || 4) + ' present · Prayer: ' + (r.prayerDone || '?') + concernHtml + '</div>';
+            return '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f1f5f9;color:#475569;">' + window.formatDayMonthYear(r.sessionDate || r.date || r.submissionDate) + ' — ' + toArray(r.membersPresent).length + '/' + (r.totalMembers || 4) + ' present · Prayer: ' + (r.prayerDone || '?') + concernHtml + '</div>';
           }).join('') : '<div style="font-size:12px;color:#94a3b8;">No reports yet</div>';
 
           var phone = s.contact || '';
@@ -7488,7 +8052,7 @@
           var reassignShepBtn = '<button type="button" onclick="event.stopPropagation();openReassignShepherdModal(\'' + s.name.replace(/'/g,"\\'") + '\',\'SPS\',\'' + (s.zone||'').replace(/'/g,"\\'") + '\',\'' + (s.contact||'').replace(/'/g,"\\'") + '\')" ' +
             'style="width:100%;margin-top:8px;padding:6px;background:#f0f5ff;color:#0f2044;border:none;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer;">🔀 Change Zone</button>';
 
-          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? (lastRep.sessionDate || lastRep.date || '') : 'Never') + '</div></div>' + badge + '</div>' + contactBtns + reassignShepBtn + '<div class="shepherd-details">' + repsHtml + renderShepherdMembersBlock(s.name, 'sps') + '</div></div>';
+          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? window.formatDayMonthYear(lastRep.sessionDate || lastRep.date || lastRep.submissionDate) : 'Never') + '</div></div>' + badge + '</div>' + contactBtns + reassignShepBtn + '<div class="shepherd-details">' + repsHtml + renderShepherdMembersBlock(s.name, 'sps') + '</div></div>';
         });
         grid.innerHTML = html || '<div class="empty"><div class="icon">👥</div><p>No shepherds found</p></div>';
       }
@@ -7912,10 +8476,10 @@
           }
           var proofHtml = showProofImg ? ' <span onclick="event.stopPropagation(); showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
 
-          var photoCaption = (r.shepherd + ' — ' + (r.sessionDate || r.date || '')).replace(/'/g, "\\'");
+          var photoCaption = (r.shepherd + ' — ' + window.formatDayMonthYear(r.sessionDate || r.date || r.submissionDate)).replace(/'/g, "\\'");
           var photoCell = r.photoUrl ? '<button type="button" onclick="event.stopPropagation(); showProofPhotoModal(\'' + r.photoUrl + '\', \'' + photoCaption + '\')" style="background:none;border:none;cursor:pointer;font-size:18px;" title="View Proof of Meeting Photo">📷</button>' : '--';
 
-          var mainRow = '<tr style="cursor:pointer;" onclick="toggleReportRow(' + i + ')"><td>' + (i + 1) + '</td><td>' + (r.sessionDate || r.date || '') + proofHtml + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.offeringGiven === 'yes' ? 'green' : 'red') + '">' + (r.offeringGiven || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td><td>' + photoCell + '</td></tr>';
+          var mainRow = '<tr style="cursor:pointer;" onclick="toggleReportRow(' + i + ')"><td>' + (i + 1) + '</td><td>' + window.formatDayMonthYear(r.sessionDate || r.date || r.submissionDate) + proofHtml + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.offeringGiven === 'yes' ? 'green' : 'red') + '">' + (r.offeringGiven || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td><td>' + photoCell + '</td></tr>';
 
           var concernCard = '';
           if (hasC) {
@@ -7923,7 +8487,7 @@
             concernCard = '<div style="margin-top:8px;padding:10px 12px;background:#fff7ed;border-radius:8px;border-left:3px solid #f97316;max-width:600px;margin-bottom:12px;text-align:left;"><div style="font-weight:700;color:#c2410c;font-size:12px;margin-bottom:4px;">⚠ Concern Flagged</div><div style="color:#7c2d12;font-size:13px;">' + cText + '</div></div>';
           }
 
-          var detailRow = '<tr id="rep-details-' + i + '" style="display:none;background:#f8fafc;"><td colspan="12" style="padding:16px;"><div style="background:white;border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);"><div style="font-weight:800;color:var(--navy);font-size:14px;margin-bottom:10px;text-align:left;">📋 Report Details — ' + r.shepherd + '</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px;font-size:13px;text-align:left;"><div style="color:var(--gray);"><strong>Date:</strong> ' + (r.sessionDate || r.date || '') + ' ' + formatTime(r.sessionTime) + '</div><div style="color:var(--gray);"><strong>Attendance Rate:</strong> ' + getRate(r) + '%</div><div style="color:var(--gray);"><strong>Topic Covered:</strong> ' + (r.actualTopic || r.bibleTopic || '—') + ' (' + (r.topicCovered || 'N/A').toUpperCase() + ')</div><div style="color:var(--gray);"><strong>Prayer Done:</strong> ' + (r.prayerDone || 'N/A').toUpperCase() + '</div><div style="color:var(--gray);"><strong>Offering Given:</strong> ' + (r.offeringGiven || 'N/A').toUpperCase() + (r.offeringGiven === 'yes' && r.offeringAmount ? ' (' + r.offeringAmount + ')' : '') + '</div></div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#15803d;">Present:</strong> ' + present + '</div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#991b1b;">Absent:</strong> ' + absent + '</div>' + concernCard + '</div></td></tr>';
+          var detailRow = '<tr id="rep-details-' + i + '" style="display:none;background:#f8fafc;"><td colspan="12" style="padding:16px;"><div style="background:white;border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);"><div style="font-weight:800;color:var(--navy);font-size:14px;margin-bottom:10px;text-align:left;">📋 Report Details — ' + r.shepherd + '</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px;font-size:13px;text-align:left;"><div style="color:var(--gray);"><strong>Date:</strong> ' + window.formatDayMonthYear(r.sessionDate || r.date || r.submissionDate) + ' ' + formatTime(r.sessionTime) + '</div><div style="color:var(--gray);"><strong>Attendance Rate:</strong> ' + getRate(r) + '%</div><div style="color:var(--gray);"><strong>Topic Covered:</strong> ' + (r.actualTopic || r.bibleTopic || '—') + ' (' + (r.topicCovered || 'N/A').toUpperCase() + ')</div><div style="color:var(--gray);"><strong>Prayer Done:</strong> ' + (r.prayerDone || 'N/A').toUpperCase() + '</div><div style="color:var(--gray);"><strong>Offering Given:</strong> ' + (r.offeringGiven || 'N/A').toUpperCase() + (r.offeringGiven === 'yes' && r.offeringAmount ? ' (' + r.offeringAmount + ')' : '') + '</div></div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#15803d;">Present:</strong> ' + present + '</div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#991b1b;">Absent:</strong> ' + absent + '</div>' + concernCard + '</div></td></tr>';
 
           return mainRow + detailRow;
         }).join('') : '<tr><td colspan="12" class="empty"><div class="icon">📭</div><p>No reports match filters</p></td></tr>';
@@ -7934,14 +8498,14 @@
         allReports.forEach(function (r) {
           var t = r.actualTopic || r.bibleTopic;
           if (!t) return;
-          if (!topicMap[t]) topicMap[t] = { count: 0, covered: 0, date: r.sessionDate || r.date };
+          if (!topicMap[t]) topicMap[t] = { count: 0, covered: 0, date: r.sessionDate || r.date || r.submissionDate };
           topicMap[t].count++;
           if (r.topicCovered === 'yes') topicMap[t].covered++;
         });
         var entries = Object.entries(topicMap).sort(function (a, b) { return b[1].count - a[1].count; });
         document.getElementById('topic-list').innerHTML = entries.length ? entries.map(function (e) {
           var pct = Math.round(e[1].covered / e[1].count * 100);
-          return '<div class="topic-card"><div><div class="topic-title">📖 ' + e[0] + '</div><div class="topic-meta">Reported ' + e[1].count + ' time(s) · Last: ' + e[1].date + '</div></div><span class="badge ' + (pct >= 75 ? 'green' : pct >= 50 ? 'yellow' : 'red') + '">' + pct + '% covered</span></div>';
+          return '<div class="topic-card"><div><div class="topic-title">📖 ' + e[0] + '</div><div class="topic-meta">Reported ' + e[1].count + ' time(s) · Last: ' + window.formatDayMonthYear(e[1].date) + '</div></div><span class="badge ' + (pct >= 75 ? 'green' : pct >= 50 ? 'yellow' : 'red') + '">' + pct + '% covered</span></div>';
         }).join('') : '<div class="empty"><div class="icon">📖</div><p>No topics recorded yet</p></div>';
       }
 
@@ -8036,7 +8600,7 @@
           var cStr = '';
           if (c && typeof c === 'string' && c.toLowerCase() !== 'none') cStr = c;
           else if (c && typeof c === 'object') cStr = Object.entries(c).filter(function (e) { return e[1]; }).map(function (e) { return e[0] + ': ' + e[1]; }).join(' | ');
-          return [i + 1, r.submissionDate || r.sessionDate || r.date || '', r.submissionDay || r.sessionDay || '', formatTime(r.submissionTime || r.sessionTime), r.shepherd, toArray(r.membersPresent).join('; '), toArray(r.membersAbsent).join('; '), r.totalMembers || 4, getRate(r) + '%', r.bibleTopic || '', r.actualTopic || '', r.topicCovered || '', r.prayerDone || '', cStr];
+          return [i + 1, window.formatDayMonthYear(r.submissionDate || r.sessionDate || r.date), r.submissionDay || r.sessionDay || '', formatTime(r.submissionTime || r.sessionTime), r.shepherd, toArray(r.membersPresent).join('; '), toArray(r.membersAbsent).join('; '), r.totalMembers || 4, getRate(r) + '%', r.bibleTopic || '', r.actualTopic || '', r.topicCovered || '', r.prayerDone || '', cStr];
         });
       }
 
@@ -8074,7 +8638,7 @@
             if (toArray(r.membersAbsent).includes(name)) miss++;
           });
           var total = att + miss, rate = total ? Math.round(att / total * 100) : 0;
-          rows.push([name, shep, contact, att, miss, rate + '%', last || '—']);
+          rows.push([name, shep, contact, att, miss, rate + '%', last ? window.formatDayMonthYear(last) : '—']);
         });
         return rows;
       }
@@ -8309,11 +8873,11 @@
         
         var rows = allGuestReports.map(function(g) {
           return [
-            g.date || '',
+            g.date ? window.formatDayMonthYear(g.date) : '',
             g.fullName || '',
             g.phone || '',
             g.email || '',
-            g.dob || '',
+            g.dob ? window.formatDayMonthYear(g.dob) : '',
             g.gender || '',
             g.maritalStatus || '',
             g.occupation || '',
@@ -10343,7 +10907,9 @@
         }
 
         var sorted = allSalvationRecords.slice().sort(function(a, b) {
-          return new Date(b.date) - new Date(a.date);
+          var da = window.parseDayMonthYearDate(a.date);
+          var db = window.parseDayMonthYearDate(b.date);
+          return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
         });
 
         tbody.innerHTML = sorted.map(function(s, idx) {
@@ -10356,7 +10922,7 @@
           return '<tr style="background:' + bg +
             ';border-bottom:1px solid #e2e8f0;">' +
             '<td style="padding:10px;color:#64748b;">' +
-            (s.date || '') + '</td>' +
+            window.formatDayMonthYear(s.date) + '</td>' +
             '<td style="padding:10px;font-weight:700;' +
             'color:#0a1628;">' + (s.fullName || '') + '</td>' +
             '<td style="padding:10px;text-align:center;">' +
@@ -10397,7 +10963,8 @@
 
         var filtered = allGuestReports.filter(function(g) {
           if (currentFTPeriod === 'today') {
-            var gDate = new Date(g.date);
+            var gDate = window.parseDayMonthYearDate(g.date);
+            if (!gDate) return false;
             gDate.setHours(0,0,0,0);
             return gDate.getTime() === today.getTime();
           }
@@ -10405,7 +10972,8 @@
             var weekStart = new Date(today);
             weekStart.setDate(
               today.getDate() - today.getDay());
-            var gd = new Date(g.date);
+            var gd = window.parseDayMonthYearDate(g.date);
+            if (!gd) return false;
             return gd >= weekStart;
           }
           return true;
@@ -10413,6 +10981,11 @@
 
         // Most recent registrations first
         filtered.sort(function(a, b) {
+          var da = window.parseDayMonthYearDate(a.date);
+          var db = window.parseDayMonthYearDate(b.date);
+          if (da && db && da.getTime() !== db.getTime()) {
+            return db.getTime() - da.getTime();
+          }
           var idA = parseInt(String(a.id).replace(/\D/g, ''), 10) || 0;
           var idB = parseInt(String(b.id).replace(/\D/g, ''), 10) || 0;
           return idB - idA;
@@ -10490,7 +11063,7 @@
           return '<tr style="background:' + bg + 
             ';border-bottom:1px solid #e2e8f0;">' +
             '<td style="padding:10px;color:#64748b;">' +
-            (g.date || '') + '</td>' +
+            window.formatDayMonthYear(g.date) + '</td>' +
             '<td style="padding:10px;font-weight:700;' +
             'color:#0a1628;">' + 
             (g.fullName || g.firstName + ' ' + 
