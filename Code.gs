@@ -77,7 +77,7 @@ function doPost(e) {
     if (action === 'saveZoneConfig')          return saveZoneConfig(data);
     if (action === 'addShepherd')             return addShepherd(data);
     if (action === 'updateShepherdZone')      return updateShepherdZone(data);
-    if (action === 'deleteMemberRecord')      return deleteMemberRecord(data);
+    if (action === 'deleteMemberRecord' || action === 'deleteSeeker') return jsonResponse(deleteMemberRecord(data));
     if (action === 'bulkImportMembers')       return bulkImportMembers(data);
     if (action === 'calculateShepherdScores') return calculateShepherdScores(data);
     // ── FCM Push Notifications ────────────────────────────────
@@ -157,6 +157,7 @@ function doGet(e) {
     else if (action === 'approveSeeker')          response = approveSeeker(e.parameter.memberId, e.parameter.approvedBy);
     else if (action === 'markSeekerAsMember')     response = markSeekerAsMember(e.parameter.memberId, e.parameter.graduatedBy);
     else if (action === 'reassignMember')         response = reassignMember(e.parameter.memberId, e.parameter.newShepherd, e.parameter.newZone, e.parameter.reassignedBy);
+    else if (action === 'deleteMemberRecord' || action === 'deleteSeeker') response = deleteMemberRecord({ memberId: e.parameter.memberId, deletedBy: e.parameter.deletedBy });
     else                                          response = { status: 'ok', message: 'ONC SPS Backend v4.0 Running' };
   } catch (err) {
     response = { status: 'error', message: err.toString() };
@@ -1362,7 +1363,11 @@ function getSheetRecords(sheet) {
   return values.slice(1).map(function (row, index) {
     var record = { _row: index + 2 };
     headers.forEach(function (header, col) {
-      record[header] = row[col] === undefined ? '' : row[col];
+      var val = row[col];
+      if (val instanceof Date) {
+        val = formatDate(val);
+      }
+      record[header] = val === undefined ? '' : val;
     });
     return record;
   });
@@ -2494,10 +2499,12 @@ function addOrUpdateSeeker(name, phone, shepherdName, stream, source, details) {
   var now = new Date();
   var memberId = 'MEM-' + now.getTime() + '-' + Math.floor(Math.random() * 1000);
 
-  // Write Phone (col 3) and DOB (col 14) as plain text so Sheets doesn't
-  // auto-convert them, same guard used in submitFellowshipMember.
+  // Write Phone (col 3), ImportDate (col 7), ApprovedDate (col 11), DOB (col 14) as plain text so Sheets doesn't
+  // auto-convert them, preventing US locale date-swapping bugs.
   var newRow = sheet.getLastRow() + 1;
   sheet.getRange(newRow, 3).setNumberFormat('@');
+  sheet.getRange(newRow, 7).setNumberFormat('@');
+  sheet.getRange(newRow, 11).setNumberFormat('@');
   sheet.getRange(newRow, 14).setNumberFormat('@');
 
   sheet.getRange(newRow, 1, 1, 18).setValues([[
@@ -2665,6 +2672,7 @@ function approveSeeker(memberId, approvedBy) {
   var now = new Date();
   sheet.getRange(rec._row, 8).setValue('Seeker');
   sheet.getRange(rec._row, 10).setValue(approvedBy || 'Admin');
+  sheet.getRange(rec._row, 11).setNumberFormat('@');
   sheet.getRange(rec._row, 11).setValue(formatDate(now));
   logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_APPROVED', approvedBy || 'Admin', rec.Name);
   return { status: 'success' };
@@ -2707,15 +2715,17 @@ function reassignMember(memberId, newShepherd, newZone, reassignedBy) {
 
 // Admin self-service: permanently removes a row from the Members sheet
 // (seeker, self-signup, bulk-import, or migrated static-roster member).
-// Mirrors deleteResourceRecord's pattern.
 function deleteMemberRecord(data) {
-  if (!data.memberId) return jsonResponse({ status: 'error', message: 'Missing memberId' });
+  data = data || {};
+  var memberId = data.memberId;
+  if (!memberId) return { status: 'error', message: 'Missing memberId' };
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
-  var rec = getSheetRecords(sheet).find(function (r) { return r.MemberID === data.memberId; });
-  if (!rec) return jsonResponse({ status: 'error', message: 'Member not found' });
+  var records = getSheetRecords(sheet);
+  var rec = records.find(function (r) { return String(r.MemberID) === String(memberId); });
+  if (!rec) return { status: 'error', message: 'Member not found' };
   sheet.deleteRow(rec._row);
-  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DELETED', data.deletedBy || 'Admin', rec.Name);
-  return jsonResponse({ status: 'success' });
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DELETED', data.deletedBy || 'Admin', rec.Name || memberId);
+  return { status: 'success' };
 }
 
 // ============================================================
@@ -2819,20 +2829,19 @@ function jsonResponse(data) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// Returns DD/MM/YYYY — used by all v3.6 features for display & sheet storage.
+// Returns DD/MM/YYYY — pinned to Ghana time (Africa/Accra / GMT+0).
 function formatDate(date) {
-  const d = new Date(date);
-  const day   = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year  = d.getFullYear();
-  return day + '/' + month + '/' + year;
+  if (!date) return '';
+  const d = (date instanceof Date) ? date : new Date(date);
+  if (isNaN(d.getTime())) return String(date);
+  return Utilities.formatDate(d, 'Africa/Accra', 'dd/MM/yyyy');
 }
 
 function formatTime(date) {
-  var hours = String(date.getHours()).padStart(2, '0');
-  var mins  = String(date.getMinutes()).padStart(2, '0');
-  var secs  = String(date.getSeconds()).padStart(2, '0');
-  return hours + ':' + mins + ':' + secs;
+  if (!date) return '';
+  const d = (date instanceof Date) ? date : new Date(date);
+  if (isNaN(d.getTime())) return '';
+  return Utilities.formatDate(d, 'Africa/Accra', 'HH:mm:ss');
 }
 
 function getDayName(date) {
