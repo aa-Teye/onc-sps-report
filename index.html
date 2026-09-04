@@ -2906,6 +2906,10 @@
           style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--navy);color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;">
           Save
         </button>
+        <button id="kymDeletePersonBtn" onclick="kymDeleteFromModal()" type="button"
+          style="display:none;width:100%;margin-top:8px;padding:12px;border:1px solid #fee2e2;border-radius:12px;background:#fef2f2;color:#ef4444;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;">
+          🗑️ Delete Person from Sheepfold
+        </button>
         <p id="kymModalStatus" style="font-size:12px;color:var(--gray);margin:12px 0 0;"></p>
       </div>
     </div>
@@ -7053,15 +7057,15 @@
         var waNumber = phone.replace(/^0/, '233');
         var hasPhone = phone &&
           phone.trim() !== '';
-        var editBtn = m.memberId ?
-          '<button onclick="kymOpenEditModal(\'' + m.memberId + '\')" ' +
-          'style="background:#f0f5ff;border:none;color:var(--navy);' +
-          'width:36px;height:36px;border-radius:10px;font-size:15px;' +
-          'cursor:pointer;flex-shrink:0;" title="Edit Member">✏️</button>' : '';
+        var editBtn =
+          '<button onclick="kymOpenEditModal(\'' + (m.memberId || '') + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')" ' +
+          'style="background:#f0f5ff;border:1px solid #dbeafe;color:var(--navy);' +
+          'width:30px;height:30px;border-radius:8px;font-size:13px;' +
+          'cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;" title="Edit">✏️</button>';
         var deleteBtn = '<button onclick="kymDeleteMemberAction(\'' + (m.memberId || '') + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')" ' +
-          'style="background:#fee2e2;border:none;color:#ef4444;' +
-          'width:36px;height:36px;border-radius:10px;font-size:15px;' +
-          'cursor:pointer;flex-shrink:0;" title="Delete Member">🗑️</button>';
+          'style="background:#fef2f2;border:1px solid #fee2e2;color:#ef4444;' +
+          'width:30px;height:30px;border-radius:8px;font-size:13px;' +
+          'cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;" title="Delete">🗑️</button>';
         var statusBadge = m.status === 'Seeker' ?
           '<span style="font-size:10px;font-weight:800;padding:2px 8px;' +
           'border-radius:999px;background:#fef3c7;color:#92400e;' +
@@ -7329,6 +7333,8 @@
       document.getElementById('kymModalTitle').textContent = 'Add a Person';
       document.getElementById('kymTypeStep').style.display = 'block';
       document.getElementById('kymDetailStep').style.display = 'none';
+      var delBtn = document.getElementById('kymDeletePersonBtn');
+      if (delBtn) delBtn.style.display = 'none';
       document.getElementById('kymPersonModal').style.display = 'flex';
     }
 
@@ -7337,6 +7343,8 @@
       document.getElementById('kymModalTitle').textContent = 'Add a ' + type;
       document.getElementById('kymTypeStep').style.display = 'none';
       document.getElementById('kymDetailStep').style.display = 'block';
+      var delBtn = document.getElementById('kymDeletePersonBtn');
+      if (delBtn) delBtn.style.display = 'none';
     }
 
     var KYM_OCCUPATIONS = ['Student', 'Employed', 'Self-Employed', 'Unemployed', 'Retired'];
@@ -7361,18 +7369,25 @@
       return (d && m && y) ? (d + '/' + m + '/' + y) : '';
     }
 
-    function kymOpenEditModal(memberId) {
-      var m = kymMembersCache.find(function (x) { return x.memberId === memberId; });
+    function kymOpenEditModal(memberId, memberName) {
+      var m = kymMembersCache.find(function (x) {
+        if (memberId && x.memberId && String(x.memberId) === String(memberId)) return true;
+        if (memberName && x.name && x.name.trim().toLowerCase() === memberName.trim().toLowerCase()) return true;
+        return false;
+      });
       if (!m) return;
 
       kymModalMode = 'edit';
-      kymModalMemberId = memberId;
+      kymModalMemberId = m.memberId || '';
       kymModalPersonType = m.status || 'Member';
       kymResetModalFields();
 
-      document.getElementById('kymModalTitle').textContent = 'Edit ' + m.name;
+      document.getElementById('kymModalTitle').textContent = 'Edit ' + m.name + (m.status === 'Seeker' ? ' (Seeker)' : '');
       document.getElementById('kymTypeStep').style.display = 'none';
       document.getElementById('kymDetailStep').style.display = 'block';
+
+      var delBtn = document.getElementById('kymDeletePersonBtn');
+      if (delBtn) delBtn.style.display = 'block';
 
       document.getElementById('kymNameInput').value = m.name || '';
       document.getElementById('kymNameInput').disabled = false;
@@ -7580,12 +7595,26 @@
       btn.textContent = 'Save';
     }
 
-    // ── DELETE MEMBER ACTION (SHEPHERD SELF-SERVICE) ─────────────
-    function kymDeleteMemberAction(memberId, name) {
+    function kymDeleteFromModal() {
+      var name = document.getElementById('kymNameInput').value.trim();
       if (!name) return;
+      var memberId = kymModalMemberId || '';
       var msg = '⚠️ Are you sure you want to permanently delete ' + name + ' from your sheepfold?\n\nThis action CANNOT be reversed!';
       if (!confirm(msg)) {
         return;
+      }
+      kymCloseModal();
+      kymDeleteMemberAction(memberId, name, true);
+    }
+
+    // ── DELETE MEMBER ACTION (SHEPHERD SELF-SERVICE) ─────────────
+    function kymDeleteMemberAction(memberId, name, skipConfirm) {
+      if (!name) return;
+      if (!skipConfirm) {
+        var msg = '⚠️ Are you sure you want to permanently delete ' + name + ' from your sheepfold?\n\nThis action CANNOT be reversed!';
+        if (!confirm(msg)) {
+          return;
+        }
       }
 
       var shepherd = state.shepherd || '';
