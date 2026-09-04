@@ -7013,10 +7013,17 @@
         members = rawMembers;
       }
 
+      var deletedList = [];
+      try {
+        deletedList = JSON.parse(localStorage.getItem('onc_shep_deleted_' + (state.shepherd || '')) || '[]');
+      } catch (e) { }
+
       return members.map(function (m) {
         return typeof m === 'string' ?
           { name: m, contact: '' } :
           { name: m.name || '', contact: m.contact || m.phone || '' };
+      }).filter(function (m) {
+        return !deletedList.includes((m.name || '').trim().toLowerCase());
       });
     }
 
@@ -7050,7 +7057,11 @@
           '<button onclick="kymOpenEditModal(\'' + m.memberId + '\')" ' +
           'style="background:#f0f5ff;border:none;color:var(--navy);' +
           'width:36px;height:36px;border-radius:10px;font-size:15px;' +
-          'cursor:pointer;flex-shrink:0;">✏️</button>' : '';
+          'cursor:pointer;flex-shrink:0;" title="Edit Member">✏️</button>' : '';
+        var deleteBtn = '<button onclick="kymDeleteMemberAction(\'' + (m.memberId || '') + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')" ' +
+          'style="background:#fee2e2;border:none;color:#ef4444;' +
+          'width:36px;height:36px;border-radius:10px;font-size:15px;' +
+          'cursor:pointer;flex-shrink:0;" title="Delete Member">🗑️</button>';
         var statusBadge = m.status === 'Seeker' ?
           '<span style="font-size:10px;font-weight:800;padding:2px 8px;' +
           'border-radius:999px;background:#fef3c7;color:#92400e;' +
@@ -7104,7 +7115,9 @@
           (hasPhone ? '📞 ' + phone :
             '📞 No number yet') +
           '</div>' +
-          '</div>' + editBtn + '</div>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:6px;">' + editBtn + deleteBtn + '</div>' +
+          '</div>' +
 
           (hasPhone ?
             '<div style="display:flex;gap:8px;">' +
@@ -7203,6 +7216,11 @@
       if (!shepherdName) return;
 
       function applyRecords(records) {
+        var deletedList = [];
+        try {
+          deletedList = JSON.parse(localStorage.getItem('onc_shep_deleted_' + shepherdName) || '[]');
+        } catch (e) { }
+
         var byNorm = {};
         baseMembers.forEach(function (m) {
           byNorm[(m.name || '').toLowerCase().trim()] = m;
@@ -7212,6 +7230,15 @@
           if (!r.Name || r.Shepherd !== shepherdName) return;
           var key = r.Name.toLowerCase().trim();
           var existing = byNorm[key];
+
+          if ((r.Status || '').toString().toLowerCase() === 'deleted' || deletedList.includes(key)) {
+            if (existing) {
+              var idx = baseMembers.indexOf(existing);
+              if (idx > -1) baseMembers.splice(idx, 1);
+            }
+            return;
+          }
+
           var extra = {
             memberId: r.MemberID, status: r.Status,
             dob: r.DOB || '', bornAgain: r.BornAgain || '',
@@ -7551,6 +7578,108 @@
 
       btn.disabled = false;
       btn.textContent = 'Save';
+    }
+
+    // ── DELETE MEMBER ACTION (SHEPHERD SELF-SERVICE) ─────────────
+    function kymDeleteMemberAction(memberId, name) {
+      if (!name) return;
+      var msg = '⚠️ Are you sure you want to permanently delete ' + name + ' from your sheepfold?\n\nThis action CANNOT be reversed!';
+      if (!confirm(msg)) {
+        return;
+      }
+
+      var shepherd = state.shepherd || '';
+      showToast('Deleting ' + name + '...');
+
+      var cbName = 'onKymDel_' + Date.now();
+      var s = document.createElement('script');
+      var done = false;
+
+      window[cbName] = function (resp) {
+        if (done) return;
+        done = true;
+        window[cbName] = null;
+        if (document.head.contains(s)) document.head.removeChild(s);
+
+        if (resp && resp.status === 'success') {
+          kymRemoveMemberLocally(name);
+          showToast('✅ ' + name + ' removed from sheepfold');
+        } else {
+          alert((resp && resp.message) || 'Failed to delete member. Please try again.');
+        }
+      };
+
+      s.src = SCRIPT_URL + '?action=deleteMemberRecord' +
+        '&memberId=' + encodeURIComponent(memberId || '') +
+        '&name=' + encodeURIComponent(name) +
+        '&shepherd=' + encodeURIComponent(shepherd) +
+        '&deletedBy=' + encodeURIComponent(shepherd + ' (Shepherd)') +
+        '&callback=' + cbName;
+
+      s.onerror = function () {
+        if (done) return;
+        done = true;
+        window[cbName] = null;
+        if (document.head.contains(s)) document.head.removeChild(s);
+        alert('Network error while deleting member. Please check your connection.');
+      };
+
+      document.head.appendChild(s);
+      setTimeout(function () {
+        if (!done && window[cbName]) {
+          done = true;
+          window[cbName] = null;
+        }
+      }, 10000);
+    }
+
+    function kymRemoveMemberLocally(name) {
+      var shepherd = state.shepherd || '';
+      var norm = (name || '').trim().toLowerCase();
+
+      // 1. Save in shepherd-specific deleted members list in localStorage
+      try {
+        var key = 'onc_shep_deleted_' + shepherd;
+        var list = JSON.parse(localStorage.getItem(key) || '[]');
+        if (!list.includes(norm)) {
+          list.push(norm);
+          localStorage.setItem(key, JSON.stringify(list));
+        }
+      } catch (e) { }
+
+      // 2. Remove from static shepherdData
+      if (typeof shepherdData !== 'undefined' && shepherdData[shepherd] && shepherdData[shepherd].members) {
+        shepherdData[shepherd].members = shepherdData[shepherd].members.filter(function (x) {
+          var xName = typeof x === 'string' ? x : (x.name || '');
+          return xName.trim().toLowerCase() !== norm;
+        });
+      }
+
+      // 3. Remove from memberData
+      if (typeof memberData !== 'undefined') {
+        delete memberData[name];
+        Object.keys(memberData).forEach(function (k) {
+          if (k.trim().toLowerCase() === norm) delete memberData[k];
+        });
+      }
+
+      // 4. Remove from kymRawRecordsCache
+      if (kymRawRecordsCache && kymRawRecordsCache.records) {
+        kymRawRecordsCache.records = kymRawRecordsCache.records.filter(function (r) {
+          return (r.Name || '').trim().toLowerCase() !== norm;
+        });
+      }
+
+      // 5. Invalidate cached records
+      kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
+
+      // 6. Re-render Know Your Members
+      renderKnowYourMembers();
+
+      // 7. Refresh attendance checklist
+      if (typeof updateAttendanceChecklist === 'function') {
+        updateAttendanceChecklist();
+      }
     }
 
     // ── PWA: Install App modal ──────────────────────────────────

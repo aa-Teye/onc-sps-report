@@ -2654,7 +2654,10 @@ function updateMemberDetails(data) {
 // Full Members roster (Pending/Seeker/Member) — used by the admin Seekers tab.
 function getMembersRoster() {
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
-  return { status: 'success', members: getSheetRecords(sheet) };
+  var records = getSheetRecords(sheet).filter(function (r) {
+    return (r.Status || '').toString().toLowerCase() !== 'deleted';
+  });
+  return { status: 'success', members: records };
 }
 
 // Lets the Fellowship/seeker sign-up forms confirm a submission actually
@@ -2687,7 +2690,10 @@ function checkFellowshipMember(memberId, name, shepherd) {
 function getShepherdMembers(shepherdName) {
   if (!shepherdName) return { status: 'success', members: [] };
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
-  var records = getSheetRecords(sheet).filter(function (r) { return r.Shepherd === shepherdName; });
+  var records = getSheetRecords(sheet).filter(function (r) {
+    return (r.Shepherd || '').toString().trim().toLowerCase() === shepherdName.toString().trim().toLowerCase() &&
+      (r.Status || '').toString().toLowerCase() !== 'deleted';
+  });
   return { status: 'success', members: records };
 }
 
@@ -2775,8 +2781,9 @@ function reassignMember(memberId, newShepherd, newZone, reassignedBy, memberName
 function deleteMemberRecord(data) {
   data = data || {};
   var memberId = data.memberId ? String(data.memberId).trim() : '';
-  var name = (data.name || '').toString().trim().toLowerCase();
-  var shepherd = (data.shepherd || '').toString().trim().toLowerCase();
+  var name = (data.name || '').toString().trim();
+  var shepherd = (data.shepherd || '').toString().trim();
+  var deletedBy = data.deletedBy || data.requestingRole || 'Admin';
 
   if (!memberId && !name) return { status: 'error', message: 'Missing memberId or name' };
 
@@ -2791,16 +2798,33 @@ function deleteMemberRecord(data) {
   }
   if (!rec && name) {
     rec = records.find(function (r) {
-      var matchName = r.Name && r.Name.toString().trim().toLowerCase() === name;
-      var matchShep = !shepherd || (r.Shepherd && r.Shepherd.toString().trim().toLowerCase() === shepherd);
+      var matchName = r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase();
+      var matchShep = !shepherd || (r.Shepherd && r.Shepherd.toString().trim().toLowerCase() === shepherd.toLowerCase());
       return matchName && matchShep;
     });
   }
-  if (!rec) return { status: 'error', message: 'Member not found' };
 
-  sheet.deleteRow(rec._row);
-  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DELETED', data.deletedBy || 'Admin', (rec.Name || memberId));
-  return { status: 'success' };
+  if (rec) {
+    sheet.deleteRow(rec._row);
+    logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DELETED', deletedBy, (rec.Name || memberId));
+    return { status: 'success' };
+  }
+
+  // If member is from static roster and doesn't have a row in Members sheet yet, record as Deleted
+  if (name) {
+    var now = new Date();
+    var newId = 'MEM-DEL-' + now.getTime();
+    var newRow = sheet.getLastRow() + 1;
+    sheet.getRange(newRow, 3).setNumberFormat('@');
+    sheet.getRange(newRow, 7).setNumberFormat('@');
+    sheet.getRange(newRow, 1, 1, 8).setValues([[
+      newId, name, '', shepherd || '', '', 'sps', formatDate(now), 'Deleted'
+    ]]);
+    logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DELETED', deletedBy, name + ' (Static Roster)');
+    return { status: 'success' };
+  }
+
+  return { status: 'error', message: 'Member not found' };
 }
 
 // ============================================================

@@ -4300,6 +4300,54 @@
       window.formatSeekerDate = window.formatDayMonthYear;
       window.parseRobustDate = window.parseDayMonthYearDate;
 
+      // ── GLOBAL ARRIVAL ORDERING HELPERS ──
+      // Ensures the most recently submitted / received items are displayed first
+      window.getArrivalTimestamp = function (item) {
+        if (!item) return 0;
+        // 1. Explicit millisecond in ID (e.g. RPT-1725..., MC-RPT-1725..., MEM-1725..., SOUL-1725..., GT-1725...)
+        var idStr = String(item.reportId || item.id || item.MemberID || item.SoulID || item.Id || '');
+        var idMatch = idStr.match(/\d{10,14}/);
+        if (idMatch) {
+          var ms = parseInt(idMatch[0], 10);
+          if (ms > 1600000000000) return ms;
+        }
+        // 2. Explicit timestamp property
+        if (item.timestamp) {
+          var ts = new Date(item.timestamp).getTime();
+          if (!isNaN(ts) && ts > 0) return ts;
+        }
+        // 3. Submission date + submission time (or date + time)
+        var dateVal = item.submissionDate || item.date || item.ImportDate || item.sessionDate;
+        var timeVal = item.submissionTime || item.time || item.sessionTime || '00:00';
+        if (dateVal) {
+          var parsedD = window.parseDayMonthYearDate(dateVal);
+          if (parsedD && !isNaN(parsedD.getTime())) {
+            var parts = String(timeVal).split(':');
+            var hours = parseInt(parts[0], 10) || 0;
+            var mins = parseInt(parts[1], 10) || 0;
+            parsedD.setHours(hours, mins, 0, 0);
+            return parsedD.getTime();
+          }
+        }
+        return 0;
+      };
+
+      window.compareArrivalsDesc = function (a, b) {
+        var ta = window.getArrivalTimestamp(a);
+        var tb = window.getArrivalTimestamp(b);
+        if (tb !== ta && ta > 0 && tb > 0) {
+          return tb - ta;
+        }
+        var idxA = (a && a._arrivalIndex !== undefined) ? a._arrivalIndex : 0;
+        var idxB = (b && b._arrivalIndex !== undefined) ? b._arrivalIndex : 0;
+        if (idxB !== idxA) {
+          return idxB - idxA;
+        }
+        var idA = String(a.reportId || a.id || a.MemberID || a.SoulID || a.Id || '');
+        var idB = String(b.reportId || b.id || b.MemberID || b.SoulID || b.Id || '');
+        return idB.localeCompare(idA);
+      };
+
       const ADMIN_PIN = '2500';
       const SPS_HEAD_PIN = '3000';
       const MC_HEAD_PIN = '4000';
@@ -4807,6 +4855,7 @@
       function loadSeekers(onDone) {
         fetchData('getMembersRoster', function (data) {
           seekersData = (data && data.members) ? data.members : [];
+          seekersData.forEach(function (s, i) { s._arrivalIndex = i; });
           renderSeekers();
           if (onDone) onDone();
         });
@@ -4839,9 +4888,9 @@
         var streamFilter = visibleSeekerStream();
         var visible = streamFilter ? seekersData.filter(function (r) { return r.Stream === streamFilter; }) : seekersData;
 
-        var pending = visible.filter(function (r) { return r.Status === 'Pending'; });
-        var active  = visible.filter(function (r) { return r.Status === 'Seeker'; });
-        var members = visible.filter(function (r) { return r.Status === 'Member'; });
+        var pending = visible.filter(function (r) { return r.Status === 'Pending'; }).sort(window.compareArrivalsDesc);
+        var active  = visible.filter(function (r) { return r.Status === 'Seeker'; }).sort(window.compareArrivalsDesc);
+        var members = visible.filter(function (r) { return r.Status === 'Member'; }).sort(window.compareArrivalsDesc);
 
         statsEl.innerHTML = [
           { label: 'Pending Review', count: pending.length, color: '#fde68a' },
@@ -7257,6 +7306,7 @@
       window.onSpsReportsLoaded = function(data) {
         if (data && data.reports) {
           allReports = data.reports.filter(Boolean);
+          allReports.forEach(function (r, i) { r._arrivalIndex = i; });
           localStorage.setItem('onc_cached_reports', JSON.stringify(allReports));
         }
         renderAll();
@@ -7265,6 +7315,7 @@
       window.onMcReportsLoaded = function(data) {
         if (data && data.reports) {
           allMicrochurchReports = data.reports.filter(Boolean);
+          allMicrochurchReports.forEach(function (r, i) { r._arrivalIndex = i; });
           localStorage.setItem('onc_cached_mc_reports', JSON.stringify(allMicrochurchReports));
         }
         renderAll();
@@ -7288,10 +7339,12 @@
 
           if (spsData && spsData.reports) {
             allReports = spsData.reports.filter(Boolean);
+            allReports.forEach(function (r, i) { r._arrivalIndex = i; });
             localStorage.setItem('onc_cached_reports', JSON.stringify(allReports));
           }
           if (mcData && mcData.reports) {
             allMicrochurchReports = mcData.reports.filter(Boolean);
+            allMicrochurchReports.forEach(function (r, i) { r._arrivalIndex = i; });
             localStorage.setItem('onc_cached_mc_reports', JSON.stringify(allMicrochurchReports));
           }
 
@@ -7835,7 +7888,7 @@
         var showMc = (currentRole === 'superadmin' || currentRole === 'admin' || currentRole === 'mchead');
 
         if (showSps && typeof allReports !== 'undefined' && Array.isArray(allReports)) {
-          allReports.forEach(function (r) {
+          allReports.forEach(function (r, idx) {
             if (!r) return;
             list.push({
               type: 'SPS',
@@ -7845,13 +7898,15 @@
               present: toArray(r.membersPresent).length,
               total: r.totalMembers || 4,
               rate: getRate(r),
-              reportId: r.reportId
+              reportId: r.reportId,
+              _arrivalIndex: r._arrivalIndex !== undefined ? r._arrivalIndex : idx,
+              timestamp: r.timestamp
             });
           });
         }
 
         if (showMc && typeof allMicrochurchReports !== 'undefined' && Array.isArray(allMicrochurchReports)) {
-          allMicrochurchReports.forEach(function (r) {
+          allMicrochurchReports.forEach(function (r, idx) {
             if (!r) return;
             var rate = parseFloat(r.attendanceRate) || 0;
             var pct = rate > 1 ? Math.round(rate) : Math.round(rate * 100);
@@ -7863,23 +7918,14 @@
               present: toArray(r.membersPresent).length,
               total: r.totalMembers || 4,
               rate: pct,
-              reportId: r.reportId
+              reportId: r.reportId,
+              _arrivalIndex: r._arrivalIndex !== undefined ? r._arrivalIndex : idx,
+              timestamp: r.timestamp
             });
           });
         }
 
-        var recent = list.slice().sort(function (a, b) {
-          // Sort by actual session date first, then by time of day, then by report id
-          var dateA = parseRobustDate(a.date);
-          var dateB = parseRobustDate(b.date);
-          var tA = (dateA && !isNaN(dateA.getTime())) ? dateA.getTime() : 0;
-          var tB = (dateB && !isNaN(dateB.getTime())) ? dateB.getTime() : 0;
-          if (tB !== tA) return tB - tA;
-          var timeA = (a.time || '').substring(0, 5);
-          var timeB = (b.time || '').substring(0, 5);
-          if (timeB !== timeA) return timeB > timeA ? 1 : -1;
-          return (b.reportId || '').localeCompare(a.reportId || '');
-        }).slice(0, 10);
+        var recent = list.slice().sort(window.compareArrivalsDesc).slice(0, 10);
 
         var actCount = document.getElementById('activity-count');
         if (actCount) actCount.textContent = list.length + ' total';
@@ -8455,7 +8501,7 @@
           if (concernFilter === 'no' && countConcerns(r)) return false;
           if (dateFilter) { var d = r.timestamp ? new Date(r.timestamp).toISOString().split('T')[0] : ''; if (d !== dateFilter) return false; }
           return true;
-        }).sort(function (a, b) { return (b.reportId || '').localeCompare(a.reportId || ''); });
+        }).sort(window.compareArrivalsDesc);
         var tbody = document.getElementById('reports-table');
         tbody.innerHTML = filtered.length ? filtered.map(function (r, i) {
           var present = toArray(r.membersPresent).join(', ') || '—';
@@ -10143,9 +10189,7 @@
             return;
           }
 
-          var sorted = mc.slice().sort(function (a, b) {
-            return (b.reportId || '').localeCompare(a.reportId || '');
-          });
+          var sorted = mc.slice().sort(window.compareArrivalsDesc);
 
           tbody.innerHTML = sorted.map(function (r, i) {
             var rate = parseFloat(r.attendanceRate) || 0;
@@ -10866,6 +10910,7 @@
         fetchViaScriptOrFetch('getGuests').then(function(data) {
           if (data && data.guests) {
             allGuestReports = data.guests.filter(Boolean);
+            allGuestReports.forEach(function (g, i) { g._arrivalIndex = i; });
           }
           renderFirstTimers();
         }).catch(function() {
@@ -10881,6 +10926,7 @@
         fetchViaScriptOrFetch('getSalvations').then(function(data) {
           if (data && data.salvations) {
             allSalvationRecords = data.salvations.filter(Boolean);
+            allSalvationRecords.forEach(function (s, i) { s._arrivalIndex = i; });
           }
           renderSalvationRecords();
         }).catch(function() {
@@ -10906,11 +10952,7 @@
           return;
         }
 
-        var sorted = allSalvationRecords.slice().sort(function(a, b) {
-          var da = window.parseDayMonthYearDate(a.date);
-          var db = window.parseDayMonthYearDate(b.date);
-          return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
-        });
+        var sorted = allSalvationRecords.slice().sort(window.compareArrivalsDesc);
 
         tbody.innerHTML = sorted.map(function(s, idx) {
           var bg = idx % 2 === 0 ? '#f8fafc' : 'white';
@@ -10980,16 +11022,7 @@
         });
 
         // Most recent registrations first
-        filtered.sort(function(a, b) {
-          var da = window.parseDayMonthYearDate(a.date);
-          var db = window.parseDayMonthYearDate(b.date);
-          if (da && db && da.getTime() !== db.getTime()) {
-            return db.getTime() - da.getTime();
-          }
-          var idA = parseInt(String(a.id).replace(/\D/g, ''), 10) || 0;
-          var idB = parseInt(String(b.id).replace(/\D/g, ''), 10) || 0;
-          return idB - idA;
-        });
+        filtered.sort(window.compareArrivalsDesc);
 
         return filtered;
       }
