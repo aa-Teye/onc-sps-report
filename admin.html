@@ -1442,6 +1442,11 @@
             <span class="icon">🆕</span>
             <span class="tab-btn-label">First Timers</span>
           </button>
+          <button class="tab-btn"
+            onclick="switchTab('finances', this)">
+            <span class="icon">💰</span>
+            <span class="tab-btn-label">Finances</span>
+          </button>
           </div>
 
           <!-- GROWTH -->
@@ -2745,6 +2750,140 @@
                       </td>
                     </tr>
                   </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: FINANCES & OFFERINGS -->
+          <div class="tab-panel" id="panel-finances">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:24px;">
+              <div>
+                <h2 style="font-size:22px;font-weight:900;color:var(--navy);margin:0 0 4px;display:flex;align-items:center;gap:8px;">
+                  <span>💰</span> Fellowship Offerings
+                </h2>
+                <p style="color:#64748b;font-size:13px;margin:0;">
+                  Aggregated weekly and monthly offerings reported from SPS (Online) and Microchurch (In-Person) meetings.
+                </p>
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;">
+                <button type="button" onclick="exportFinancesCSV()"
+                  style="padding:10px 16px;background:white;color:var(--navy);border:1px solid #cbd5e1;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                  📥 Export CSV
+                </button>
+                <button type="button" onclick="loadAll()"
+                  style="padding:10px 16px;background:var(--navy);color:white;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(15,32,68,0.15);">
+                  🔄 Refresh Data
+                </button>
+              </div>
+            </div>
+
+            <!-- 4 KPI Summary Cards -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;margin-bottom:24px;">
+              <!-- This Week Total -->
+              <div style="background:linear-gradient(135deg, #0f2044, #1e3a8a);color:white;border-radius:18px;padding:20px;box-shadow:0 4px 14px rgba(15,32,68,0.15);position:relative;overflow:hidden;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:0.85;margin-bottom:6px;">
+                  📅 This Week's Total Offering
+                </div>
+                <div id="financesTotalWeek" style="font-size:30px;font-weight:900;letter-spacing:-0.5px;color:#fde047;">
+                  GH₵ 0.00
+                </div>
+                <div id="financesWeekLabel" style="font-size:12px;opacity:0.8;margin-top:4px;">
+                  Current Week
+                </div>
+              </div>
+
+              <!-- Month Cumulative -->
+              <div style="background:white;border-radius:18px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.05);border-left:5px solid #10b981;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:6px;">
+                  📊 Month Cumulative Offering
+                </div>
+                <div id="financesTotalMonth" style="font-size:30px;font-weight:900;letter-spacing:-0.5px;color:#0f2044;">
+                  GH₵ 0.00
+                </div>
+                <div id="financesMonthLabel" style="font-size:12px;color:#10b981;font-weight:700;margin-top:4px;">
+                  This Month
+                </div>
+              </div>
+
+              <!-- SPS (Online) Total -->
+              <div style="background:white;border-radius:18px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.05);border-left:5px solid #3b82f6;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:6px;">
+                  🌱 SPS (Online) Offerings
+                </div>
+                <div id="financesTotalSps" style="font-size:30px;font-weight:900;letter-spacing:-0.5px;color:#1d4ed8;">
+                  GH₵ 0.00
+                </div>
+                <div id="financesSpsSubtitle" style="font-size:12px;color:#64748b;margin-top:4px;">
+                  This Month
+                </div>
+              </div>
+
+              <!-- Microchurch (In-Person) Total -->
+              <div style="background:white;border-radius:18px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.05);border-left:5px solid #f59e0b;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:6px;">
+                  🏠 Microchurch Offerings
+                </div>
+                <div id="financesTotalMc" style="font-size:30px;font-weight:900;letter-spacing:-0.5px;color:#b45309;">
+                  GH₵ 0.00
+                </div>
+                <div id="financesMcSubtitle" style="font-size:12px;color:#64748b;margin-top:4px;">
+                  This Month
+                </div>
+              </div>
+            </div>
+
+            <!-- Filters Bar & Table Container -->
+            <div style="background:white;border-radius:18px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+                <div style="font-size:16px;font-weight:800;color:var(--navy);display:flex;align-items:center;gap:8px;">
+                  <span>📋</span> Individual Shepherd Submissions <span id="financesCountPill" class="pill" style="background:#eff6ff;color:#1d4ed8;font-size:12px;padding:2px 10px;border-radius:999px;font-weight:800;">0</span>
+                </div>
+
+                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
+                  <!-- Period filter -->
+                  <select id="financesPeriodFilter" onchange="renderFinancesTab()"
+                    style="padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:700;color:var(--navy);background:white;outline:none;">
+                    <option value="this-week">This Week</option>
+                    <option value="this-month">This Month</option>
+                    <option value="all">All Time</option>
+                  </select>
+
+                  <!-- Stream filter -->
+                  <select id="financesStreamFilter" onchange="renderFinancesTab()"
+                    style="padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:700;color:var(--navy);background:white;outline:none;">
+                    <option value="all">All Streams</option>
+                    <option value="sps">🌱 SPS (Online)</option>
+                    <option value="mc">🏠 Microchurch (In-Person)</option>
+                  </select>
+
+                  <!-- Search input -->
+                  <input type="text" id="financesSearchInput" placeholder="Search shepherd..." oninput="renderFinancesTab()"
+                    style="padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;color:var(--navy);outline:none;width:180px;">
+                </div>
+              </div>
+
+              <!-- Table -->
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;text-align:left;">
+                  <thead>
+                    <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:0.5px;">
+                      <th style="padding:12px 14px;">Date</th>
+                      <th style="padding:12px 14px;">Shepherd</th>
+                      <th style="padding:12px 14px;">Stream</th>
+                      <th style="padding:12px 14px;">Zone / Fellowship</th>
+                      <th style="padding:12px 14px;text-align:right;">Offering Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="financesTableBody">
+                    <tr>
+                      <td colspan="5" style="text-align:center;padding:36px;color:#94a3b8;">
+                        Loading offerings...
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot id="financesTableFoot" style="border-top:2px solid #cbd5e1;background:#f8fafc;font-weight:800;color:var(--navy);">
+                  </tfoot>
                 </table>
               </div>
             </div>
@@ -4851,6 +4990,198 @@
         });
       }
 
+      // ── FINANCES TAB CONTROLLERS ──
+      window._filteredFinancesList = [];
+
+      function parseOfferingAmount(val) {
+        if (val === null || val === undefined) return 0;
+        var str = String(val).replace(/[^0-9.]/g, '');
+        var num = parseFloat(str);
+        return isNaN(num) ? 0 : num;
+      }
+
+      function formatGHS(amount) {
+        return 'GH₵ ' + (amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+
+      function renderFinancesTab() {
+        var currWk = (typeof getCurrentISOWeek === 'function') ? getCurrentISOWeek() : 35;
+        var now = new Date();
+        var currentYear = now.getFullYear();
+        var currentMonth = now.getMonth();
+        var monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+        // 1. Extract SPS offerings
+        var spsItems = (allReports || []).map(function(r) {
+          var amt = parseOfferingAmount(r.offeringAmount);
+          var given = (r.offeringGiven || '').toLowerCase() === 'yes' || amt > 0;
+          var pDate = (typeof parseRobustDate === 'function') ? parseRobustDate(r.sessionDate || r.date || r.submissionDate || r.timestamp) : null;
+          var wk = (typeof getReportWeekNumber === 'function') ? getReportWeekNumber(r) : null;
+          return {
+            stream: 'sps',
+            streamLabel: '🌱 SPS',
+            shepherd: r.shepherd || 'Unknown',
+            zone: r.zone || '',
+            date: r.sessionDate || r.date || r.submissionDate || '',
+            parsedDate: pDate,
+            weekNumber: wk,
+            amount: amt,
+            given: given,
+            reportId: r.reportId || '',
+            _arrivalIndex: r._arrivalIndex !== undefined ? r._arrivalIndex : 0
+          };
+        }).filter(function(x) { return x.given && x.amount > 0; });
+
+        // 2. Extract Microchurch offerings
+        var mcItems = (allMicrochurchReports || []).map(function(r) {
+          var amt = parseOfferingAmount(r.offeringAmount);
+          var given = (r.offeringGiven || '').toLowerCase() === 'yes' || amt > 0;
+          var pDate = (typeof parseRobustDate === 'function') ? parseRobustDate(r.sessionDate || r.date || r.submissionDate || r.timestamp) : null;
+          var wk = (typeof getReportWeekNumber === 'function') ? getReportWeekNumber(r) : null;
+          return {
+            stream: 'mc',
+            streamLabel: '🏠 Microchurch',
+            shepherd: r.shepherd || 'Unknown',
+            zone: r.microchurch || r.zone || '',
+            date: r.sessionDate || r.date || r.submissionDate || '',
+            parsedDate: pDate,
+            weekNumber: wk,
+            amount: amt,
+            given: given,
+            reportId: r.reportId || '',
+            _arrivalIndex: r._arrivalIndex !== undefined ? r._arrivalIndex : 0
+          };
+        }).filter(function(x) { return x.given && x.amount > 0; });
+
+        var allItems = spsItems.concat(mcItems);
+        if (typeof window.compareArrivalsDesc === 'function') {
+          allItems.sort(window.compareArrivalsDesc);
+        }
+
+        // 3. KPI Aggregations
+        // Week totals
+        var spsWeekTotal = spsItems.filter(function(x) { return x.weekNumber === currWk; }).reduce(function(sum, x) { return sum + x.amount; }, 0);
+        var mcWeekTotal  = mcItems.filter(function(x) { return x.weekNumber === currWk; }).reduce(function(sum, x) { return sum + x.amount; }, 0);
+        var totalThisWeek = spsWeekTotal + mcWeekTotal;
+
+        // Month totals
+        var spsMonthTotal = spsItems.filter(function(x) {
+          return x.parsedDate && x.parsedDate.getFullYear() === currentYear && x.parsedDate.getMonth() === currentMonth;
+        }).reduce(function(sum, x) { return sum + x.amount; }, 0);
+
+        var mcMonthTotal = mcItems.filter(function(x) {
+          return x.parsedDate && x.parsedDate.getFullYear() === currentYear && x.parsedDate.getMonth() === currentMonth;
+        }).reduce(function(sum, x) { return sum + x.amount; }, 0);
+
+        var totalThisMonth = spsMonthTotal + mcMonthTotal;
+
+        // Populate KPI elements
+        var weekEl = document.getElementById('financesTotalWeek');
+        if (weekEl) weekEl.textContent = formatGHS(totalThisWeek);
+
+        var weekLbl = document.getElementById('financesWeekLabel');
+        if (weekLbl) weekLbl.textContent = 'Week ' + currWk + ' (Current)';
+
+        var monthEl = document.getElementById('financesTotalMonth');
+        if (monthEl) monthEl.textContent = formatGHS(totalThisMonth);
+
+        var monthLbl = document.getElementById('financesMonthLabel');
+        if (monthLbl) monthLbl.textContent = monthName;
+
+        var spsEl = document.getElementById('financesTotalSps');
+        if (spsEl) spsEl.textContent = formatGHS(spsMonthTotal);
+
+        var spsSub = document.getElementById('financesSpsSubtitle');
+        if (spsSub) spsSub.textContent = 'This Week: ' + formatGHS(spsWeekTotal) + ' | ' + monthName + ': ' + formatGHS(spsMonthTotal);
+
+        var mcEl = document.getElementById('financesTotalMc');
+        if (mcEl) mcEl.textContent = formatGHS(mcMonthTotal);
+
+        var mcSub = document.getElementById('financesMcSubtitle');
+        if (mcSub) mcSub.textContent = 'This Week: ' + formatGHS(mcWeekTotal) + ' | ' + monthName + ': ' + formatGHS(mcMonthTotal);
+
+        // 4. Filtering for Table
+        var periodFilter = document.getElementById('financesPeriodFilter') ? document.getElementById('financesPeriodFilter').value : 'this-week';
+        var streamFilter = document.getElementById('financesStreamFilter') ? document.getElementById('financesStreamFilter').value : 'all';
+        var searchVal = (document.getElementById('financesSearchInput') ? document.getElementById('financesSearchInput').value : '').toLowerCase().trim();
+
+        var filtered = allItems.filter(function(x) {
+          if (periodFilter === 'this-week' && x.weekNumber !== currWk) return false;
+          if (periodFilter === 'this-month') {
+            if (!x.parsedDate || x.parsedDate.getFullYear() !== currentYear || x.parsedDate.getMonth() !== currentMonth) return false;
+          }
+          if (streamFilter !== 'all' && x.stream !== streamFilter) return false;
+          if (searchVal && !x.shepherd.toLowerCase().includes(searchVal) && !(x.zone || '').toLowerCase().includes(searchVal)) return false;
+          return true;
+        });
+
+        // Update count pill
+        var pill = document.getElementById('financesCountPill');
+        if (pill) pill.textContent = filtered.length;
+
+        // Render Table Body
+        var tbody = document.getElementById('financesTableBody');
+        var tfoot = document.getElementById('financesTableFoot');
+        if (!tbody) return;
+
+        if (!filtered.length) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:36px;color:#94a3b8;">No offerings reported for the selected filter.</td></tr>';
+          if (tfoot) tfoot.innerHTML = '';
+          window._filteredFinancesList = [];
+          return;
+        }
+
+        var visibleSum = 0;
+        tbody.innerHTML = filtered.map(function(x) {
+          visibleSum += x.amount;
+          var badgeBg = x.stream === 'sps' ? '#dbeafe' : '#fef3c7';
+          var badgeFg = x.stream === 'sps' ? '#1e40af' : '#92400e';
+          var displayDate = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(x.date) : (x.date || '—');
+          return '<tr style="border-bottom:1px solid #f1f5f9;">' +
+            '<td style="padding:12px 14px;color:#0f2044;font-weight:600;">' + displayDate + '</td>' +
+            '<td style="padding:12px 14px;color:#0f2044;font-weight:800;">' + x.shepherd + '</td>' +
+            '<td style="padding:12px 14px;"><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:800;background:' + badgeBg + ';color:' + badgeFg + ';">' + x.streamLabel + '</span></td>' +
+            '<td style="padding:12px 14px;color:#64748b;">' + (x.zone || '—') + '</td>' +
+            '<td style="padding:12px 14px;text-align:right;font-weight:900;color:#15803d;font-size:14px;">' + formatGHS(x.amount) + '</td>' +
+            '</tr>';
+        }).join('');
+
+        if (tfoot) {
+          tfoot.innerHTML = '<tr>' +
+            '<td colspan="4" style="padding:14px;text-align:right;font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:0.5px;">Filtered Total:</td>' +
+            '<td style="padding:14px;text-align:right;font-weight:900;color:#15803d;font-size:16px;">' + formatGHS(visibleSum) + '</td>' +
+            '</tr>';
+        }
+
+        window._filteredFinancesList = filtered;
+      }
+
+      function exportFinancesCSV() {
+        var list = window._filteredFinancesList || [];
+        if (!list.length) {
+          alert('No offerings to export.');
+          return;
+        }
+        var csv = ['Date,Shepherd,Stream,Zone/Fellowship,Offering Amount (GHS)'];
+        list.forEach(function(x) {
+          var dateStr = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(x.date) : (x.date || '');
+          csv.push([
+            '"' + dateStr + '"',
+            '"' + (x.shepherd || '').replace(/"/g, '""') + '"',
+            '"' + x.stream.toUpperCase() + '"',
+            '"' + (x.zone || '').replace(/"/g, '""') + '"',
+            x.amount.toFixed(2)
+          ].join(','));
+        });
+        var blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'ONC_Fellowship_Offerings_' + (new Date().toISOString().slice(0, 10)) + '.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
       // ── SEEKERS TAB ──
       function loadSeekers(onDone) {
         fetchData('getMembersRoster', function (data) {
@@ -6466,7 +6797,8 @@
         'activity-log': 'Activity Log',
         'announcements': 'Announcements',
         'role-pins': 'Portal PINs',
-        'know-heads': 'Know Your Heads'
+        'know-heads': 'Know Your Heads',
+        'finances': 'Fellowship Offerings'
       };
 
       // Portal login roles and their factory-default PINs (must match the
@@ -6731,6 +7063,11 @@
         if (id === 'first-timers') {
           setTimeout(function() {
             loadFirstTimers();
+          }, 150);
+        }
+        if (id === 'finances') {
+          setTimeout(function() {
+            renderFinancesTab();
           }, 150);
         }
         if (id === 'membership') {
@@ -7706,6 +8043,7 @@
         safeExec(renderLeaderboard, 'renderLeaderboard');
         safeExec(renderSoulReports, 'renderSoulReports');
         safeExec(renderFlags, 'renderFlags');
+        safeExec(renderFinancesTab, 'renderFinancesTab');
       }
 
       function renderOverview() {
