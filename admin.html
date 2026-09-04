@@ -3167,8 +3167,8 @@
                     <label style="font-size:11px;font-weight:800;color:#0f2044;text-transform:uppercase;letter-spacing:0.5px;">Target Stream</label>
                     <select id="reassignTargetStream" onchange="onReassignStreamChange()"
                       style="width:100%;box-sizing:border-box;padding:11px 12px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:6px;">
-                      <option value="sps">🌱 SPS (Sunday School)</option>
-                      <option value="mc">🏠 Microchurch (Fellowship)</option>
+                      <option value="sps">🌱 SPS</option>
+                      <option value="mc">🏠 Microchurch</option>
                     </select>
                   </div>
 
@@ -5209,7 +5209,7 @@
 
         document.getElementById('reassignCurrentName').textContent = m.name;
         document.getElementById('reassignCurrentPhone').textContent = m.phone ? ('📞 ' + m.phone) : 'No phone recorded';
-        document.getElementById('reassignCurrentStream').textContent = m.stream === 'mc' ? 'Microchurch (Fellowship)' : 'SPS (Sunday School)';
+        document.getElementById('reassignCurrentStream').textContent = m.stream === 'mc' ? 'Microchurch' : 'SPS';
         document.getElementById('reassignCurrentShepherd').textContent = m.shepherd || '(none)';
         document.getElementById('reassignCurrentZone').textContent = m.zone || 'Not Specified';
 
