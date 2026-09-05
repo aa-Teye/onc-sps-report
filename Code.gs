@@ -437,9 +437,10 @@ function submitReport(data) {
   const nextRow = sheet.getLastRow() + 1;
   [2, 4, 5, 7, 13].forEach(col => sheet.getRange(nextRow, col).setNumberFormat('@'));
 
+  ensureSpreadsheetLocale();
   sheet.appendRow([
-    reportId, submissionDate, submissionDay, submissionTime,
-    sessionDate, sessionDay, sessionTime, data.shepherd || '',
+    reportId, "'" + submissionDate, submissionDay, submissionTime,
+    "'" + sessionDate, sessionDay, sessionTime, data.shepherd || '',
     membersPresent, membersAbsent, attendanceCount, totalMembers,
     attendanceRate, data.bibleTopic || '', data.topicCovered || '',
     data.prayerDone || '', concerns, data.notes || '', weekNumber, data.photoUrl || '', data.offeringGiven || '',
@@ -461,6 +462,7 @@ function submitReport(data) {
 }
 
 function getReports() {
+  ensureSpreadsheetLocale();
   const ss    = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_NAME);
 
@@ -468,14 +470,20 @@ function getReports() {
     return { status: 'success', reports: [] };
 
   const data    = sheet.getDataRange().getValues();
-  const reports = data.slice(1).map(row => ({
-    reportId:        row[0],
-    submissionDate:  row[1] instanceof Date ? formatDate(row[1]) : String(row[1] || ''),
-    submissionDay:   row[2],
-    submissionTime:  row[3],
-    sessionDate:     row[4] instanceof Date ? formatDate(row[4]) : String(row[4] || ''),
-    sessionDay:      row[5],
-    sessionTime:     row[6],
+  const reports = data.slice(1).map(row => {
+    const reportId = row[0];
+    const subDay   = row[2];
+    const sessDay  = row[5];
+    const subDate  = resolveCleanReportDate(reportId, row[1], subDay);
+    const sessDate = resolveCleanReportDate(reportId, row[4], sessDay) || subDate;
+    return {
+      reportId:        reportId,
+      submissionDate:  subDate,
+      submissionDay:   subDay,
+      submissionTime:  row[3],
+      sessionDate:     sessDate,
+      sessionDay:      sessDay,
+      sessionTime:     row[6],
     shepherd:        row[7],
     membersPresent:  row[8],
     membersAbsent:   row[9],
@@ -491,7 +499,8 @@ function getReports() {
     photoUrl:        row[19],
     offeringGiven:   row[20],
     offeringAmount:  row[21]
-  }));
+  };
+});
 
   return { status: 'success', reports };
 }
@@ -548,9 +557,10 @@ function submitMicrochurchReport(data) {
   const nextRow = sheet.getLastRow() + 1;
   [2, 4, 5, 7, 14].forEach(col => sheet.getRange(nextRow, col).setNumberFormat('@'));
 
+  ensureSpreadsheetLocale();
   sheet.appendRow([
-    reportId, submissionDate, submissionDay, submissionTime,
-    sessionDate, sessionDay, sessionTime, data.shepherd || '',
+    reportId, "'" + submissionDate, submissionDay, submissionTime,
+    "'" + sessionDate, sessionDay, sessionTime, data.shepherd || '',
     data.meetingType || '', membersPresent, membersAbsent,
     attendanceCount, totalMembers, attendanceRate,
     data.bibleTopic || '', data.topicCovered || '', data.actualTopic || '',
@@ -574,6 +584,7 @@ function submitMicrochurchReport(data) {
 }
 
 function getMicrochurchReports() {
+  ensureSpreadsheetLocale();
   const ss    = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(MC_SHEET_NAME);
 
@@ -581,16 +592,22 @@ function getMicrochurchReports() {
     return { status: 'success', reports: [] };
 
   const data    = sheet.getDataRange().getValues();
-  const reports = data.slice(1).map(row => ({
-    reportId:        row[0],
-    submissionDate:  row[1] instanceof Date ? formatDate(row[1]) : String(row[1] || ''),
-    submissionDay:   row[2],
-    submissionTime:  row[3],
-    sessionDate:     row[4] instanceof Date ? formatDate(row[4]) : String(row[4] || ''),
-    sessionDay:      row[5],
-    sessionTime:     row[6],
-    shepherd:        row[7],
-    meetingType:     row[8],
+  const reports = data.slice(1).map(row => {
+    const reportId = row[0];
+    const subDay   = row[2];
+    const sessDay  = row[5];
+    const subDate  = resolveCleanReportDate(reportId, row[1], subDay);
+    const sessDate = resolveCleanReportDate(reportId, row[4], sessDay) || subDate;
+    return {
+      reportId:        reportId,
+      submissionDate:  subDate,
+      submissionDay:   subDay,
+      submissionTime:  row[3],
+      sessionDate:     sessDate,
+      sessionDay:      sessDay,
+      sessionTime:     row[6],
+      shepherd:        row[7],
+      meetingType:     row[8],
     membersPresent:  row[9],
     membersAbsent:   row[10],
     attendanceCount: row[11],
@@ -608,7 +625,8 @@ function getMicrochurchReports() {
     photoUrl:        row[23],
     offeringGiven:   row[24],
     offeringAmount:  row[25]
-  }));
+  };
+});
 
   return { status: 'success', reports };
 }
@@ -2928,11 +2946,86 @@ function jsonResponse(data) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function ensureSpreadsheetLocale() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss && ss.getSpreadsheetLocale() !== 'en_GB') {
+      ss.setSpreadsheetLocale('en_GB');
+    }
+  } catch (e) {}
+}
+
+function resolveCleanReportDate(reportId, rawDateVal, dayName) {
+  // 1. If reportId has exact millisecond timestamp (e.g. MC-RPT-1725398340000 or RPT-1725398340000)
+  if (reportId) {
+    var idMatch = String(reportId).match(/\d{10,14}/);
+    if (idMatch) {
+      var ts = parseInt(idMatch[0], 10);
+      if (!isNaN(ts) && ts > 1577836800000) { // Valid timestamp after Jan 1, 2020
+        return Utilities.formatDate(new Date(ts), 'Africa/Accra', 'dd/MM/yyyy');
+      }
+    }
+  }
+
+  // 2. If rawDateVal is a Date object from Google Sheets
+  if (rawDateVal instanceof Date && !isNaN(rawDateVal.getTime())) {
+    var rDay = rawDateVal.getDate();
+    var rMonth = rawDateVal.getMonth() + 1;
+    var rYear = rawDateVal.getFullYear();
+
+    // Check if Google Sheets swapped day and month (e.g. Sept 3rd stored as March 9th)
+    if (dayName && typeof dayName === 'string') {
+      var days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      var targetDayIdx = days.indexOf(dayName.trim().toLowerCase());
+      if (targetDayIdx !== -1 && rawDateVal.getDay() !== targetDayIdx) {
+        if (rDay <= 12) {
+          var swapped = new Date(rYear, rDay - 1, rMonth);
+          if (swapped.getDay() === targetDayIdx) {
+            return Utilities.formatDate(swapped, 'Africa/Accra', 'dd/MM/yyyy');
+          }
+        }
+      }
+    }
+    return Utilities.formatDate(rawDateVal, 'Africa/Accra', 'dd/MM/yyyy');
+  }
+
+  // 3. If rawDateVal is a string or other
+  return formatDate(rawDateVal);
+}
+
 // Returns DD/MM/YYYY — pinned to Ghana time (Africa/Accra / GMT+0).
 function formatDate(date) {
   if (!date) return '';
-  const d = (date instanceof Date) ? date : new Date(date);
-  if (isNaN(d.getTime())) return String(date);
+  if (typeof date === 'string') {
+    var str = date.trim();
+    if (!str || str === '—' || str === 'N/A') return '';
+    // If string is already DD/MM/YYYY (e.g. 03/09/2026)
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+      var p = str.split('/');
+      var dayNum = parseInt(p[0], 10);
+      var m = parseInt(p[1], 10);
+      var y = parseInt(p[2], 10);
+      return (dayNum < 10 ? '0' + dayNum : dayNum) + '/' + (m < 10 ? '0' + m : m) + '/' + y;
+    }
+    // If string is ISO / YYYY-MM-DD (e.g. 2026-09-03)
+    if (/^\d{4}-\d{1,2}-\d{1,2}/.test(str)) {
+      var p = str.split('T')[0].split('-');
+      var y = parseInt(p[0], 10);
+      var m = parseInt(p[1], 10);
+      var dayNum = parseInt(p[2], 10);
+      return (dayNum < 10 ? '0' + dayNum : dayNum) + '/' + (m < 10 ? '0' + m : m) + '/' + y;
+    }
+    // If string is DD-MM-YYYY (e.g. 03-09-2026)
+    if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(str)) {
+      var p = str.split('-');
+      var dayNum = parseInt(p[0], 10);
+      var m = parseInt(p[1], 10);
+      var y = parseInt(p[2], 10);
+      return (dayNum < 10 ? '0' + dayNum : dayNum) + '/' + (m < 10 ? '0' + m : m) + '/' + y;
+    }
+  }
+  const d = (date instanceof Date) ? date : (typeof date === 'number' ? new Date(date) : null);
+  if (!d || isNaN(d.getTime())) return String(date);
   return Utilities.formatDate(d, 'Africa/Accra', 'dd/MM/yyyy');
 }
 

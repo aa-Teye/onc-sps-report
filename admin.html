@@ -4505,30 +4505,70 @@
 
       // ── GLOBAL DATE FORMATTER & PARSER (STRICT DAY / MONTH / YEAR) ──
       // Standardizes all date input/output across the platform to DD/MM/YYYY
-      window.parseDayMonthYearDate = function (val) {
-        if (!val) return null;
+      window.parseDayMonthYearDate = function (val, item) {
+        if (!val) {
+          if (item && typeof item === 'object') {
+            val = item.sessionDate || item.date || item.submissionDate || item.dateAdded;
+          }
+          if (!val) return null;
+        }
         if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
         if (typeof val === 'number') return new Date(val);
+
+        var contextObj = (item && typeof item === 'object') ? item : (typeof val === 'object' ? val : null);
+
+        // 1. Check if report ID or item contains exact millisecond timestamp (e.g. MC-RPT-1725398340000 or RPT-1725398340000)
+        var idCandidate = contextObj ? (contextObj.reportId || contextObj.id || contextObj.MemberID || contextObj.SoulID || contextObj.Id || '') : String(val);
+        var idMatch = String(idCandidate).match(/\d{10,14}/);
+        if (idMatch) {
+          var ts = parseInt(idMatch[0], 10);
+          if (!isNaN(ts) && ts > 1577836800000) { // Valid timestamp after Jan 1, 2020
+            return new Date(ts);
+          }
+        }
+
         var str = String(val).trim();
         if (!str || str === '—' || str === 'N/A' || str === 'null' || str === 'undefined') return null;
 
-        // 1. ISO string with T (e.g. 2026-09-04T00:00:00.000Z)
+        var dayName = contextObj ? (contextObj.submissionDay || contextObj.sessionDay || contextObj.day || '') : '';
+
+        // 2. ISO string with T (e.g. 2026-09-04T00:00:00.000Z)
         if (str.includes('T')) {
           var datePart = str.split('T')[0];
           var p = datePart.split('-');
           if (p.length === 3) return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
         }
-        // 2. Slashes (e.g. 04/09/2026 or 2026/09/04)
+
+        // 3. Slashes (e.g. 04/09/2026 or 09/03/2026)
         if (str.includes('/')) {
           var p = str.split('/');
           if (p.length === 3) {
             var a = parseInt(p[0], 10), b = parseInt(p[1], 10), c = parseInt(p[2], 10);
-            if (c > 1000) return new Date(c, b - 1, a); // DD/MM/YYYY
+            var year = c > 1000 ? c : (a > 1000 ? a : c + 2000);
+            var part1 = a > 1000 ? b : a;
+            var part2 = a > 1000 ? c : b;
+
+            var cand1 = new Date(year, part2 - 1, part1); // part1 as Day, part2 as Month (DD/MM/YYYY)
+            var cand2 = new Date(year, part1 - 1, part2); // part2 as Day, part1 as Month (MM/DD/YYYY)
+
+            // If dayName is present (e.g. "Thursday"), check if it proves a day-month swap
+            if (dayName && typeof dayName === 'string') {
+              var days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+              var targetDayIdx = days.indexOf(dayName.trim().toLowerCase());
+              if (targetDayIdx !== -1) {
+                if (cand1.getDay() !== targetDayIdx && cand2.getDay() === targetDayIdx) {
+                  return cand2; // Swapped format detected and corrected!
+                }
+              }
+            }
+
+            if (c > 1000) return cand1; // Default to DD/MM/YYYY
             if (a > 1000) return new Date(a, b - 1, c); // YYYY/MM/DD
-            return new Date(c + 2000, b - 1, a); // DD/MM/YY
+            return cand1;
           }
         }
-        // 3. Dashes (e.g. 04-09-2026 or 2026-09-04)
+
+        // 4. Dashes (e.g. 04-09-2026 or 2026-09-04)
         if (str.includes('-')) {
           var p = str.split('-');
           if (p.length === 3) {
@@ -4537,7 +4577,8 @@
             if (c > 1000) return new Date(c, b - 1, a); // DD-MM-YYYY
           }
         }
-        // 4. Dots (e.g. 04.09.2026)
+
+        // 5. Dots (e.g. 04.09.2026)
         if (str.includes('.')) {
           var p = str.split('.');
           if (p.length === 3) {
@@ -4545,13 +4586,14 @@
             if (c > 1000) return new Date(c, b - 1, a); // DD.MM.YYYY
           }
         }
+
         var d = new Date(str);
         return isNaN(d.getTime()) ? null : d;
       };
 
-      window.formatDayMonthYear = function (val) {
+      window.formatDayMonthYear = function (val, item) {
         if (!val || val === '—' || val === 'N/A') return '—';
-        var d = window.parseDayMonthYearDate(val);
+        var d = window.parseDayMonthYearDate(val, item);
         if (!d) return String(val);
         var day = String(d.getDate()).padStart(2, '0');
         var month = String(d.getMonth() + 1).padStart(2, '0');
@@ -4560,9 +4602,9 @@
       };
 
       // Aliases ensuring existing code routes through the global Day/Month/Year logic
-      window.formatReportDate = window.formatDayMonthYear;
-      window.formatSeekerDate = window.formatDayMonthYear;
-      window.parseRobustDate = window.parseDayMonthYearDate;
+      window.formatReportDate = function (val, item) { return window.formatDayMonthYear(val, item); };
+      window.formatSeekerDate = function (val, item) { return window.formatDayMonthYear(val, item); };
+      window.parseRobustDate = function (val, item) { return window.parseDayMonthYearDate(val, item); };
 
       // ── GLOBAL ARRIVAL ORDERING HELPERS ──
       // Ensures the most recently submitted / received items are displayed first
@@ -4584,7 +4626,7 @@
         var dateVal = item.submissionDate || item.date || item.ImportDate || item.sessionDate || item.dateAdded || item.DateAdded || item.FlagDate || item.EnrolledDate;
         var timeVal = item.submissionTime || item.time || item.sessionTime || '00:00';
         if (dateVal) {
-          var parsedD = window.parseDayMonthYearDate(dateVal);
+          var parsedD = window.parseDayMonthYearDate(dateVal, item);
           if (parsedD && !isNaN(parsedD.getTime())) {
             var parts = String(timeVal).split(':');
             var hours = parseInt(parts[0], 10) || 0;
@@ -8174,12 +8216,12 @@
         return val.toString().split(',').map(function (s) { return s.trim(); }).filter(Boolean);
       }
 
-      function parseRobustDate(val) {
-        return window.parseDayMonthYearDate(val);
+      function parseRobustDate(val, item) {
+        return window.parseDayMonthYearDate(val, item);
       }
 
-      function formatReportDate(val) {
-        return window.formatDayMonthYear(val);
+      function formatReportDate(val, item) {
+        return window.formatDayMonthYear(val, item);
       }
 
       var overviewSelectedWeek = null;
@@ -9279,7 +9321,12 @@
           if (prayerFilter && r.prayerDone !== prayerFilter) return false;
           if (concernFilter === 'yes' && !countConcerns(r)) return false;
           if (concernFilter === 'no' && countConcerns(r)) return false;
-          if (dateFilter) { var d = r.timestamp ? new Date(r.timestamp).toISOString().split('T')[0] : ''; if (d !== dateFilter) return false; }
+          if (dateFilter) {
+            var rd = parseRobustDate(r.sessionDate || r.date || r.submissionDate, r);
+            if (!rd || isNaN(rd.getTime())) return false;
+            var d = rd.getFullYear() + '-' + String(rd.getMonth() + 1).padStart(2, '0') + '-' + String(rd.getDate()).padStart(2, '0');
+            if (d !== dateFilter) return false;
+          }
           return true;
         }).sort(window.compareArrivalsDesc);
         var tbody = document.getElementById('reports-table');
@@ -9292,7 +9339,7 @@
           var showProofImg = false;
           if (r.proofPhoto) {
             var dateStr = r.sessionDate || r.date || r.submissionDate || r.timestamp || '';
-            var reportDate = parseRobustDate(dateStr);
+            var reportDate = parseRobustDate(dateStr, r);
 
             var twoWeeksAgo = new Date();
             twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
@@ -9302,10 +9349,10 @@
           }
           var proofHtml = showProofImg ? ' <span onclick="event.stopPropagation(); showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
 
-          var photoCaption = (r.shepherd + ' — ' + window.formatDayMonthYear(r.sessionDate || r.date || r.submissionDate)).replace(/'/g, "\\'");
+          var photoCaption = (r.shepherd + ' — ' + window.formatDayMonthYear(r.sessionDate || r.date || r.submissionDate, r)).replace(/'/g, "\\'");
           var photoCell = r.photoUrl ? '<button type="button" onclick="event.stopPropagation(); showProofPhotoModal(\'' + r.photoUrl + '\', \'' + photoCaption + '\')" style="background:none;border:none;cursor:pointer;font-size:18px;" title="View Proof of Meeting Photo">📷</button>' : '--';
 
-          var mainRow = '<tr style="cursor:pointer;" onclick="toggleReportRow(' + i + ')"><td>' + (i + 1) + '</td><td>' + window.formatDayMonthYear(r.sessionDate || r.date || r.submissionDate) + proofHtml + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.offeringGiven === 'yes' ? 'green' : 'red') + '">' + (r.offeringGiven || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td><td>' + photoCell + '</td></tr>';
+          var mainRow = '<tr style="cursor:pointer;" onclick="toggleReportRow(' + i + ')"><td>' + (i + 1) + '</td><td>' + window.formatDayMonthYear(r.sessionDate || r.date || r.submissionDate, r) + proofHtml + '</td><td><strong>' + r.shepherd + '</strong></td><td style="font-size:12px;color:#15803d;">' + present + '</td><td style="font-size:12px;color:#991b1b;">' + absent + '</td><td>' + getRate(r) + '%</td><td style="font-size:12px;">' + (r.actualTopic || r.bibleTopic || '—') + '</td><td><span class="badge ' + (r.topicCovered === 'yes' ? 'green' : 'gray') + '">' + (r.topicCovered || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.prayerDone === 'yes' ? 'green' : 'red') + '">' + (r.prayerDone || 'N/A').toUpperCase() + '</span></td><td><span class="badge ' + (r.offeringGiven === 'yes' ? 'green' : 'red') + '">' + (r.offeringGiven || 'N/A').toUpperCase() + '</span></td><td>' + (hasC ? '<span class="badge orange">' + hasC + ' flag' + (hasC > 1 ? 's' : '') + '</span>' : '—') + '</td><td>' + photoCell + '</td></tr>';
 
           var concernCard = '';
           if (hasC) {
@@ -9313,7 +9360,7 @@
             concernCard = '<div style="margin-top:8px;padding:10px 12px;background:#fff7ed;border-radius:8px;border-left:3px solid #f97316;max-width:600px;margin-bottom:12px;text-align:left;"><div style="font-weight:700;color:#c2410c;font-size:12px;margin-bottom:4px;">⚠ Concern Flagged</div><div style="color:#7c2d12;font-size:13px;">' + cText + '</div></div>';
           }
 
-          var detailRow = '<tr id="rep-details-' + i + '" style="display:none;background:#f8fafc;"><td colspan="12" style="padding:16px;"><div style="background:white;border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);"><div style="font-weight:800;color:var(--navy);font-size:14px;margin-bottom:10px;text-align:left;">📋 Report Details — ' + r.shepherd + '</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px;font-size:13px;text-align:left;"><div style="color:var(--gray);"><strong>Date:</strong> ' + window.formatDayMonthYear(r.sessionDate || r.date || r.submissionDate) + ' ' + formatTime(r.sessionTime) + '</div><div style="color:var(--gray);"><strong>Attendance Rate:</strong> ' + getRate(r) + '%</div><div style="color:var(--gray);"><strong>Topic Covered:</strong> ' + (r.actualTopic || r.bibleTopic || '—') + ' (' + (r.topicCovered || 'N/A').toUpperCase() + ')</div><div style="color:var(--gray);"><strong>Prayer Done:</strong> ' + (r.prayerDone || 'N/A').toUpperCase() + '</div><div style="color:var(--gray);"><strong>Offering Given:</strong> ' + (r.offeringGiven || 'N/A').toUpperCase() + (r.offeringGiven === 'yes' && r.offeringAmount ? ' (' + r.offeringAmount + ')' : '') + '</div></div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#15803d;">Present:</strong> ' + present + '</div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#991b1b;">Absent:</strong> ' + absent + '</div>' + concernCard + '</div></td></tr>';
+          var detailRow = '<tr id="rep-details-' + i + '" style="display:none;background:#f8fafc;"><td colspan="12" style="padding:16px;"><div style="background:white;border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);"><div style="font-weight:800;color:var(--navy);font-size:14px;margin-bottom:10px;text-align:left;">📋 Report Details — ' + r.shepherd + '</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px;font-size:13px;text-align:left;"><div style="color:var(--gray);"><strong>Date:</strong> ' + window.formatDayMonthYear(r.sessionDate || r.date || r.submissionDate, r) + ' ' + formatTime(r.sessionTime) + '</div><div style="color:var(--gray);"><strong>Attendance Rate:</strong> ' + getRate(r) + '%</div><div style="color:var(--gray);"><strong>Topic Covered:</strong> ' + (r.actualTopic || r.bibleTopic || '—') + ' (' + (r.topicCovered || 'N/A').toUpperCase() + ')</div><div style="color:var(--gray);"><strong>Prayer Done:</strong> ' + (r.prayerDone || 'N/A').toUpperCase() + '</div><div style="color:var(--gray);"><strong>Offering Given:</strong> ' + (r.offeringGiven || 'N/A').toUpperCase() + (r.offeringGiven === 'yes' && r.offeringAmount ? ' (' + r.offeringAmount + ')' : '') + '</div></div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#15803d;">Present:</strong> ' + present + '</div><div style="margin-bottom:12px;font-size:13px;text-align:left;"><strong style="color:#991b1b;">Absent:</strong> ' + absent + '</div>' + concernCard + '</div></td></tr>';
 
           return mainRow + detailRow;
         }).join('') : '<tr><td colspan="12" class="empty"><div class="icon">📭</div><p>No reports match filters</p></td></tr>';
@@ -10979,7 +11026,7 @@
             var showProofImg = false;
             if (r.proofPhoto) {
               var dateStr = r.submissionDate || r.sessionDate || r.date || r.timestamp || '';
-              var reportDate = parseRobustDate(dateStr);
+              var reportDate = parseRobustDate(dateStr, r);
 
               var twoWeeksAgo = new Date();
               twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
@@ -10989,12 +11036,12 @@
             }
             var proofHtml = showProofImg ? ' <span onclick="showProof(\'' + r.proofPhoto + '\')" style="cursor:pointer;font-size:16px;margin-left:6px;" title="View Proof of Meeting">📸</span>' : '';
 
-            var photoCaption = ((r.shepherd || '—') + ' — ' + formatReportDate(r.submissionDate)).replace(/'/g, "\\'");
+            var photoCaption = ((r.shepherd || '—') + ' — ' + formatReportDate(r.submissionDate || r.sessionDate, r)).replace(/'/g, "\\'");
             var photoCell = r.photoUrl ? '<button type="button" onclick="event.stopPropagation(); showProofPhotoModal(\'' + r.photoUrl + '\', \'' + photoCaption + '\')" style="background:none;border:none;cursor:pointer;font-size:18px;" title="View Proof of Meeting Photo">📷</button>' : '--';
 
             return '<tr>' +
               '<td>' + (i + 1) + '</td>' +
-              '<td>' + formatReportDate(r.submissionDate) + proofHtml + '</td>' +
+              '<td>' + formatReportDate(r.submissionDate || r.sessionDate, r) + proofHtml + '</td>' +
               '<td>' + (r.submissionDay || '—') + '</td>' +
               '<td>' + (formatTime(r.submissionTime) || '—') + '</td>' +
               '<td><strong>' + (r.shepherd || '—') + '</strong></td>' +
