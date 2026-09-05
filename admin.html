@@ -1447,6 +1447,11 @@
             <span class="icon">💰</span>
             <span class="tab-btn-label">Finances</span>
           </button>
+          <button class="tab-btn"
+            onclick="switchTab('media-archive', this)">
+            <span class="icon">📁</span>
+            <span class="tab-btn-label">Media Archive</span>
+          </button>
           </div>
 
           <!-- GROWTH -->
@@ -2885,6 +2890,126 @@
                   <tfoot id="financesTableFoot" style="border-top:2px solid #cbd5e1;background:#f8fafc;font-weight:800;color:var(--navy);">
                   </tfoot>
                 </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: MEDIA & DOCUMENT ARCHIVE -->
+          <div class="tab-panel" id="panel-media-archive">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:24px;">
+              <div>
+                <h2 style="font-size:22px;font-weight:900;color:var(--navy);margin:0 0 4px;display:flex;align-items:center;gap:8px;">
+                  <span>📁</span> Media & Document Archive
+                </h2>
+                <p style="color:#64748b;font-size:13px;margin:0;">
+                  Centralized repository of shepherd meeting proof photos, curricula, guides, and church documents, organized by month.
+                </p>
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;">
+                <button type="button" onclick="refreshMediaArchive()"
+                  style="padding:10px 16px;background:var(--navy);color:white;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(15,32,68,0.15);">
+                  🔄 Refresh Media
+                </button>
+              </div>
+            </div>
+
+            <!-- 4 KPI Summary Cards -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;margin-bottom:24px;">
+              <!-- Total Photos -->
+              <div style="background:white;border-radius:18px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.05);border-left:5px solid #3b82f6;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:6px;">
+                  📸 Shepherd Meeting Photos
+                </div>
+                <div id="mediaTotalPhotos" style="font-size:30px;font-weight:900;letter-spacing:-0.5px;color:#1d4ed8;">
+                  0
+                </div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">
+                  Uploaded from Weekly Reports
+                </div>
+              </div>
+
+              <!-- Total Documents/PDFs -->
+              <div style="background:white;border-radius:18px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.05);border-left:5px solid #ef4444;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:6px;">
+                  📄 Curricula & PDF Resources
+                </div>
+                <div id="mediaTotalDocs" style="font-size:30px;font-weight:900;letter-spacing:-0.5px;color:#b91c1c;">
+                  0
+                </div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">
+                  Admin Uploads & Cloudinary Guides
+                </div>
+              </div>
+
+              <!-- Current Selected Month Items -->
+              <div style="background:linear-gradient(135deg, #0f2044, #1e3a8a);color:white;border-radius:18px;padding:20px;box-shadow:0 4px 14px rgba(15,32,68,0.15);position:relative;overflow:hidden;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:0.85;margin-bottom:6px;">
+                  📅 Selected Month Archive
+                </div>
+                <div id="mediaMonthCount" style="font-size:30px;font-weight:900;letter-spacing:-0.5px;color:#fde047;">
+                  0 items
+                </div>
+                <div id="mediaMonthLabel" style="font-size:12px;opacity:0.85;margin-top:4px;">
+                  All Months
+                </div>
+              </div>
+
+              <!-- Contributing Shepherds -->
+              <div style="background:white;border-radius:18px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.05);border-left:5px solid #10b981;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:6px;">
+                  👥 Contributing Shepherds
+                </div>
+                <div id="mediaShepherdCount" style="font-size:30px;font-weight:900;letter-spacing:-0.5px;color:#047857;">
+                  0
+                </div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">
+                  Shepherds with Photos
+                </div>
+              </div>
+            </div>
+
+            <!-- Filters Bar -->
+            <div style="background:white;border-radius:18px;padding:20px 22px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e2e8f0;margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+                <div style="font-size:15px;font-weight:800;color:var(--navy);display:flex;align-items:center;gap:8px;">
+                  <span>🗂️</span> Archive Filters <span id="mediaFilterCountBadge" class="pill" style="background:#eff6ff;color:#1d4ed8;font-size:12px;padding:2px 10px;border-radius:999px;font-weight:800;">0 items</span>
+                </div>
+
+                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
+                  <!-- Month Filter Dropdown -->
+                  <select id="mediaMonthFilter" onchange="renderMediaArchive()"
+                    style="padding:8px 14px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:700;color:var(--navy);background:white;outline:none;">
+                    <option value="all">📅 All Months</option>
+                  </select>
+
+                  <!-- Category Filter -->
+                  <select id="mediaCategoryFilter" onchange="renderMediaArchive()"
+                    style="padding:8px 14px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:700;color:var(--navy);background:white;outline:none;">
+                    <option value="all">📁 All Categories</option>
+                    <option value="photo">📸 Meeting Photos (Shepherds)</option>
+                    <option value="document">📄 PDFs & Curricula (Admin)</option>
+                  </select>
+
+                  <!-- Stream Filter -->
+                  <select id="mediaStreamFilter" onchange="renderMediaArchive()"
+                    style="padding:8px 14px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:700;color:var(--navy);background:white;outline:none;">
+                    <option value="all">🌐 All Streams</option>
+                    <option value="sps">🌱 SPS (Online)</option>
+                    <option value="mc">🏠 Microchurch (In-Person)</option>
+                    <option value="admin">📚 Admin Resources</option>
+                  </select>
+
+                  <!-- Search Input -->
+                  <input type="text" id="mediaSearchInput" oninput="renderMediaArchive()" placeholder="Search shepherd, title, zone..."
+                    style="padding:8px 14px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;min-width:200px;outline:none;">
+                </div>
+              </div>
+            </div>
+
+            <!-- Media Grid Container -->
+            <div id="mediaArchiveGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:20px;">
+              <div style="grid-column:1/-1;text-align:center;padding:50px 20px;color:#64748b;background:white;border-radius:18px;border:1px dashed #cbd5e1;">
+                ⏳ Loading Media & Document Archive...
               </div>
             </div>
           </div>
@@ -4456,7 +4581,7 @@
           if (!isNaN(ts) && ts > 0) return ts;
         }
         // 3. Submission date + submission time (or date + time)
-        var dateVal = item.submissionDate || item.date || item.ImportDate || item.sessionDate;
+        var dateVal = item.submissionDate || item.date || item.ImportDate || item.sessionDate || item.dateAdded || item.DateAdded || item.FlagDate || item.EnrolledDate;
         var timeVal = item.submissionTime || item.time || item.sessionTime || '00:00';
         if (dateVal) {
           var parsedD = window.parseDayMonthYearDate(dateVal);
@@ -5182,6 +5307,276 @@
         URL.revokeObjectURL(url);
       }
 
+      // ── MEDIA & DOCUMENT ARCHIVE ──
+      function refreshMediaArchive() {
+        if (typeof initResources === 'function') initResources();
+        if (typeof loadAll === 'function') loadAll();
+        setTimeout(renderMediaArchive, 300);
+      }
+
+      function renderMediaArchive() {
+        var grid = document.getElementById('mediaArchiveGrid');
+        if (!grid) return;
+
+        // Auto-fetch resources if list is empty
+        if ((!allResources || allResources.length === 0) && typeof initResources === 'function') {
+          initResources();
+        }
+
+        // Collect all items
+        var items = [];
+        var shepherdSet = {};
+        var totalPhotos = 0;
+        var totalDocs = 0;
+
+        // 1. SPS Reports meeting photos
+        (allReports || []).forEach(function(r, idx) {
+          var pUrl = r.photoUrl || r.proofPhoto;
+          if (pUrl) {
+            totalPhotos++;
+            if (r.shepherd) shepherdSet[r.shepherd] = true;
+            var rawDate = r.sessionDate || r.date || r.submissionDate || r.timestamp || '';
+            var pDate = (typeof parseRobustDate === 'function') ? parseRobustDate(rawDate) : null;
+            items.push({
+              id: r.reportId || ('sps-photo-' + idx),
+              type: 'photo',
+              stream: 'sps',
+              streamLabel: '🌱 SPS',
+              title: r.actualTopic || r.bibleTopic || 'SPS Fellowship Meeting',
+              uploader: r.shepherd || 'Unknown Shepherd',
+              zone: r.zone || '',
+              dateStr: rawDate,
+              parsedDate: pDate,
+              url: pUrl,
+              notes: r.concernsSummary || '',
+              _arrivalIndex: r._arrivalIndex !== undefined ? r._arrivalIndex : idx
+            });
+          }
+        });
+
+        // 2. Microchurch Reports meeting photos
+        (allMicrochurchReports || []).forEach(function(r, idx) {
+          var pUrl = r.photoUrl || r.proofPhoto;
+          if (pUrl) {
+            totalPhotos++;
+            if (r.shepherd) shepherdSet[r.shepherd] = true;
+            var rawDate = r.sessionDate || r.date || r.submissionDate || r.timestamp || '';
+            var pDate = (typeof parseRobustDate === 'function') ? parseRobustDate(rawDate) : null;
+            items.push({
+              id: r.reportId || ('mc-photo-' + idx),
+              type: 'photo',
+              stream: 'mc',
+              streamLabel: '🏠 Microchurch',
+              title: r.actualTopicCovered || r.topicCovered || r.meetingType || 'Microchurch Fellowship',
+              uploader: r.shepherd || 'Unknown Shepherd',
+              zone: r.microchurch || r.zone || '',
+              dateStr: rawDate,
+              parsedDate: pDate,
+              url: pUrl,
+              notes: r.newSoulsCount ? (r.newSoulsCount + ' Souls Won') : '',
+              _arrivalIndex: r._arrivalIndex !== undefined ? r._arrivalIndex : idx
+            });
+          }
+        });
+
+        // 3. Admin uploaded resources / PDFs
+        (allResources || []).forEach(function(r, idx) {
+          totalDocs++;
+          var rawDate = r.dateAdded || '';
+          var pDate = (typeof parseRobustDate === 'function') ? parseRobustDate(rawDate) : null;
+          items.push({
+            id: r.resourceId || ('doc-' + idx),
+            type: 'document',
+            stream: 'admin',
+            streamLabel: '📚 Admin Document',
+            title: r.title || 'Church Resource',
+            category: r.category || 'Guide',
+            uploader: r.addedBy || 'Admin',
+            audience: r.audience || 'All Shepherds',
+            dateStr: rawDate,
+            parsedDate: pDate,
+            url: r.url || '',
+            notes: r.desc || '',
+            _arrivalIndex: idx
+          });
+        });
+
+        // Update overall KPI cards
+        var elPhotos = document.getElementById('mediaTotalPhotos');
+        if (elPhotos) elPhotos.textContent = totalPhotos;
+        var elDocs = document.getElementById('mediaTotalDocs');
+        if (elDocs) elDocs.textContent = totalDocs;
+        var elSheps = document.getElementById('mediaShepherdCount');
+        if (elSheps) elSheps.textContent = Object.keys(shepherdSet).length;
+
+        // Populate Month Dropdown (dynamically sorted with latest month on top)
+        var monthMap = {};
+        items.forEach(function(item) {
+          if (item.parsedDate && !isNaN(item.parsedDate.getTime())) {
+            var y = item.parsedDate.getFullYear();
+            var m = String(item.parsedDate.getMonth() + 1).padStart(2, '0');
+            var key = y + '-' + m;
+            monthMap[key] = (monthMap[key] || 0) + 1;
+          }
+        });
+
+        var monthSelect = document.getElementById('mediaMonthFilter');
+        if (monthSelect) {
+          var currentVal = monthSelect.value || 'all';
+          var sortedMonths = Object.keys(monthMap).sort().reverse();
+          
+          var optionsHtml = '<option value="all">📅 All Months (' + items.length + ')</option>';
+          sortedMonths.forEach(function(k) {
+            var parts = k.split('-');
+            var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+            var label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+            optionsHtml += '<option value="' + k + '"' + (k === currentVal ? ' selected' : '') + '>' + label + ' (' + monthMap[k] + ')</option>';
+          });
+          monthSelect.innerHTML = optionsHtml;
+        }
+
+        // Apply Filters
+        var selectedMonth = monthSelect ? monthSelect.value : 'all';
+        var selectedCategory = (document.getElementById('mediaCategoryFilter') || {}).value || 'all';
+        var selectedStream = (document.getElementById('mediaStreamFilter') || {}).value || 'all';
+        var searchVal = ((document.getElementById('mediaSearchInput') || {}).value || '').trim().toLowerCase();
+
+        var filtered = items.filter(function(item) {
+          // Month filter
+          if (selectedMonth !== 'all') {
+            if (!item.parsedDate || isNaN(item.parsedDate.getTime())) return false;
+            var y = item.parsedDate.getFullYear();
+            var m = String(item.parsedDate.getMonth() + 1).padStart(2, '0');
+            if ((y + '-' + m) !== selectedMonth) return false;
+          }
+          // Category filter
+          if (selectedCategory !== 'all' && item.type !== selectedCategory) {
+            return false;
+          }
+          // Stream filter
+          if (selectedStream !== 'all' && item.stream !== selectedStream) {
+            return false;
+          }
+          // Search filter
+          if (searchVal) {
+            var hay = (item.title + ' ' + item.uploader + ' ' + item.zone + ' ' + item.notes + ' ' + (item.category || '')).toLowerCase();
+            if (hay.indexOf(searchVal) === -1) return false;
+          }
+          return true;
+        });
+
+        // Sort latest on top like a stack
+        if (typeof window.compareArrivalsDesc === 'function') {
+          filtered.sort(window.compareArrivalsDesc);
+        } else {
+          filtered.sort(function(a, b) {
+            var da = a.parsedDate ? a.parsedDate.getTime() : 0;
+            var db = b.parsedDate ? b.parsedDate.getTime() : 0;
+            return db - da;
+          });
+        }
+
+        // Update selected month KPI card
+        var elMonthCount = document.getElementById('mediaMonthCount');
+        if (elMonthCount) elMonthCount.textContent = filtered.length + ' item' + (filtered.length === 1 ? '' : 's');
+        var elMonthLabel = document.getElementById('mediaMonthLabel');
+        if (elMonthLabel) {
+          if (selectedMonth === 'all') {
+            elMonthLabel.textContent = 'All Available Months';
+          } else {
+            var parts = selectedMonth.split('-');
+            var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+            elMonthLabel.textContent = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+          }
+        }
+        var elBadge = document.getElementById('mediaFilterCountBadge');
+        if (elBadge) elBadge.textContent = filtered.length + ' item' + (filtered.length === 1 ? '' : 's');
+
+        // Render Cards in Grid
+        if (filtered.length === 0) {
+          grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;background:white;border-radius:18px;border:1px dashed #cbd5e1;">' +
+            '<div style="font-size:36px;margin-bottom:12px;">📁</div>' +
+            '<div style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:4px;">No Media or Documents Found</div>' +
+            '<div style="font-size:13px;color:#64748b;">Try adjusting the month, category, or search filters above.</div>' +
+            '</div>';
+          return;
+        }
+
+        grid.innerHTML = filtered.map(function(item) {
+          var dateStr = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(item.dateStr) : (item.dateStr || '—');
+          var escapedTitle = (item.title || '').replace(/"/g, '&quot;');
+          var escapedUploader = (item.uploader || '').replace(/"/g, '&quot;');
+          var escapedZone = (item.zone || '').replace(/"/g, '&quot;');
+          var escapedNotes = (item.notes || '').replace(/"/g, '&quot;');
+
+          if (item.type === 'photo') {
+            var streamBg = item.stream === 'sps' ? '#1d4ed8' : '#b45309';
+            var caption = (item.uploader + ' (' + item.streamLabel + ') — ' + dateStr + (item.zone ? ' [' + item.zone + ']' : '')).replace(/'/g, "\\'");
+            return '<div class="media-card" style="background:white;border-radius:18px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,0.06);border:1px solid #e2e8f0;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.12)\'" onmouseout="this.style.transform=\'none\';this.style.boxShadow=\'0 3px 12px rgba(0,0,0,0.06)\'">' +
+              '<div style="position:relative;height:190px;background:#0f2044;overflow:hidden;cursor:pointer;" onclick="showProofPhotoModal(\'' + item.url + '\', \'' + caption + '\')">' +
+              '<img src="' + item.url + '" alt="' + escapedTitle + '" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.3s;" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'" loading="lazy">' +
+              '<div style="position:absolute;top:10px;left:10px;display:flex;gap:6px;flex-wrap:wrap;">' +
+              '<span style="background:' + streamBg + ';color:white;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:800;box-shadow:0 1px 4px rgba(0,0,0,0.3);">' + item.streamLabel + '</span>' +
+              '<span style="background:rgba(15,32,68,0.85);backdrop-filter:blur(4px);color:#fde047;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">📅 ' + dateStr + '</span>' +
+              '</div>' +
+              '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top, rgba(15,32,68,0.9), transparent);padding:24px 12px 10px;color:white;font-size:11px;font-weight:700;display:flex;justify-content:space-between;align-items:center;">' +
+              '<span>🔍 Click to preview</span>' +
+              '<span>📸 Proof Photo</span>' +
+              '</div>' +
+              '</div>' +
+              '<div style="padding:16px;flex:1;display:flex;flex-direction:column;justify-content:space-between;">' +
+              '<div>' +
+              '<div style="font-weight:900;font-size:15px;color:var(--navy);margin-bottom:4px;line-height:1.3;">' + escapedUploader + '</div>' +
+              '<div style="font-size:12px;color:#64748b;margin-bottom:8px;">' + (escapedZone ? '📍 ' + escapedZone + ' • ' : '') + dateStr + '</div>' +
+              '<div style="font-size:13px;color:#334155;background:#f8fafc;border-radius:8px;padding:8px 10px;border-left:3px solid #3b82f6;line-height:1.4;">' +
+              '<strong>Topic:</strong> ' + escapedTitle +
+              (item.notes ? '<br><span style="color:#64748b;font-size:12px;">' + escapedNotes + '</span>' : '') +
+              '</div>' +
+              '</div>' +
+              '<div style="margin-top:14px;display:flex;gap:8px;">' +
+              '<button type="button" onclick="showProofPhotoModal(\'' + item.url + '\', \'' + caption + '\')" style="flex:1;padding:9px 12px;background:var(--navy);color:white;border:none;border-radius:9px;font-weight:800;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;">' +
+              '👁️ View Photo' +
+              '</button>' +
+              '<a href="' + item.url + '" target="_blank" download style="padding:9px 12px;background:#f1f5f9;color:var(--navy);border-radius:9px;font-weight:800;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;" title="Open in new tab">' +
+              '↗' +
+              '</a>' +
+              '</div>' +
+              '</div>' +
+              '</div>';
+          } else {
+            // Document / PDF
+            var escapedCategory = (item.category || 'Resource').replace(/"/g, '&quot;');
+            var escapedAudience = (item.audience || 'All Shepherds').replace(/"/g, '&quot;');
+            var escapedDesc = (item.notes || '').replace(/"/g, '&quot;');
+            return '<div class="media-card" style="background:white;border-radius:18px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,0.06);border:1px solid #e2e8f0;border-top:5px solid #ef4444;display:flex;flex-direction:column;justify-content:space-between;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.12)\'" onmouseout="this.style.transform=\'none\';this.style.boxShadow=\'0 3px 12px rgba(0,0,0,0.06)\'">' +
+              '<div style="padding:18px;">' +
+              '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px;">' +
+              '<div style="width:46px;height:46px;border-radius:12px;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">' +
+              '📄' +
+              '</div>' +
+              '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">' +
+              '<span style="background:#fee2e2;color:#991b1b;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:800;">' + escapedCategory + '</span>' +
+              '<span style="color:#64748b;font-size:11px;font-weight:700;">📅 ' + dateStr + '</span>' +
+              '</div>' +
+              '</div>' +
+              '<div style="font-weight:900;font-size:15px;color:var(--navy);margin-bottom:6px;line-height:1.3;">' +
+              escapedTitle +
+              '</div>' +
+              '<div style="font-size:12px;color:#64748b;margin-bottom:10px;">' +
+              '👥 Target: <strong>' + escapedAudience + '</strong>' +
+              '</div>' +
+              (escapedDesc ? '<div style="font-size:12px;color:#475569;background:#f8fafc;padding:8px 10px;border-radius:8px;line-height:1.4;margin-bottom:12px;">' + escapedDesc + '</div>' : '') +
+              '</div>' +
+              '<div style="padding:0 18px 18px;display:flex;gap:8px;">' +
+              '<a href="' + item.url + '" target="_blank" style="flex:1;padding:10px 14px;background:#dc2626;color:white;border-radius:10px;font-weight:800;font-size:12px;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 6px rgba(220,38,38,0.25);">' +
+              '📥 Open / Download PDF' +
+              '</a>' +
+              '</div>' +
+              '</div>';
+          }
+        }).join('');
+      }
+
       // ── SEEKERS TAB ──
       function loadSeekers(onDone) {
         fetchData('getMembersRoster', function (data) {
@@ -5878,6 +6273,18 @@
         if (!stats || !body) return;
 
         var combined = flagsData.concat(buildReportConcernFlags());
+        if (typeof window.compareArrivalsDesc === 'function') {
+          combined.sort(window.compareArrivalsDesc);
+        } else {
+          combined.sort(function(a, b) {
+            var da = (typeof parseRobustDate === 'function') ? parseRobustDate(a.FlagDate || a.Date || a.timestamp || '') : null;
+            var db = (typeof parseRobustDate === 'function') ? parseRobustDate(b.FlagDate || b.Date || b.timestamp || '') : null;
+            if (da && db) return db - da;
+            if (db && !da) return 1;
+            if (da && !db) return -1;
+            return 0;
+          });
+        }
         renderedFlags = combined;
 
         var counts = { Yellow: 0, Orange: 0, Red: 0, Purple: 0, StageStall: 0, Concern: 0 };
@@ -5904,12 +6311,13 @@
           var resolved = record.ResolutionDate || '';
           var flagClass = record.FlagType ? record.FlagType.toLowerCase() : 'unknown';
           var isReportFlag = !!record._detail;
+          var displayFlagDate = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(record.FlagDate) : (record.FlagDate || '—');
 
           var mainRow = '<tr style="background:' + rowBg + ';border-bottom:1px solid #e2e8f0;cursor:pointer;" onclick="toggleFlagRow(' + index + ')">' +
             '<td style="padding:10px;font-weight:700;color:#0f2044;">' + (record.MemberName || '—') + '</td>' +
             '<td style="padding:10px;color:#64748b;">' + (record.ShepherdName || '—') + '</td>' +
             '<td style="padding:10px;text-align:left;"><span class="flag-pill ' + flagClass + '">' + (record.FlagType || '—') + (isReportFlag ? ' (' + record._source + ')' : '') + '</span></td>' +
-            '<td style="padding:10px;text-align:center;color:#0f2044;">' + (record.FlagDate || '—') + '</td>' +
+            '<td style="padding:10px;text-align:center;color:#0f2044;">' + displayFlagDate + '</td>' +
             '<td style="padding:10px;color:#64748b;">' + (record.TriggerReason || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;color:#0f2044;">' + (record.EscalatedTo || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;color:#0f2044;">' + (resolved ? 'Yes' : 'No') + '</td>' +
@@ -5925,7 +6333,7 @@
             '<div style="font-size:13px;color:#334155;line-height:1.6;"><strong>Source:</strong> ' + (isReportFlag ? record._source + ' Shepherd Report' : 'Discipleship Journey') +
             '<br><strong>Member:</strong> ' + (record.MemberName || '—') +
             '<br><strong>Shepherd:</strong> ' + (record.ShepherdName || '—') +
-            '<br><strong>Date:</strong> ' + (record.FlagDate || '—') + '</div>' +
+            '<br><strong>Date:</strong> ' + displayFlagDate + '</div>' +
             (isReportFlag ?
               '<div style="margin-top:10px;padding:10px 12px;background:#fff7ed;border-radius:8px;border-left:3px solid #f97316;"><div style="font-weight:700;color:#c2410c;font-size:12px;margin-bottom:4px;">⚠ Concern Raised</div><div style="color:#7c2d12;font-size:13px;">' + record._detail + '</div></div>' :
               '<div style="margin-top:10px;color:#64748b;font-size:13px;"><strong>Trigger Reason:</strong> ' + (record.TriggerReason || '—') + '</div>') +
@@ -5976,6 +6384,22 @@
         fetchData('getSchoolData', function (data) {
           schoolData.foundations = (data && data.foundations) ? data.foundations : [];
           schoolData.membership = (data && data.membership) ? data.membership : [];
+          
+          if (typeof window.compareArrivalsDesc === 'function') {
+            schoolData.foundations.sort(window.compareArrivalsDesc);
+            schoolData.membership.sort(window.compareArrivalsDesc);
+          } else {
+            var sortFn = function(a, b) {
+              var da = (typeof parseRobustDate === 'function') ? parseRobustDate(a.EnrolledDate || a.Date || '') : null;
+              var db = (typeof parseRobustDate === 'function') ? parseRobustDate(b.EnrolledDate || b.Date || '') : null;
+              if (da && db) return db - da;
+              if (db && !da) return 1;
+              if (da && !db) return -1;
+              return 0;
+            };
+            schoolData.foundations.sort(sortFn);
+            schoolData.membership.sort(sortFn);
+          }
           renderSchools();
         });
       }
@@ -6014,16 +6438,18 @@
               var value = (String(record[field] || '').toUpperCase() === 'Y') ? 'Y' : 'N';
               return '<button onclick="toggleSchoolAttendance(\'FoundationsSchool\',' + index + ',\'' + field + '\')" style="padding:6px 10px;background:' + (value === 'Y' ? '#22c55e' : '#e2e8f0') + ';color:' + (value === 'Y' ? 'white' : '#0f2044') + ';border:none;border-radius:8px;cursor:pointer;">' + value + '</button>';
             }).join('');
+            var enrolledStr = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(record.EnrolledDate) : (record.EnrolledDate || '—');
+            var completedStr = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(record.CompletedDate) : (record.CompletedDate || '—');
             return '<tr style="background:' + rowBg + ';border-bottom:1px solid #e2e8f0;">' +
               '<td style="padding:10px;font-weight:700;color:#0f2044;">' + (record.MemberName || '—') + '</td>' +
-              '<td style="padding:10px;color:#64748b;">' + (record.EnrolledDate || '—') + '</td>' +
+              '<td style="padding:10px;color:#64748b;">' + enrolledStr + '</td>' +
               '<td style="padding:10px;text-align:center;">' + weekButtons.slice(0, 1).join('') + '</td>' +
               '<td style="padding:10px;text-align:center;">' + weekButtons.slice(1, 2).join('') + '</td>' +
               '<td style="padding:10px;text-align:center;">' + weekButtons.slice(2, 3).join('') + '</td>' +
               '<td style="padding:10px;text-align:center;">' + weekButtons.slice(3, 4).join('') + '</td>' +
               '<td style="padding:10px;text-align:center;">' + weekButtons.slice(4, 5).join('') + '</td>' +
               '<td style="padding:10px;text-align:center;">' + weekButtons.slice(5, 6).join('') + '</td>' +
-              '<td style="padding:10px;text-align:center;color:#0f2044;">' + (record.CompletedDate || '—') + '</td>' +
+              '<td style="padding:10px;text-align:center;color:#0f2044;">' + completedStr + '</td>' +
               '<td style="padding:10px;text-align:center;"><button onclick="promptEnroll(\'FoundationsSchool\', \'' + (record.MemberID || '') + '\', \'' + (record.MemberName || '').replace(/'/g, "\\'") + '\')" style="padding:8px 14px;background:#1a3a6b;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Edit</button></td>' +
               '</tr>';
           }).join('');
@@ -6040,9 +6466,11 @@
               return '<button onclick="toggleSchoolAttendance(\'MembershipSchool\',' + index + ',\'' + field + '\')" style="padding:6px 10px;background:' + (value === 'Y' ? '#22c55e' : '#e2e8f0') + ';color:' + (value === 'Y' ? 'white' : '#0f2044') + ';border:none;border-radius:8px;cursor:pointer;">' + value + '</button>';
             }).join('');
             var card = (String(record.CommitmentCardSigned || '').toUpperCase() === 'Y') ? 'Y' : 'N';
+            var enrolledStr = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(record.EnrolledDate) : (record.EnrolledDate || '—');
+            var completedStr = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(record.CompletedDate) : (record.CompletedDate || '—');
             return '<tr style="background:' + rowBg + ';border-bottom:1px solid #e2e8f0;">' +
               '<td style="padding:10px;font-weight:700;color:#0f2044;">' + (record.MemberName || '—') + '</td>' +
-              '<td style="padding:10px;color:#64748b;">' + (record.EnrolledDate || '—') + '</td>' +
+              '<td style="padding:10px;color:#64748b;">' + enrolledStr + '</td>' +
               '<td style="padding:10px;text-align:center;">' + sessionButtons.slice(0, 1).join('') + '</td>' +
               '<td style="padding:10px;text-align:center;">' + sessionButtons.slice(1, 2).join('') + '</td>' +
               '<td style="padding:10px;text-align:center;">' + sessionButtons.slice(2, 3).join('') + '</td>' +
@@ -6050,7 +6478,7 @@
               '<td style="padding:10px;text-align:center;">' +
                 '<button onclick="toggleSchoolAttendance(\'MembershipSchool\',' + index + ',\'CommitmentCardSigned\')" style="padding:6px 10px;background:' + (card === 'Y' ? '#22c55e' : '#e2e8f0') + ';color:' + (card === 'Y' ? 'white' : '#0f2044') + ';border:none;border-radius:8px;cursor:pointer;">' + card + '</button>' +
               '</td>' +
-              '<td style="padding:10px;text-align:center;color:#0f2044;">' + (record.CompletedDate || '—') + '</td>' +
+              '<td style="padding:10px;text-align:center;color:#0f2044;">' + completedStr + '</td>' +
               '<td style="padding:10px;text-align:center;"><button onclick="promptEnroll(\'MembershipSchool\', \'' + (record.MemberID || '') + '\', \'' + (record.MemberName || '').replace(/'/g, "\\'") + '\')" style="padding:8px 14px;background:#1a3a6b;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Edit</button></td>' +
               '</tr>';
           }).join('');
@@ -6299,7 +6727,8 @@
           var spsheadTabs = [
             'overview','analytics','leaderboard',
             'shepherds','reports','announcements',
-            'activity-log','export','reminders','resources','seekers','soul-tracker'
+            'activity-log','export','reminders','resources','seekers','soul-tracker',
+            'finances','media-archive'
           ];
           setVisibleTabs(spsheadTabs);
           setBottomTabVisibility(spsheadTabs);
@@ -6322,7 +6751,8 @@
             'overview','analytics','leaderboard',
             'mc-shepherds','mc-reports',
             'announcements','activity-log',
-            'export','reminders','resources','seekers','soul-tracker'
+            'export','reminders','resources','seekers','soul-tracker',
+            'finances','media-archive'
           ];
           setVisibleTabs(mcheadTabs);
           setBottomTabVisibility(mcheadTabs);
@@ -6354,9 +6784,9 @@
           var adminTabs = [
             'overview','analytics','leaderboard',
             'shepherds','mc-shepherds','zones',
-            'reports','mc-reports','first-timers',
+            'reports','mc-reports','first-timers','finances',
             'membership','journey','soul-tracker','flags','schools',
-            'announcements','export','seekers','resources','role-pins'
+            'announcements','export','seekers','resources','role-pins','media-archive'
           ];
           setVisibleTabs(adminTabs);
           setBottomTabVisibility(adminTabs);
@@ -6798,7 +7228,8 @@
         'announcements': 'Announcements',
         'role-pins': 'Portal PINs',
         'know-heads': 'Know Your Heads',
-        'finances': 'Fellowship Offerings'
+        'finances': 'Fellowship Offerings',
+        'media-archive': 'Media & Document Archive'
       };
 
       // Portal login roles and their factory-default PINs (must match the
@@ -7068,6 +7499,11 @@
         if (id === 'finances') {
           setTimeout(function() {
             renderFinancesTab();
+          }, 150);
+        }
+        if (id === 'media-archive') {
+          setTimeout(function() {
+            renderMediaArchive();
           }, 150);
         }
         if (id === 'membership') {
@@ -10780,7 +11216,8 @@
 
       function exportMC_CSV() {
         var csv = ['Date,Shepherd,Meeting Type,Present,Absent,Attendance Rate,Topic,Prayer,Offering,Offering Amount,New Souls,Concerns'];
-        allMicrochurchReports.forEach(function (r) {
+        var sorted = (allMicrochurchReports || []).slice().sort(window.compareArrivalsDesc);
+        sorted.forEach(function (r) {
           var concernsText = 'None';
           if (r.concerns && typeof r.concerns === 'object') {
             var list = Object.keys(r.concerns).map(function (k) { return k + ': ' + r.concerns[k]; });
@@ -10789,7 +11226,7 @@
             concernsText = r.concerns;
           }
           var row = [
-            r.sessionDate || r.date || '',
+            (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(r.sessionDate || r.date || r.submissionDate || '') : (r.sessionDate || r.date || ''),
             r.shepherd || '',
             r.meetingType || 'In Person',
             toArray(r.membersPresent).length,
@@ -10847,7 +11284,8 @@
         y += 6;
         doc.line(14, y - 4, 196, y - 4);
 
-        allMicrochurchReports.forEach(function (r) {
+        var sorted = (allMicrochurchReports || []).slice().sort(window.compareArrivalsDesc);
+        sorted.forEach(function (r) {
           if (y > 270) {
             doc.addPage();
             y = 20;
@@ -10864,7 +11302,8 @@
             doc.line(14, y - 4, 196, y - 4);
           }
 
-          var date = r.sessionDate || r.date || '—';
+          var rawDate = r.sessionDate || r.date || r.submissionDate || '';
+          var date = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(rawDate) : (rawDate || '—');
           var name = r.shepherd || '';
           var format = r.meetingType || 'In Person';
           var pres = toArray(r.membersPresent).length.toString();
@@ -11169,7 +11608,7 @@
           uniqueDates.forEach(function(d) {
             var opt = document.createElement('option');
             opt.value = d;
-            opt.textContent = d;
+            opt.textContent = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(d) : d;
             if (d === currentVal) opt.selected = true;
             filterSelect.appendChild(opt);
           });
@@ -11189,6 +11628,10 @@
           return true;
         });
 
+        if (typeof window.compareArrivalsDesc === 'function') {
+          filtered.sort(window.compareArrivalsDesc);
+        }
+
         if (filtered.length === 0) {
           tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray); padding: 20px;">No Sunday Soul Reports match the current filters.</td></tr>';
           return;
@@ -11196,14 +11639,15 @@
 
         tbody.innerHTML = filtered.map(function(s) {
           var typeBadge = '<span class="badge ' + (s.type === 'SPS' ? 'green' : s.type === 'Microchurch' ? 'purple' : 'blue') + '">' + s.type + '</span>';
+          var displayDate = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(s.date) : (s.date || '—');
           return '<tr>' +
-            '<td><strong>' + s.date + '</strong></td>' +
-            '<td><strong>' + s.shepherd + '</strong></td>' +
+            '<td><strong>' + displayDate + '</strong></td>' +
+            '<td><strong>' + (s.shepherd || '—') + '</strong></td>' +
             '<td>' + typeBadge + '</td>' +
-            '<td><strong>' + s.name + '</strong></td>' +
-            '<td>' + s.phone + '</td>' +
-            '<td>' + s.source + '</td>' +
-            '<td><span style="font-size: 12px; color: var(--gray);">' + s.notes + '</span></td>' +
+            '<td><strong>' + (s.name || '—') + '</strong></td>' +
+            '<td>' + (s.phone || '—') + '</td>' +
+            '<td>' + (s.source || '—') + '</td>' +
+            '<td><span style="font-size: 12px; color: var(--gray);">' + (s.notes || '—') + '</span></td>' +
             '</tr>';
         }).join('');
       };
@@ -11217,8 +11661,9 @@
           list = list.filter(function(s) { return s.date === dateFilter; });
         }
         list.forEach(function(s) {
+          var dateStr = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(s.date) : (s.date || '');
           rows.push([
-            s.date,
+            dateStr,
             s.shepherd,
             s.type,
             s.name,
@@ -11830,6 +12275,9 @@
         fetchData('getActivityLog', function(data) {
           if (data && data.logs) {
             allActivityLogs = data.logs.filter(Boolean);
+            if (typeof window.compareArrivalsDesc === 'function') {
+              allActivityLogs.sort(window.compareArrivalsDesc);
+            }
             renderActivityLog();
           } else if (list) {
             list.innerHTML =
@@ -12283,29 +12731,19 @@
 
       function formatLogTimestamp(ts) {
         if (!ts) return '';
-        
-        // If already in dd/mm/yyyy format
-        if (ts.indexOf('/') > -1) return ts;
-        
-        // Convert ISO format
         try {
-          var date = new Date(ts);
-          var day = String(date.getDate())
-            .padStart(2,'0');
-          var month = String(date.getMonth()+1)
-            .padStart(2,'0');
-          var year = date.getFullYear();
-          var hours = String(date.getHours())
-            .padStart(2,'0');
-          var mins = String(date.getMinutes())
-            .padStart(2,'0');
-          var secs = String(date.getSeconds())
-            .padStart(2,'0');
-          return day+'/'+month+'/'+year+
-            ' '+hours+':'+mins+':'+secs;
-        } catch(e) {
-          return ts;
-        }
+          var date = (typeof parseRobustDate === 'function') ? parseRobustDate(ts) : new Date(ts);
+          if (date && !isNaN(date.getTime())) {
+            var day = String(date.getDate()).padStart(2, '0');
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var year = date.getFullYear();
+            var hours = String(date.getHours()).padStart(2, '0');
+            var mins = String(date.getMinutes()).padStart(2, '0');
+            var secs = String(date.getSeconds()).padStart(2, '0');
+            return day + '/' + month + '/' + year + ' ' + hours + ':' + mins + ':' + secs;
+          }
+        } catch(e) {}
+        return String(ts);
       }
 
       function loadMCReports() {
