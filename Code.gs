@@ -3810,3 +3810,4 @@ function forgotPin(data) {
   logAudit(ss, 'PIN_RESET', shepherdName, 'PIN reset from ' + previousPin + ' to ' + newPin + ' via push notification');
   return jsonResponse({ status: 'success', message: 'A new PIN has been sent to your device', pin: newPin });
 }
+
