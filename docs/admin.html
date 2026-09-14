@@ -3389,13 +3389,13 @@
                 </h3>
 
                 <div style="margin-bottom:14px;">
-                  <label style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Search by Name or Phone</label>
-                  <input type="text" id="reassignSearchInput" oninput="filterReassignMemberList()" placeholder="Type member name..."
+                  <label style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Search by Name, Shepherd, Phone or Zone</label>
+                  <input type="text" id="reassignSearchInput" oninput="filterReassignMemberList()" placeholder="Type any member name, shepherd, phone..."
                     style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin-top:6px;">
                 </div>
 
                 <div style="max-height:240px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:6px;" id="reassignSearchResultsList">
-                  <div style="color:#94a3b8;font-size:12px;text-align:center;padding:24px;">Search for a member above or choose from the list</div>
+                  <div style="color:#94a3b8;font-size:12px;text-align:center;padding:24px;">Type a name above to search across all church members</div>
                 </div>
               </div>
 
@@ -5943,21 +5943,27 @@
       // ── REASSIGNMENT TAB CONTROLLERS ──
       var reassignSelectedMember = null;
       var reassignAuditLogList = [];
+      var _isReassignLoading = false;
 
       function getUnifiedMemberList() {
         var map = {};
+
+        // 1. Process all database members (seekersData holds the full roster from getMembersRoster)
         (seekersData || []).forEach(function (s) {
           if (!s.Name) return;
           var key = s.Name.trim().toLowerCase();
           map[key] = {
-            name: s.Name,
+            name: s.Name.trim(),
             phone: s.Phone || '',
             shepherd: s.Shepherd || '',
-            stream: s.Stream || 'sps',
+            stream: (s.Stream || 'sps').toLowerCase(),
             zone: s.Zone || '',
-            memberId: s.MemberID || ''
+            memberId: s.MemberID || '',
+            status: s.Status || 'Member'
           };
         });
+
+        // 2. Include SPS shepherds' memberData if not already keyed
         if (typeof memberData === 'object') {
           Object.keys(memberData).forEach(function (name) {
             var key = name.trim().toLowerCase();
@@ -5965,16 +5971,19 @@
               var shep = memberData[name];
               var shepObj = ALL_SHEPHERDS.find(function (s) { return s.name === shep; });
               map[key] = {
-                name: name,
+                name: name.trim(),
                 phone: '',
                 shepherd: shep,
                 stream: 'sps',
                 zone: (shepObj && shepObj.zone) || '',
-                memberId: ''
+                memberId: '',
+                status: 'Member'
               };
             }
           });
         }
+
+        // 3. Include MC shepherds' mcMemberData if not already keyed
         if (window.mcMemberData && typeof window.mcMemberData === 'object') {
           Object.keys(window.mcMemberData).forEach(function (shep) {
             var list = window.mcMemberData[shep] || [];
@@ -5983,17 +5992,19 @@
               var key = mName.trim().toLowerCase();
               if (!map[key]) {
                 map[key] = {
-                  name: mName,
+                  name: mName.trim(),
                   phone: '',
                   shepherd: shep,
                   stream: 'mc',
                   zone: (shepObj && shepObj.microchurch) || '',
-                  memberId: ''
+                  memberId: '',
+                  status: 'Member'
                 };
               }
             });
           });
         }
+
         return Object.values(map).sort(function (a, b) {
           return a.name.localeCompare(b.name);
         });
@@ -6001,8 +6012,22 @@
 
       function initReassignmentTab() {
         populateReassignShepherdDropdown('sps');
-        filterReassignMemberList();
         renderReassignAuditLog();
+
+        var container = document.getElementById('reassignSearchResultsList');
+        // If database members aren't loaded yet, fetch them from backend immediately
+        if (!seekersData || seekersData.length === 0) {
+          if (container) {
+            container.innerHTML = '<div style="color:#64748b;font-size:13px;text-align:center;padding:24px;font-weight:600;"><span class="spinner" style="display:inline-block;width:14px;height:14px;border:2px solid #cbd5e1;border-top-color:#0f2044;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;"></span>Loading all church members...</div>';
+          }
+          _isReassignLoading = true;
+          loadSeekers(function () {
+            _isReassignLoading = false;
+            filterReassignMemberList();
+          });
+        } else {
+          filterReassignMemberList();
+        }
       }
 
       function populateReassignShepherdDropdown(stream) {
@@ -6037,6 +6062,7 @@
       }
 
       function filterReassignMemberList() {
+        if (_isReassignLoading) return;
         var query = (document.getElementById('reassignSearchInput') ? document.getElementById('reassignSearchInput').value : '').toLowerCase().trim();
         var container = document.getElementById('reassignSearchResultsList');
         if (!container) return;
@@ -6046,7 +6072,8 @@
           if (!query) return true;
           return (m.name && m.name.toLowerCase().includes(query)) ||
                  (m.shepherd && m.shepherd.toLowerCase().includes(query)) ||
-                 (m.phone && m.phone.includes(query));
+                 (m.phone && String(m.phone).includes(query)) ||
+                 (m.zone && m.zone.toLowerCase().includes(query));
         });
 
         if (!filtered.length) {
@@ -6054,12 +6081,14 @@
           return;
         }
 
-        container.innerHTML = filtered.slice(0, 300).map(function (m, idx) {
+        container.innerHTML = filtered.slice(0, 300).map(function (m) {
           var isSel = reassignSelectedMember && reassignSelectedMember.name === m.name;
-          return '<div onclick="selectReassignMember(' + idx + ')" style="padding:10px 12px;border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:' + (isSel ? '#dbeafe' : 'white') + ';border:1px solid ' + (isSel ? '#3b82f6' : '#e2e8f0') + ';">' +
+          var safeName = escAttrAdmin(m.name);
+          return '<div onclick="selectReassignMemberByName(\'' + safeName + '\')" style="padding:10px 12px;border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:' + (isSel ? '#dbeafe' : 'white') + ';border:1px solid ' + (isSel ? '#3b82f6' : '#e2e8f0') + ';transition:all .15s ease;">' +
             '<div>' +
-            '<div style="font-weight:800;font-size:13px;color:#0f2044;">' + m.name + '</div>' +
-            '<div style="font-size:11px;color:#64748b;">Under: ' + (m.shepherd || 'Unassigned') + ' (' + (m.stream === 'mc' ? 'Microchurch' : 'SPS') + ')</div>' +
+            '<div style="font-weight:800;font-size:13px;color:#0f2044;">' + m.name + (m.status && m.status !== 'Member' ? ' <span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;background:#f1f5f9;color:#64748b;">' + m.status + '</span>' : '') + '</div>' +
+            '<div style="font-size:11px;color:#64748b;margin-top:2px;">Under: <strong style="color:#334155;">' + (m.shepherd || 'Unassigned') + '</strong> ' + (m.zone ? '• ' + m.zone : '') + ' (' + (m.stream === 'mc' ? 'Microchurch' : 'SPS') + ')</div>' +
+            (m.phone ? '<div style="font-size:10px;color:#94a3b8;">📞 ' + m.phone + '</div>' : '') +
             '</div>' +
             '<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:' + (m.stream === 'mc' ? '#fef3c7;color:#92400e;' : '#e0f2fe;color:#0369a1;') + ' font-weight:700;">' + (m.stream === 'mc' ? 'MC' : 'SPS') + '</span>' +
             '</div>';
@@ -6067,8 +6096,9 @@
         window._filteredReassignMembers = filtered;
       }
 
-      function selectReassignMember(idx) {
-        var m = (window._filteredReassignMembers || [])[idx];
+      function selectReassignMemberByName(name) {
+        var all = getUnifiedMemberList();
+        var m = all.find(function (item) { return item.name.toLowerCase() === (name || '').toLowerCase(); });
         if (!m) return;
         reassignSelectedMember = m;
 
@@ -6082,6 +6112,12 @@
         document.getElementById('reassignCurrentZone').textContent = m.zone || 'Not Specified';
 
         filterReassignMemberList();
+      }
+
+      function selectReassignMember(idx) {
+        var m = (window._filteredReassignMembers || [])[idx];
+        if (!m) return;
+        selectReassignMemberByName(m.name);
       }
 
       function executeReassignment() {
@@ -6155,11 +6191,12 @@
               memberData[reassignSelectedMember.name] = targetShep;
             }
 
-            loadSeekers();
-            reassignSelectedMember.shepherd = targetShep;
-            reassignSelectedMember.zone = targetZone;
-            reassignSelectedMember.stream = targetStream;
-            selectReassignMember(0);
+            loadSeekers(function () {
+              reassignSelectedMember.shepherd = targetShep;
+              reassignSelectedMember.zone = targetZone;
+              reassignSelectedMember.stream = targetStream;
+              selectReassignMemberByName(reassignSelectedMember.name);
+            });
             renderReassignAuditLog();
           } else {
             statusMsg.textContent = (resp && resp.message) || 'Failed to reassign member.';

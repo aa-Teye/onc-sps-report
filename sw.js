@@ -61,7 +61,7 @@ self.addEventListener('notificationclick', function (event) {
 });
 
 // ── Cache ────────────────────────────────────────────────────────
-const CACHE_NAME = 'onc-sps-v81';
+const CACHE_NAME = 'onc-sps-v82';
 const CACHE_URLS = [
   '/onc-sps-report/',
   '/onc-sps-report/index.html',
