@@ -1803,8 +1803,8 @@
             </div>
           </div>
 
-          <div class="filter-bar">
-            <input type="text" id="filter-member-search" placeholder="Search member..." oninput="renderMembers()">
+          <div class="filter-bar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <input type="text" id="filter-member-search" placeholder="Search member..." oninput="renderMembers()" style="flex:1;min-width:180px;">
             <select id="filter-member-shep" onchange="renderMembers()">
               <option value="">All Shepherds</option>
             </select>
@@ -1814,6 +1814,10 @@
               <option value="irregular">🟡 Irregular</option>
               <option value="atrisk">🔴 At Risk</option>
             </select>
+            <button type="button" onclick="openAddMemberModal(null, 'sps')"
+              style="padding:10px 18px;background:#0f2044;color:#fff;border:none;border-radius:10px;font-family:'Outfit',sans-serif;font-weight:800;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(15,32,68,0.15);white-space:nowrap;">
+              ➕ Add Member
+            </button>
           </div>
           <div class="table-wrap">
             <table>
@@ -3218,13 +3222,22 @@
                 align-items:center;margin-bottom:16px;">
                 <h3 style="font-size:16px;font-weight:800;
                   color:#0a1628;">Guest List</h3>
-                <button onclick="exportFirstTimers()"
-                  style="padding:8px 16px;background:#006B3F;
-                  color:white;border:none;border-radius:8px;
-                  font-weight:700;cursor:pointer;
-                  font-size:13px;">
-                  ⬇ Export Excel
-                </button>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button onclick="exportFirstTimers(false)"
+                    style="padding:8px 16px;background:#006B3F;
+                    color:white;border:none;border-radius:8px;
+                    font-weight:700;cursor:pointer;
+                    font-size:13px;">
+                    ⬇ Export Filtered
+                  </button>
+                  <button onclick="exportFirstTimers(true)"
+                    style="padding:8px 16px;background:#0f2044;
+                    color:white;border:none;border-radius:8px;
+                    font-weight:700;cursor:pointer;
+                    font-size:13px;">
+                    📥 Export All-Time (Excel)
+                  </button>
+                </div>
               </div>
               <div style="overflow-x:auto;">
                 <table style="width:100%;
@@ -3680,8 +3693,9 @@
                       <th style="padding:10px;text-align:left;">Shepherd</th>
                       <th style="padding:10px;text-align:center;">Phone</th>
                       <th style="padding:10px;text-align:center;">Current Stage</th>
-                      <th style="padding:10px;text-align:center;">Update</th>
-                      <th style="padding:10px;text-align:center;">Save</th>
+                      <th style="padding:10px;text-align:center;">Update Stage</th>
+                      <th style="padding:10px;text-align:center;">Action</th>
+                      <th style="padding:10px;text-align:center;">Add to Roster</th>
                     </tr>
                   </thead>
                   <tbody id="soulTrackerBody"></tbody>
@@ -4285,12 +4299,31 @@
     <div id="addMemberModal" onclick="closeAddMemberModal()"
       style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px;">
       <div onclick="event.stopPropagation()"
-        style="background:#fff;border-radius:24px;border:3px solid #0a1628;width:100%;max-width:420px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#0f2044;font-family:'Outfit',sans-serif;position:relative;">
+        style="background:#fff;border-radius:24px;border:3px solid #0a1628;width:100%;max-width:440px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#0f2044;font-family:'Outfit',sans-serif;position:relative;max-height:90vh;overflow-y:auto;">
         <button onclick="closeAddMemberModal()"
           style="position:absolute;top:20px;right:20px;background:rgba(15,32,68,0.08);border:none;color:#0f2044;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">✕</button>
         <div style="font-size:32px;margin-bottom:6px;">➕</div>
-        <div style="font-weight:800;font-size:18px;margin-bottom:4px;">Add Member</div>
+        <div style="font-weight:800;font-size:18px;margin-bottom:4px;">Add Member (Admin Portal)</div>
         <div id="addMemberShepherdName" style="color:#64748b;font-size:13px;margin-bottom:18px;"></div>
+
+        <!-- Stream Selector -->
+        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Stream / Fellowship *</label>
+        <select id="addMemberStreamSelect" onchange="onAddMemberStreamChange()"
+          style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin:6px 0 14px;background:#f8fafc;">
+          <option value="sps">SPS (Sunday Prayer Service)</option>
+          <option value="mc">Microchurch</option>
+          <option value="satellite">Satellite / Fellowship</option>
+        </select>
+
+        <!-- Shepherd Selector -->
+        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Assign To Shepherd *</label>
+        <select id="addMemberShepherdSelect" onchange="onAddMemberShepherdChange()"
+          style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin:6px 0 14px;background:#f8fafc;">
+        </select>
+
+        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Zone / Fellowship Name</label>
+        <input id="addMemberZoneInput" type="text" placeholder="Zone / Fellowship"
+          style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin:6px 0 14px;">
 
         <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Full Name *</label>
         <input id="addMemberNameInput" type="text" placeholder="Full name"
@@ -4311,6 +4344,39 @@
         <p id="addMemberErrorMsg" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-bottom:14px;"></p>
         <button type="button" id="addMemberSubmitBtn" onclick="submitAddMember()"
           style="width:100%;padding:16px;background:#0f2044;color:#fff;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 12px rgba(15,32,68,0.15);">➕ Add Member</button>
+      </div>
+    </div>
+
+    <!-- ASSIGN FIRST TIMER TO SHEPHERD MODAL -->
+    <div id="assignFirstTimerModal" onclick="closeAssignFirstTimerModal()"
+      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px;">
+      <div onclick="event.stopPropagation()"
+        style="background:#fff;border-radius:24px;border:3px solid #0a1628;width:100%;max-width:440px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.5);color:#0f2044;font-family:'Outfit',sans-serif;position:relative;">
+        <button onclick="closeAssignFirstTimerModal()"
+          style="position:absolute;top:20px;right:20px;background:rgba(15,32,68,0.08);border:none;color:#0f2044;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">✕</button>
+        <div style="font-size:32px;margin-bottom:6px;">🤝</div>
+        <div style="font-weight:800;font-size:18px;margin-bottom:4px;">Recommend / Assign First Timer</div>
+        <div id="assignFirstTimerGuestName" style="color:#64748b;font-size:13px;margin-bottom:18px;"></div>
+
+        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Stream *</label>
+        <select id="assignFirstTimerStream" onchange="onAssignFirstTimerStreamChange()"
+          style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin:6px 0 14px;background:#f8fafc;">
+          <option value="sps">SPS (Sunday Prayer Service)</option>
+          <option value="mc">Microchurch</option>
+        </select>
+
+        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Recommend Shepherd *</label>
+        <select id="assignFirstTimerShepherdSelect"
+          style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin:6px 0 14px;background:#f8fafc;">
+        </select>
+
+        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">Notes / Follow-up Instructions</label>
+        <input id="assignFirstTimerNotes" type="text" placeholder="e.g. Needs transport / Student / Lives near campus"
+          style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin:6px 0 18px;">
+
+        <p id="assignFirstTimerErrorMsg" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-bottom:14px;"></p>
+        <button type="button" id="assignFirstTimerSubmitBtn" onclick="submitAssignFirstTimer()"
+          style="width:100%;padding:16px;background:#006B3F;color:#fff;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 12px rgba(0,107,63,0.2);">✅ Assign to Shepherd &amp; Roster</button>
       </div>
     </div>
 
@@ -5031,17 +5097,14 @@
         });
       }
 
-      // ── SOUL TRACKER — Relational Evangelism Pipeline ──────────────
+      // ── SOUL TRACKER — 4-Stage Evangelism Pipeline ──────────────
       var soulTrackerData = [];
 
       var SOUL_STAGE_LABELS = {
-        1: 'Name Identified',
-        2: 'Gospel Shared',
-        3: 'Invited',
-        4: 'Attended',
-        5: 'Decision for Christ',
-        6: 'Under Follow-up',
-        7: 'Established'
+        1: 'New Soul',
+        2: 'Converted',
+        3: 'Foundation School',
+        4: 'Member Now'
       };
 
       function loadSoulTracker() {
@@ -5057,7 +5120,7 @@
         var body = document.getElementById('soulTrackerBody');
         if (!stats || !pipeline || !body) return;
 
-        var counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0};
+        var counts = {1: 0, 2: 0, 3: 0, 4: 0};
         soulTrackerData.forEach(function (record) {
           var stage = parseInt(record.CurrentStage, 10) || 1;
           counts[stage] = (counts[stage] || 0) + 1;
@@ -5091,7 +5154,7 @@
         });
 
         if (!filtered.length) {
-          body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#64748b;">No souls found.</td></tr>';
+          body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#64748b;">No souls found.</td></tr>';
           return;
         }
 
@@ -5103,18 +5166,26 @@
             return '<option value="' + stageKey + '"' + (stageKey == stage ? ' selected' : '') + '>' + SOUL_STAGE_LABELS[stageKey] + '</option>';
           }).join('');
 
+          var isPromoted = record.PromotedToRoster === true || record.PromotedToRoster === 'TRUE';
+          var promoteBtn = isPromoted
+            ? '<span style="font-size:11px;font-weight:700;color:#16a34a;background:#dcfce7;padding:4px 8px;border-radius:6px;">✅ On Roster</span>'
+            : '<button onclick="promoteSoulToRosterAction(' + index + ')" style="padding:6px 12px;background:#006B3F;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">➕ Add to SPS/MC</button>';
+
           return '<tr style="background:' + rowBg + ';border-bottom:1px solid #e2e8f0;">' +
             '<td style="padding:10px;font-weight:700;color:#0f2044;">' + escHtml(record.Name || '—') + '</td>' +
             '<td style="padding:10px;color:#64748b;">' + escHtml(record.ShepherdName || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;color:#0f2044;">' + escHtml(record.Phone || '—') + '</td>' +
             '<td style="padding:10px;text-align:center;">' +
-            '<span class="stage-pill">' + SOUL_STAGE_LABELS[stage] + '</span>' +
+            '<span class="stage-pill">' + (SOUL_STAGE_LABELS[stage] || ('Stage ' + stage)) + '</span>' +
             '</td>' +
             '<td style="padding:10px;text-align:center;">' +
-            '<select id="soulStageSelect-' + index + '" style="padding:8px 10px;border-radius:10px;border:1px solid #e2e8f0;font-size:13px;min-width:180px;">' + stageSelect + '</select>' +
+            '<select id="soulStageSelect-' + index + '" style="padding:8px 10px;border-radius:10px;border:1px solid #e2e8f0;font-size:13px;min-width:160px;">' + stageSelect + '</select>' +
             '</td>' +
             '<td style="padding:10px;text-align:center;">' +
             '<button onclick="saveSoulStage(' + index + ')" style="padding:8px 14px;background:#0f2044;color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Save</button>' +
+            '</td>' +
+            '<td style="padding:10px;text-align:center;">' +
+            promoteBtn +
             '</td>' +
             '</tr>';
         }).join('');
@@ -5141,9 +5212,38 @@
           if (response && response.status === 'success') {
             record.CurrentStage = newStage;
             renderSoulTracker();
-            alert(response.journeySynced ? 'Stage updated — also synced to the Discipleship Journey tab.' : 'Stage updated successfully.');
+            alert('Stage updated to ' + SOUL_STAGE_LABELS[newStage]);
           } else {
             alert('Unable to update stage.');
+          }
+        });
+      }
+
+      function promoteSoulToRosterAction(index) {
+        var record = soulTrackerData[index];
+        if (!record) return;
+
+        var shepName = record.ShepherdName || 'Unassigned';
+        var streamType = record.ShepherdType === 'mc' ? 'Microchurch' : 'SPS';
+        if (!confirm('Promote ' + record.Name + ' to official ' + streamType + ' roster under shepherd ' + shepName + '?')) {
+          return;
+        }
+
+        fetchDataQuery('promoteSoulToRoster', {
+          soulId: record.SoulID,
+          name: record.Name || '',
+          phone: record.Phone || '',
+          shepherd: shepName,
+          stream: record.ShepherdType || 'sps',
+          promotedBy: currentRoleName || currentRole || 'Admin'
+        }, function (response) {
+          if (response && response.status === 'success') {
+            record.PromotedToRoster = true;
+            renderSoulTracker();
+            loadSeekers(function () { renderAll(); });
+            adminToast('🎉 ' + record.Name + ' added to ' + shepName + '\'s official roster!');
+          } else {
+            alert((response && response.message) || 'Could not promote soul to roster.');
           }
         });
       }
@@ -5954,7 +6054,7 @@
           return;
         }
 
-        container.innerHTML = filtered.slice(0, 60).map(function (m, idx) {
+        container.innerHTML = filtered.slice(0, 300).map(function (m, idx) {
           var isSel = reassignSelectedMember && reassignSelectedMember.name === m.name;
           return '<div onclick="selectReassignMember(' + idx + ')" style="padding:10px 12px;border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:' + (isSel ? '#dbeafe' : 'white') + ';border:1px solid ' + (isSel ? '#3b82f6' : '#e2e8f0') + ';">' +
             '<div>' +
@@ -6195,10 +6295,60 @@
       var addMemberStream = 'sps';
       var addMemberStatus = 'Member';
 
+      function populateAddMemberShepherds(stream, preselectedShepherd) {
+        var sel = document.getElementById('addMemberShepherdSelect');
+        if (!sel) return;
+        var list = [];
+        if (stream === 'mc') {
+          list = (typeof ALL_MC_SHEPHERDS !== 'undefined' ? ALL_MC_SHEPHERDS : []).slice();
+        } else {
+          list = (typeof ALL_SHEPHERDS !== 'undefined' ? ALL_SHEPHERDS : []).slice();
+        }
+        list.sort(function (a, b) { return a.name.localeCompare(b.name); });
+        var html = '<option value="">— Choose Shepherd —</option>';
+        list.forEach(function (s) {
+          var selAttr = (preselectedShepherd && s.name === preselectedShepherd) ? ' selected' : '';
+          var groupName = s.zone || s.microchurch || '';
+          html += '<option value="' + escAttrAdmin(s.name) + '" data-zone="' + escAttrAdmin(groupName) + '"' + selAttr + '>' +
+            s.name + (groupName ? (' (' + groupName + ')') : '') + '</option>';
+        });
+        sel.innerHTML = html;
+        onAddMemberShepherdChange();
+      }
+
+      function onAddMemberStreamChange() {
+        var streamSel = document.getElementById('addMemberStreamSelect');
+        addMemberStream = streamSel ? streamSel.value : 'sps';
+        populateAddMemberShepherds(addMemberStream, null);
+      }
+
+      function onAddMemberShepherdChange() {
+        var sel = document.getElementById('addMemberShepherdSelect');
+        if (!sel) return;
+        var opt = sel.options[sel.selectedIndex];
+        addMemberShepherd = sel.value;
+        var zoneInput = document.getElementById('addMemberZoneInput');
+        if (zoneInput) {
+          if (opt && opt.getAttribute('data-zone')) {
+            zoneInput.value = opt.getAttribute('data-zone');
+          }
+        }
+      }
+
       function openAddMemberModal(shepherdName, stream) {
-        addMemberShepherd = shepherdName;
-        addMemberStream = stream === 'mc' ? 'mc' : 'sps';
-        document.getElementById('addMemberShepherdName').textContent = 'Adding to ' + shepherdName;
+        addMemberStream = stream === 'mc' ? 'mc' : (stream === 'satellite' ? 'satellite' : 'sps');
+        addMemberShepherd = shepherdName || null;
+
+        var streamSel = document.getElementById('addMemberStreamSelect');
+        if (streamSel) streamSel.value = addMemberStream;
+
+        populateAddMemberShepherds(addMemberStream, addMemberShepherd);
+
+        var titleDesc = document.getElementById('addMemberShepherdName');
+        if (titleDesc) {
+          titleDesc.textContent = shepherdName ? ('Pre-selected: ' + shepherdName) : 'Select a shepherd or fellowship group to add member to';
+        }
+
         document.getElementById('addMemberNameInput').value = '';
         document.getElementById('addMemberPhoneInput').value = '';
         setAddMemberStatus('Member');
@@ -6224,32 +6374,43 @@
       function submitAddMember() {
         var name  = document.getElementById('addMemberNameInput').value.trim();
         var phone = document.getElementById('addMemberPhoneInput').value.trim();
+        var shepSel = document.getElementById('addMemberShepherdSelect');
+        var selectedShep = (shepSel && shepSel.value) ? shepSel.value.trim() : (addMemberShepherd || '');
+        var streamSel = document.getElementById('addMemberStreamSelect');
+        var selectedStream = streamSel ? streamSel.value : (addMemberStream || 'sps');
+        var zoneInput = document.getElementById('addMemberZoneInput');
+        var zone = zoneInput ? zoneInput.value.trim() : '';
         var err   = document.getElementById('addMemberErrorMsg');
 
         if (!name) {
-          err.textContent = 'Please enter a name.';
+          err.textContent = 'Please enter a member name.';
           err.style.display = 'block';
           return;
         }
 
-        var zone = addMemberStream === 'mc'
-          ? (ALL_MC_SHEPHERDS.find(function (s) { return s.name === addMemberShepherd; }) || {}).microchurch || ''
-          : (ALL_SHEPHERDS.find(function (s) { return s.name === addMemberShepherd; }) || {}).zone || '';
+        if (!selectedShep) {
+          err.textContent = 'Please choose a shepherd to assign this member.';
+          err.style.display = 'block';
+          return;
+        }
+
+        if (!zone) {
+          zone = selectedStream === 'mc'
+            ? ((ALL_MC_SHEPHERDS.find(function (s) { return s.name === selectedShep; }) || {}).microchurch || '')
+            : ((ALL_SHEPHERDS.find(function (s) { return s.name === selectedShep; }) || {}).zone || '');
+        }
 
         var btn = document.getElementById('addMemberSubmitBtn');
         btn.disabled = true;
         btn.textContent = 'Adding...';
 
-        // addMemberSelfService is a doPost-only action expecting a nested
-        // member object, unlike the GET/JSONP actions fetchDataQuery calls -
-        // needs a real POST here, same as addShepherd() above.
         fetch(SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify({
             action: 'addMemberSelfService',
             member: { id: 'MEM-' + Date.now() + '-' + Math.floor(Math.random() * 1000), name: name, phone: phone },
-            shepherd: addMemberShepherd,
-            shepherdType: addMemberStream,
+            shepherd: selectedShep,
+            shepherdType: selectedStream,
             status: addMemberStatus,
             zone: zone
           })
@@ -6261,7 +6422,7 @@
           if (response && response.status === 'success') {
             closeAddMemberModal();
             loadSeekers(function () { renderAll(); });
-            adminToast('➕ ' + name + ' added to ' + addMemberShepherd);
+            adminToast('➕ ' + name + ' added to ' + selectedShep);
           } else {
             err.textContent = (response && response.message) || 'Could not add member.';
             err.style.display = 'block';
@@ -8806,19 +8967,35 @@
         var seekers = seekersFor(shepherdName);
         var totalMembers = members.length + dynMembers.length;
         var memberList = totalMembers
-          ? members.map(function (m) { return '<div style="font-size:12px;padding:3px 0;color:#334155;">• ' + m + '</div>'; }).join('') +
+          ? members.map(function (m) {
+              return '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;padding:3px 0;color:#334155;">' +
+                '<span>• ' + m + '</span>' +
+                '<div style="display:flex;gap:4px;">' +
+                '<button type="button" onclick="event.stopPropagation();openReassignMemberModal(\'\',\'' + m.replace(/'/g,"\\'") + '\',\'' + shepherdName.replace(/'/g,"\\'") + '\',\'' + stream + '\')" ' +
+                'style="flex-shrink:0;padding:2px 6px;background:#fff7ed;color:#c2410c;border:none;border-radius:6px;font-weight:700;font-size:10px;cursor:pointer;">🔀</button>' +
+                '<button type="button" onclick="event.stopPropagation();deleteSeekerAction(\'\',\'' + m.replace(/'/g,"\\'") + '\',\'' + shepherdName.replace(/'/g,"\\'") + '\')" ' +
+                'style="flex-shrink:0;padding:2px 6px;background:#fee2e2;color:#b91c1c;border:none;border-radius:6px;font-weight:700;font-size:10px;cursor:pointer;">🗑️</button>' +
+                '</div></div>';
+            }).join('') +
             dynMembers.map(function (r) {
               return '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;padding:3px 0;color:#334155;">' +
                 '<span>• ' + (r.Name || '') + ' <span style="font-size:10px;color:#64748b;">(added ' + (r.ImportDate || '') + ')</span></span>' +
+                '<div style="display:flex;gap:4px;">' +
                 '<button type="button" onclick="event.stopPropagation();openReassignMemberModal(\'' + r.MemberID + '\',\'' + (r.Name || '').replace(/'/g,"\\'") + '\',\'' + shepherdName.replace(/'/g,"\\'") + '\',\'' + stream + '\')" ' +
-                'style="flex-shrink:0;padding:2px 8px;background:#fff7ed;color:#c2410c;border:none;border-radius:6px;font-weight:700;font-size:10px;cursor:pointer;">🔀</button>' +
-                '</div>';
+                'style="flex-shrink:0;padding:2px 6px;background:#fff7ed;color:#c2410c;border:none;border-radius:6px;font-weight:700;font-size:10px;cursor:pointer;">🔀</button>' +
+                '<button type="button" onclick="event.stopPropagation();deleteSeekerAction(\'' + r.MemberID + '\',\'' + (r.Name || '').replace(/'/g,"\\'") + '\',\'' + shepherdName.replace(/'/g,"\\'") + '\')" ' +
+                'style="flex-shrink:0;padding:2px 6px;background:#fee2e2;color:#b91c1c;border:none;border-radius:6px;font-weight:700;font-size:10px;cursor:pointer;">🗑️</button>' +
+                '</div></div>';
             }).join('')
           : '<div style="font-size:12px;color:#94a3b8;">No assigned members</div>';
         var seekerList = seekers.length
           ? seekers.map(function (r) {
               var tag = r.Status === 'Pending' ? '🕓 Pending' : '🌱 Seeker';
-              return '<div style="font-size:12px;padding:3px 0;color:#15803d;">• ' + (r.Name || '') + ' <span style="font-size:10px;color:#64748b;">(' + tag + ')</span></div>';
+              return '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;padding:3px 0;color:#15803d;">' +
+                '<span>• ' + (r.Name || '') + ' <span style="font-size:10px;color:#64748b;">(' + tag + ')</span></span>' +
+                '<button type="button" onclick="event.stopPropagation();deleteSeekerAction(\'' + r.MemberID + '\',\'' + (r.Name || '').replace(/'/g,"\\'") + '\',\'' + shepherdName.replace(/'/g,"\\'") + '\')" ' +
+                'style="flex-shrink:0;padding:2px 6px;background:#fee2e2;color:#b91c1c;border:none;border-radius:6px;font-weight:700;font-size:10px;cursor:pointer;">🗑️</button>' +
+                '</div>';
             }).join('')
           : '<div style="font-size:12px;color:#94a3b8;">No new seekers</div>';
         var addBtn = '<button type="button" onclick="event.stopPropagation();openAddMemberModal(\'' + shepherdName.replace(/'/g,"\\'") + '\',\'' + stream + '\')" ' +
@@ -8918,9 +9095,14 @@
             'margin-top:8px;">No contact number</div>';
 
           var reassignShepBtn = '<button type="button" onclick="event.stopPropagation();openReassignShepherdModal(\'' + s.name.replace(/'/g,"\\'") + '\',\'SPS\',\'' + (s.zone||'').replace(/'/g,"\\'") + '\',\'' + (s.contact||'').replace(/'/g,"\\'") + '\')" ' +
-            'style="width:100%;margin-top:8px;padding:6px;background:#f0f5ff;color:#0f2044;border:none;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer;">🔀 Change Zone</button>';
+            'style="flex:1;padding:6px;background:#f0f5ff;color:#0f2044;border:none;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer;">🔀 Change Zone</button>';
 
-          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? window.formatDayMonthYear(lastRep.sessionDate || lastRep.date || lastRep.submissionDate) : 'Never') + '</div></div>' + badge + '</div>' + contactBtns + reassignShepBtn + '<div class="shepherd-details">' + repsHtml + renderShepherdMembersBlock(s.name, 'sps') + '</div></div>';
+          var deleteShepBtn = '<button type="button" onclick="event.stopPropagation();deleteShepherdAction(\'' + s.name.replace(/'/g,"\\'") + '\',\'SPS\')" ' +
+            'style="padding:6px 10px;background:#fee2e2;color:#b91c1c;border:none;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer;">🗑️ Delete</button>';
+
+          var shepActionsBar = '<div style="display:flex;gap:6px;margin-top:8px;">' + reassignShepBtn + deleteShepBtn + '</div>';
+
+          html += '<div class="shepherd-card" onclick="toggleShepCard(this)"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div><div class="shepherd-meta">Sessions this week: ' + weekReps.length + ' · Avg rate: ' + avgRate + '%<br>Last report: ' + (lastRep ? window.formatDayMonthYear(lastRep.sessionDate || lastRep.date || lastRep.submissionDate) : 'Never') + '</div></div>' + badge + '</div>' + contactBtns + shepActionsBar + '<div class="shepherd-details">' + repsHtml + renderShepherdMembersBlock(s.name, 'sps') + '</div></div>';
         });
         grid.innerHTML = html || '<div class="empty"><div class="icon">👥</div><p>No shepherds found</p></div>';
       }
@@ -9027,6 +9209,30 @@
           btn.textContent = '🔀 Reassign';
           err.textContent = 'Network error — please try again.';
           err.style.display = 'block';
+        });
+      }
+
+      function deleteShepherdAction(shepherdName, stream) {
+        if (!confirm('⚠️ Are you sure you want to delete shepherd "' + shepherdName + '"?')) return;
+        if (!confirm('CONFIRM DELETION: This will mark shepherd "' + shepherdName + '" as deleted and unassign their active status in the database. Proceed?')) return;
+
+        adminToast('⏳ Deleting shepherd...');
+        fetchDataQuery('deleteShepherd', {
+          name: shepherdName,
+          type: stream || 'SPS',
+          deletedBy: currentRoleName || currentRole || 'Admin'
+        }, function (response) {
+          if (response && response.status === 'success') {
+            if (stream === 'MC') {
+              ALL_MC_SHEPHERDS = ALL_MC_SHEPHERDS.filter(function (s) { return s.name !== shepherdName; });
+            } else {
+              ALL_SHEPHERDS = ALL_SHEPHERDS.filter(function (s) { return s.name !== shepherdName; });
+            }
+            renderAll();
+            adminToast('🗑️ Shepherd ' + shepherdName + ' deleted successfully.');
+          } else {
+            alert('Could not delete shepherd: ' + ((response && response.message) || 'Error'));
+          }
         });
       }
 
@@ -10910,7 +11116,12 @@
               'margin-top:8px;">No contact number</div>';
 
             var reassignShepBtn = '<button type="button" onclick="event.stopPropagation();openReassignShepherdModal(\'' + s.name.replace(/'/g,"\\'") + '\',\'MC\',\'' + (s.microchurch||'').replace(/'/g,"\\'") + '\',\'' + (s.contact||'').replace(/'/g,"\\'") + '\')" ' +
-              'style="width:100%;margin-top:8px;padding:6px;background:#f0f5ff;color:#0f2044;border:none;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer;">🔀 Change Microchurch</button>';
+              'style="flex:1;padding:6px;background:#f0f5ff;color:#0f2044;border:none;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer;">🔀 Change Microchurch</button>';
+
+            var deleteShepBtn = '<button type="button" onclick="event.stopPropagation();deleteShepherdAction(\'' + s.name.replace(/'/g,"\\'") + '\',\'MC\')" ' +
+              'style="padding:6px 10px;background:#fee2e2;color:#b91c1c;border:none;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer;">🗑️ Delete</button>';
+
+            var shepActionsBar = '<div style="display:flex;gap:6px;margin-top:8px;">' + reassignShepBtn + deleteShepBtn + '</div>';
 
             return '<div class="shepherd-card" style="border-left:4px solid ' + statusColor + '">' +
               '<div class="shepherd-name">' + s.name + getScoreBadge(s.name) + '</div>' +
@@ -10921,7 +11132,7 @@
               '<div class="shepherd-meta">Last report: ' + (lastReport ? (lastReport.submissionDate || 'Never') : 'No reports yet') + '</div>' +
               '<span style="display:inline-block;margin-top:8px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:' + statusColor + '20;color:' + statusColor + '">' + status + '</span>' +
               contactBtns +
-              reassignShepBtn +
+              shepActionsBar +
               '<details style="margin-top:10px;" onclick="event.stopPropagation()"><summary style="cursor:pointer;font-size:12px;font-weight:700;color:#3b82f6;">👥 View Members &amp; Seekers</summary>' + renderShepherdMembersBlock(s.name, 'mc') + '</details>' +
               '</div>';
           }).join('') || '<div class="empty"><div class="icon">👥</div><p>No shepherds configured</p></div>';
@@ -11972,12 +12183,16 @@
                 " selected" : "") + 
               '>🟢 Converted to Member</option>' +
             '</select></td>' +
-            '<td style="padding:10px;text-align:center;">' +
+            '<td style="padding:10px;text-align:center;white-space:nowrap;">' +
             '<button onclick="viewGuestDetails(\'' + 
               (g.id || idx) + '\')" ' +
-            'style="padding:4px 10px;background:#0a1628;' +
+            'style="padding:4px 8px;background:#0a1628;' +
             'color:white;border:none;border-radius:6px;' +
-            'cursor:pointer;font-size:12px;">View</button>' +
+            'cursor:pointer;font-size:12px;margin-right:4px;">View</button>' +
+            '<button onclick="openAssignFirstTimerModal(\'' + (g.id || idx) + '\')" ' +
+            'style="padding:4px 8px;background:#006B3F;' +
+            'color:white;border:none;border-radius:6px;' +
+            'cursor:pointer;font-size:12px;font-weight:700;">🤝 Assign Shepherd</button>' +
             '</td>' +
             '</tr>';
         }).join('');
@@ -12024,6 +12239,100 @@
           'Filled By: ' + (guest.filledBy || '');
         
         alert(details);
+      }
+
+      var currentAssignFirstTimerGuest = null;
+
+      function populateAssignFirstTimerShepherds(stream) {
+        var sel = document.getElementById('assignFirstTimerShepherdSelect');
+        if (!sel) return;
+        var list = stream === 'mc'
+          ? (typeof ALL_MC_SHEPHERDS !== 'undefined' ? ALL_MC_SHEPHERDS : [])
+          : (typeof ALL_SHEPHERDS !== 'undefined' ? ALL_SHEPHERDS : []);
+        list = list.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+        sel.innerHTML = '<option value="">— Choose Shepherd —</option>' + list.map(function (s) {
+          var z = s.zone || s.microchurch || '';
+          return '<option value="' + escAttrAdmin(s.name) + '" data-zone="' + escAttrAdmin(z) + '">' +
+            s.name + (z ? (' (' + z + ')') : '') + '</option>';
+        }).join('');
+      }
+
+      function onAssignFirstTimerStreamChange() {
+        var streamSel = document.getElementById('assignFirstTimerStream');
+        populateAssignFirstTimerShepherds(streamSel ? streamSel.value : 'sps');
+      }
+
+      function openAssignFirstTimerModal(guestId) {
+        var guest = allGuestReports.find(function(g, idx) {
+          return String(g.id || idx) === String(guestId);
+        });
+        if (!guest) {
+          alert('Guest record not found.');
+          return;
+        }
+        currentAssignFirstTimerGuest = guest;
+        var guestName = guest.fullName || (guest.firstName + ' ' + (guest.lastName || '')) || 'Guest';
+        document.getElementById('assignFirstTimerGuestName').textContent = guestName + ' (' + (guest.phone || 'No phone') + ')';
+        document.getElementById('assignFirstTimerStream').value = 'sps';
+        document.getElementById('assignFirstTimerNotes').value = '';
+        var err = document.getElementById('assignFirstTimerErrorMsg');
+        if (err) err.style.display = 'none';
+
+        populateAssignFirstTimerShepherds('sps');
+        document.getElementById('assignFirstTimerModal').style.display = 'flex';
+      }
+
+      function closeAssignFirstTimerModal() {
+        document.getElementById('assignFirstTimerModal').style.display = 'none';
+      }
+
+      function submitAssignFirstTimer() {
+        if (!currentAssignFirstTimerGuest) return;
+        var stream = document.getElementById('assignFirstTimerStream').value;
+        var shepSel = document.getElementById('assignFirstTimerShepherdSelect');
+        var shepherd = shepSel ? shepSel.value : '';
+        var opt = shepSel ? shepSel.options[shepSel.selectedIndex] : null;
+        var zone = (opt && opt.getAttribute('data-zone')) || '';
+        var notes = (document.getElementById('assignFirstTimerNotes').value || '').trim();
+        var err = document.getElementById('assignFirstTimerErrorMsg');
+
+        if (!shepherd) {
+          err.textContent = 'Please choose a shepherd to assign this first timer.';
+          err.style.display = 'block';
+          return;
+        }
+
+        var btn = document.getElementById('assignFirstTimerSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Assigning...';
+
+        var guestName = currentAssignFirstTimerGuest.fullName || (currentAssignFirstTimerGuest.firstName + ' ' + (currentAssignFirstTimerGuest.lastName || '')) || '';
+
+        fetchDataQuery('assignFirstTimerToShepherd', {
+          guestId: currentAssignFirstTimerGuest.id || '',
+          name: guestName,
+          phone: currentAssignFirstTimerGuest.phone || '',
+          shepherd: shepherd,
+          stream: stream,
+          zone: zone,
+          notes: notes,
+          assignedBy: currentRoleName || currentRole || 'Admin'
+        }, function (response) {
+          btn.disabled = false;
+          btn.textContent = '✅ Assign to Shepherd & Roster';
+          if (response && response.status === 'success') {
+            currentAssignFirstTimerGuest.assignedShepherd = shepherd;
+            currentAssignFirstTimerGuest.assignedStream = stream;
+            currentAssignFirstTimerGuest.followUpStatus = 'Contacted';
+            closeAssignFirstTimerModal();
+            loadSeekers(function () { renderAll(); });
+            renderFirstTimers();
+            adminToast('🤝 ' + guestName + ' assigned to ' + shepherd + ' and added to their roster!');
+          } else {
+            err.textContent = (response && response.message) || 'Unable to assign shepherd.';
+            err.style.display = 'block';
+          }
+        });
       }
 
       function addToMembership(guest) {
@@ -12245,14 +12554,14 @@
         });
       }
 
-      function exportFirstTimers() {
-        var guests = getFilteredGuests();
+      function exportFirstTimers(allTime) {
+        var guests = allTime ? (allGuestReports || []) : getFilteredGuests();
         var headers = [
           'Date', 'Full Name', 'Phone', 'Email',
           'Gender', 'Marital Status', 'Occupation',
           'Residence', 'Invited By', 'How Heard',
           'Born Again', 'Church', 'Contact Pref',
-          'Purpose', 'Follow Up Status', 'Feedback'
+          'Purpose', 'Follow Up Status', 'Feedback', 'Assigned Shepherd', 'Assigned Stream'
         ];
         var rows = guests.map(function(g) {
           return [
@@ -12271,7 +12580,9 @@
             g.contactPreference || '',
             g.purposeOfVisit || '',
             g.followUpStatus || '',
-            g.feedback || ''
+            g.feedback || '',
+            g.assignedShepherd || g.shepherd || '',
+            g.assignedStream || g.shepherdType || ''
           ];
         });
         var ws = XLSX.utils.aoa_to_sheet(
@@ -12279,7 +12590,8 @@
         var wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(
           wb, ws, 'First Timers');
-        XLSX.writeFile(wb, 'ONC_FirstTimers_' +
+        var suffix = allTime ? '_AllTime_' : '_';
+        XLSX.writeFile(wb, 'ONC_FirstTimers' + suffix +
           new Date().toLocaleDateString('en-GB')
             .replace(/\//g,'-') + '.xlsx');
       }

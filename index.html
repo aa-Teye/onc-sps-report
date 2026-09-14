@@ -2786,34 +2786,54 @@
   <div id="soulTrackerModal"
     style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.8);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);">
     <div
-      style="background:#fff;border-radius:24px;width:100%;max-width:420px;padding:24px;text-align:left;position:relative;">
+      style="background:#fff;border-radius:24px;width:100%;max-width:440px;padding:24px;text-align:left;position:relative;max-height:90vh;overflow-y:auto;">
       <button onclick="closeSoulTrackerModal()"
         style="position:absolute;top:16px;right:16px;background:rgba(15,32,68,.08);border:none;color:var(--navy);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;">✕</button>
       <h3 style="font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);margin:0 0 8px;">🤝
         Soul Tracker</h3>
-      <p style="font-size:13px;color:var(--gray);margin:0 0 16px;line-height:1.6;">Log someone a member is reaching out
-        to — you can update their progress with your leader over time.</p>
+      <p style="font-size:13px;color:var(--gray);margin:0 0 16px;line-height:1.5;">Log souls from evangelism and track their journey through 4 key milestones. They will NOT be part of your meeting roster unless explicitly added.</p>
 
-      <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Name *</label>
-      <input id="soulNameInput" type="text" placeholder="Full name"
-        style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button type="button" id="stTabAddBtn" onclick="switchSoulTrackerTab('add')"
+          style="flex:1;padding:8px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;border:none;background:var(--navy);color:white;">➕ Log Soul</button>
+        <button type="button" id="stTabListBtn" onclick="switchSoulTrackerTab('list')"
+          style="flex:1;padding:8px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;border:1px solid var(--border);background:#f8fafc;color:var(--navy);">📋 My Souls</button>
+      </div>
 
-      <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Phone
-        (optional)</label>
-      <input id="soulPhoneInput" type="tel" placeholder="Phone number"
-        style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
+      <div id="stAddPane">
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Full Name *</label>
+        <input id="soulNameInput" type="text" placeholder="Full name"
+          style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:12px;">
 
-      <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Notes
-        (optional)</label>
-      <textarea id="soulNotesInput" rows="3" placeholder="How you know them, when you plan to reach out, etc."
-        style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:16px;font-family:inherit;resize:vertical;"></textarea>
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Phone (optional)</label>
+        <input id="soulPhoneInput" type="tel" placeholder="Phone number"
+          style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:12px;">
 
-      <button id="soulSubmitBtn" onclick="submitNewSoul()"
-        style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--navy);color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;">
-        Save Soul
-      </button>
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Initial Progress Stage</label>
+        <select id="soulStageInput"
+          style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:12px;background:#f8fafc;">
+          <option value="1">1. New Soul</option>
+          <option value="2">2. Converted</option>
+          <option value="3">3. Foundation School</option>
+          <option value="4">4. Member Now</option>
+        </select>
 
-      <p id="soulTrackerStatus" style="font-size:12px;color:var(--gray);margin:12px 0 0;"></p>
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Notes (optional)</label>
+        <textarea id="soulNotesInput" rows="2" placeholder="Where you met, prayer needs, etc."
+          style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:16px;font-family:inherit;resize:vertical;"></textarea>
+
+        <button id="soulSubmitBtn" onclick="submitNewSoul()"
+          style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--navy);color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;">
+          Save Soul Record
+        </button>
+        <p id="soulTrackerStatus" style="font-size:12px;color:var(--gray);margin:12px 0 0;"></p>
+      </div>
+
+      <div id="stListPane" style="display:none;">
+        <div id="stLoggedSoulsList" style="display:flex;flex-direction:column;gap:10px;max-height:300px;overflow-y:auto;padding-right:4px;">
+          <div style="text-align:center;padding:20px;color:var(--gray);font-size:13px;">Loading souls...</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -7893,7 +7913,9 @@
       if (modal) modal.style.display = 'none';
     }
 
-    // ── Soul Tracker: log a new prospect any time ────────────────
+    // ── Soul Tracker: 4-stage prospect & progress management ────────
+    var _shepherdSoulsData = [];
+
     function openSoulTrackerModal() {
       if (!state.shepherd) {
         showGlobalAlert('Please log in first', 'error');
@@ -7902,7 +7924,9 @@
       document.getElementById('soulNameInput').value = '';
       document.getElementById('soulPhoneInput').value = '';
       document.getElementById('soulNotesInput').value = '';
+      document.getElementById('soulStageInput').value = '1';
       document.getElementById('soulTrackerStatus').textContent = '';
+      switchSoulTrackerTab('add');
       var modal = document.getElementById('soulTrackerModal');
       if (modal) modal.style.display = 'flex';
     }
@@ -7912,9 +7936,150 @@
       if (modal) modal.style.display = 'none';
     }
 
+    function switchSoulTrackerTab(tab) {
+      var addBtn = document.getElementById('stTabAddBtn');
+      var listBtn = document.getElementById('stTabListBtn');
+      var addPane = document.getElementById('stAddPane');
+      var listPane = document.getElementById('stListPane');
+
+      if (tab === 'add') {
+        addBtn.style.background = 'var(--navy)';
+        addBtn.style.color = 'white';
+        listBtn.style.background = '#f8fafc';
+        listBtn.style.color = 'var(--navy)';
+        addPane.style.display = 'block';
+        listPane.style.display = 'none';
+      } else {
+        listBtn.style.background = 'var(--navy)';
+        listBtn.style.color = 'white';
+        addBtn.style.background = '#f8fafc';
+        addBtn.style.color = 'var(--navy)';
+        addPane.style.display = 'none';
+        listPane.style.display = 'block';
+        loadShepherdSouls();
+      }
+    }
+
+    function loadShepherdSouls() {
+      var container = document.getElementById('stLoggedSoulsList');
+      if (!container) return;
+      container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);font-size:13px;">Loading souls...</div>';
+
+      var cbName = 'onShepherdSouls_' + Date.now();
+      window[cbName] = function (data) {
+        var all = (data && data.records) || [];
+        _shepherdSoulsData = all.filter(function (r) {
+          return r.ShepherdName === state.shepherd;
+        });
+
+        if (!_shepherdSoulsData.length) {
+          container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--gray);font-size:13px;">No souls logged yet under your name.</div>';
+          return;
+        }
+
+        var ST_LABELS = { 1: 'New Soul', 2: 'Converted', 3: 'Foundation School', 4: 'Member Now' };
+
+        container.innerHTML = _shepherdSoulsData.map(function (s, idx) {
+          var stageNum = parseInt(s.CurrentStage, 10) || 1;
+          var isPromoted = s.PromotedToRoster === true || s.PromotedToRoster === 'TRUE';
+          var addRosterBtn = isPromoted
+            ? '<span style="font-size:11px;font-weight:700;color:#16a34a;background:#dcfce7;padding:4px 8px;border-radius:6px;">✅ On Roster</span>'
+            : '<button onclick="promoteShepherdSoul(' + idx + ')" style="padding:6px 10px;background:#006B3F;color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">➕ Add to My Roster</button>';
+
+          return '<div style="border:1px solid var(--border);border-radius:12px;padding:12px;background:#f8fafc;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">' +
+            '<div>' +
+            '<div style="font-weight:800;font-size:14px;color:var(--navy);">' + (s.Name || 'Soul') + '</div>' +
+            '<div style="font-size:12px;color:var(--gray);">' + (s.Phone ? ('📞 ' + s.Phone) : 'No phone') + '</div>' +
+            '</div>' +
+            '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#e0f2fe;color:#0369a1;">' + (ST_LABELS[stageNum] || ('Stage ' + stageNum)) + '</span>' +
+            '</div>' +
+            (s.Notes ? '<div style="font-size:12px;color:#475569;margin-bottom:8px;font-style:italic;">"' + s.Notes + '"</div>' : '') +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">' +
+            '<select onchange="updateShepherdSoulStage(' + idx + ', this.value)" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--navy);">' +
+            '<option value="1"' + (stageNum === 1 ? ' selected' : '') + '>1. New Soul</option>' +
+            '<option value="2"' + (stageNum === 2 ? ' selected' : '') + '>2. Converted</option>' +
+            '<option value="3"' + (stageNum === 3 ? ' selected' : '') + '>3. Foundation School</option>' +
+            '<option value="4"' + (stageNum === 4 ? ' selected' : '') + '>4. Member Now</option>' +
+            '</select>' +
+            addRosterBtn +
+            '</div>' +
+            '</div>';
+        }).join('');
+      };
+
+      var script = document.createElement('script');
+      script.src = SCRIPT_URL + '?action=getSoulTracker&callback=' + cbName;
+      script.onerror = function () {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:red;font-size:13px;">Error loading souls.</div>';
+      };
+      document.head.appendChild(script);
+    }
+
+    function updateShepherdSoulStage(idx, newStage) {
+      var soul = _shepherdSoulsData[idx];
+      if (!soul) return;
+      var ST_LABELS = { 1: 'New Soul', 2: 'Converted', 3: 'Foundation School', 4: 'Member Now' };
+
+      var script = document.createElement('script');
+      var cb = 'onUpStage_' + Date.now();
+      window[cb] = function (res) {
+        if (res && res.status === 'success') {
+          soul.CurrentStage = newStage;
+          if (typeof showGlobalAlert === 'function') {
+            showGlobalAlert('Stage updated to ' + ST_LABELS[newStage], 'success');
+          }
+          loadShepherdSouls();
+        } else {
+          alert('Could not update stage.');
+        }
+      };
+      script.src = SCRIPT_URL + '?action=updateSoulStage&soulId=' + encodeURIComponent(soul.SoulID) +
+        '&newStage=' + encodeURIComponent(newStage) +
+        '&updatedBy=' + encodeURIComponent(state.shepherd) +
+        '&callback=' + cb;
+      document.head.appendChild(script);
+    }
+
+    function promoteShepherdSoul(idx) {
+      var soul = _shepherdSoulsData[idx];
+      if (!soul) return;
+
+      var streamName = state.shepherdType === 'mc' ? 'Microchurch' : 'SPS';
+      if (!confirm('Add ' + soul.Name + ' to your official ' + streamName + ' meeting roster now?')) {
+        return;
+      }
+
+      var script = document.createElement('script');
+      var cb = 'onPromote_' + Date.now();
+      window[cb] = function (res) {
+        if (res && res.status === 'success') {
+          soul.PromotedToRoster = true;
+          if (typeof showGlobalAlert === 'function') {
+            showGlobalAlert('🎉 ' + soul.Name + ' added to your official roster!', 'success');
+          }
+          loadShepherdSouls();
+          if (typeof loadShepherdMembers === 'function') {
+            loadShepherdMembers();
+          }
+        } else {
+          alert((res && res.message) || 'Unable to add to roster.');
+        }
+      };
+      script.src = SCRIPT_URL + '?action=promoteSoulToRoster&soulId=' + encodeURIComponent(soul.SoulID) +
+        '&name=' + encodeURIComponent(soul.Name) +
+        '&phone=' + encodeURIComponent(soul.Phone || '') +
+        '&shepherd=' + encodeURIComponent(state.shepherd) +
+        '&stream=' + encodeURIComponent(state.shepherdType || 'sps') +
+        '&promotedBy=' + encodeURIComponent(state.shepherd) +
+        '&callback=' + cb;
+      document.head.appendChild(script);
+    }
+
     function submitNewSoul() {
       var statusEl = document.getElementById('soulTrackerStatus');
       var name = document.getElementById('soulNameInput').value.trim();
+      var stage = document.getElementById('soulStageInput').value || '1';
       if (!name) {
         statusEl.textContent = 'Please enter a name.';
         return;
@@ -7931,6 +8096,7 @@
           name: name,
           phone: document.getElementById('soulPhoneInput').value.trim(),
           notes: document.getElementById('soulNotesInput').value.trim(),
+          stage: stage,
           shepherdType: state.shepherdType,
           shepherdName: state.shepherd
         })
@@ -7939,8 +8105,10 @@
         .then(function (data) {
           submitBtn.disabled = false;
           if (data.status === 'success') {
-            statusEl.textContent = '✅ Saved! Your leader can track their progress from here.';
-            setTimeout(closeSoulTrackerModal, 1500);
+            statusEl.textContent = '✅ Saved! You can track their 4-stage journey under "My Souls".';
+            setTimeout(function () {
+              switchSoulTrackerTab('list');
+            }, 1000);
           } else {
             statusEl.textContent = 'Could not save. Please try again.';
           }
