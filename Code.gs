@@ -70,6 +70,7 @@ function doPost(e) {
     if (action === 'createBaptismCohort')     return createBaptismCohort(data);
     // ── Soul Tracker POST actions ─────────────────────────────────
     if (action === 'addSoul')                 return addSoul(data);
+    if (action === 'deleteSoul')              return deleteSoul(data);
     // ── Shepherd self-service Add/Edit (Know Your Members) ────────
     if (action === 'addMemberSelfService')    return addMemberSelfService(data);
     if (action === 'updateMemberDetails')     return jsonResponse(updateMemberDetails(data));
@@ -189,6 +190,13 @@ function doGet(e) {
       response = deleteShepherd({
         name: e.parameter.name,
         type: e.parameter.type,
+        deletedBy: e.parameter.deletedBy
+      });
+    }
+    else if (action === 'deleteSoul') {
+      response = deleteSoul({
+        soulId: e.parameter.soulId,
+        name: e.parameter.name,
         deletedBy: e.parameter.deletedBy
       });
     }
@@ -1245,6 +1253,36 @@ function updateSoulStage(soulId, newStage, updatedBy) {
   }
 
   return { status: 'success', journeySynced: journeySynced };
+}
+
+// Permanently delete a soul from the SoulTracker sheet (for admin / test cleanup)
+function deleteSoul(data) {
+  data = data || {};
+  var soulId = (data.soulId || '').toString().trim();
+  var name = (data.name || '').toString().trim();
+  var deletedBy = data.deletedBy || data.requestingRole || 'Admin';
+
+  if (!soulId && !name) {
+    return jsonResponse({ status: 'error', message: 'Missing soulId or name' });
+  }
+
+  var headers = ['SoulID', 'Name', 'Phone', 'Notes', 'ShepherdType', 'ShepherdName', 'CurrentStage', 'StageEntryDate', 'DateAdded', 'LastUpdated', 'UpdatedBy'];
+  var sheet = ensureSheet('SoulTracker', headers);
+  var records = getSheetRecords(sheet);
+
+  var target = records.find(function (r) {
+    if (soulId && String(r.SoulID).trim() === soulId) return true;
+    if (name && r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase()) return true;
+    return false;
+  });
+
+  if (!target) {
+    return jsonResponse({ status: 'error', message: 'Soul record not found' });
+  }
+
+  sheet.deleteRow(target._row);
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SOUL_DELETED', deletedBy, 'Deleted soul ' + target.Name + ' (' + target.SoulID + ')');
+  return jsonResponse({ status: 'success', message: 'Soul record deleted successfully', soulId: target.SoulID, name: target.Name });
 }
 
 // ============================================================
