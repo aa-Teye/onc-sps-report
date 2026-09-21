@@ -5769,7 +5769,12 @@
 
         var pending = visible.filter(function (r) { return r.Status === 'Pending'; }).sort(window.compareArrivalsDesc);
         var active  = visible.filter(function (r) { return r.Status === 'Seeker'; }).sort(window.compareArrivalsDesc);
-        var members = visible.filter(function (r) { return r.Status === 'Member'; }).sort(window.compareArrivalsDesc);
+        var members = visible.filter(function (r) {
+          if (r.Status !== 'Member') return false;
+          var src = (r.Source || '').toLowerCase();
+          if (src.includes('bulkimport') || src.includes('roster') || src.includes('reassign')) return false;
+          return true;
+        }).sort(window.compareArrivalsDesc);
 
         statsEl.innerHTML = [
           { label: 'Pending Review', count: pending.length, color: '#fde68a' },
@@ -12439,23 +12444,48 @@
           });
         });
         
+        var addedMembers = {};
+        // 1. First add members from the live database
+        if (Array.isArray(seekersData) && seekersData.length > 0) {
+          seekersData.forEach(function (m) {
+            if (!m.Name) return;
+            var key = m.Name.trim().toLowerCase();
+            if ((m.Status || '').toLowerCase() === 'deleted') return;
+            if (!addedMembers[key]) {
+              addedMembers[key] = true;
+              allMembersList.push({
+                name: m.Name.trim(),
+                phone: m.Phone || '',
+                role: 'member',
+                roleLabel: m.Status || 'Member',
+                shepherd: m.Shepherd || '',
+                location: m.AddressOrHostel || m.Location || m.Zone || '',
+                joinDate: m.ImportDate || '',
+                isLeader: false
+              });
+            }
+          });
+        }
+
+        // 2. Fallback for any member still in memberData not in database yet
         if (typeof memberData !== 'undefined') {
-          Object.entries(memberData).forEach(
-            function(entry) {
-              var memberName = entry[0];
-              var shepName = entry[1];
+          Object.entries(memberData).forEach(function(entry) {
+            var memberName = entry[0].trim();
+            var key = memberName.toLowerCase();
+            if (!addedMembers[key]) {
+              addedMembers[key] = true;
               allMembersList.push({
                 name: memberName,
                 phone: '',
                 role: 'member',
                 roleLabel: 'Member',
-                shepherd: shepName,
+                shepherd: entry[1] || '',
                 location: '',
                 joinDate: '',
                 isLeader: false
               });
             }
-          );
+          });
         }
         
         allGuestReports.forEach(function(g) {

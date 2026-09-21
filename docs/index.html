@@ -3173,6 +3173,25 @@
 
     function mergeDynamicSeekers(shepherdName, isMC, onDone) {
       if (!shepherdName) { if (onDone) onDone(); return; }
+
+      // 1. Instant offline/cached load from previous database sync
+      var cacheKey = 'onc_db_roster_' + shepherdName;
+      try {
+        var cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+        if (cached && Array.isArray(cached.names) && cached.names.length > 0) {
+          if (isMC) {
+            microchurchShepherdData[shepherdName] = cached.names;
+          } else {
+            if (!shepherdData[shepherdName]) shepherdData[shepherdName] = { members: [], pin: '0000' };
+            shepherdData[shepherdName].members = cached.names;
+          }
+          if (cached.statuses) {
+            Object.assign(dynamicMemberStatus, cached.statuses);
+          }
+          if (onDone) onDone();
+        }
+      } catch (e) { }
+
       var done = false;
       var s = document.createElement('script');
       var cbName = 'onShepherdMembers_' + Date.now();
@@ -3183,25 +3202,41 @@
         window[cbName] = null;
 
         var records = (data && data.members) || [];
-        records.forEach(function (r) {
-          if (!r.Name) return;
-          if (r.Status === 'Pending' || r.Status === 'Seeker') {
-            dynamicMemberStatus[r.Name] = r.Status;
-          }
+        if (records.length > 0) {
+          var liveNames = [];
+          var statuses = {};
+          records.forEach(function (r) {
+            if (!r.Name) return;
+            var cleanName = r.Name.trim();
+            if ((r.Status || '').toString().toLowerCase() === 'deleted') return;
+            if (liveNames.indexOf(cleanName) === -1) liveNames.push(cleanName);
+            if (r.Status === 'Pending' || r.Status === 'Seeker') {
+              statuses[cleanName] = r.Status;
+              dynamicMemberStatus[cleanName] = r.Status;
+            } else {
+              delete dynamicMemberStatus[cleanName];
+            }
+          });
+
+          // Set authoritative roster directly from live database
           if (isMC) {
-            var arr = microchurchShepherdData[shepherdName];
-            if (arr && arr.indexOf(r.Name) === -1) arr.push(r.Name);
+            microchurchShepherdData[shepherdName] = liveNames;
           } else {
-            var entry = shepherdData[shepherdName];
-            if (entry && entry.members.indexOf(r.Name) === -1) entry.members.push(r.Name);
+            if (!shepherdData[shepherdName]) shepherdData[shepherdName] = { members: [], pin: '0000' };
+            shepherdData[shepherdName].members = liveNames;
           }
-        });
+
+          // Cache for instant cold start
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify({ names: liveNames, statuses: statuses, time: Date.now() }));
+          } catch (e) { }
+        }
 
         if (document.head.contains(s)) document.head.removeChild(s);
         if (onDone) onDone();
       };
 
-      s.src = SCRIPT_URL + '?action=getShepherdMembers&shepherd=' + encodeURIComponent(shepherdName) + '&callback=' + cbName;
+      s.src = SCRIPT_URL + '?action=getShepherdMembers&shepherd=' + encodeURIComponent(shepherdName) + '&callback=' + cbName + '&_=' + Date.now();
       s.onerror = function () { if (window[cbName]) window[cbName]({}); };
       document.head.appendChild(s);
 
@@ -7271,42 +7306,72 @@
           deletedList = JSON.parse(localStorage.getItem('onc_shep_deleted_' + shepherdName) || '[]');
         } catch (e) { }
 
-        var byNorm = {};
-        baseMembers.forEach(function (m) {
-          byNorm[(m.name || '').toLowerCase().trim()] = m;
-        });
+        if (records && records.length > 0) {
+          var liveList = [];
+          records.forEach(function (r) {
+            if (!r.Name) return;
+            var key = r.Name.toLowerCase().trim();
+            if ((r.Status || '').toString().toLowerCase() === 'deleted' || deletedList.includes(key)) return;
+            liveList.push({
+              name: r.Name.trim(),
+              contact: r.Phone || '',
+              memberId: r.MemberID,
+              status: r.Status || 'Member',
+              dob: r.DOB || '',
+              bornAgain: r.BornAgain || '',
+              inChurch: r.InChurch || '',
+              occupation: r.Occupation || '',
+              gender: r.Gender || '',
+              email: r.Email || '',
+              location: r.Location || '',
+              maritalStatus: r.MaritalStatus || '',
+              workPlace: r.WorkPlace || '',
+              belongsToOvercomers: r.BelongsToOvercomers || '',
+              churchName: r.ChurchName || '',
+              testimony: r.Testimony || '',
+              prayerRequest: r.PrayerRequest || '',
+              comments: r.Comments || ''
+            });
+          });
+          baseMembers = liveList;
+        } else {
+          var byNorm = {};
+          baseMembers.forEach(function (m) {
+            byNorm[(m.name || '').toLowerCase().trim()] = m;
+          });
 
-        records.forEach(function (r) {
-          if (!r.Name || r.Shepherd !== shepherdName) return;
-          var key = r.Name.toLowerCase().trim();
-          var existing = byNorm[key];
+          records.forEach(function (r) {
+            if (!r.Name || r.Shepherd !== shepherdName) return;
+            var key = r.Name.toLowerCase().trim();
+            var existing = byNorm[key];
 
-          if ((r.Status || '').toString().toLowerCase() === 'deleted' || deletedList.includes(key)) {
-            if (existing) {
-              var idx = baseMembers.indexOf(existing);
-              if (idx > -1) baseMembers.splice(idx, 1);
+            if ((r.Status || '').toString().toLowerCase() === 'deleted' || deletedList.includes(key)) {
+              if (existing) {
+                var idx = baseMembers.indexOf(existing);
+                if (idx > -1) baseMembers.splice(idx, 1);
+              }
+              return;
             }
-            return;
-          }
 
-          var extra = {
-            memberId: r.MemberID, status: r.Status,
-            dob: r.DOB || '', bornAgain: r.BornAgain || '',
-            inChurch: r.InChurch || '', occupation: r.Occupation || '',
-            gender: r.Gender || '', email: r.Email || '', location: r.Location || '',
-            maritalStatus: r.MaritalStatus || '', workPlace: r.WorkPlace || '',
-            belongsToOvercomers: r.BelongsToOvercomers || '', churchName: r.ChurchName || '',
-            testimony: r.Testimony || '', prayerRequest: r.PrayerRequest || '', comments: r.Comments || ''
-          };
-          if (existing) {
-            existing.contact = existing.contact || r.Phone || '';
-            Object.assign(existing, extra);
-          } else {
-            var fresh = Object.assign({ name: r.Name, contact: r.Phone || '' }, extra);
-            baseMembers.push(fresh);
-            byNorm[key] = fresh;
-          }
-        });
+            var extra = {
+              memberId: r.MemberID, status: r.Status,
+              dob: r.DOB || '', bornAgain: r.BornAgain || '',
+              inChurch: r.InChurch || '', occupation: r.Occupation || '',
+              gender: r.Gender || '', email: r.Email || '', location: r.Location || '',
+              maritalStatus: r.MaritalStatus || '', workPlace: r.WorkPlace || '',
+              belongsToOvercomers: r.BelongsToOvercomers || '', churchName: r.ChurchName || '',
+              testimony: r.Testimony || '', prayerRequest: r.PrayerRequest || '', comments: r.Comments || ''
+            };
+            if (existing) {
+              existing.contact = existing.contact || r.Phone || '';
+              Object.assign(existing, extra);
+            } else {
+              var fresh = Object.assign({ name: r.Name, contact: r.Phone || '' }, extra);
+              baseMembers.push(fresh);
+              byNorm[key] = fresh;
+            }
+          });
+        }
 
         kymMembersCache = baseMembers;
         kymRenderList(baseMembers);

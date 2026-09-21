@@ -2854,8 +2854,8 @@ function reassignMember(memberId, newShepherd, newZone, reassignedBy, memberName
     var newRow = sheet.getLastRow() + 1;
     sheet.getRange(newRow, 3).setNumberFormat('@');
     sheet.getRange(newRow, 7).setNumberFormat('@');
-    sheet.getRange(newRow, 1, 1, 8).setValues([[
-      newId, memberName, '', newShepherd, newZone || '', stream || 'sps', formatDate(now), 'Member'
+    sheet.getRange(newRow, 1, 1, 9).setValues([[
+      newId, memberName, '', newShepherd, newZone || '', stream || 'sps', formatDate(now), 'Member', 'Reassignment'
     ]]);
     logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_REASSIGNED', reassignedBy || 'Admin',
       memberName + ' (Roster): -> ' + newShepherd + (newZone ? ' (' + newZone + ')' : ''));
