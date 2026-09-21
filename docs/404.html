@@ -9,6 +9,44 @@
   <link rel="shortcut icon" href="./logo.png" type="image/png">
   <link rel="apple-touch-icon" href="./logo.png">
   <link rel="manifest" href="./manifest.json">
+  <!-- HTTP Cache Invalidation -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- Automated Cache Blast Engine -->
+  <script>
+    (function () {
+      var CURRENT_BUILD = 'onc-sps-v88';
+      try {
+        var stored = localStorage.getItem('onc_app_build_version');
+        if (stored && stored !== CURRENT_BUILD) {
+          // Purge all browser caches
+          if ('caches' in window) {
+            caches.keys().then(function (names) {
+              names.forEach(function (name) { caches.delete(name); });
+            });
+          }
+          // Unregister existing service workers to force immediate fresh install
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              regs.forEach(function (r) { r.unregister(); });
+            });
+          }
+          // Clear stale roster caches so names re-fetch fresh from DB
+          Object.keys(localStorage).forEach(function (k) {
+            if (k.startsWith('onc_db_roster_')) {
+              localStorage.removeItem(k);
+            }
+          });
+          localStorage.setItem('onc_app_build_version', CURRENT_BUILD);
+          window.location.reload(true);
+        } else if (!stored) {
+          localStorage.setItem('onc_app_build_version', CURRENT_BUILD);
+        }
+      } catch (e) {}
+    })();
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -2786,34 +2824,54 @@
   <div id="soulTrackerModal"
     style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.8);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);">
     <div
-      style="background:#fff;border-radius:24px;width:100%;max-width:420px;padding:24px;text-align:left;position:relative;">
+      style="background:#fff;border-radius:24px;width:100%;max-width:440px;padding:24px;text-align:left;position:relative;max-height:90vh;overflow-y:auto;">
       <button onclick="closeSoulTrackerModal()"
         style="position:absolute;top:16px;right:16px;background:rgba(15,32,68,.08);border:none;color:var(--navy);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;">✕</button>
       <h3 style="font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);margin:0 0 8px;">🤝
         Soul Tracker</h3>
-      <p style="font-size:13px;color:var(--gray);margin:0 0 16px;line-height:1.6;">Log someone a member is reaching out
-        to — you can update their progress with your leader over time.</p>
+      <p style="font-size:13px;color:var(--gray);margin:0 0 16px;line-height:1.5;">Log souls from evangelism and track their journey through 4 key milestones. They will NOT be part of your meeting roster unless explicitly added.</p>
 
-      <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Name *</label>
-      <input id="soulNameInput" type="text" placeholder="Full name"
-        style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button type="button" id="stTabAddBtn" onclick="switchSoulTrackerTab('add')"
+          style="flex:1;padding:8px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;border:none;background:var(--navy);color:white;">➕ Log Soul</button>
+        <button type="button" id="stTabListBtn" onclick="switchSoulTrackerTab('list')"
+          style="flex:1;padding:8px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;border:1px solid var(--border);background:#f8fafc;color:var(--navy);">📋 My Souls</button>
+      </div>
 
-      <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Phone
-        (optional)</label>
-      <input id="soulPhoneInput" type="tel" placeholder="Phone number"
-        style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:14px;">
+      <div id="stAddPane">
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Full Name *</label>
+        <input id="soulNameInput" type="text" placeholder="Full name"
+          style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:12px;">
 
-      <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Notes
-        (optional)</label>
-      <textarea id="soulNotesInput" rows="3" placeholder="How you know them, when you plan to reach out, etc."
-        style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:16px;font-family:inherit;resize:vertical;"></textarea>
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Phone (optional)</label>
+        <input id="soulPhoneInput" type="tel" placeholder="Phone number"
+          style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:12px;">
 
-      <button id="soulSubmitBtn" onclick="submitNewSoul()"
-        style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--navy);color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;">
-        Save Soul
-      </button>
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Initial Progress Stage</label>
+        <select id="soulStageInput"
+          style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:12px;background:#f8fafc;">
+          <option value="1">1. New Soul</option>
+          <option value="2">2. Converted</option>
+          <option value="3">3. Foundation School</option>
+          <option value="4">4. Member Now</option>
+        </select>
 
-      <p id="soulTrackerStatus" style="font-size:12px;color:var(--gray);margin:12px 0 0;"></p>
+        <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;">Notes (optional)</label>
+        <textarea id="soulNotesInput" rows="2" placeholder="Where you met, prayer needs, etc."
+          style="width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:16px;font-family:inherit;resize:vertical;"></textarea>
+
+        <button id="soulSubmitBtn" onclick="submitNewSoul()"
+          style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--navy);color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;">
+          Save Soul Record
+        </button>
+        <p id="soulTrackerStatus" style="font-size:12px;color:var(--gray);margin:12px 0 0;"></p>
+      </div>
+
+      <div id="stListPane" style="display:none;">
+        <div id="stLoggedSoulsList" style="display:flex;flex-direction:column;gap:10px;max-height:300px;overflow-y:auto;padding-right:4px;">
+          <div style="text-align:center;padding:20px;color:var(--gray);font-size:13px;">Loading souls...</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2906,6 +2964,10 @@
           style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--navy);color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;">
           Save
         </button>
+        <button id="kymDeletePersonBtn" onclick="kymDeleteFromModal()" type="button"
+          style="display:none;width:100%;margin-top:8px;padding:12px;border:1px solid #fee2e2;border-radius:12px;background:#fef2f2;color:#ef4444;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;">
+          🗑️ Delete Person from Sheepfold
+        </button>
         <p id="kymModalStatus" style="font-size:12px;color:var(--gray);margin:12px 0 0;"></p>
       </div>
     </div>
@@ -2914,7 +2976,7 @@
   <script>
     // Register service worker for PWA offline support
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then(function (reg) {
+      navigator.serviceWorker.register('./sw.js?v=88').then(function (reg) {
         if (reg) reg.update();
       }).catch(function () { });
 
@@ -2940,6 +3002,50 @@
   </script>
 
   <script>
+    // ── GLOBAL DATE FORMATTER & PARSER (STRICT DAY / MONTH / YEAR) ──
+    window.parseDayMonthYearDate = function (val) {
+      if (!val) return null;
+      if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+      if (typeof val === 'number') return new Date(val);
+      var str = String(val).trim();
+      if (!str || str === '—' || str === 'N/A') return null;
+
+      if (str.includes('T')) {
+        var datePart = str.split('T')[0];
+        var p = datePart.split('-');
+        if (p.length === 3) return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+      }
+      if (str.includes('/')) {
+        var p = str.split('/');
+        if (p.length === 3) {
+          var a = parseInt(p[0], 10), b = parseInt(p[1], 10), c = parseInt(p[2], 10);
+          if (c > 1000) return new Date(c, b - 1, a); // DD/MM/YYYY
+          if (a > 1000) return new Date(a, b - 1, c); // YYYY/MM/DD
+          return new Date(c + 2000, b - 1, a);
+        }
+      }
+      if (str.includes('-')) {
+        var p = str.split('-');
+        if (p.length === 3) {
+          var a = parseInt(p[0], 10), b = parseInt(p[1], 10), c = parseInt(p[2], 10);
+          if (a > 1000) return new Date(a, b - 1, c); // YYYY-MM-DD
+          if (c > 1000) return new Date(c, b - 1, a); // DD-MM-YYYY
+        }
+      }
+      var d = new Date(str);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    window.formatDayMonthYear = function (val) {
+      if (!val || val === '—') return '';
+      var d = window.parseDayMonthYearDate(val);
+      if (!d) return String(val);
+      var day = String(d.getDate()).padStart(2, '0');
+      var month = String(d.getMonth() + 1).padStart(2, '0');
+      var year = d.getFullYear();
+      return day + '/' + month + '/' + year;
+    };
+
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzl5Nd0kLD08Q7vowaTEHG2hjybQRlctfx97xOfB07N9e8VKUKXMQ-wCfFz5ztrmADF/exec';
     const CLOUDINARY_CLOUD_NAME = 'dhyzvuh42';
     const CLOUDINARY_UPLOAD_PRESET = 'ONC SPS';
@@ -3105,6 +3211,25 @@
 
     function mergeDynamicSeekers(shepherdName, isMC, onDone) {
       if (!shepherdName) { if (onDone) onDone(); return; }
+
+      // 1. Instant offline/cached load from previous database sync
+      var cacheKey = 'onc_db_roster_' + shepherdName;
+      try {
+        var cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+        if (cached && Array.isArray(cached.names) && cached.names.length > 0) {
+          if (isMC) {
+            microchurchShepherdData[shepherdName] = cached.names;
+          } else {
+            if (!shepherdData[shepherdName]) shepherdData[shepherdName] = { members: [], pin: '0000' };
+            shepherdData[shepherdName].members = cached.names;
+          }
+          if (cached.statuses) {
+            Object.assign(dynamicMemberStatus, cached.statuses);
+          }
+          if (onDone) onDone();
+        }
+      } catch (e) { }
+
       var done = false;
       var s = document.createElement('script');
       var cbName = 'onShepherdMembers_' + Date.now();
@@ -3115,25 +3240,41 @@
         window[cbName] = null;
 
         var records = (data && data.members) || [];
-        records.forEach(function (r) {
-          if (!r.Name) return;
-          if (r.Status === 'Pending' || r.Status === 'Seeker') {
-            dynamicMemberStatus[r.Name] = r.Status;
-          }
+        if (records.length > 0) {
+          var liveNames = [];
+          var statuses = {};
+          records.forEach(function (r) {
+            if (!r.Name) return;
+            var cleanName = r.Name.trim();
+            if ((r.Status || '').toString().toLowerCase() === 'deleted') return;
+            if (liveNames.indexOf(cleanName) === -1) liveNames.push(cleanName);
+            if (r.Status === 'Pending' || r.Status === 'Seeker') {
+              statuses[cleanName] = r.Status;
+              dynamicMemberStatus[cleanName] = r.Status;
+            } else {
+              delete dynamicMemberStatus[cleanName];
+            }
+          });
+
+          // Set authoritative roster directly from live database
           if (isMC) {
-            var arr = microchurchShepherdData[shepherdName];
-            if (arr && arr.indexOf(r.Name) === -1) arr.push(r.Name);
+            microchurchShepherdData[shepherdName] = liveNames;
           } else {
-            var entry = shepherdData[shepherdName];
-            if (entry && entry.members.indexOf(r.Name) === -1) entry.members.push(r.Name);
+            if (!shepherdData[shepherdName]) shepherdData[shepherdName] = { members: [], pin: '0000' };
+            shepherdData[shepherdName].members = liveNames;
           }
-        });
+
+          // Cache for instant cold start
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify({ names: liveNames, statuses: statuses, time: Date.now() }));
+          } catch (e) { }
+        }
 
         if (document.head.contains(s)) document.head.removeChild(s);
         if (onDone) onDone();
       };
 
-      s.src = SCRIPT_URL + '?action=getShepherdMembers&shepherd=' + encodeURIComponent(shepherdName) + '&callback=' + cbName;
+      s.src = SCRIPT_URL + '?action=getShepherdMembers&shepherd=' + encodeURIComponent(shepherdName) + '&callback=' + cbName + '&_=' + Date.now();
       s.onerror = function () { if (window[cbName]) window[cbName]({}); };
       document.head.appendChild(s);
 
@@ -6995,10 +7136,17 @@
         members = rawMembers;
       }
 
+      var deletedList = [];
+      try {
+        deletedList = JSON.parse(localStorage.getItem('onc_shep_deleted_' + (state.shepherd || '')) || '[]');
+      } catch (e) { }
+
       return members.map(function (m) {
         return typeof m === 'string' ?
           { name: m, contact: '' } :
           { name: m.name || '', contact: m.contact || m.phone || '' };
+      }).filter(function (m) {
+        return !deletedList.includes((m.name || '').trim().toLowerCase());
       });
     }
 
@@ -7028,11 +7176,15 @@
         var waNumber = phone.replace(/^0/, '233');
         var hasPhone = phone &&
           phone.trim() !== '';
-        var editBtn = m.memberId ?
-          '<button onclick="kymOpenEditModal(\'' + m.memberId + '\')" ' +
-          'style="background:#f0f5ff;border:none;color:var(--navy);' +
-          'width:36px;height:36px;border-radius:10px;font-size:15px;' +
-          'cursor:pointer;flex-shrink:0;">✏️</button>' : '';
+        var editBtn =
+          '<button onclick="kymOpenEditModal(\'' + (m.memberId || '') + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')" ' +
+          'style="background:#f0f5ff;border:1px solid #dbeafe;color:var(--navy);' +
+          'width:30px;height:30px;border-radius:8px;font-size:13px;' +
+          'cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;" title="Edit">✏️</button>';
+        var deleteBtn = '<button onclick="kymDeleteMemberAction(\'' + (m.memberId || '') + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')" ' +
+          'style="background:#fef2f2;border:1px solid #fee2e2;color:#ef4444;' +
+          'width:30px;height:30px;border-radius:8px;font-size:13px;' +
+          'cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;" title="Delete">🗑️</button>';
         var statusBadge = m.status === 'Seeker' ?
           '<span style="font-size:10px;font-weight:800;padding:2px 8px;' +
           'border-radius:999px;background:#fef3c7;color:#92400e;' +
@@ -7086,7 +7238,9 @@
           (hasPhone ? '📞 ' + phone :
             '📞 No number yet') +
           '</div>' +
-          '</div>' + editBtn + '</div>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:6px;">' + editBtn + deleteBtn + '</div>' +
+          '</div>' +
 
           (hasPhone ?
             '<div style="display:flex;gap:8px;">' +
@@ -7185,33 +7339,77 @@
       if (!shepherdName) return;
 
       function applyRecords(records) {
-        var byNorm = {};
-        baseMembers.forEach(function (m) {
-          byNorm[(m.name || '').toLowerCase().trim()] = m;
-        });
+        var deletedList = [];
+        try {
+          deletedList = JSON.parse(localStorage.getItem('onc_shep_deleted_' + shepherdName) || '[]');
+        } catch (e) { }
 
-        records.forEach(function (r) {
-          if (!r.Name || r.Shepherd !== shepherdName) return;
-          var key = r.Name.toLowerCase().trim();
-          var existing = byNorm[key];
-          var extra = {
-            memberId: r.MemberID, status: r.Status,
-            dob: r.DOB || '', bornAgain: r.BornAgain || '',
-            inChurch: r.InChurch || '', occupation: r.Occupation || '',
-            gender: r.Gender || '', email: r.Email || '', location: r.Location || '',
-            maritalStatus: r.MaritalStatus || '', workPlace: r.WorkPlace || '',
-            belongsToOvercomers: r.BelongsToOvercomers || '', churchName: r.ChurchName || '',
-            testimony: r.Testimony || '', prayerRequest: r.PrayerRequest || '', comments: r.Comments || ''
-          };
-          if (existing) {
-            existing.contact = existing.contact || r.Phone || '';
-            Object.assign(existing, extra);
-          } else {
-            var fresh = Object.assign({ name: r.Name, contact: r.Phone || '' }, extra);
-            baseMembers.push(fresh);
-            byNorm[key] = fresh;
-          }
-        });
+        if (records && records.length > 0) {
+          var liveList = [];
+          records.forEach(function (r) {
+            if (!r.Name) return;
+            var key = r.Name.toLowerCase().trim();
+            if ((r.Status || '').toString().toLowerCase() === 'deleted' || deletedList.includes(key)) return;
+            liveList.push({
+              name: r.Name.trim(),
+              contact: r.Phone || '',
+              memberId: r.MemberID,
+              status: r.Status || 'Member',
+              dob: r.DOB || '',
+              bornAgain: r.BornAgain || '',
+              inChurch: r.InChurch || '',
+              occupation: r.Occupation || '',
+              gender: r.Gender || '',
+              email: r.Email || '',
+              location: r.Location || '',
+              maritalStatus: r.MaritalStatus || '',
+              workPlace: r.WorkPlace || '',
+              belongsToOvercomers: r.BelongsToOvercomers || '',
+              churchName: r.ChurchName || '',
+              testimony: r.Testimony || '',
+              prayerRequest: r.PrayerRequest || '',
+              comments: r.Comments || ''
+            });
+          });
+          baseMembers = liveList;
+        } else {
+          var byNorm = {};
+          baseMembers.forEach(function (m) {
+            byNorm[(m.name || '').toLowerCase().trim()] = m;
+          });
+
+          records.forEach(function (r) {
+            if (!r.Name || r.Shepherd !== shepherdName) return;
+            var key = r.Name.toLowerCase().trim();
+            var existing = byNorm[key];
+
+            if ((r.Status || '').toString().toLowerCase() === 'deleted' || deletedList.includes(key)) {
+              if (existing) {
+                var idx = baseMembers.indexOf(existing);
+                if (idx > -1) baseMembers.splice(idx, 1);
+              }
+              return;
+            }
+
+            var extra = {
+              memberId: r.MemberID, status: r.Status,
+              dob: r.DOB || '', bornAgain: r.BornAgain || '',
+              inChurch: r.InChurch || '', occupation: r.Occupation || '',
+              gender: r.Gender || '', email: r.Email || '', location: r.Location || '',
+              maritalStatus: r.MaritalStatus || '', workPlace: r.WorkPlace || '',
+              belongsToOvercomers: r.BelongsToOvercomers || '', churchName: r.ChurchName || '',
+              testimony: r.Testimony || '', prayerRequest: r.PrayerRequest || '', comments: r.Comments || ''
+            };
+            if (existing) {
+              existing.contact = existing.contact || r.Phone || '';
+              Object.assign(existing, extra);
+            } else {
+              var fresh = Object.assign({ name: r.Name, contact: r.Phone || '' }, extra);
+              baseMembers.push(fresh);
+              byNorm[key] = fresh;
+            }
+          });
+        }
 
         kymMembersCache = baseMembers;
         kymRenderList(baseMembers);
@@ -7284,6 +7482,8 @@
       document.getElementById('kymModalTitle').textContent = 'Add a Person';
       document.getElementById('kymTypeStep').style.display = 'block';
       document.getElementById('kymDetailStep').style.display = 'none';
+      var delBtn = document.getElementById('kymDeletePersonBtn');
+      if (delBtn) delBtn.style.display = 'none';
       document.getElementById('kymPersonModal').style.display = 'flex';
     }
 
@@ -7292,6 +7492,8 @@
       document.getElementById('kymModalTitle').textContent = 'Add a ' + type;
       document.getElementById('kymTypeStep').style.display = 'none';
       document.getElementById('kymDetailStep').style.display = 'block';
+      var delBtn = document.getElementById('kymDeletePersonBtn');
+      if (delBtn) delBtn.style.display = 'none';
     }
 
     var KYM_OCCUPATIONS = ['Student', 'Employed', 'Self-Employed', 'Unemployed', 'Retired'];
@@ -7316,18 +7518,25 @@
       return (d && m && y) ? (d + '/' + m + '/' + y) : '';
     }
 
-    function kymOpenEditModal(memberId) {
-      var m = kymMembersCache.find(function (x) { return x.memberId === memberId; });
+    function kymOpenEditModal(memberId, memberName) {
+      var m = kymMembersCache.find(function (x) {
+        if (memberId && x.memberId && String(x.memberId) === String(memberId)) return true;
+        if (memberName && x.name && x.name.trim().toLowerCase() === memberName.trim().toLowerCase()) return true;
+        return false;
+      });
       if (!m) return;
 
       kymModalMode = 'edit';
-      kymModalMemberId = memberId;
+      kymModalMemberId = m.memberId || '';
       kymModalPersonType = m.status || 'Member';
       kymResetModalFields();
 
-      document.getElementById('kymModalTitle').textContent = 'Edit ' + m.name;
+      document.getElementById('kymModalTitle').textContent = 'Edit ' + m.name + (m.status === 'Seeker' ? ' (Seeker)' : '');
       document.getElementById('kymTypeStep').style.display = 'none';
       document.getElementById('kymDetailStep').style.display = 'block';
+
+      var delBtn = document.getElementById('kymDeletePersonBtn');
+      if (delBtn) delBtn.style.display = 'block';
 
       document.getElementById('kymNameInput').value = m.name || '';
       document.getElementById('kymNameInput').disabled = false;
@@ -7378,7 +7587,7 @@
     // succeeded from the browser's point of view even when the backend
     // rejected it, so nothing is shown as saved until an independent GET
     // confirms it actually landed.
-    function kymVerifyMemberId(memberId) {
+    function kymVerifyMemberId(memberId, name) {
       return new Promise(function (resolve) {
         var cbName = 'onKymAddCheck_' + Date.now();
         var done = false;
@@ -7398,7 +7607,10 @@
         };
 
         var s = document.createElement('script');
-        s.src = SCRIPT_URL + '?action=checkFellowshipMember&memberId=' + encodeURIComponent(memberId) + '&callback=' + cbName + '&_=' + Date.now();
+        s.src = SCRIPT_URL + '?action=checkFellowshipMember&memberId=' + encodeURIComponent(memberId) +
+          '&name=' + encodeURIComponent(name || '') +
+          '&shepherd=' + encodeURIComponent(state.shepherd || '') +
+          '&callback=' + cbName + '&_=' + Date.now();
         document.body.appendChild(s);
       });
     }
@@ -7487,13 +7699,25 @@
         var confirmed = false;
         for (var attempt = 0; attempt < 3 && !confirmed; attempt++) {
           if (attempt > 0) await new Promise(function (r) { setTimeout(r, 1200); });
-          confirmed = await kymVerifyMemberId(clientId);
+          confirmed = await kymVerifyMemberId(clientId, name);
         }
 
         if (confirmed) {
           kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
+          try {
+            localStorage.removeItem('onc_db_roster_' + state.shepherd);
+          } catch (e) { }
+          if (state.shepherd) {
+            mergeDynamicSeekers(state.shepherd, (state.shepherdType === 'mc' || state.shepherdType === 'microchurch'), function () {
+              if (typeof buildMemberCards === 'function') buildMemberCards();
+              if (typeof buildMCMemberCards === 'function') buildMCMemberCards();
+            });
+          }
           kymCloseModal();
           showKnowYourMembers();
+          if (typeof showGlobalAlert === 'function') {
+            showGlobalAlert('✅ ' + name + ' added successfully!', 'success');
+          }
         } else {
           statusEl.style.color = '#ef4444';
           statusEl.textContent = 'We could not confirm this was saved. Check your connection and press Save again.';
@@ -7533,6 +7757,122 @@
 
       btn.disabled = false;
       btn.textContent = 'Save';
+    }
+
+    function kymDeleteFromModal() {
+      var name = document.getElementById('kymNameInput').value.trim();
+      if (!name) return;
+      var memberId = kymModalMemberId || '';
+      var msg = '⚠️ Are you sure you want to permanently delete ' + name + ' from your sheepfold?\n\nThis action CANNOT be reversed!';
+      if (!confirm(msg)) {
+        return;
+      }
+      kymCloseModal();
+      kymDeleteMemberAction(memberId, name, true);
+    }
+
+    // ── DELETE MEMBER ACTION (SHEPHERD SELF-SERVICE) ─────────────
+    function kymDeleteMemberAction(memberId, name, skipConfirm) {
+      if (!name) return;
+      if (!skipConfirm) {
+        var msg = '⚠️ Are you sure you want to permanently delete ' + name + ' from your sheepfold?\n\nThis action CANNOT be reversed!';
+        if (!confirm(msg)) {
+          return;
+        }
+      }
+
+      var shepherd = state.shepherd || '';
+      showToast('Deleting ' + name + '...');
+
+      var cbName = 'onKymDel_' + Date.now();
+      var s = document.createElement('script');
+      var done = false;
+
+      window[cbName] = function (resp) {
+        if (done) return;
+        done = true;
+        window[cbName] = null;
+        if (document.head.contains(s)) document.head.removeChild(s);
+
+        if (resp && resp.status === 'success') {
+          kymRemoveMemberLocally(name);
+          showToast('✅ ' + name + ' removed from sheepfold');
+        } else {
+          alert((resp && resp.message) || 'Failed to delete member. Please try again.');
+        }
+      };
+
+      s.src = SCRIPT_URL + '?action=deleteMemberRecord' +
+        '&memberId=' + encodeURIComponent(memberId || '') +
+        '&name=' + encodeURIComponent(name) +
+        '&shepherd=' + encodeURIComponent(shepherd) +
+        '&deletedBy=' + encodeURIComponent(shepherd + ' (Shepherd)') +
+        '&callback=' + cbName;
+
+      s.onerror = function () {
+        if (done) return;
+        done = true;
+        window[cbName] = null;
+        if (document.head.contains(s)) document.head.removeChild(s);
+        alert('Network error while deleting member. Please check your connection.');
+      };
+
+      document.head.appendChild(s);
+      setTimeout(function () {
+        if (!done && window[cbName]) {
+          done = true;
+          window[cbName] = null;
+        }
+      }, 10000);
+    }
+
+    function kymRemoveMemberLocally(name) {
+      var shepherd = state.shepherd || '';
+      var norm = (name || '').trim().toLowerCase();
+
+      // 1. Save in shepherd-specific deleted members list in localStorage
+      try {
+        var key = 'onc_shep_deleted_' + shepherd;
+        var list = JSON.parse(localStorage.getItem(key) || '[]');
+        if (!list.includes(norm)) {
+          list.push(norm);
+          localStorage.setItem(key, JSON.stringify(list));
+        }
+      } catch (e) { }
+
+      // 2. Remove from static shepherdData
+      if (typeof shepherdData !== 'undefined' && shepherdData[shepherd] && shepherdData[shepherd].members) {
+        shepherdData[shepherd].members = shepherdData[shepherd].members.filter(function (x) {
+          var xName = typeof x === 'string' ? x : (x.name || '');
+          return xName.trim().toLowerCase() !== norm;
+        });
+      }
+
+      // 3. Remove from memberData
+      if (typeof memberData !== 'undefined') {
+        delete memberData[name];
+        Object.keys(memberData).forEach(function (k) {
+          if (k.trim().toLowerCase() === norm) delete memberData[k];
+        });
+      }
+
+      // 4. Remove from kymRawRecordsCache
+      if (kymRawRecordsCache && kymRawRecordsCache.records) {
+        kymRawRecordsCache.records = kymRawRecordsCache.records.filter(function (r) {
+          return (r.Name || '').trim().toLowerCase() !== norm;
+        });
+      }
+
+      // 5. Invalidate cached records
+      kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
+
+      // 6. Re-render Know Your Members
+      renderKnowYourMembers();
+
+      // 7. Refresh attendance checklist
+      if (typeof updateAttendanceChecklist === 'function') {
+        updateAttendanceChecklist();
+      }
     }
 
     // ── PWA: Install App modal ──────────────────────────────────
@@ -7717,7 +8057,9 @@
       if (modal) modal.style.display = 'none';
     }
 
-    // ── Soul Tracker: log a new prospect any time ────────────────
+    // ── Soul Tracker: 4-stage prospect & progress management ────────
+    var _shepherdSoulsData = [];
+
     function openSoulTrackerModal() {
       if (!state.shepherd) {
         showGlobalAlert('Please log in first', 'error');
@@ -7726,7 +8068,9 @@
       document.getElementById('soulNameInput').value = '';
       document.getElementById('soulPhoneInput').value = '';
       document.getElementById('soulNotesInput').value = '';
+      document.getElementById('soulStageInput').value = '1';
       document.getElementById('soulTrackerStatus').textContent = '';
+      switchSoulTrackerTab('add');
       var modal = document.getElementById('soulTrackerModal');
       if (modal) modal.style.display = 'flex';
     }
@@ -7736,9 +8080,150 @@
       if (modal) modal.style.display = 'none';
     }
 
+    function switchSoulTrackerTab(tab) {
+      var addBtn = document.getElementById('stTabAddBtn');
+      var listBtn = document.getElementById('stTabListBtn');
+      var addPane = document.getElementById('stAddPane');
+      var listPane = document.getElementById('stListPane');
+
+      if (tab === 'add') {
+        addBtn.style.background = 'var(--navy)';
+        addBtn.style.color = 'white';
+        listBtn.style.background = '#f8fafc';
+        listBtn.style.color = 'var(--navy)';
+        addPane.style.display = 'block';
+        listPane.style.display = 'none';
+      } else {
+        listBtn.style.background = 'var(--navy)';
+        listBtn.style.color = 'white';
+        addBtn.style.background = '#f8fafc';
+        addBtn.style.color = 'var(--navy)';
+        addPane.style.display = 'none';
+        listPane.style.display = 'block';
+        loadShepherdSouls();
+      }
+    }
+
+    function loadShepherdSouls() {
+      var container = document.getElementById('stLoggedSoulsList');
+      if (!container) return;
+      container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);font-size:13px;">Loading souls...</div>';
+
+      var cbName = 'onShepherdSouls_' + Date.now();
+      window[cbName] = function (data) {
+        var all = (data && data.records) || [];
+        _shepherdSoulsData = all.filter(function (r) {
+          return r.ShepherdName === state.shepherd;
+        });
+
+        if (!_shepherdSoulsData.length) {
+          container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--gray);font-size:13px;">No souls logged yet under your name.</div>';
+          return;
+        }
+
+        var ST_LABELS = { 1: 'New Soul', 2: 'Converted', 3: 'Foundation School', 4: 'Member Now' };
+
+        container.innerHTML = _shepherdSoulsData.map(function (s, idx) {
+          var stageNum = parseInt(s.CurrentStage, 10) || 1;
+          var isPromoted = s.PromotedToRoster === true || s.PromotedToRoster === 'TRUE';
+          var addRosterBtn = isPromoted
+            ? '<span style="font-size:11px;font-weight:700;color:#16a34a;background:#dcfce7;padding:4px 8px;border-radius:6px;">✅ On Roster</span>'
+            : '<button onclick="promoteShepherdSoul(' + idx + ')" style="padding:6px 10px;background:#006B3F;color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">➕ Add to My Roster</button>';
+
+          return '<div style="border:1px solid var(--border);border-radius:12px;padding:12px;background:#f8fafc;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">' +
+            '<div>' +
+            '<div style="font-weight:800;font-size:14px;color:var(--navy);">' + (s.Name || 'Soul') + '</div>' +
+            '<div style="font-size:12px;color:var(--gray);">' + (s.Phone ? ('📞 ' + s.Phone) : 'No phone') + '</div>' +
+            '</div>' +
+            '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#e0f2fe;color:#0369a1;">' + (ST_LABELS[stageNum] || ('Stage ' + stageNum)) + '</span>' +
+            '</div>' +
+            (s.Notes ? '<div style="font-size:12px;color:#475569;margin-bottom:8px;font-style:italic;">"' + s.Notes + '"</div>' : '') +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">' +
+            '<select onchange="updateShepherdSoulStage(' + idx + ', this.value)" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--navy);">' +
+            '<option value="1"' + (stageNum === 1 ? ' selected' : '') + '>1. New Soul</option>' +
+            '<option value="2"' + (stageNum === 2 ? ' selected' : '') + '>2. Converted</option>' +
+            '<option value="3"' + (stageNum === 3 ? ' selected' : '') + '>3. Foundation School</option>' +
+            '<option value="4"' + (stageNum === 4 ? ' selected' : '') + '>4. Member Now</option>' +
+            '</select>' +
+            addRosterBtn +
+            '</div>' +
+            '</div>';
+        }).join('');
+      };
+
+      var script = document.createElement('script');
+      script.src = SCRIPT_URL + '?action=getSoulTracker&callback=' + cbName;
+      script.onerror = function () {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:red;font-size:13px;">Error loading souls.</div>';
+      };
+      document.head.appendChild(script);
+    }
+
+    function updateShepherdSoulStage(idx, newStage) {
+      var soul = _shepherdSoulsData[idx];
+      if (!soul) return;
+      var ST_LABELS = { 1: 'New Soul', 2: 'Converted', 3: 'Foundation School', 4: 'Member Now' };
+
+      var script = document.createElement('script');
+      var cb = 'onUpStage_' + Date.now();
+      window[cb] = function (res) {
+        if (res && res.status === 'success') {
+          soul.CurrentStage = newStage;
+          if (typeof showGlobalAlert === 'function') {
+            showGlobalAlert('Stage updated to ' + ST_LABELS[newStage], 'success');
+          }
+          loadShepherdSouls();
+        } else {
+          alert('Could not update stage.');
+        }
+      };
+      script.src = SCRIPT_URL + '?action=updateSoulStage&soulId=' + encodeURIComponent(soul.SoulID) +
+        '&newStage=' + encodeURIComponent(newStage) +
+        '&updatedBy=' + encodeURIComponent(state.shepherd) +
+        '&callback=' + cb;
+      document.head.appendChild(script);
+    }
+
+    function promoteShepherdSoul(idx) {
+      var soul = _shepherdSoulsData[idx];
+      if (!soul) return;
+
+      var streamName = state.shepherdType === 'mc' ? 'Microchurch' : 'SPS';
+      if (!confirm('Add ' + soul.Name + ' to your official ' + streamName + ' meeting roster now?')) {
+        return;
+      }
+
+      var script = document.createElement('script');
+      var cb = 'onPromote_' + Date.now();
+      window[cb] = function (res) {
+        if (res && res.status === 'success') {
+          soul.PromotedToRoster = true;
+          if (typeof showGlobalAlert === 'function') {
+            showGlobalAlert('🎉 ' + soul.Name + ' added to your official roster!', 'success');
+          }
+          loadShepherdSouls();
+          if (typeof loadShepherdMembers === 'function') {
+            loadShepherdMembers();
+          }
+        } else {
+          alert((res && res.message) || 'Unable to add to roster.');
+        }
+      };
+      script.src = SCRIPT_URL + '?action=promoteSoulToRoster&soulId=' + encodeURIComponent(soul.SoulID) +
+        '&name=' + encodeURIComponent(soul.Name) +
+        '&phone=' + encodeURIComponent(soul.Phone || '') +
+        '&shepherd=' + encodeURIComponent(state.shepherd) +
+        '&stream=' + encodeURIComponent(state.shepherdType || 'sps') +
+        '&promotedBy=' + encodeURIComponent(state.shepherd) +
+        '&callback=' + cb;
+      document.head.appendChild(script);
+    }
+
     function submitNewSoul() {
       var statusEl = document.getElementById('soulTrackerStatus');
       var name = document.getElementById('soulNameInput').value.trim();
+      var stage = document.getElementById('soulStageInput').value || '1';
       if (!name) {
         statusEl.textContent = 'Please enter a name.';
         return;
@@ -7755,6 +8240,7 @@
           name: name,
           phone: document.getElementById('soulPhoneInput').value.trim(),
           notes: document.getElementById('soulNotesInput').value.trim(),
+          stage: stage,
           shepherdType: state.shepherdType,
           shepherdName: state.shepherd
         })
@@ -7763,8 +8249,10 @@
         .then(function (data) {
           submitBtn.disabled = false;
           if (data.status === 'success') {
-            statusEl.textContent = '✅ Saved! Your leader can track their progress from here.';
-            setTimeout(closeSoulTrackerModal, 1500);
+            statusEl.textContent = '✅ Saved! You can track their 4-stage journey under "My Souls".';
+            setTimeout(function () {
+              switchSoulTrackerTab('list');
+            }, 1000);
           } else {
             statusEl.textContent = 'Could not save. Please try again.';
           }

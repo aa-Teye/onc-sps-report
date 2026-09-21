@@ -9,6 +9,44 @@
   <link rel="shortcut icon" href="./logo.png" type="image/png">
   <link rel="apple-touch-icon" href="./logo.png">
   <link rel="manifest" href="./manifest.json">
+  <!-- HTTP Cache Invalidation -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- Automated Cache Blast Engine -->
+  <script>
+    (function () {
+      var CURRENT_BUILD = 'onc-sps-v88';
+      try {
+        var stored = localStorage.getItem('onc_app_build_version');
+        if (stored && stored !== CURRENT_BUILD) {
+          // Purge all browser caches
+          if ('caches' in window) {
+            caches.keys().then(function (names) {
+              names.forEach(function (name) { caches.delete(name); });
+            });
+          }
+          // Unregister existing service workers to force immediate fresh install
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              regs.forEach(function (r) { r.unregister(); });
+            });
+          }
+          // Clear stale roster caches so names re-fetch fresh from DB
+          Object.keys(localStorage).forEach(function (k) {
+            if (k.startsWith('onc_db_roster_')) {
+              localStorage.removeItem(k);
+            }
+          });
+          localStorage.setItem('onc_app_build_version', CURRENT_BUILD);
+          window.location.reload(true);
+        } else if (!stored) {
+          localStorage.setItem('onc_app_build_version', CURRENT_BUILD);
+        }
+      } catch (e) {}
+    })();
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -2938,7 +2976,7 @@
   <script>
     // Register service worker for PWA offline support
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then(function (reg) {
+      navigator.serviceWorker.register('./sw.js?v=88').then(function (reg) {
         if (reg) reg.update();
       }).catch(function () { });
 

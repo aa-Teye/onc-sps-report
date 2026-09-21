@@ -61,7 +61,7 @@ self.addEventListener('notificationclick', function (event) {
 });
 
 // ── Cache ────────────────────────────────────────────────────────
-const CACHE_NAME = 'onc-sps-v87';
+const CACHE_NAME = 'onc-sps-v88';
 const CACHE_URLS = [
   '/onc-sps-report/',
   '/onc-sps-report/index.html',
@@ -83,7 +83,17 @@ const CACHE_URLS = [
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function (cache) {
-      return cache.addAll(CACHE_URLS);
+      return Promise.all(
+        CACHE_URLS.map(function (url) {
+          return fetch(url, { cache: 'reload' })
+            .then(function (response) {
+              if (response.ok) return cache.put(url, response);
+            })
+            .catch(function () {
+              return cache.add(url).catch(function () {});
+            });
+        })
+      );
     })
   );
   self.skipWaiting();
