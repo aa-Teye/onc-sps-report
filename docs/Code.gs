@@ -2604,9 +2604,17 @@ function addOrUpdateSeeker(name, phone, shepherdName, stream, source, details) {
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
   var records = getSheetRecords(sheet);
   var existing = records.find(function (r) {
-    return r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase() && r.Shepherd === shepherdName;
+    var matchName = r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase();
+    var matchShep = (r.Shepherd || '').toString().trim().toLowerCase() === (shepherdName || '').toString().trim().toLowerCase();
+    return matchName && matchShep;
   });
-  if (existing) return existing;
+  if (existing) {
+    if (phone && !existing.Phone) {
+      sheet.getRange(existing._row, 3).setNumberFormat('@');
+      sheet.getRange(existing._row, 3).setValue(phone);
+    }
+    return existing;
+  }
 
   var now = new Date();
   var memberId = 'MEM-' + now.getTime() + '-' + Math.floor(Math.random() * 1000);
@@ -2659,7 +2667,7 @@ function addMemberSelfService(data) {
       (r.Shepherd || '').toString().trim().toLowerCase() === shepherd.toLowerCase();
   });
   if (dup) {
-    return jsonResponse({ status: 'duplicate', message: name + ' is already on your list — edit them instead.', memberId: dup.MemberID });
+    return jsonResponse({ status: 'success', message: name + ' is already on your list.', memberId: dup.MemberID });
   }
 
   var now       = new Date();

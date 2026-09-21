@@ -7549,7 +7549,7 @@
     // succeeded from the browser's point of view even when the backend
     // rejected it, so nothing is shown as saved until an independent GET
     // confirms it actually landed.
-    function kymVerifyMemberId(memberId) {
+    function kymVerifyMemberId(memberId, name) {
       return new Promise(function (resolve) {
         var cbName = 'onKymAddCheck_' + Date.now();
         var done = false;
@@ -7569,7 +7569,10 @@
         };
 
         var s = document.createElement('script');
-        s.src = SCRIPT_URL + '?action=checkFellowshipMember&memberId=' + encodeURIComponent(memberId) + '&callback=' + cbName + '&_=' + Date.now();
+        s.src = SCRIPT_URL + '?action=checkFellowshipMember&memberId=' + encodeURIComponent(memberId) +
+          '&name=' + encodeURIComponent(name || '') +
+          '&shepherd=' + encodeURIComponent(state.shepherd || '') +
+          '&callback=' + cbName + '&_=' + Date.now();
         document.body.appendChild(s);
       });
     }
@@ -7658,13 +7661,25 @@
         var confirmed = false;
         for (var attempt = 0; attempt < 3 && !confirmed; attempt++) {
           if (attempt > 0) await new Promise(function (r) { setTimeout(r, 1200); });
-          confirmed = await kymVerifyMemberId(clientId);
+          confirmed = await kymVerifyMemberId(clientId, name);
         }
 
         if (confirmed) {
           kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
+          try {
+            localStorage.removeItem('onc_db_roster_' + state.shepherd);
+          } catch (e) { }
+          if (state.shepherd) {
+            mergeDynamicSeekers(state.shepherd, (state.shepherdType === 'mc' || state.shepherdType === 'microchurch'), function () {
+              if (typeof buildMemberCards === 'function') buildMemberCards();
+              if (typeof buildMCMemberCards === 'function') buildMCMemberCards();
+            });
+          }
           kymCloseModal();
           showKnowYourMembers();
+          if (typeof showGlobalAlert === 'function') {
+            showGlobalAlert('✅ ' + name + ' added successfully!', 'success');
+          }
         } else {
           statusEl.style.color = '#ef4444';
           statusEl.textContent = 'We could not confirm this was saved. Check your connection and press Save again.';
