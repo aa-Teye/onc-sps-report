@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v88';
+      var CURRENT_BUILD = 'onc-sps-v89';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -2976,7 +2976,7 @@
   <script>
     // Register service worker for PWA offline support
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=88').then(function (reg) {
+      navigator.serviceWorker.register('./sw.js?v=89').then(function (reg) {
         if (reg) reg.update();
       }).catch(function () { });
 
@@ -7596,7 +7596,7 @@
           done = true;
           window[cbName] = null;
           resolve(false);
-        }, 6000);
+        }, 12000);
 
         window[cbName] = function (data) {
           if (done) return;
@@ -7624,7 +7624,7 @@
           done = true;
           window[cbName] = null;
           resolve(false);
-        }, 6000);
+        }, 12000);
 
         window[cbName] = function (data) {
           if (done) return;
@@ -7692,35 +7692,61 @@
         };
 
         try {
-          await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        } catch (e) { }
-
-        btn.textContent = 'Confirming…';
-        var confirmed = false;
-        for (var attempt = 0; attempt < 3 && !confirmed; attempt++) {
-          if (attempt > 0) await new Promise(function (r) { setTimeout(r, 1200); });
-          confirmed = await kymVerifyMemberId(clientId, name);
-        }
-
-        if (confirmed) {
-          kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
-          try {
-            localStorage.removeItem('onc_db_roster_' + state.shepherd);
-          } catch (e) { }
-          if (state.shepherd) {
-            mergeDynamicSeekers(state.shepherd, (state.shepherdType === 'mc' || state.shepherdType === 'microchurch'), function () {
-              if (typeof buildMemberCards === 'function') buildMemberCards();
-              if (typeof buildMCMemberCards === 'function') buildMCMemberCards();
-            });
+          var res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          });
+          var data = await res.json();
+          if (data && data.status === 'success') {
+            kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
+            try {
+              localStorage.removeItem('onc_db_roster_' + state.shepherd);
+            } catch (e) { }
+            if (state.shepherd) {
+              mergeDynamicSeekers(state.shepherd, (state.shepherdType === 'mc' || state.shepherdType === 'microchurch'), function () {
+                if (typeof buildMemberCards === 'function') buildMemberCards();
+                if (typeof buildMCMemberCards === 'function') buildMCMemberCards();
+              });
+            }
+            kymCloseModal();
+            showKnowYourMembers();
+            if (typeof showGlobalAlert === 'function') {
+              showGlobalAlert('✅ ' + name + ' added successfully!', 'success');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Save';
+            return;
+          } else {
+            statusEl.style.color = '#ef4444';
+            statusEl.textContent = (data && data.message) ? data.message : 'Could not save member. Please try again.';
           }
-          kymCloseModal();
-          showKnowYourMembers();
-          if (typeof showGlobalAlert === 'function') {
-            showGlobalAlert('✅ ' + name + ' added successfully!', 'success');
+        } catch (err) {
+          // If direct response parsing fails, do a single fallback verification
+          btn.textContent = 'Verifying…';
+          var confirmed = await kymVerifyMemberId(clientId, name);
+          if (confirmed) {
+            kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
+            try {
+              localStorage.removeItem('onc_db_roster_' + state.shepherd);
+            } catch (e) { }
+            if (state.shepherd) {
+              mergeDynamicSeekers(state.shepherd, (state.shepherdType === 'mc' || state.shepherdType === 'microchurch'), function () {
+                if (typeof buildMemberCards === 'function') buildMemberCards();
+                if (typeof buildMCMemberCards === 'function') buildMCMemberCards();
+              });
+            }
+            kymCloseModal();
+            showKnowYourMembers();
+            if (typeof showGlobalAlert === 'function') {
+              showGlobalAlert('✅ ' + name + ' added successfully!', 'success');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Save';
+            return;
+          } else {
+            statusEl.style.color = '#ef4444';
+            statusEl.textContent = 'We could not confirm this was saved. Check your connection and press Save again.';
           }
-        } else {
-          statusEl.style.color = '#ef4444';
-          statusEl.textContent = 'We could not confirm this was saved. Check your connection and press Save again.';
         }
       } else {
         var fields = {
@@ -7735,23 +7761,48 @@
         };
 
         try {
-          await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editPayload) });
-        } catch (e) { }
-
-        btn.textContent = 'Confirming…';
-        var editConfirmed = false;
-        for (var a2 = 0; a2 < 3 && !editConfirmed; a2++) {
-          if (a2 > 0) await new Promise(function (r) { setTimeout(r, 1200); });
-          editConfirmed = await kymVerifyEdit(kymModalMemberId, fields);
-        }
-
-        if (editConfirmed) {
-          kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
-          kymCloseModal();
-          showKnowYourMembers();
-        } else {
-          statusEl.style.color = '#ef4444';
-          statusEl.textContent = 'We could not confirm your changes were saved. Check your connection and press Save again.';
+          var editRes = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(editPayload)
+          });
+          var editData = await editRes.json();
+          if (editData && editData.status === 'success') {
+            kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
+            try {
+              localStorage.removeItem('onc_db_roster_' + state.shepherd);
+            } catch (e) { }
+            if (state.shepherd) {
+              mergeDynamicSeekers(state.shepherd, (state.shepherdType === 'mc' || state.shepherdType === 'microchurch'), function () {
+                if (typeof buildMemberCards === 'function') buildMemberCards();
+                if (typeof buildMCMemberCards === 'function') buildMCMemberCards();
+              });
+            }
+            kymCloseModal();
+            showKnowYourMembers();
+            if (typeof showGlobalAlert === 'function') {
+              showGlobalAlert('✅ Changes saved successfully!', 'success');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Save';
+            return;
+          } else {
+            statusEl.style.color = '#ef4444';
+            statusEl.textContent = (editData && editData.message) ? editData.message : 'Could not save changes. Please try again.';
+          }
+        } catch (err2) {
+          btn.textContent = 'Verifying…';
+          var editConfirmed = await kymVerifyEdit(kymModalMemberId, fields);
+          if (editConfirmed) {
+            kymRawRecordsCache = { shepherd: null, records: null, timestamp: 0 };
+            kymCloseModal();
+            showKnowYourMembers();
+            btn.disabled = false;
+            btn.textContent = 'Save';
+            return;
+          } else {
+            statusEl.style.color = '#ef4444';
+            statusEl.textContent = 'We could not confirm your changes were saved. Check your connection and press Save again.';
+          }
         }
       }
 

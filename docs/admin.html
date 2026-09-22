@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v88';
+      var CURRENT_BUILD = 'onc-sps-v89';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -4444,7 +4444,7 @@
       // Register service worker for PWA offline support
       // (shares sw.js / cache with index.html — same scope, can't register a separate worker)
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=88').then(function (reg) {
+        navigator.serviceWorker.register('./sw.js?v=89').then(function (reg) {
           if (reg) reg.update();
         }).catch(function () {});
 
