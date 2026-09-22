@@ -2882,8 +2882,14 @@
       <button onclick="kymCloseModal()"
         style="position:absolute;top:16px;right:16px;background:rgba(15,32,68,.08);border:none;color:var(--navy);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;">✕</button>
       <h3 id="kymModalTitle"
-        style="font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);margin:0 0 16px;padding-right:36px;">
+        style="font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);margin:0 0 4px;padding-right:36px;">
         Add a Person</h3>
+      <div id="kymModalSubtitle" style="font-size:12px;color:var(--gray);margin:0 0 16px;font-weight:600;"></div>
+      <div id="kymShepherdPickerContainer" style="display:none;margin-bottom:16px;background:#f8fafc;padding:12px;border-radius:12px;border:1.5px dashed #cbd5e1;">
+        <label style="font-size:12px;font-weight:800;color:var(--navy);display:block;margin-bottom:6px;">Select Shepherd Roster *</label>
+        <select id="kymShepherdSelect" onchange="kymOnShepherdSelectChange(this.value)" style="width:100%;box-sizing:border-box;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-size:13px;color:var(--navy);background:#fff;outline:none;">
+        </select>
+      </div>
 
       <!-- Step 1: Member or Seeker (Add only) -->
       <div id="kymTypeStep">
@@ -2976,7 +2982,7 @@
   <script>
     // Register service worker for PWA offline support
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=89').then(function (reg) {
+      navigator.serviceWorker.register('./sw.js?v=90').then(function (reg) {
         if (reg) reg.update();
       }).catch(function () { });
 
@@ -3545,9 +3551,18 @@
         }
 
         if (savedType === 'sps') {
-          if (shepSel) shepSel.value = savedShep;
-          var event = new Event('change');
-          shepSel.dispatchEvent(event);
+          if (shepSel) {
+            var exists = Array.from(shepSel.options).some(function (o) { return o.value === savedShep; });
+            if (!exists) {
+              var opt = document.createElement('option');
+              opt.value = savedShep;
+              opt.textContent = savedShep;
+              shepSel.appendChild(opt);
+            }
+            shepSel.value = savedShep;
+            var event = new Event('change');
+            shepSel.dispatchEvent(event);
+          }
         } else {
           initMicrochurchShepherds();
           setTimeout(function () {
@@ -3919,7 +3934,11 @@
     }
 
     document.getElementById('shepherdSelect').addEventListener('change', function () {
-      state.shepherd = this.value;
+      if (this.value) {
+        state.shepherd = this.value;
+      } else if (!state.shepherd) {
+        state.shepherd = '';
+      }
       if (!this.value) return;
       const now = new Date();
       state.sessionDate = now.toLocaleDateString('en-GB');
@@ -3987,7 +4006,11 @@
     }
 
     function selectMCShepherd(val) {
-      state.shepherd = val;
+      if (val) {
+        state.shepherd = val;
+      } else if (!state.shepherd) {
+        state.shepherd = '';
+      }
       if (!val) {
         document.getElementById('mcSessionInfo').style.display = 'none';
         document.getElementById('mcSessionPlaceholder').style.display = 'block';
@@ -7425,7 +7448,47 @@
       kymFetchRawRecords(shepherdName, applyRecords);
     }
 
+    function kymEnsureShepherdState() {
+      if (!state.shepherd) {
+        var savedShep = localStorage.getItem('onc_logged_in_shepherd');
+        var savedType = localStorage.getItem('onc_logged_in_type');
+        if (savedShep) {
+          state.shepherd = savedShep;
+          if (savedType) state.shepherdType = savedType;
+        }
+      }
+      if (!state.shepherd) {
+        var spsSel = document.getElementById('shepherdSelect');
+        var mcSel = document.getElementById('mcShepherdSelect');
+        if (spsSel && spsSel.value) {
+          state.shepherd = spsSel.value;
+          state.shepherdType = 'sps';
+        } else if (mcSel && mcSel.value) {
+          state.shepherd = mcSel.value;
+          state.shepherdType = 'mc';
+        }
+      }
+      return state.shepherd;
+    }
+
+    function kymOnShepherdSelectChange(val) {
+      if (!val) return;
+      state.shepherd = val;
+      var sel = document.getElementById('kymShepherdSelect');
+      var opt = sel ? sel.options[sel.selectedIndex] : null;
+      if (opt && opt.dataset.type) {
+        state.shepherdType = opt.dataset.type;
+      }
+      var subEl = document.getElementById('kymModalSubtitle');
+      if (subEl) subEl.textContent = 'Adding to ' + val + "'s roster";
+      var statusEl = document.getElementById('kymModalStatus');
+      if (statusEl) statusEl.textContent = '';
+      var nameEl = document.getElementById('kymShepherdName');
+      if (nameEl) nameEl.textContent = val;
+    }
+
     function showKnowYourMembers() {
+      kymEnsureShepherdState();
       var nameEl = document.getElementById(
         'kymShepherdName');
       if (nameEl) {
@@ -7479,7 +7542,39 @@
       kymModalPersonType = '';
       kymModalMemberId = null;
       kymResetModalFields();
+      kymEnsureShepherdState();
+
       document.getElementById('kymModalTitle').textContent = 'Add a Person';
+      var subEl = document.getElementById('kymModalSubtitle');
+      var pickerCont = document.getElementById('kymShepherdPickerContainer');
+      var pickerSel = document.getElementById('kymShepherdSelect');
+
+      if (state.shepherd) {
+        if (subEl) subEl.textContent = 'Adding to ' + state.shepherd + "'s roster";
+        if (pickerCont) pickerCont.style.display = 'none';
+      } else {
+        if (subEl) subEl.textContent = 'Please select which shepherd this person belongs to:';
+        if (pickerCont && pickerSel) {
+          pickerCont.style.display = 'block';
+          pickerSel.innerHTML = '<option value="">— Select Shepherd —</option>';
+          var allSheps = [];
+          if (window.CHURCH_DATA) {
+            (window.CHURCH_DATA.spsShepherds || []).forEach(function (s) { allSheps.push({ name: s.name, type: 'sps' }); });
+            (window.CHURCH_DATA.mcShepherds || []).forEach(function (s) { allSheps.push({ name: s.name, type: 'mc' }); });
+          }
+          if (!allSheps.length && typeof shepherdData !== 'undefined') {
+            Object.keys(shepherdData).forEach(function (name) { allSheps.push({ name: name, type: 'sps' }); });
+          }
+          allSheps.sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (s) {
+            var opt = document.createElement('option');
+            opt.value = s.name;
+            opt.dataset.type = s.type;
+            opt.textContent = s.name + (s.type === 'mc' ? ' (Microchurch)' : '');
+            pickerSel.appendChild(opt);
+          });
+        }
+      }
+
       document.getElementById('kymTypeStep').style.display = 'block';
       document.getElementById('kymDetailStep').style.display = 'none';
       var delBtn = document.getElementById('kymDeletePersonBtn');
@@ -7671,6 +7766,24 @@
         return;
       }
 
+      kymEnsureShepherdState();
+      if (!state.shepherd) {
+        var pickerSel = document.getElementById('kymShepherdSelect');
+        if (pickerSel && pickerSel.value) {
+          state.shepherd = pickerSel.value;
+          var opt = pickerSel.options[pickerSel.selectedIndex];
+          if (opt && opt.dataset.type) state.shepherdType = opt.dataset.type;
+        }
+      }
+
+      if (!state.shepherd) {
+        statusEl.style.color = '#ef4444';
+        statusEl.textContent = 'Please select a shepherd to assign this person to.';
+        var pickerCont = document.getElementById('kymShepherdPickerContainer');
+        if (pickerCont) pickerCont.style.display = 'block';
+        return;
+      }
+
       var btn = document.getElementById('kymSubmitBtn');
       btn.disabled = true;
       btn.textContent = 'Saving…';
@@ -7686,7 +7799,7 @@
             bornAgain: kymFormState.bornAgain, inChurch: kymFormState.inChurch,
             occupation: occupation, occupationOther: occupationOther
           },
-          shepherd: state.shepherd,
+          shepherd: state.shepherd.trim(),
           shepherdType: (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ? 'mc' : 'sps',
           status: kymModalPersonType
         };
