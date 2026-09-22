@@ -2948,7 +2948,8 @@ function addShepherd(data) {
 
   var now = new Date();
   var shepherdId = 'SHP-' + now.getTime();
-  var pin = '0000';
+  var pin = (data.pin || '0000').toString().trim();
+  if (!pin) pin = '0000';
 
   // Contact and PIN are numeric-looking strings - write as plain text first
   // or Sheets strips the leading zero (breaks Ghanaian numbers and turns
@@ -2977,42 +2978,41 @@ function getDynamicShepherds() {
 }
 
 // Moves a shepherd (SPS zone or microchurch group) to a different
-// zone/group. Works for shepherds already in this sheet (added via
-// addShepherd) by updating their row directly. For one of the original
-// static-roster shepherds (churchData.js, no row here yet) this creates
-// their first row here - admin.html then treats a matching Shepherds-sheet
-// row as the authoritative zone/group, overriding the static value, while
-// PIN/contact/members for that shepherd keep coming from the static files
-// as before (only the zone/group label moves here).
+// zone/group or changes their stream type (SPS <-> MC).
 function updateShepherdZone(data) {
   var name = (data.name || '').toString().trim();
   var type = (data.type || '').toString().toUpperCase();
+  var newType = (data.newType || type).toString().toUpperCase();
   var newGroup = (data.zoneOrGroup || '').toString().trim();
   if (!name) return jsonResponse({ status: 'error', message: 'Shepherd name is required' });
   if (type !== 'SPS' && type !== 'MC') return jsonResponse({ status: 'error', message: 'Type must be SPS or MC' });
-  if (!newGroup) return jsonResponse({ status: 'error', message: (type === 'MC' ? 'Microchurch name' : 'Zone') + ' is required' });
+  if (newType !== 'SPS' && newType !== 'MC') newType = type;
+  if (!newGroup) return jsonResponse({ status: 'error', message: (newType === 'MC' ? 'Microchurch name' : 'Zone') + ' is required' });
 
   var sheet = ensureSheet(SHEPHERDS_SHEET, SHEPHERDS_HEADERS);
   var records = getSheetRecords(sheet);
   var existing = records.find(function (r) {
-    return r.Type === type && r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase();
+    return (r.Type === type || r.Type === newType) && r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase();
   });
 
   if (existing) {
+    if (newType !== existing.Type) sheet.getRange(existing._row, 4).setValue(newType); // col 4 = Type
     sheet.getRange(existing._row, 5).setValue(newGroup); // col 5 = ZoneOrGroup
+    if (data.contact) sheet.getRange(existing._row, 3).setNumberFormat('@').setValue(data.contact);
+    if (data.pin) sheet.getRange(existing._row, 6).setNumberFormat('@').setValue(data.pin);
   } else {
     var now = new Date();
     var newRow = sheet.getLastRow() + 1;
     sheet.getRange(newRow, 3).setNumberFormat('@');
     sheet.getRange(newRow, 6).setNumberFormat('@');
     sheet.getRange(newRow, 1, 1, 8).setValues([[
-      'SHP-' + now.getTime(), name, data.contact || '', type, newGroup, '0000',
+      'SHP-' + now.getTime(), name, data.contact || '', newType, newGroup, data.pin || '0000',
       data.updatedBy || 'Admin', formatDate(now)
     ]]);
   }
 
-  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SHEPHERD_ZONE_CHANGED', data.updatedBy || 'Admin', name + ' -> ' + newGroup);
-  return jsonResponse({ status: 'success', name: name, zoneOrGroup: newGroup });
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SHEPHERD_ZONE_CHANGED', data.updatedBy || 'Admin', name + ' (' + type + (newType !== type ? '->' + newType : '') + ') -> ' + newGroup);
+  return jsonResponse({ status: 'success', name: name, type: newType, zoneOrGroup: newGroup });
 }
 
 function deleteShepherd(data) {

@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v90';
+      var CURRENT_BUILD = 'onc-sps-v91';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -616,7 +616,6 @@
       }
     }
   </style>
-  <script src="churchData.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 </head>
@@ -676,6 +675,18 @@
             align-items:center;justify-content:center;
             gap:10px;margin-top:8px;">
             👥 First Timers Unit
+          </button>
+        </div>
+
+        <div style="margin-top:24px; text-align:center;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+            <div style="flex:1; height:1px; background:#e2e8f0;"></div>
+            <span style="font-size:11px; font-weight:800; color:#64748b; letter-spacing:0.5px; text-transform:uppercase;">New Shepherd?</span>
+            <div style="flex:1; height:1px; background:#e2e8f0;"></div>
+          </div>
+          <button type="button" onclick="openNewShepherdModal()"
+            style="width:100%; padding:16px; border-radius:16px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:white; border:none; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 4px 14px rgba(16,185,129,0.3); transition:transform 0.15s ease;">
+            <span>✨ New Shepherd? Set Up Profile</span>
           </button>
         </div>
       </div>
@@ -2875,6 +2886,96 @@
     </div>
   </div>
 
+  <!-- Modal: New Shepherd Profile Setup (Self-Registration) -->
+  <div id="modalNewShepherd"
+    style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.85);z-index:99999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);overflow-y:auto;box-sizing:border-box;">
+    <div style="background:#fff;border-radius:24px;width:100%;max-width:440px;padding:26px;text-align:left;position:relative;margin:auto;box-shadow:0 20px 40px rgba(0,0,0,0.3);">
+      <button onclick="closeNewShepherdModal()"
+        style="position:absolute;top:16px;right:16px;background:rgba(15,32,68,.08);border:none;color:var(--navy);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;">✕</button>
+      
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <span style="font-size:24px;">✨</span>
+        <h3 style="font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--navy);margin:0;">
+          New Shepherd Setup
+        </h3>
+      </div>
+      <p style="font-size:13px;color:var(--gray);margin:0 0 18px;line-height:1.5;">
+        Create your profile to start managing your flock members and logging weekly follow-up reports.
+      </p>
+
+      <form id="newShepherdForm" onsubmit="submitNewShepherdProfile(event)">
+        <!-- Name -->
+        <label style="font-size:12px;font-weight:800;color:var(--navy);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">
+          Full Name *
+        </label>
+        <input type="text" id="newShepName" required placeholder="e.g. Michael Effah"
+          style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:15px;color:var(--navy);margin-bottom:14px;outline:none;">
+
+        <!-- Phone -->
+        <label style="font-size:12px;font-weight:800;color:var(--navy);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">
+          Phone Number *
+        </label>
+        <input type="tel" id="newShepPhone" required placeholder="e.g. 054 697 3347"
+          style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:15px;color:var(--navy);margin-bottom:14px;outline:none;">
+
+        <!-- Ministry Stream -->
+        <label style="font-size:12px;font-weight:800;color:var(--navy);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">
+          Ministry Stream *
+        </label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <button type="button" id="streamBtnSps" onclick="selectNewShepStream('SPS')"
+            style="padding:12px 8px;border-radius:12px;border:2px solid var(--navy);background:var(--navy);color:#fff;font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <span>🙏 SPS Shepherd</span>
+          </button>
+          <button type="button" id="streamBtnMc" onclick="selectNewShepStream('MC')"
+            style="padding:12px 8px;border-radius:12px;border:2px solid var(--border);background:#fff;color:var(--navy);font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <span>⛪ Microchurch</span>
+          </button>
+        </div>
+
+        <!-- Assigned Group -->
+        <div id="newShepGroupContainer" style="margin-bottom:14px;">
+          <label id="newShepGroupLabel" style="font-size:12px;font-weight:800;color:var(--navy);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">
+            Assigned Zone *
+          </label>
+          <div id="newShepZoneSelectWrap">
+            <select id="newShepZoneSelect" style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;color:var(--navy);outline:none;background:#fff;">
+              <option value="Zone 1">Zone 1</option>
+              <option value="Zone 2">Zone 2</option>
+              <option value="Zone 3">Zone 3</option>
+              <option value="Zone 4">Zone 4</option>
+              <option value="Zone 5">Zone 5</option>
+              <option value="Zone 6">Zone 6</option>
+            </select>
+          </div>
+          <div id="newShepMcInputWrap" style="display:none;">
+            <input type="text" id="newShepMcInput" placeholder="e.g. Tesano 5, Darkuman, etc." list="existingMcList"
+              style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;color:var(--navy);outline:none;">
+            <datalist id="existingMcList"></datalist>
+          </div>
+        </div>
+
+        <!-- 4-Digit PIN -->
+        <label style="font-size:12px;font-weight:800;color:var(--navy);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">
+          Choose Your 4-Digit Login PIN *
+        </label>
+        <input type="password" id="newShepPin" required maxlength="4" pattern="[0-9]{4}" placeholder="••••"
+          style="width:100%;box-sizing:border-box;padding:14px;border:2px solid var(--border);border-radius:12px;font-size:22px;letter-spacing:8px;text-align:center;color:var(--navy);margin-bottom:4px;outline:none;">
+        <span style="display:block;font-size:11px;color:var(--gray);margin-bottom:18px;">
+          💡 You will use this 4-digit PIN every time you log into the portal.
+        </span>
+
+        <div id="newShepError" style="display:none;background:#fee2e2;border:1px solid #fecaca;color:#b91c1c;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:700;margin-bottom:14px;"></div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="newShepSubmitBtn"
+          style="width:100%;padding:16px;background:var(--navy);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(15,32,68,0.25);">
+          <span>🚀 Create Profile & Log In</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <div id="kymPersonModal"
     style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,32,68,0.8);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);overflow-y:auto;">
     <div
@@ -2982,7 +3083,7 @@
   <script>
     // Register service worker for PWA offline support
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=90').then(function (reg) {
+      navigator.serviceWorker.register('./sw.js?v=91').then(function (reg) {
         if (reg) reg.update();
       }).catch(function () { });
 
@@ -3147,7 +3248,7 @@
     const ICON_WHATSAPP = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M17.47 14.38c-.29-.15-1.7-.84-1.96-.93-.26-.1-.46-.15-.65.15-.2.29-.75.93-.92 1.12-.17.2-.34.22-.63.07-.29-.15-1.22-.45-2.32-1.43-.86-.76-1.44-1.71-1.6-2-.17-.29-.02-.45.13-.6.13-.13.29-.34.43-.51.15-.17.2-.29.29-.48.1-.2.05-.36-.02-.51-.07-.15-.65-1.58-.9-2.16-.24-.58-.48-.5-.65-.5-.17-.01-.36-.01-.56-.01-.2 0-.51.07-.78.36-.27.29-1.02 1-1.02 2.43 0 1.43 1.04 2.82 1.18 3.01.15.2 2.05 3.13 4.96 4.39.69.3 1.23.48 1.65.61.69.22 1.32.19 1.82.11.55-.08 1.7-.7 1.94-1.37.24-.68.24-1.26.17-1.38-.07-.12-.26-.2-.55-.34z"/><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.85.5 3.58 1.36 5.07L2 22l5.18-1.46a9.84 9.84 0 0 0 4.86 1.27h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.51 2 12.04 2zm0 18.06h-.01c-1.62 0-3.21-.43-4.6-1.26l-.33-.2-3.07.86.82-2.99-.21-.31a8.25 8.25 0 0 1-1.31-4.45c0-4.55 3.7-8.25 8.26-8.25 2.21 0 4.28.86 5.84 2.42a8.18 8.18 0 0 1 2.42 5.84c0 4.55-3.71 8.34-8.81 8.34z"/></svg>';
     const ICON_SMS = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>';
 
-    const shepherdData = {
+    let shepherdData = {
       "Frank Armah": { members: ["Peace Amoah", "Christiana Adjei"], pin: "0000" },
       "Bright Mamene": { members: ["Majeed Saleem", "Isaac Yeboah", "Emmanuel Nii-Lantei", "Rebecca Donkor"], pin: "0000" },
       "Christiana Konzondong": { members: ["Bernice Mensah", "Isabel Opoku"], pin: "0000" },
@@ -3178,7 +3279,8 @@
       "Christabel Arhin": { members: [], pin: "0000" }
     };
 
-    const microchurchShepherdData = {
+    let microchurchShepherdData = {
+      "Michael Effah": [],
       "Michael Ayisia": ["Addo Benedict", "Harriet Mensah", "Frank Armah", "Thomas Daitey", "Samuel Obeng", "Caleb Dzifa", "Joshua Anatsui"],
       "Michael Ameyaw (Tesano 2)": ["Christiana Konzondong", "Esther Konzondong", "Felix Konzondong", "Daniel"],
       "Michael Ameyaw (Tesano 3)": ["Ashaley Badu", "Rebecca Ankrah"],
@@ -3202,15 +3304,55 @@
       "Akpene Komedio Anatsui": ["Blessing Donkor", "Elizabeth Ashie", "Gifty Donkor", "Empress", "Felix", "Peniel", "Winifred Aickins", "Samuel Donkor", "Blessing Bimbim", "Antoinette", "Emefa Blebo", "Quad", "Stephen Tetteh", "Joel"]
     };
 
+    let microchurchNames = {
+      "Michael Effah": "Michael Effah MC",
+      "Michael Ayisia": "Tesano 1",
+      "Michael Ameyaw (Tesano 2)": "Tesano 2",
+      "Michael Ameyaw (Tesano 3)": "Tesano 3",
+      "Augustina Selinam Abbah": "Tesano 4",
+      "Blessing Solomon": "Flat Top",
+      "Lp Esther Okronipa": "Official Town",
+      "Benjamin Senyasu": "Police Depot",
+      "Emmanuel Mensah": "Bubiashie",
+      "Eric Appiah": "North Kaneshie Online",
+      "Alex Teye Ametepey": "UG Legon",
+      "Rev Dr Ebenezer Okronipa": "Afropa 2",
+      "Bernice Amuzu": "Manasseh",
+      "Rosemond Quaicoe": "Nyamekye",
+      "Henry Mensah": "Gbawe",
+      "Abigail Ankomah": "Ablekuma-Agape",
+      "Alice Ametepey": "Darkuman 3",
+      "Samuel Opare": "New Fadama 2",
+      "Esther Doku": "New-Fadama 1",
+      "Samuel Oteng": "Nsakina",
+      "Sandra Boateng": "GCTU",
+      "Akpene Komedio Anatsui": "AFROPA 1"
+    };
+
+    // Load initial cached shepherds from localStorage on instant boot
+    try {
+      var cachedShepList = JSON.parse(localStorage.getItem('onc_cached_shepherds') || '[]');
+      if (Array.isArray(cachedShepList) && cachedShepList.length > 0) {
+        cachedShepList.forEach(function (r) {
+          if (!r.Name) return;
+          var pinVal = r.PIN || '0000';
+          localStorage.setItem('onc_pin_' + r.Name, pinVal);
+          if (r.Type === 'MC') {
+            if (!microchurchShepherdData[r.Name]) microchurchShepherdData[r.Name] = [];
+            if (r.ZoneOrGroup) microchurchNames[r.Name] = r.ZoneOrGroup;
+          } else {
+            if (!shepherdData[r.Name]) shepherdData[r.Name] = { members: [], pin: pinVal };
+            else shepherdData[r.Name].pin = pinVal;
+          }
+        });
+      }
+    } catch (e) { }
+
     // Names auto-added from new-soul reports, keyed by name -> 'Pending' | 'Seeker'.
-    // Populated by mergeDynamicSeekers() so a person reported as new doesn't
-    // have to be re-reported every week — they show up here right away.
     var dynamicMemberStatus = {};
 
     function seekerBadge(name) {
       var status = dynamicMemberStatus[name];
-      // Shepherd-facing label is always "SEEKER" the moment they're reported —
-      // the Pending/Approved distinction is for admin's internal review only.
       if (status === 'Pending' || status === 'Seeker') return ' <span style="font-size:10px;background:#bbf7d0;color:#15803d;padding:2px 6px;border-radius:10px;font-weight:700;vertical-align:middle;">SEEKER</span>';
       return '';
     }
@@ -3218,7 +3360,6 @@
     function mergeDynamicSeekers(shepherdName, isMC, onDone) {
       if (!shepherdName) { if (onDone) onDone(); return; }
 
-      // 1. Instant offline/cached load from previous database sync
       var cacheKey = 'onc_db_roster_' + shepherdName;
       try {
         var cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
@@ -3262,7 +3403,6 @@
             }
           });
 
-          // Set authoritative roster directly from live database
           if (isMC) {
             microchurchShepherdData[shepherdName] = liveNames;
           } else {
@@ -3270,7 +3410,6 @@
             shepherdData[shepherdName].members = liveNames;
           }
 
-          // Cache for instant cold start
           try {
             localStorage.setItem(cacheKey, JSON.stringify({ names: liveNames, statuses: statuses, time: Date.now() }));
           } catch (e) { }
@@ -3287,14 +3426,8 @@
       setTimeout(function () { if (window[cbName]) window[cbName]({}); }, 6000);
     }
 
-    // Shepherds added via the admin dashboard (General Overseer / Admin /
-    // SPS Head / MC Head) aren't baked into shepherdData/microchurchShepherdData
-    // above — they live in the backend "Shepherds" sheet instead. Merge them
-    // in here so a newly added shepherd shows up in the login list the next
-    // time this page loads, with no code redeploy needed.
     var dynamicShepherdsMerged = false;
     function mergeDynamicShepherds(onDone) {
-      if (dynamicShepherdsMerged) { if (onDone) onDone(); return; }
       var done = false;
       var s = document.createElement('script');
       var cbName = 'onDynamicShepherds_' + Date.now();
@@ -3306,16 +3439,29 @@
         dynamicShepherdsMerged = true;
 
         var records = (data && data.shepherds) || [];
+        if (records.length > 0) {
+          try {
+            localStorage.setItem('onc_cached_shepherds', JSON.stringify(records));
+          } catch (e) { }
+        }
+
         records.forEach(function (r) {
           if (!r.Name) return;
+          var pinVal = r.PIN || '0000';
+          localStorage.setItem('onc_pin_' + r.Name, pinVal);
+
           if (r.Type === 'MC') {
             if (!microchurchShepherdData[r.Name]) {
               microchurchShepherdData[r.Name] = [];
-              microchurchNames[r.Name] = r.ZoneOrGroup || '';
+            }
+            if (r.ZoneOrGroup) {
+              microchurchNames[r.Name] = r.ZoneOrGroup;
             }
           } else {
             if (!shepherdData[r.Name]) {
-              shepherdData[r.Name] = { members: [], pin: r.PIN || '0000' };
+              shepherdData[r.Name] = { members: [], pin: pinVal };
+            } else {
+              shepherdData[r.Name].pin = pinVal;
             }
           }
         });
@@ -3324,36 +3470,148 @@
         if (onDone) onDone();
       };
 
-      s.src = SCRIPT_URL + '?action=getDynamicShepherds&callback=' + cbName;
+      s.src = SCRIPT_URL + '?action=getDynamicShepherds&callback=' + cbName + '&_=' + Date.now();
       s.onerror = function () { dynamicShepherdsMerged = true; if (window[cbName]) window[cbName]({}); };
       document.head.appendChild(s);
 
       setTimeout(function () { if (window[cbName]) window[cbName]({}); }, 6000);
     }
 
-    const microchurchNames = {
-      "Michael Ayisia": "Tesano 1",
-      "Michael Ameyaw (Tesano 2)": "Tesano 2",
-      "Michael Ameyaw (Tesano 3)": "Tesano 3",
-      "Augustina Selinam Abbah": "Tesano 4",
-      "Blessing Solomon": "Flat Top",
-      "Lp Esther Okronipa": "Official Town",
-      "Benjamin Senyasu": "Police Depot",
-      "Emmanuel Mensah": "Bubiashie",
-      "Eric Appiah": "North Kaneshie Online",
-      "Alex Teye Ametepey": "UG Legon",
-      "Rev Dr Ebenezer Okronipa": "Afropa 2",
-      "Bernice Amuzu": "Manasseh",
-      "Rosemond Quaicoe": "Nyamekye",
-      "Henry Mensah": "Gbawe",
-      "Abigail Ankomah": "Ablekuma-Agape",
-      "Alice Ametepey": "Darkuman 3",
-      "Samuel Opare": "New Fadama 2",
-      "Esther Doku": "New-Fadama 1",
-      "Samuel Oteng": "Nsakina",
-      "Sandra Boateng": "GCTU",
-      "Akpene Komedio Anatsui": "AFROPA 1"
-    };
+    // ── NEW SHEPHERD ONBOARDING (Self-Registration) ──
+    var newShepCurrentStream = 'SPS';
+
+    function openNewShepherdModal() {
+      newShepCurrentStream = 'SPS';
+      selectNewShepStream('SPS');
+      document.getElementById('newShepName').value = '';
+      document.getElementById('newShepPhone').value = '';
+      document.getElementById('newShepPin').value = '';
+      var err = document.getElementById('newShepError');
+      if (err) err.style.display = 'none';
+
+      var mcListEl = document.getElementById('existingMcList');
+      if (mcListEl) {
+        var mcVals = Object.values(microchurchNames || {}).filter(Boolean);
+        var uniqueMcs = Array.from(new Set(mcVals)).sort();
+        mcListEl.innerHTML = uniqueMcs.map(function(m) { return '<option value="' + escapeHtml(m) + '">'; }).join('');
+      }
+
+      var modal = document.getElementById('modalNewShepherd');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeNewShepherdModal() {
+      var modal = document.getElementById('modalNewShepherd');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function selectNewShepStream(stream) {
+      newShepCurrentStream = stream;
+      var btnSps = document.getElementById('streamBtnSps');
+      var btnMc = document.getElementById('streamBtnMc');
+      var zoneWrap = document.getElementById('newShepZoneSelectWrap');
+      var mcWrap = document.getElementById('newShepMcInputWrap');
+      var groupLabel = document.getElementById('newShepGroupLabel');
+
+      if (stream === 'MC') {
+        if (btnSps) { btnSps.style.background = '#fff'; btnSps.style.color = 'var(--navy)'; btnSps.style.border = '2px solid var(--border)'; }
+        if (btnMc) { btnMc.style.background = 'var(--navy)'; btnMc.style.color = '#fff'; btnMc.style.border = '2px solid var(--navy)'; }
+        if (zoneWrap) zoneWrap.style.display = 'none';
+        if (mcWrap) mcWrap.style.display = 'block';
+        if (groupLabel) groupLabel.textContent = 'Microchurch Name *';
+      } else {
+        if (btnSps) { btnSps.style.background = 'var(--navy)'; btnSps.style.color = '#fff'; btnSps.style.border = '2px solid var(--navy)'; }
+        if (btnMc) { btnMc.style.background = '#fff'; btnMc.style.color = 'var(--navy)'; btnMc.style.border = '2px solid var(--border)'; }
+        if (zoneWrap) zoneWrap.style.display = 'block';
+        if (mcWrap) mcWrap.style.display = 'none';
+        if (groupLabel) groupLabel.textContent = 'Assigned Zone *';
+      }
+    }
+
+    function submitNewShepherdProfile(e) {
+      if (e) e.preventDefault();
+      var name = document.getElementById('newShepName').value.trim();
+      var phone = document.getElementById('newShepPhone').value.trim();
+      var pin = document.getElementById('newShepPin').value.trim();
+      var group = newShepCurrentStream === 'MC' ?
+        document.getElementById('newShepMcInput').value.trim() :
+        document.getElementById('newShepZoneSelect').value.trim();
+
+      var err = document.getElementById('newShepError');
+      if (!name) { if (err) { err.textContent = 'Please enter your full name.'; err.style.display = 'block'; } return; }
+      if (!phone) { if (err) { err.textContent = 'Please enter your phone number.'; err.style.display = 'block'; } return; }
+      if (!group) { if (err) { err.textContent = 'Please enter or select your ' + (newShepCurrentStream === 'MC' ? 'microchurch' : 'zone') + '.'; err.style.display = 'block'; } return; }
+      if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+        if (err) { err.textContent = 'Please enter a 4-digit numeric PIN.'; err.style.display = 'block'; } return;
+      }
+
+      var btn = document.getElementById('newShepSubmitBtn');
+      if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Creating Profile...'; }
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'addShepherd',
+          name: name,
+          contact: phone,
+          type: newShepCurrentStream,
+          zoneOrGroup: group,
+          pin: pin,
+          addedBy: 'Self-Registered'
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (btn) { btn.disabled = false; btn.innerHTML = '🚀 Create Profile & Log In'; }
+        if (res && res.status === 'success') {
+          closeNewShepherdModal();
+
+          var streamType = newShepCurrentStream === 'MC' ? 'microchurch' : 'sps';
+          localStorage.setItem('onc_logged_in_shepherd', name);
+          localStorage.setItem('onc_logged_in_type', streamType);
+          localStorage.setItem('onc_pin_' + name, pin);
+          localStorage.setItem('onc_session_active', 'true');
+
+          var customPins = {};
+          try { customPins = JSON.parse(localStorage.getItem('onc_shepherd_pins') || '{}'); } catch(ex){}
+          customPins[name] = pin;
+          localStorage.setItem('onc_shepherd_pins', JSON.stringify(customPins));
+
+          if (newShepCurrentStream === 'MC') {
+            microchurchShepherdData[name] = [];
+            microchurchNames[name] = group;
+          } else {
+            shepherdData[name] = { members: [], pin: pin };
+          }
+
+          state.shepherd = name;
+          state.shepherdType = streamType;
+
+          showGlobalAlert('🎉 Welcome ' + name + '! Profile created successfully.', 'success');
+
+          showKnowYourMembers();
+
+          setTimeout(function() {
+            var msg = confirm('🎉 Welcome to the shepherd team, ' + name + '!\n\nWould you like to add your flock members right now?');
+            if (msg) {
+              kymOpenAddModal();
+            }
+          }, 600);
+        } else {
+          if (err) {
+            err.textContent = (res && res.message) || 'Error setting up profile. Please try again.';
+            err.style.display = 'block';
+          }
+        }
+      })
+      .catch(function(ex) {
+        if (btn) { btn.disabled = false; btn.innerHTML = '🚀 Create Profile & Log In'; }
+        if (err) {
+          err.textContent = 'Network error. Please check your connection and try again.';
+          err.style.display = 'block';
+        }
+      });
+    }
 
     let state = {
       shepherdType: '', shepherd: '', sessionDate: '', sessionDay: '', sessionTime: '',

@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v90';
+      var CURRENT_BUILD = 'onc-sps-v91';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -1337,7 +1337,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="churchData.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 </head>
@@ -4429,6 +4428,18 @@
         <div style="font-weight:800;font-size:18px;margin-bottom:4px;">Reassign Shepherd</div>
         <div id="reassignShepherdName" style="color:#64748b;font-size:13px;margin-bottom:18px;"></div>
 
+        <label style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px;">Ministry Stream</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <button type="button" id="reassignStreamBtnSps" onclick="selectReassignShepStream('SPS')"
+            style="padding:10px;border-radius:10px;border:2px solid #0f2044;background:#0f2044;color:#fff;font-weight:800;font-size:13px;cursor:pointer;">
+            🙏 SPS Shepherd
+          </button>
+          <button type="button" id="reassignStreamBtnMc" onclick="selectReassignShepStream('MC')"
+            style="padding:10px;border-radius:10px;border:2px solid #dce7f7;background:#fff;color:#0f2044;font-weight:800;font-size:13px;cursor:pointer;">
+            ⛪ Microchurch
+          </button>
+        </div>
+
         <label id="reassignShepherdGroupLabel" style="font-weight:800;font-size:12px;color:#0f2044;text-transform:uppercase;letter-spacing:.6px;">New Zone</label>
         <input id="reassignShepherdGroupInput" type="text" list="reassignShepherdGroupList" placeholder="Type or pick existing"
           style="width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #dce7f7;border-radius:10px;font-family:Outfit,sans-serif;font-size:14px;color:#0f2044;outline:none;margin:6px 0 18px;">
@@ -4444,7 +4455,7 @@
       // Register service worker for PWA offline support
       // (shares sw.js / cache with index.html — same scope, can't register a separate worker)
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=90').then(function (reg) {
+        navigator.serviceWorker.register('./sw.js?v=91').then(function (reg) {
           if (reg) reg.update();
         }).catch(function () {});
 
@@ -6313,18 +6324,38 @@
       // see the roadmap plan for migrating the full static roster too) ──
       var reassignMemberId = null;
       var reassignMemberOldShepherd = null;
+      var reassignMemberNameVal = '';
+      var reassignMemberTargetStream = 'sps';
 
       function openReassignMemberModal(memberId, name, currentShepherd, stream) {
-        reassignMemberId = memberId;
-        reassignMemberOldShepherd = currentShepherd;
+        reassignMemberId = memberId || '';
+        reassignMemberNameVal = name || '';
+        reassignMemberOldShepherd = currentShepherd || '';
+        reassignMemberTargetStream = stream || 'sps';
         document.getElementById('reassignMemberName').textContent = name + ' — currently under ' + (currentShepherd || 'no shepherd');
 
         var sel = document.getElementById('reassignMemberShepherdSelect');
-        var isSps = stream !== 'mc';
-        var shepherds = (isSps ? ALL_SHEPHERDS : ALL_MC_SHEPHERDS).slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
-        sel.innerHTML = shepherds.map(function (s) {
-          return '<option value="' + s.name.replace(/"/g, '&quot;') + '"' + (s.name === currentShepherd ? ' selected' : '') + '>' + s.name + (isSps ? '' : ' (' + s.microchurch + ')') + '</option>';
-        }).join('');
+        var spsSheps = (ALL_SHEPHERDS || []).slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+        var mcSheps = (ALL_MC_SHEPHERDS || []).slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+
+        var opts = '<option value="">— Choose Shepherd —</option>';
+        if (spsSheps.length > 0) {
+          opts += '<optgroup label="🙏 SPS Shepherds">';
+          spsSheps.forEach(function (s) {
+            var isSel = (s.name === currentShepherd);
+            opts += '<option value="' + s.name.replace(/"/g, '&quot;') + '" data-stream="sps" data-zone="' + (s.zone || '').replace(/"/g, '&quot;') + '"' + (isSel ? ' selected' : '') + '>' + s.name + (s.zone ? ' (' + s.zone + ')' : '') + '</option>';
+          });
+          opts += '</optgroup>';
+        }
+        if (mcSheps.length > 0) {
+          opts += '<optgroup label="⛪ Microchurch Shepherds">';
+          mcSheps.forEach(function (s) {
+            var isSel = (s.name === currentShepherd);
+            opts += '<option value="' + s.name.replace(/"/g, '&quot;') + '" data-stream="mc" data-zone="' + (s.microchurch || '').replace(/"/g, '&quot;') + '"' + (isSel ? ' selected' : '') + '>' + s.name + (s.microchurch ? ' (' + s.microchurch + ')' : '') + '</option>';
+          });
+          opts += '</optgroup>';
+        }
+        sel.innerHTML = opts;
 
         var err = document.getElementById('reassignMemberErrorMsg');
         if (err) err.style.display = 'none';
@@ -6351,7 +6382,10 @@
           return;
         }
 
-        var newZone = (ALL_SHEPHERDS.find(function (s) { return s.name === newShepherd; }) || {}).zone ||
+        var opt = sel.options[sel.selectedIndex];
+        var targetStream = (opt && opt.dataset.stream) || 'sps';
+        var newZone = (opt && opt.dataset.zone) ||
+          (ALL_SHEPHERDS.find(function (s) { return s.name === newShepherd; }) || {}).zone ||
           (ALL_MC_SHEPHERDS.find(function (s) { return s.name === newShepherd; }) || {}).microchurch || '';
 
         var btn = document.getElementById('reassignMemberSubmitBtn');
@@ -6360,8 +6394,10 @@
 
         fetchDataQuery('reassignMember', {
           memberId: reassignMemberId,
+          memberName: reassignMemberNameVal,
           newShepherd: newShepherd,
           newZone: newZone,
+          stream: targetStream,
           reassignedBy: currentRoleName || currentRole || 'Admin'
         }, function (response) {
           btn.disabled = false;
@@ -6369,7 +6405,7 @@
           if (response && response.status === 'success') {
             closeReassignMemberModal();
             loadSeekers();
-            adminToast('🔀 Reassigned to ' + newShepherd);
+            adminToast('🔀 Reassigned ' + reassignMemberNameVal + ' to ' + newShepherd);
           } else {
             err.textContent = (response && response.message) || 'Could not reassign member.';
             err.style.display = 'block';
@@ -9237,17 +9273,44 @@
       // updateShepherdZone makes that row the authoritative zone/group,
       // which loadDynamicShepherdsAdmin's merge now overrides onto.
       var reassignShepherdTarget = null;
+      var reassignShepherdNewStream = 'SPS';
+
+      function selectReassignShepStream(stream) {
+        reassignShepherdNewStream = stream;
+        var btnSps = document.getElementById('reassignStreamBtnSps');
+        var btnMc = document.getElementById('reassignStreamBtnMc');
+        var groupLabel = document.getElementById('reassignShepherdGroupLabel');
+        var groupInput = document.getElementById('reassignShepherdGroupInput');
+        var isMc = stream === 'MC';
+
+        if (btnSps) {
+          btnSps.style.background = isMc ? '#fff' : '#0f2044';
+          btnSps.style.color = isMc ? '#0f2044' : '#fff';
+          btnSps.style.borderColor = isMc ? '#dce7f7' : '#0f2044';
+        }
+        if (btnMc) {
+          btnMc.style.background = isMc ? '#0f2044' : '#fff';
+          btnMc.style.color = isMc ? '#fff' : '#0f2044';
+          btnMc.style.borderColor = isMc ? '#0f2044' : '#dce7f7';
+        }
+        if (groupLabel) groupLabel.textContent = isMc ? 'Microchurch Name' : 'New Zone';
+        if (groupInput) groupInput.placeholder = isMc ? 'e.g. Tesano 5, Darkuman, etc.' : 'e.g. Zone 1';
+
+        var listEl = document.getElementById('reassignShepherdGroupList');
+        if (listEl) {
+          listEl.innerHTML = getExistingGroupNames(stream).map(function (g) { return '<option value="' + g.replace(/"/g, '&quot;') + '">'; }).join('');
+        }
+      }
 
       function openReassignShepherdModal(name, type, currentGroup, contact) {
-        reassignShepherdTarget = { name: name, type: type, contact: contact || '' };
+        reassignShepherdTarget = { name: name, type: type || 'SPS', contact: contact || '' };
+        reassignShepherdNewStream = type || 'SPS';
+        selectReassignShepStream(reassignShepherdNewStream);
+
         var isMc = type === 'MC';
         document.getElementById('reassignShepherdName').textContent =
-          name + ' — currently ' + (currentGroup || (isMc ? 'no microchurch' : 'no zone'));
-        document.getElementById('reassignShepherdGroupLabel').textContent = isMc ? 'New Microchurch' : 'New Zone';
-        document.getElementById('reassignShepherdGroupInput').placeholder = isMc ? 'e.g. Tesano 5' : 'e.g. Zone 1';
-        document.getElementById('reassignShepherdGroupInput').value = '';
-        document.getElementById('reassignShepherdGroupList').innerHTML =
-          getExistingGroupNames(type).map(function (g) { return '<option value="' + g.replace(/"/g, '&quot;') + '">'; }).join('');
+          name + ' — currently ' + (currentGroup || (isMc ? 'no microchurch' : 'no zone')) + ' (' + (isMc ? 'Microchurch' : 'SPS') + ')';
+        document.getElementById('reassignShepherdGroupInput').value = currentGroup || '';
         var err = document.getElementById('reassignShepherdErrorMsg');
         if (err) err.style.display = 'none';
         document.getElementById('reassignShepherdModal').style.display = 'flex';
@@ -9261,7 +9324,7 @@
         var newGroup = document.getElementById('reassignShepherdGroupInput').value.trim();
         var err = document.getElementById('reassignShepherdErrorMsg');
         if (!newGroup) {
-          err.textContent = 'Please enter a ' + (reassignShepherdTarget.type === 'MC' ? 'microchurch name' : 'zone') + '.';
+          err.textContent = 'Please enter a ' + (reassignShepherdNewStream === 'MC' ? 'microchurch name' : 'zone') + '.';
           err.style.display = 'block';
           return;
         }
@@ -9276,6 +9339,7 @@
             action: 'updateShepherdZone',
             name: reassignShepherdTarget.name,
             type: reassignShepherdTarget.type,
+            newType: reassignShepherdNewStream,
             zoneOrGroup: newGroup,
             contact: reassignShepherdTarget.contact,
             updatedBy: currentRoleName || currentRole || 'Admin'
@@ -9286,16 +9350,31 @@
           btn.disabled = false;
           btn.textContent = '🔀 Reassign';
           if (response && response.status === 'success') {
-            if (reassignShepherdTarget.type === 'MC') {
-              var s = ALL_MC_SHEPHERDS.find(function (x) { return x.name === reassignShepherdTarget.name; });
-              if (s) s.microchurch = newGroup;
+            var oldType = reassignShepherdTarget.type;
+            var newType = reassignShepherdNewStream;
+            var name = reassignShepherdTarget.name;
+
+            if (oldType !== newType) {
+              if (oldType === 'MC') {
+                ALL_MC_SHEPHERDS = ALL_MC_SHEPHERDS.filter(function (x) { return x.name !== name; });
+                ALL_SHEPHERDS.push({ name: name, zone: newGroup, contact: reassignShepherdTarget.contact });
+              } else {
+                ALL_SHEPHERDS = ALL_SHEPHERDS.filter(function (x) { return x.name !== name; });
+                ALL_MC_SHEPHERDS.push({ name: name, microchurch: newGroup, contact: reassignShepherdTarget.contact });
+                window.mcMemberData[name] = window.mcMemberData[name] || [];
+              }
             } else {
-              var s2 = ALL_SHEPHERDS.find(function (x) { return x.name === reassignShepherdTarget.name; });
-              if (s2) s2.zone = newGroup;
+              if (newType === 'MC') {
+                var s = ALL_MC_SHEPHERDS.find(function (x) { return x.name === name; });
+                if (s) s.microchurch = newGroup;
+              } else {
+                var s2 = ALL_SHEPHERDS.find(function (x) { return x.name === name; });
+                if (s2) s2.zone = newGroup;
+              }
             }
             closeReassignShepherdModal();
             renderAll();
-            adminToast('🔀 ' + reassignShepherdTarget.name + ' moved to ' + newGroup);
+            adminToast('🔀 ' + name + ' updated to ' + newType + ' (' + newGroup + ')');
           } else {
             err.textContent = (response && response.message) || 'Could not reassign shepherd.';
             err.style.display = 'block';
@@ -9456,29 +9535,30 @@
         });
       }
 
-      // Pulls in shepherds added via this dashboard on a previous session
-      // (stored server-side in the Shepherds sheet) so they show up here too.
+      // Pulls in shepherds from Google Sheets Shepherds sheet so they show up dynamically
       function loadDynamicShepherdsAdmin() {
-        if (dynamicShepherdsLoaded) return;
         var cbName = 'onDynamicShepherdsAdmin';
         window[cbName] = function (data) {
           dynamicShepherdsLoaded = true;
           var records = (data && data.shepherds) || [];
+          if (records.length > 0) {
+            try {
+              localStorage.setItem('onc_admin_cached_shepherds', JSON.stringify(records));
+            } catch (e) { }
+          }
           records.forEach(function (r) {
             if (!r.Name) return;
             if (r.Type === 'MC') {
+              ALL_SHEPHERDS = ALL_SHEPHERDS.filter(function (s) { return s.name !== r.Name; });
               var existingMc = ALL_MC_SHEPHERDS.find(function (s) { return s.name === r.Name; });
               if (existingMc) {
-                // A Shepherds-sheet row for a name already in the static
-                // roster means their zone/group was reassigned via
-                // updateShepherdZone - that row is now the authoritative
-                // value, overriding the static churchData.js one.
                 if (r.ZoneOrGroup) existingMc.microchurch = r.ZoneOrGroup;
               } else {
                 ALL_MC_SHEPHERDS.push({ name: r.Name, microchurch: r.ZoneOrGroup || '', contact: r.Contact || '' });
                 window.mcMemberData[r.Name] = window.mcMemberData[r.Name] || [];
               }
             } else {
+              ALL_MC_SHEPHERDS = ALL_MC_SHEPHERDS.filter(function (s) { return s.name !== r.Name; });
               var existingSps = ALL_SHEPHERDS.find(function (s) { return s.name === r.Name; });
               if (existingSps) {
                 if (r.ZoneOrGroup) existingSps.zone = r.ZoneOrGroup;
@@ -9490,7 +9570,7 @@
           renderAll();
         };
         var s = document.createElement('script');
-        s.src = SCRIPT_URL + '?action=getDynamicShepherds&callback=' + cbName;
+        s.src = SCRIPT_URL + '?action=getDynamicShepherds&callback=' + cbName + '&_=' + Date.now();
         s.onerror = function () { dynamicShepherdsLoaded = true; };
         document.head.appendChild(s);
       }
