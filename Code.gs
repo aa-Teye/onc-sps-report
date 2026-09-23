@@ -2786,11 +2786,15 @@ function checkFellowshipMember(memberId, name, shepherd) {
 // waiting on admin approval before the person shows up next time.
 function getShepherdMembers(shepherdName) {
   if (!shepherdName) return { status: 'success', members: [] };
+  var cleanQuery = shepherdName.toString().trim().toLowerCase();
+  var normQuery = cleanQuery.replace(/[.,\/#!$%\^&\*;:{}=\-_`~]/g, '').replace(/\s+/g, ' ');
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
   var records = getSheetRecords(sheet).filter(function (r) {
     var st = (r.Status || '').toString().toLowerCase();
-    return (r.Shepherd || '').toString().trim().toLowerCase() === shepherdName.toString().trim().toLowerCase() &&
-      st !== 'deleted' && st !== 'visitor';
+    var shep = (r.Shepherd || '').toString().trim().toLowerCase();
+    var normShep = shep.replace(/[.,\/#!$%\^&\*;:{}=\-_`~]/g, '').replace(/\s+/g, ' ');
+    var isMatch = (shep === cleanQuery) || (normShep === normQuery);
+    return isMatch && st !== 'deleted' && st !== 'visitor';
   });
   return { status: 'success', members: records };
 }

@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v97';
+      var CURRENT_BUILD = 'onc-sps-v99';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -4455,7 +4455,7 @@
       // Register service worker for PWA offline support
       // (shares sw.js / cache with index.html — same scope, can't register a separate worker)
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=94').then(function (reg) {
+        navigator.serviceWorker.register('./sw.js?v=99').then(function (reg) {
           if (reg) reg.update();
         }).catch(function () {});
 
@@ -13198,13 +13198,13 @@
         var numbers = [];
         if (audienceKey === 'all' || audienceKey === 'sps') {
           (cd.spsShepherds || []).forEach(function(s) {
-            var n = (s.contact || '').replace(/\D/g,'');
+            var n = String(s.contact || '').replace(/\D/g,'');
             if (n) { if (n.charAt(0) === '0') n = '233' + n.slice(1); numbers.push(n); }
           });
         }
         if (audienceKey === 'all' || audienceKey === 'mc') {
           (cd.mcShepherds || []).forEach(function(s) {
-            var n = (s.contact || '').replace(/\D/g,'');
+            var n = String(s.contact || '').replace(/\D/g,'');
             if (n) { if (n.charAt(0) === '0') n = '233' + n.slice(1); numbers.push(n); }
           });
         }
