@@ -2629,11 +2629,11 @@ function addOrUpdateSeeker(name, phone, shepherdName, stream, source, details) {
 
   sheet.getRange(newRow, 1, 1, 18).setValues([[
     memberId, name, phone || '', shepherdName || '', '', stream || '',
-    formatDate(now), 'Pending', source || '', '', '', '', '',
+    formatDate(now), 'Visitor', source || '', '', '', '', '',
     details.dob || '', details.bornAgain || '', details.inChurch || '', details.occupation || '', details.address || ''
   ]]);
-  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'SEEKER_ADDED', shepherdName || '', name + ' (' + (source || '') + ')');
-  return { MemberID: memberId, Name: name, Phone: phone || '', Shepherd: shepherdName || '', Zone: '', Stream: stream || '', Status: 'Pending' };
+  logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'VISITOR_ADDED', shepherdName || '', name + ' (' + (source || '') + ')');
+  return { MemberID: memberId, Name: name, Phone: phone || '', Shepherd: shepherdName || '', Zone: '', Stream: stream || '', Status: 'Visitor' };
 }
 
 // Shepherd self-service: add a new Member or Seeker directly under themselves
@@ -2788,8 +2788,9 @@ function getShepherdMembers(shepherdName) {
   if (!shepherdName) return { status: 'success', members: [] };
   var sheet = ensureSheet(MEMBERS_SHEET, MEMBERS_HEADERS);
   var records = getSheetRecords(sheet).filter(function (r) {
+    var st = (r.Status || '').toString().toLowerCase();
     return (r.Shepherd || '').toString().trim().toLowerCase() === shepherdName.toString().trim().toLowerCase() &&
-      (r.Status || '').toString().toLowerCase() !== 'deleted';
+      st !== 'deleted' && st !== 'visitor';
   });
   return { status: 'success', members: records };
 }

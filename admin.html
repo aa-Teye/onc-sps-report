@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v96';
+      var CURRENT_BUILD = 'onc-sps-v97';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -33,9 +33,9 @@
               regs.forEach(function (r) { r.unregister(); });
             });
           }
-          // Clear stale roster caches so names re-fetch fresh from DB
+          // Clear stale roster & KYM caches so names re-fetch fresh from DB
           Object.keys(localStorage).forEach(function (k) {
-            if (k.startsWith('onc_db_roster_')) {
+            if (k.startsWith('onc_db_roster_') || k.startsWith('onc_kym_records_') || k.startsWith('onc_kym_time_')) {
               localStorage.removeItem(k);
             }
           });
@@ -4616,7 +4616,7 @@
         "Emmanuel Mensah": ["Valerie Ofooley", "Jehoshaphat Mills", "Christian Koomson", "Aaron Ofori", "Reginald Ofori", "Prince Acquah", "Kelvin Aryeetey", "Bismark Duker", "Esther Opare", "George Otabil", "Kwaku Baah", "Theodora Mills", "Miriam Opare", "Hanson Dzebu", "Karen Bonsu"],
         "Eric Appiah": ["Louisa Ashong", "Robert Ansah", "Precious Mmeso", "Princess Izubge", "Annabelle Forson", "Alexander Mantey", "Ameyaw Mehra", "Arnold Doe", "Regina Kwardefio", "Jackline Odoi", "Lilian Amoh", "Raymond Agbosu", "Abena Owusu", "Michelin Gyampoh"],
         "Alex Teye Ametepey": ["Samuel Amon Kotey", "Jeffrey Kleku", "Millicent Kudawoo", "Destiny Akadu", "Mabel Sena Okyere"],
-        "Rev Dr Ebenezer Okronipa": ["Bernice", "Millicent Antwi Boasiako", "Godfred Okine", "Victoria Amuzu", "Kate Armah Hammond", "Akpene Anatsui", "Emmanuel Ohene", "Isaac Ohene Offei", "Amina Alhassan", "Wilhelmina Komesour", "Aisha Mohammed", "Harriet Ampofo", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Louisa Nutakor", "Nadia Okine", "Favour Okine", "Philip Ofosuhene", "Ruth Dadzie", "Georgina Nana Ama Gyane", "Christiana Lartebea", "Aisha Mohammad", "Kate Amarh Hammond", "Roslyn Okine", "Benedicta Aryeetey", "Benedicta Gharbah", "Magdalene Adjeetey", "Ebenezer Okronipa", "Sunday Amuzu", "Benedicta Adjeetey", "Gifty Noi", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah"],
+        "Rev Dr Ebenezer Okronipa": ["Bernice", "Millicent Antwi Boasiako", "Godfred Okine", "Victoria Amuzu", "Kate Armah Hammond", "Akpene Anatsui", "Emmanuel Ohene", "Isaac Ohene Offei", "Amina Alhassan", "Wilhelmina Komesour", "Aisha Mohammed", "Harriet Ampofo", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Louisa Nutakor", "Nadia Okine", "Favour Okine", "Philip Ofosuhene", "Ruth Dadzie", "Benedicta Aryeetey", "Benedicta Gharbah", "Sunday Amuzu", "Benedicta Adjeetey", "Gifty Noi", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah"],
         "Bernice Amuzu": ["Justina Ackon", "Rashida Alhassan", "Abel Nego", "Gentle Sordji", "Christabel", "Winnifred Ndobo", "Latifa", "Bernice Amuzu", "Carol Nkansah", "Nhyira Antwi", "Abigail Antwi", "Gloria Antwi"],
         "Rosemond Quaicoe": ["Lydia Odame Antwi", "Mrs Priscilla Effah", "Edna Asare"],
         "Henry Mensah": ["Patience Mensah", "Bryan Mensah", "Brielle Mensah", "Fredrick", "Cisse Quaye"],

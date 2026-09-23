@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v96';
+      var CURRENT_BUILD = 'onc-sps-v97';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -33,9 +33,9 @@
               regs.forEach(function (r) { r.unregister(); });
             });
           }
-          // Clear stale roster caches so names re-fetch fresh from DB
+          // Clear stale roster & KYM caches so names re-fetch fresh from DB
           Object.keys(localStorage).forEach(function (k) {
-            if (k.startsWith('onc_db_roster_')) {
+            if (k.startsWith('onc_db_roster_') || k.startsWith('onc_kym_records_') || k.startsWith('onc_kym_time_')) {
               localStorage.removeItem(k);
             }
           });
@@ -2083,7 +2083,7 @@
       <div class="section" id="secKnowYourMembers">
         <div style="display:flex;align-items:center;
           gap:12px;margin-bottom:16px;">
-          <button onclick="showSection('secLanding')" style="background:none;border:none;
+          <button onclick="kymGoBack()" style="background:none;border:none;
             color:var(--gray);cursor:pointer;
             font-size:20px;">←</button>
           <div style="flex:1;">
@@ -3296,7 +3296,7 @@
       "Emmanuel Mensah": ["Valerie Ofooley", "Jehoshaphat Mills", "Christian Koomson", "Aaron Ofori", "Reginald Ofori", "Prince Acquah", "Kelvin Aryeetey", "Bismark Duker", "Esther Opare", "George Otabil", "Kwaku Baah", "Theodora Mills", "Miriam Opare", "Hanson Dzebu", "Karen Bonsu"],
       "Eric Appiah": ["Louisa Ashong", "Robert Ansah", "Precious Mmeso", "Princess Izubge", "Annabelle Forson", "Alexander Mantey", "Ameyaw Mehra", "Arnold Doe", "Regina Kwardefio", "Jackline Odoi", "Lilian Amoh", "Raymond Agbosu", "Abena Owusu", "Michelin Gyampoh"],
       "Alex Teye Ametepey": ["Samuel Amon Kotey", "Jeffrey Kleku", "Millicent Kudawoo", "Destiny Akadu", "Mabel Sena Okyere"],
-      "Rev Dr Ebenezer Okronipa": ["Bernice", "Millicent Antwi Boasiako", "Godfred Okine", "Victoria Amuzu", "Kate Armah Hammond", "Akpene Anatsui", "Emmanuel Ohene", "Isaac Ohene Offei", "Amina Alhassan", "Wilhelmina Komesour", "Aisha Mohammed", "Harriet Ampofo", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Louisa Nutakor", "Nadia Okine", "Favour Okine", "Philip Ofosuhene", "Ruth Dadzie", "Georgina Nana Ama Gyane", "Christiana Lartebea", "Aisha Mohammad", "Kate Amarh Hammond", "Roslyn Okine", "Benedicta Aryeetey", "Benedicta Gharbah", "Magdalene Adjeetey", "Ebenezer Okronipa", "Sunday Amuzu", "Benedicta Adjeetey", "Gifty Noi", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah"],
+      "Rev Dr Ebenezer Okronipa": ["Bernice", "Millicent Antwi Boasiako", "Godfred Okine", "Victoria Amuzu", "Kate Armah Hammond", "Akpene Anatsui", "Emmanuel Ohene", "Isaac Ohene Offei", "Amina Alhassan", "Wilhelmina Komesour", "Aisha Mohammed", "Harriet Ampofo", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Louisa Nutakor", "Nadia Okine", "Favour Okine", "Philip Ofosuhene", "Ruth Dadzie", "Benedicta Aryeetey", "Benedicta Gharbah", "Sunday Amuzu", "Benedicta Adjeetey", "Gifty Noi", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah"],
       "Bernice Amuzu": ["Justina Ackon", "Rashida Alhassan", "Abel Nego", "Gentle Sordji", "Christabel", "Winnifred Ndobo", "Latifa", "Bernice Amuzu", "Carol Nkansah", "Nhyira Antwi", "Abigail Antwi", "Gloria Antwi"],
       "Rosemond Quaicoe": ["Lydia Odame Antwi", "Mrs Priscilla Effah", "Edna Asare"],
       "Henry Mensah": ["Patience Mensah", "Bryan Mensah", "Brielle Mensah", "Fredrick", "Cisse Quaye"],
@@ -3397,7 +3397,8 @@
           records.forEach(function (r) {
             if (!r.Name) return;
             var cleanName = r.Name.trim();
-            if ((r.Status || '').toString().toLowerCase() === 'deleted') return;
+            var stLower = (r.Status || '').toString().toLowerCase();
+            if (stLower === 'deleted' || stLower === 'visitor') return;
             if (liveNames.indexOf(cleanName) === -1) liveNames.push(cleanName);
             if (r.Status === 'Pending' || r.Status === 'Seeker') {
               statuses[cleanName] = r.Status;
@@ -7409,7 +7410,8 @@
             var rawName = (r.Name || r.name || '').trim();
             if (!rawName) return;
             var key = rawName.toLowerCase();
-            if ((r.Status || r.status || '').toString().toLowerCase() === 'deleted' || deletedList.includes(key)) return;
+            var stLower = (r.Status || r.status || '').toString().toLowerCase();
+            if (stLower === 'deleted' || stLower === 'visitor' || deletedList.includes(key)) return;
             mapped.push({
               name: rawName,
               contact: r.Phone || r.contact || '',
@@ -7432,19 +7434,6 @@
             });
           });
           if (mapped.length > 0) {
-            // Also merge any static members that might be missing from cachedKym
-            var staticBase = (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ?
-              ((typeof microchurchShepherdData !== 'undefined' && microchurchShepherdData[shepherdName]) || []) :
-              ((typeof shepherdData !== 'undefined' && shepherdData[shepherdName] && shepherdData[shepherdName].members) || []);
-            var mappedNames = {};
-            mapped.forEach(function (m) { mappedNames[(m.name || '').toLowerCase().trim()] = true; });
-            staticBase.forEach(function (s) {
-              var sName = typeof s === 'string' ? s.trim() : (s.name || '').trim();
-              if (sName && !mappedNames[sName.toLowerCase()] && !deletedList.includes(sName.toLowerCase())) {
-                mapped.push({ name: sName, contact: '', status: 'Member' });
-                mappedNames[sName.toLowerCase()] = true;
-              }
-            });
             return mapped;
           }
         }
@@ -7760,7 +7749,8 @@
           records.forEach(function (r) {
             if (!r.Name) return;
             var key = r.Name.toLowerCase().trim();
-            if ((r.Status || '').toString().toLowerCase() === 'deleted' || deletedList.includes(key)) return;
+            var st = (r.Status || '').toString().toLowerCase();
+            if (st === 'deleted' || st === 'visitor' || deletedList.includes(key)) return;
             liveList.push({
               name: r.Name.trim(),
               contact: r.Phone || '',
@@ -7793,8 +7783,9 @@
             if (!r.Name || r.Shepherd !== shepherdName) return;
             var key = r.Name.toLowerCase().trim();
             var existing = byNorm[key];
+            var st = (r.Status || '').toString().toLowerCase();
 
-            if ((r.Status || '').toString().toLowerCase() === 'deleted' || deletedList.includes(key)) {
+            if (st === 'deleted' || st === 'visitor' || deletedList.includes(key)) {
               if (existing) {
                 var idx = baseMembers.indexOf(existing);
                 if (idx > -1) baseMembers.splice(idx, 1);
@@ -7831,12 +7822,7 @@
       // If fresh in memory or localStorage cache, render immediately without banner
       if (kymCacheIsFresh(shepherdName)) {
         applyRecords(kymRawRecordsCache.records);
-        var staticCount = (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ?
-          ((typeof microchurchShepherdData !== 'undefined' && microchurchShepherdData[shepherdName]) ? microchurchShepherdData[shepherdName].length : 0) :
-          ((typeof shepherdData !== 'undefined' && shepherdData[shepherdName] && shepherdData[shepherdName].members) ? shepherdData[shepherdName].members.length : 0);
-        if ((kymRawRecordsCache.records || []).length >= staticCount) {
-          return;
-        }
+        return;
       }
 
       // If existing cached records in localStorage, render them immediately (0ms view)
@@ -8381,11 +8367,16 @@
         }
       }
 
+      kymEnsureShepherdState();
       var shepherd = state.shepherd || '';
 
       // 1. OPTIMISTIC INSTANT UI: Remove immediately from screen and local storage!
       kymRemoveMemberLocally(name);
-      showToast('✅ ' + name + ' removed from sheepfold');
+      if (typeof showGlobalAlert === 'function') {
+        showGlobalAlert('🗑️ ' + name + ' removed from sheepfold', 'info');
+      } else if (typeof showToast === 'function') {
+        showToast('✅ ' + name + ' removed from sheepfold');
+      }
 
       // 2. Background sync to Google Sheets
       var cbName = 'onKymDel_' + Date.now();
@@ -8422,7 +8413,17 @@
       }, 10000);
     }
 
+    function kymGoBack() {
+      kymEnsureShepherdState();
+      if (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') {
+        showSection('secMC1');
+      } else {
+        showSection('secLanding');
+      }
+    }
+
     function kymRemoveMemberLocally(name) {
+      kymEnsureShepherdState();
       var shepherd = state.shepherd || '';
       var norm = (name || '').trim().toLowerCase();
 
