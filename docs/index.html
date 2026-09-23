@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v93';
+      var CURRENT_BUILD = 'onc-sps-v94';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -3070,7 +3070,7 @@
   <script>
     // Register service worker for PWA offline support
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=93').then(function (reg) {
+      navigator.serviceWorker.register('./sw.js?v=94').then(function (reg) {
         if (reg) reg.update();
       }).catch(function () { });
 
@@ -3640,6 +3640,9 @@
       var duration = (watched === 'true') ? 5000 : 30000;
       var elapsed = 0;
 
+      // Silently pre-fetch shepherds while video is running
+      try { mergeDynamicShepherds(); } catch(e){}
+
       var ring = document.getElementById('skipRing1');
       var inner = document.getElementById('skipInner1');
 
@@ -3885,24 +3888,35 @@
           '⛪ Microchurch Shepherd Login';
       }
 
-      // Populate dropdown with correct names (wait for any admin-added
-      // shepherds to merge in first, so they're selectable immediately)
-      mergeDynamicShepherds(function () {
+      // Populate dropdown IMMEDIATELY (0ms instant response, no lag)
+      function populateDropdownNow() {
         var select = document.getElementById('loginShepherdSelect');
-        if (select) {
-          select.innerHTML = '<option value="">— Select your name —</option>';
+        if (!select) return;
+        var currentVal = select.value;
+        select.innerHTML = '<option value="">— Select your name —</option>';
 
-          var names = type === 'sps' ?
-            Object.keys(shepherdData) :
-            Object.keys(microchurchShepherdData);
+        var names = type === 'sps' ?
+          Object.keys(shepherdData) :
+          Object.keys(microchurchShepherdData);
 
-          names.sort().forEach(function (name) {
-            var opt = document.createElement('option');
-            opt.value = name;
-            opt.textContent = name;
-            select.appendChild(opt);
-          });
+        names.sort().forEach(function (name) {
+          var opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+
+        if (currentVal && names.includes(currentVal)) {
+          select.value = currentVal;
         }
+      }
+
+      // 1. Fill dropdown immediately in 0ms
+      populateDropdownNow();
+
+      // 2. Silently update in background if new shepherds exist
+      mergeDynamicShepherds(function () {
+        populateDropdownNow();
       });
 
       // Show login screen
