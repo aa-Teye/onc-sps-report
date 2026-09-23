@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v92';
+      var CURRENT_BUILD = 'onc-sps-v93';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -4455,7 +4455,7 @@
       // Register service worker for PWA offline support
       // (shares sw.js / cache with index.html — same scope, can't register a separate worker)
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=92').then(function (reg) {
+        navigator.serviceWorker.register('./sw.js?v=93').then(function (reg) {
           if (reg) reg.update();
         }).catch(function () {});
 
@@ -5917,7 +5917,16 @@
       function deleteSeekerAction(memberId, memberName, shepherd) {
         var displayName = memberName ? ('"' + memberName + '"') : 'this person';
         if (!confirm('Are you sure you want to permanently delete ' + displayName + ' from the system?')) return;
-        adminToast('⏳ Deleting record...');
+        
+        // Optimistic UI removal
+        if (Array.isArray(seekersData)) {
+          seekersData = seekersData.filter(function (s) {
+            return String(s.MemberID) !== String(memberId) && (!memberName || (s.Name || '').trim().toLowerCase() !== memberName.trim().toLowerCase());
+          });
+          renderSeekers();
+        }
+        adminToast('🗑️ ' + (memberName || 'Record') + ' removed');
+
         fetchDataQuery('deleteMemberRecord', {
           memberId: memberId || '',
           name: memberName || '',
@@ -5926,9 +5935,8 @@
         }, function (response) {
           if (response && response.status === 'success') {
             loadSeekers();
-            adminToast('🗑️ ' + (memberName || 'Record') + ' deleted successfully');
           } else {
-            adminToast('❌ Could not delete: ' + ((response && response.message) || 'Error'));
+            adminToast('❌ Could not sync delete: ' + ((response && response.message) || 'Error'));
           }
         });
       }
@@ -9404,20 +9412,22 @@
         if (!confirm('⚠️ Are you sure you want to delete shepherd "' + shepherdName + '"?')) return;
         if (!confirm('CONFIRM DELETION: This will mark shepherd "' + shepherdName + '" as deleted and unassign their active status in the database. Proceed?')) return;
 
-        adminToast('⏳ Deleting shepherd...');
+        // Optimistic UI: remove card immediately!
+        if (stream === 'MC') {
+          ALL_MC_SHEPHERDS = ALL_MC_SHEPHERDS.filter(function (s) { return s.name !== shepherdName; });
+        } else {
+          ALL_SHEPHERDS = ALL_SHEPHERDS.filter(function (s) { return s.name !== shepherdName; });
+        }
+        renderAll();
+        adminToast('🗑️ Shepherd ' + shepherdName + ' removed.');
+
         fetchDataQuery('deleteShepherd', {
           name: shepherdName,
           type: stream || 'SPS',
           deletedBy: currentRoleName || currentRole || 'Admin'
         }, function (response) {
           if (response && response.status === 'success') {
-            if (stream === 'MC') {
-              ALL_MC_SHEPHERDS = ALL_MC_SHEPHERDS.filter(function (s) { return s.name !== shepherdName; });
-            } else {
-              ALL_SHEPHERDS = ALL_SHEPHERDS.filter(function (s) { return s.name !== shepherdName; });
-            }
-            renderAll();
-            adminToast('🗑️ Shepherd ' + shepherdName + ' deleted successfully.');
+            loadDynamicShepherdsAdmin();
           } else {
             alert('Could not delete shepherd: ' + ((response && response.message) || 'Error'));
           }
