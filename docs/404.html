@@ -2514,7 +2514,7 @@
           cursor:pointer;">
           ▶ Proceed to Fill Form
         </button>
-        <button onclick="showKnowYourMembers()" style="width:100%;padding:18px;
+        <button type="button" onclick="showKnowYourMembers()" style="width:100%;padding:18px;
           border-radius:16px;background:white;
           color:var(--navy);
           border:2px solid var(--navy);
@@ -7481,12 +7481,12 @@
         }
       }
 
-      return members.map(function (m) {
-        return typeof m === 'string' ?
-          { name: m, contact: '' } :
-          { name: m.name || '', contact: m.contact || m.phone || '', status: m.status || 'Member' };
+      return (members || []).filter(Boolean).map(function (m) {
+        if (!m) return null;
+        if (typeof m === 'string') return { name: m.trim(), contact: '', status: 'Member' };
+        return { name: (m.name || '').trim(), contact: m.contact || m.phone || '', status: m.status || 'Member' };
       }).filter(function (m) {
-        return !deletedList.includes((m.name || '').trim().toLowerCase());
+        return m && m.name && !deletedList.includes(m.name.toLowerCase());
       });
     }
 
@@ -7510,11 +7510,11 @@
       var list = document.getElementById('kymMembersList');
       if (!list) return;
 
-      var allMembers = kymMembersCache || members || [];
+      var allMembers = (kymMembersCache || members || []).filter(Boolean);
       var totalCount = allMembers.length;
       var seekerCount = 0;
       allMembers.forEach(function (m) {
-        if ((m.status || '').toString().toLowerCase() === 'seeker') seekerCount++;
+        if (m && (m.status || '').toString().toLowerCase() === 'seeker') seekerCount++;
       });
       var regularCount = totalCount - seekerCount;
 
@@ -7536,7 +7536,8 @@
         seekerBadgeEl.style.display = seekerCount > 0 ? 'inline-block' : 'none';
       }
 
-      if (!members || members.length === 0) {
+      var safeMembers = (members || []).filter(Boolean);
+      if (!safeMembers.length) {
         var msg = isFiltered ?
           'No members found matching your search.' :
           ((state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ?
@@ -7553,9 +7554,9 @@
         return;
       }
 
-      list.innerHTML = members.map(function (m) {
-        var name = m.name || '';
-        var phone = m.contact || '';
+      list.innerHTML = safeMembers.map(function (m) {
+        var name = (m && m.name) || '';
+        var phone = (m && m.contact) || '';
 
         var waNumber = phone.replace(/^0/, '233');
         var hasPhone = phone &&
@@ -7857,6 +7858,16 @@
           state.shepherdType = 'mc';
         }
       }
+      if (!state.shepherdType && state.shepherd) {
+        var savedType2 = localStorage.getItem('onc_logged_in_type');
+        if (savedType2) {
+          state.shepherdType = savedType2;
+        } else if (typeof microchurchShepherdData !== 'undefined' && microchurchShepherdData[state.shepherd]) {
+          state.shepherdType = 'mc';
+        } else {
+          state.shepherdType = 'sps';
+        }
+      }
       return state.shepherd;
     }
 
@@ -7877,32 +7888,41 @@
     }
 
     function showKnowYourMembers() {
-      kymEnsureShepherdState();
-      var searchInput = document.getElementById('kymSearchInput');
-      if (searchInput) searchInput.value = '';
+      try {
+        kymEnsureShepherdState();
 
-      var nameEl = document.getElementById(
-        'kymShepherdName');
-      if (nameEl) {
-        nameEl.textContent = state.shepherd || '';
-      }
+        // Hide progress step indicators so they do not float above Know Your Members
+        var ps = document.getElementById('progressSteps');
+        if (ps) ps.style.display = 'none';
 
-      var list = document.getElementById(
-        'kymMembersList');
-      if (!list) {
+        var searchInput = document.getElementById('kymSearchInput');
+        if (searchInput) searchInput.value = '';
+
+        var nameEl = document.getElementById('kymShepherdName');
+        if (nameEl) {
+          nameEl.textContent = state.shepherd || '';
+        }
+
+        var list = document.getElementById('kymMembersList');
+        if (!list) {
+          showSection('secKnowYourMembers');
+          return;
+        }
+
+        var members = kymBuildStaticMembers() || [];
+        kymMembersCache = members;
+        kymRenderList(members);
         showSection('secKnowYourMembers');
-        return;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        var banner = document.getElementById('kymLoadingBanner');
+        if (banner) banner.style.display = kymCacheIsFresh(state.shepherd) ? 'none' : 'block';
+
+        kymMergeLiveMembers(members);
+      } catch (err) {
+        console.error('Error showing Know Your Members:', err);
+        showSection('secKnowYourMembers');
       }
-
-      var members = kymBuildStaticMembers();
-      kymMembersCache = members;
-      kymRenderList(members);
-      showSection('secKnowYourMembers');
-
-      var banner = document.getElementById('kymLoadingBanner');
-      if (banner) banner.style.display = kymCacheIsFresh(state.shepherd) ? 'none' : 'block';
-
-      kymMergeLiveMembers(members);
     }
 
     // ── Know Your Members: Add / Edit modal ─────────────────────
@@ -8415,11 +8435,14 @@
 
     function kymGoBack() {
       kymEnsureShepherdState();
-      if (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') {
-        showSection('secMC1');
-      } else {
-        showSection('secLanding');
+      var isMC = (state.shepherdType === 'mc' || state.shepherdType === 'microchurch');
+      var prevSec = isMC ? 'secMC1' : 'secLanding';
+      showSection(prevSec);
+      var ps = document.getElementById('progressSteps');
+      if (ps) {
+        ps.style.display = isMC ? 'flex' : 'none';
       }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function kymRemoveMemberLocally(name) {
