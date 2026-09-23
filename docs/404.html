@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v97';
+      var CURRENT_BUILD = 'onc-sps-v99';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -2232,6 +2232,28 @@
           cursor:pointer;">
           ▶ Proceed to Fill Form
         </button>
+        <button type="button" onclick="showKnowYourMembers()" style="width:100%;padding:18px;
+          border-radius:16px;background:white;
+          color:var(--navy);
+          border:2px solid var(--navy);
+          font-size:16px;font-weight:700;
+          cursor:pointer;display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:10px;margin-top:8px;">
+          👥 Know Your Members
+        </button>
+        <button type="button" onclick="goBackToLanding()" style="width:100%;padding:14px;
+          border-radius:12px;background:transparent;
+          color:var(--gray);
+          border:1.5px solid #cbd5e1;
+          font-size:14px;font-weight:700;
+          cursor:pointer;display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:8px;margin-top:10px;">
+          ← Back to Main Menu
+        </button>
       </div>
 
       <!-- SEC 2: ATTENDANCE -->
@@ -2524,6 +2546,17 @@
           justify-content:center;
           gap:10px;margin-top:8px;">
           👥 Know Your Members
+        </button>
+        <button type="button" onclick="goBackToLanding()" style="width:100%;padding:14px;
+          border-radius:12px;background:transparent;
+          color:var(--gray);
+          border:1.5px solid #cbd5e1;
+          font-size:14px;font-weight:700;
+          cursor:pointer;display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:8px;margin-top:10px;">
+          ← Back to Main Menu
         </button>
       </div>
 
@@ -3088,7 +3121,7 @@
   <script>
     // Register service worker for PWA offline support
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=94').then(function (reg) {
+      navigator.serviceWorker.register('./sw.js?v=99').then(function (reg) {
         if (reg) reg.update();
       }).catch(function () { });
 
@@ -4265,6 +4298,16 @@
       mergeDynamicSeekers(state.shepherd, true, buildMCMemberCards);
     }
 
+    function goBackToLanding() {
+      var allSecs = document.querySelectorAll('.section');
+      allSecs.forEach(function (s) { s.classList.remove('active'); });
+      var ps = document.getElementById('progressSteps');
+      if (ps) ps.style.display = 'none';
+      var secLanding = document.getElementById('secLanding');
+      if (secLanding) secLanding.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     function chooseFlow(type) {
       state.shepherdType = type;
       currentStep = 1;
@@ -4373,9 +4416,9 @@
         display.style.color = '#64748b';
       }
       if (input) {
-        input.value = '';
-        input.readOnly = true;
-        input.placeholder = 'Loading...';
+        input.value = state.bibleTopic || '';
+        input.readOnly = false;
+        input.placeholder = 'Enter topic from Missionary Christian Manual...';
       }
       if (note) note.style.display = 'none';
 
@@ -4393,9 +4436,9 @@
         state.topicCovered = topic ? 'yes' : 'no';
 
         if (topic) {
-          // Topic set by GO - show and lock
+          // Suggested Topic from Missionary Christian Manual - prefill and leave fully editable
           if (display) {
-            display.textContent = '📖 Topic: ' + topic;
+            display.textContent = '📖 Suggested Topic: ' + topic;
             display.style.display = 'block';
             display.style.background = '#f0fdf4';
             display.style.borderColor = '#22c55e';
@@ -4403,11 +4446,15 @@
           }
           if (input) {
             input.value = topic;
-            input.readOnly = true;
-            input.style.background = '#f8fafc';
-            input.style.color = '#64748b';
+            input.readOnly = false;
+            input.style.background = 'white';
+            input.style.color = '#0f2044';
           }
-          if (note) note.style.display = 'none';
+          if (note) {
+            note.style.display = 'block';
+            note.style.color = '#0284c7';
+            note.innerHTML = '✏️ You can edit or change the topic if you covered a different lesson from the manual.';
+          }
         } else {
           // No topic set - let shepherd enter
           if (display) display.style.display = 'none';
@@ -4416,9 +4463,13 @@
             input.readOnly = false;
             input.style.background = 'white';
             input.style.color = '#0a1628';
-            input.placeholder = 'Enter Bible study topic...';
+            input.placeholder = 'Enter topic from Missionary Christian Manual...';
           }
-          if (note) note.style.display = 'block';
+          if (note) {
+            note.style.display = 'block';
+            note.style.color = '#b45309';
+            note.textContent = '⚠️ No topic set by admin — please enter your topic from the manual';
+          }
         }
         if (document.head.contains(s)) document.head.removeChild(s);
       };
@@ -7267,9 +7318,12 @@
           'annoLoadingOverlay');
         if (ov) ov.remove();
 
+        var isMC = (state.shepherdType === 'mc' || state.shepherdType === 'microchurch');
+        var landingSec = isMC ? 'secMC1' : 'secLanding';
+
         if (!data || !data.announcements ||
           data.announcements.length === 0) {
-          showSection('secLanding');
+          showSection(landingSec);
           return;
         }
 
@@ -7286,7 +7340,7 @@
         );
 
         if (relevant.length === 0) {
-          showSection('secLanding');
+          showSection(landingSec);
           return;
         }
 
@@ -7307,7 +7361,8 @@
         var ov = document.getElementById(
           'annoLoadingOverlay');
         if (ov) ov.remove();
-        showSection('secLanding');
+        var isMC = (state.shepherdType === 'mc' || state.shepherdType === 'microchurch');
+        showSection(isMC ? 'secMC1' : 'secLanding');
       };
       document.head.appendChild(script);
     }
@@ -7387,7 +7442,86 @@
       var modal = document.getElementById(
         'annoModal');
       if (modal) modal.remove();
-      showSection('secLanding');
+      var isMC = (state.shepherdType === 'mc' || state.shepherdType === 'microchurch');
+      showSection(isMC ? 'secMC1' : 'secLanding');
+    }
+
+    function kymNormalize(s) {
+      return (s || '')
+        .split('(')[0]
+        .toLowerCase()
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~]/g, '')
+        .replace(/\b(rev|dr|pastor|pst|lp|elder|minister|mr|mrs|ms)\b/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function kymGetRosterForShepherd(shepherdName) {
+      if (!shepherdName) return { list: [], type: 'sps' };
+      var clean = shepherdName.trim();
+      var norm = kymNormalize(clean);
+
+      // 1. Direct match in microchurchShepherdData
+      if (typeof microchurchShepherdData !== 'undefined' && microchurchShepherdData[clean] && microchurchShepherdData[clean].length) {
+        state.shepherdType = 'mc';
+        return { list: microchurchShepherdData[clean], type: 'mc' };
+      }
+
+      // 2. Direct match in shepherdData (SPS)
+      if (typeof shepherdData !== 'undefined' && shepherdData[clean] && shepherdData[clean].members && shepherdData[clean].members.length) {
+        state.shepherdType = 'sps';
+        return { list: shepherdData[clean].members, type: 'sps' };
+      }
+
+      // 3. Normalized match in microchurchShepherdData
+      if (typeof microchurchShepherdData !== 'undefined') {
+        var mcKey = Object.keys(microchurchShepherdData).find(function (k) {
+          var kNorm = kymNormalize(k);
+          return kNorm === norm || (norm.length >= 4 && (kNorm.indexOf(norm) !== -1 || norm.indexOf(kNorm) !== -1));
+        });
+        if (mcKey && microchurchShepherdData[mcKey] && microchurchShepherdData[mcKey].length) {
+          state.shepherdType = 'mc';
+          return { list: microchurchShepherdData[mcKey], type: 'mc' };
+        }
+      }
+
+      // 4. Normalized match in shepherdData (SPS)
+      if (typeof shepherdData !== 'undefined') {
+        var spsKey = Object.keys(shepherdData).find(function (k) {
+          var kNorm = kymNormalize(k);
+          return kNorm === norm || (norm.length >= 4 && (kNorm.indexOf(norm) !== -1 || norm.indexOf(kNorm) !== -1));
+        });
+        if (spsKey && shepherdData[spsKey] && shepherdData[spsKey].members && shepherdData[spsKey].members.length) {
+          state.shepherdType = 'sps';
+          return { list: shepherdData[spsKey].members, type: 'sps' };
+        }
+      }
+
+      // 5. CHURCH_DATA fallback
+      if (window.CHURCH_DATA) {
+        if (window.CHURCH_DATA.mcShepherds) {
+          var mcObj = window.CHURCH_DATA.mcShepherds.find(function (s) {
+            var sNorm = kymNormalize(s.name);
+            return sNorm === norm || (norm.length >= 4 && (sNorm.indexOf(norm) !== -1 || norm.indexOf(sNorm) !== -1));
+          });
+          if (mcObj && mcObj.members && mcObj.members.length) {
+            state.shepherdType = 'mc';
+            return { list: mcObj.members, type: 'mc' };
+          }
+        }
+        if (window.CHURCH_DATA.spsShepherds) {
+          var spsObj = window.CHURCH_DATA.spsShepherds.find(function (s) {
+            var sNorm = kymNormalize(s.name);
+            return sNorm === norm || (norm.length >= 4 && (sNorm.indexOf(norm) !== -1 || norm.indexOf(sNorm) !== -1));
+          });
+          if (spsObj && spsObj.members && spsObj.members.length) {
+            state.shepherdType = 'sps';
+            return { list: spsObj.members, type: 'sps' };
+          }
+        }
+      }
+
+      return { list: [], type: state.shepherdType || 'sps' };
     }
 
     // Static baseline roster (churchData.js first, shepherdData fallback),
@@ -7400,22 +7534,64 @@
         deletedList = JSON.parse(localStorage.getItem('onc_shep_deleted_' + shepherdName) || '[]');
       } catch (e) { }
 
-      // 1. Check localStorage cached full KYM records FIRST (instant 0ms rich member cards)
+      // 1. Get raw base from in-memory / static roster
+      var rosterRes = kymGetRosterForShepherd(shepherdName);
+      var rawBase = rosterRes.list || [];
+
+      var map = {};
+      var list = [];
+
+      (rawBase || []).forEach(function (m) {
+        var n = (typeof m === 'string' ? m : (m.name || '')).trim();
+        if (!n) return;
+        var key = n.toLowerCase();
+        if (deletedList.includes(key)) return;
+        var obj = {
+          name: n,
+          contact: typeof m === 'object' ? (m.contact || m.phone || '') : '',
+          status: typeof m === 'object' ? (m.status || 'Member') : 'Member'
+        };
+        map[key] = obj;
+        list.push(obj);
+      });
+
+      // 2. Enrich with cached DB roster (statuses like Seeker/Pending)
+      try {
+        var dbKey = 'onc_db_roster_' + shepherdName;
+        var cachedDb = JSON.parse(localStorage.getItem(dbKey) || 'null');
+        if (cachedDb && Array.isArray(cachedDb.names)) {
+          cachedDb.names.forEach(function (n) {
+            var clean = (n || '').trim();
+            if (!clean) return;
+            var key = clean.toLowerCase();
+            if (deletedList.includes(key)) return;
+            var st = (cachedDb.statuses && cachedDb.statuses[clean]) || 'Member';
+            if (map[key]) {
+              map[key].status = st;
+            } else {
+              var newObj = { name: clean, contact: '', status: st };
+              map[key] = newObj;
+              list.push(newObj);
+            }
+          });
+        }
+      } catch (e) { }
+
+      // 3. Enrich with cached rich KYM records from localStorage
       try {
         var kymKey = 'onc_kym_records_' + shepherdName;
         var cachedKym = JSON.parse(localStorage.getItem(kymKey) || 'null');
-        if (Array.isArray(cachedKym) && cachedKym.length > 0) {
-          var mapped = [];
+        if (Array.isArray(cachedKym)) {
           cachedKym.forEach(function (r) {
             var rawName = (r.Name || r.name || '').trim();
             if (!rawName) return;
             var key = rawName.toLowerCase();
             var stLower = (r.Status || r.status || '').toString().toLowerCase();
             if (stLower === 'deleted' || stLower === 'visitor' || deletedList.includes(key)) return;
-            mapped.push({
+            var extra = {
               name: rawName,
-              contact: r.Phone || r.contact || '',
-              memberId: r.MemberID || r.memberId || '',
+              contact: r.Phone ? String(r.Phone).trim() : (r.contact ? String(r.contact).trim() : ''),
+              memberId: r.MemberID ? String(r.MemberID) : (r.memberId ? String(r.memberId) : ''),
               status: r.Status || r.status || 'Member',
               dob: r.DOB || r.dob || '',
               bornAgain: r.BornAgain || r.bornAgain || '',
@@ -7431,63 +7607,19 @@
               testimony: r.Testimony || r.testimony || '',
               prayerRequest: r.PrayerRequest || r.prayerRequest || '',
               comments: r.Comments || r.comments || ''
-            });
-          });
-          if (mapped.length > 0) {
-            return mapped;
-          }
-        }
-      } catch (e) { }
-
-      // 2. Check onc_db_roster_ cached from session attendance
-      var members = [];
-      try {
-        var dbKey = 'onc_db_roster_' + shepherdName;
-        var cachedDb = JSON.parse(localStorage.getItem(dbKey) || 'null');
-        if (cachedDb && Array.isArray(cachedDb.names) && cachedDb.names.length > 0) {
-          members = cachedDb.names.map(function (n) {
-            return { name: n, contact: '', status: (cachedDb.statuses && cachedDb.statuses[n]) || 'Member' };
+            };
+            if (map[key]) {
+              if (!extra.contact && map[key].contact) extra.contact = map[key].contact;
+              Object.assign(map[key], extra);
+            } else {
+              map[key] = extra;
+              list.push(extra);
+            }
           });
         }
       } catch (e) { }
 
-      // 3. Check in-memory microchurchShepherdData or shepherdData
-      if (!members.length) {
-        if (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') {
-          var mcList = (typeof microchurchShepherdData !== 'undefined' && microchurchShepherdData[shepherdName]) || [];
-          if (mcList.length) {
-            members = mcList.map(function (m) {
-              return typeof m === 'string' ? { name: m, contact: '' } : { name: m.name || '', contact: m.contact || '' };
-            });
-          }
-        } else {
-          var spsList = (typeof shepherdData !== 'undefined' && shepherdData[shepherdName] && shepherdData[shepherdName].members) || [];
-          if (spsList.length) {
-            members = spsList.map(function (m) {
-              return typeof m === 'string' ? { name: m, contact: '' } : { name: m.name || '', contact: m.contact || '' };
-            });
-          }
-        }
-      }
-
-      // 4. Fallback to CHURCH_DATA
-      if (!members.length && window.CHURCH_DATA) {
-        if (state.shepherdType === 'sps') {
-          var sObj = window.CHURCH_DATA.spsShepherds.find(function (s) { return s.name === shepherdName; });
-          if (sObj && sObj.members) members = sObj.members;
-        } else {
-          var mcObj = window.CHURCH_DATA.mcShepherds.find(function (s) { return s.name === shepherdName; });
-          if (mcObj && mcObj.members) members = mcObj.members;
-        }
-      }
-
-      return (members || []).filter(Boolean).map(function (m) {
-        if (!m) return null;
-        if (typeof m === 'string') return { name: m.trim(), contact: '', status: 'Member' };
-        return { name: (m.name || '').trim(), contact: m.contact || m.phone || '', status: m.status || 'Member' };
-      }).filter(function (m) {
-        return m && m.name && !deletedList.includes(m.name.toLowerCase());
-      });
+      return list;
     }
 
     function kymFilterList() {
@@ -7555,115 +7687,116 @@
       }
 
       list.innerHTML = safeMembers.map(function (m) {
-        var name = (m && m.name) || '';
-        var phone = (m && m.contact) || '';
+        try {
+          var name = (m && m.name ? String(m.name) : '').trim();
+          var phone = String((m && (m.contact || m.phone)) || '').trim();
+          var cleanDigits = phone.replace(/\D/g, '');
+          var waNumber = cleanDigits.replace(/^0/, '233');
+          if (waNumber.length === 9) waNumber = '233' + waNumber;
+          var hasPhone = cleanDigits.length > 0;
+          var editBtn =
+            '<button onclick="kymOpenEditModal(\'' + String(m.memberId || '') + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')" ' +
+            'style="background:#f0f5ff;border:1px solid #dbeafe;color:var(--navy);' +
+            'width:30px;height:30px;border-radius:8px;font-size:13px;' +
+            'cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;" title="Edit">✏️</button>';
+          var deleteBtn = '<button onclick="kymDeleteMemberAction(\'' + String(m.memberId || '') + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')" ' +
+            'style="background:#fef2f2;border:1px solid #fee2e2;color:#ef4444;' +
+            'width:30px;height:30px;border-radius:8px;font-size:13px;' +
+            'cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;" title="Delete">🗑️</button>';
+          var statusBadge = String(m.status || '').toLowerCase() === 'seeker' ?
+            '<span style="font-size:10px;font-weight:800;padding:2px 8px;' +
+            'border-radius:999px;background:#fef3c7;color:#92400e;' +
+            'margin-left:6px;vertical-align:2px;">SEEKER</span>' : '';
 
-        var waNumber = phone.replace(/^0/, '233');
-        var hasPhone = phone &&
-          phone.trim() !== '';
-        var editBtn =
-          '<button onclick="kymOpenEditModal(\'' + (m.memberId || '') + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')" ' +
-          'style="background:#f0f5ff;border:1px solid #dbeafe;color:var(--navy);' +
-          'width:30px;height:30px;border-radius:8px;font-size:13px;' +
-          'cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;" title="Edit">✏️</button>';
-        var deleteBtn = '<button onclick="kymDeleteMemberAction(\'' + (m.memberId || '') + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')" ' +
-          'style="background:#fef2f2;border:1px solid #fee2e2;color:#ef4444;' +
-          'width:30px;height:30px;border-radius:8px;font-size:13px;' +
-          'cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;" title="Delete">🗑️</button>';
-        var statusBadge = m.status === 'Seeker' ?
-          '<span style="font-size:10px;font-weight:800;padding:2px 8px;' +
-          'border-radius:999px;background:#fef3c7;color:#92400e;' +
-          'margin-left:6px;vertical-align:2px;">SEEKER</span>' : '';
+          var kymDetailRows = [
+            ['Gender', m.gender], ['Email', m.email], ['Location', m.location],
+            ['Marital Status', m.maritalStatus], ['Workplace', m.workPlace],
+            ['Belongs to Overcomers?', m.belongsToOvercomers === 'yes' ? 'Yes' : (m.belongsToOvercomers === 'no' ? 'No' : '')],
+            ['Church Name', m.churchName], ['Testimony', m.testimony],
+            ['Prayer Request', m.prayerRequest], ['Comments', m.comments]
+          ].filter(function (row) { return row[1]; });
 
-        // Extra details a seeker filled in on their own self-signup form
-        // (gender, contact, testimony, etc.) — only shown when at least
-        // one is present, so regular members without this data don't get
-        // an empty section on their card.
-        var kymDetailRows = [
-          ['Gender', m.gender], ['Email', m.email], ['Location', m.location],
-          ['Marital Status', m.maritalStatus], ['Workplace', m.workPlace],
-          ['Belongs to Overcomers?', m.belongsToOvercomers === 'yes' ? 'Yes' : (m.belongsToOvercomers === 'no' ? 'No' : '')],
-          ['Church Name', m.churchName], ['Testimony', m.testimony],
-          ['Prayer Request', m.prayerRequest], ['Comments', m.comments]
-        ].filter(function (row) { return row[1]; });
+          var kymDetailsBlock = kymDetailRows.length ?
+            '<details style="margin-top:10px;">' +
+            '<summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--accent);">📋 More Details</summary>' +
+            '<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">' +
+            kymDetailRows.map(function (row) {
+              return '<div style="font-size:12px;line-height:1.5;"><span style="color:var(--gray);font-weight:700;">' +
+                escapeHtml(String(row[0])) + ':</span> <span style="color:var(--navy);">' + escapeHtml(String(row[1])) + '</span></div>';
+            }).join('') +
+            '</div></details>' : '';
 
-        var kymDetailsBlock = kymDetailRows.length ?
-          '<details style="margin-top:10px;">' +
-          '<summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--accent);">📋 More Details</summary>' +
-          '<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">' +
-          kymDetailRows.map(function (row) {
-            return '<div style="font-size:12px;line-height:1.5;"><span style="color:var(--gray);font-weight:700;">' +
-              escapeHtml(row[0]) + ':</span> <span style="color:var(--navy);">' + escapeHtml(row[1]) + '</span></div>';
-          }).join('') +
-          '</div></details>' : '';
+          return '<div style="background:white;' +
+            'border-radius:16px;padding:16px;' +
+            'box-shadow:0 2px 8px ' +
+            'rgba(0,0,0,0.06);">' +
 
-        return '<div style="background:white;' +
-          'border-radius:16px;padding:16px;' +
-          'box-shadow:0 2px 8px ' +
-          'rgba(0,0,0,0.06);">' +
+            '<div style="display:flex;' +
+            'align-items:center;gap:12px;' +
+            'margin-bottom:12px;">' +
+            '<div style="width:44px;height:44px;' +
+            'background:var(--navy);' +
+            'border-radius:50%;display:flex;' +
+            'align-items:center;' +
+            'justify-content:center;' +
+            'color:white;font-weight:800;' +
+            'font-size:16px;flex-shrink:0;">' +
+            (name.charAt(0) || '👤').toUpperCase() +
+            '</div>' +
+            '<div style="flex:1;min-width:0;">' +
+            '<div style="font-weight:800;' +
+            'font-size:15px;color:var(--navy);">' +
+            name + statusBadge + '</div>' +
+            '<div style="font-size:13px;' +
+            'color:var(--gray);margin-top:2px;">' +
+            (hasPhone ? '📞 ' + phone :
+              '📞 No number yet') +
+            '</div>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:6px;">' + editBtn + deleteBtn + '</div>' +
+            '</div>' +
 
-          '<div style="display:flex;' +
-          'align-items:center;gap:12px;' +
-          'margin-bottom:12px;">' +
-          '<div style="width:44px;height:44px;' +
-          'background:var(--navy);' +
-          'border-radius:50%;display:flex;' +
-          'align-items:center;' +
-          'justify-content:center;' +
-          'color:white;font-weight:800;' +
-          'font-size:16px;flex-shrink:0;">' +
-          name.charAt(0).toUpperCase() +
-          '</div>' +
-          '<div style="flex:1;min-width:0;">' +
-          '<div style="font-weight:800;' +
-          'font-size:15px;color:var(--navy);">' +
-          name + statusBadge + '</div>' +
-          '<div style="font-size:13px;' +
-          'color:var(--gray);margin-top:2px;">' +
-          (hasPhone ? '📞 ' + phone :
-            '📞 No number yet') +
-          '</div>' +
-          '</div>' +
-          '<div style="display:flex;align-items:center;gap:6px;">' + editBtn + deleteBtn + '</div>' +
-          '</div>' +
+            (hasPhone ?
+              '<div style="display:flex;gap:8px;">' +
 
-          (hasPhone ?
-            '<div style="display:flex;gap:8px;">' +
+              '<a href="tel:' + phone + '" ' +
+              'style="flex:1;padding:10px;' +
+              'background:#22c55e;color:white;' +
+              'border-radius:8px;text-align:center;' +
+              'text-decoration:none;font-weight:700;' +
+              'font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;">' +
+              ICON_CALL + ' Call</a>' +
 
-            '<a href="tel:' + phone + '" ' +
-            'style="flex:1;padding:10px;' +
-            'background:#22c55e;color:white;' +
-            'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-weight:700;' +
-            'font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;">' +
-            ICON_CALL + ' Call</a>' +
+              '<a href="https://wa.me/' +
+              waNumber + '" target="_blank" ' +
+              'style="flex:1;padding:10px;' +
+              'background:#25D366;color:white;' +
+              'border-radius:8px;text-align:center;' +
+              'text-decoration:none;font-weight:700;' +
+              'font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;">' +
+              ICON_WHATSAPP + ' WhatsApp</a>' +
 
-            '<a href="https://wa.me/' +
-            waNumber + '" target="_blank" ' +
-            'style="flex:1;padding:10px;' +
-            'background:#25D366;color:white;' +
-            'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-weight:700;' +
-            'font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;">' +
-            ICON_WHATSAPP + ' WhatsApp</a>' +
+              '<a href="sms:' + phone + '" ' +
+              'style="flex:1;padding:10px;' +
+              'background:#3b82f6;color:white;' +
+              'border-radius:8px;text-align:center;' +
+              'text-decoration:none;font-weight:700;' +
+              'font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;">' +
+              ICON_SMS + ' SMS</a>' +
 
-            '<a href="sms:' + phone + '" ' +
-            'style="flex:1;padding:10px;' +
-            'background:#3b82f6;color:white;' +
-            'border-radius:8px;text-align:center;' +
-            'text-decoration:none;font-weight:700;' +
-            'font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;">' +
-            ICON_SMS + ' SMS</a>' +
-
-            '</div>' :
-            '<div style="text-align:center;' +
-            'padding:8px;background:#f8fafc;' +
-            'border-radius:8px;color:var(--gray);' +
-            'font-size:12px;">' +
-            'No contact number available</div>'
-          ) +
-          kymDetailsBlock +
-          '</div>';
+              '</div>' :
+              '<div style="text-align:center;' +
+              'padding:8px;background:#f8fafc;' +
+              'border-radius:8px;color:var(--gray);' +
+              'font-size:12px;">' +
+              'No contact number available</div>'
+            ) +
+            kymDetailsBlock +
+            '</div>';
+        } catch (err) {
+          console.error('Error rendering member card:', err, m);
+          return '';
+        }
       }).join('');
     }
 
@@ -7745,77 +7878,63 @@
           deletedList = JSON.parse(localStorage.getItem('onc_shep_deleted_' + shepherdName) || '[]');
         } catch (e) { }
 
-        if (records && records.length > 0) {
-          var liveList = [];
-          records.forEach(function (r) {
-            if (!r.Name) return;
-            var key = r.Name.toLowerCase().trim();
-            var st = (r.Status || '').toString().toLowerCase();
-            if (st === 'deleted' || st === 'visitor' || deletedList.includes(key)) return;
-            liveList.push({
-              name: r.Name.trim(),
-              contact: r.Phone || '',
-              memberId: r.MemberID,
-              status: r.Status || 'Member',
-              dob: r.DOB || '',
-              bornAgain: r.BornAgain || '',
-              inChurch: r.InChurch || '',
-              occupation: r.Occupation || '',
-              gender: r.Gender || '',
-              email: r.Email || '',
-              location: r.Location || '',
-              maritalStatus: r.MaritalStatus || '',
-              workPlace: r.WorkPlace || '',
-              belongsToOvercomers: r.BelongsToOvercomers || '',
-              churchName: r.ChurchName || '',
-              testimony: r.Testimony || '',
-              prayerRequest: r.PrayerRequest || '',
-              comments: r.Comments || ''
-            });
-          });
-          baseMembers = liveList;
-        } else {
-          var byNorm = {};
-          baseMembers.forEach(function (m) {
-            byNorm[(m.name || '').toLowerCase().trim()] = m;
-          });
+        var byNorm = {};
+        var merged = [];
+        (baseMembers || []).forEach(function (m) {
+          if (!m || !m.name) return;
+          var key = (m.name || '').toLowerCase().trim();
+          if (deletedList.includes(key)) return;
+          var copy = Object.assign({}, m);
+          byNorm[key] = copy;
+          merged.push(copy);
+        });
 
-          records.forEach(function (r) {
-            if (!r.Name || r.Shepherd !== shepherdName) return;
-            var key = r.Name.toLowerCase().trim();
-            var existing = byNorm[key];
-            var st = (r.Status || '').toString().toLowerCase();
+        (records || []).forEach(function (r) {
+          if (!r || !r.Name) return;
+          var key = (r.Name || '').toLowerCase().trim();
+          var st = (r.Status || '').toString().toLowerCase();
 
-            if (st === 'deleted' || st === 'visitor' || deletedList.includes(key)) {
-              if (existing) {
-                var idx = baseMembers.indexOf(existing);
-                if (idx > -1) baseMembers.splice(idx, 1);
-              }
-              return;
+          if (st === 'deleted' || st === 'visitor' || deletedList.includes(key)) {
+            if (byNorm[key]) {
+              var idx = merged.indexOf(byNorm[key]);
+              if (idx > -1) merged.splice(idx, 1);
+              delete byNorm[key];
             }
+            return;
+          }
 
-            var extra = {
-              memberId: r.MemberID, status: r.Status,
-              dob: r.DOB || '', bornAgain: r.BornAgain || '',
-              inChurch: r.InChurch || '', occupation: r.Occupation || '',
-              gender: r.Gender || '', email: r.Email || '', location: r.Location || '',
-              maritalStatus: r.MaritalStatus || '', workPlace: r.WorkPlace || '',
-              belongsToOvercomers: r.BelongsToOvercomers || '', churchName: r.ChurchName || '',
-              testimony: r.Testimony || '', prayerRequest: r.PrayerRequest || '', comments: r.Comments || ''
-            };
-            if (existing) {
-              existing.contact = existing.contact || r.Phone || '';
-              Object.assign(existing, extra);
-            } else {
-              var fresh = Object.assign({ name: r.Name, contact: r.Phone || '' }, extra);
-              baseMembers.push(fresh);
-              byNorm[key] = fresh;
-            }
-          });
-        }
+          var extra = {
+            name: String(r.Name || '').trim(),
+            contact: r.Phone ? String(r.Phone).trim() : (r.contact ? String(r.contact).trim() : ''),
+            memberId: r.MemberID ? String(r.MemberID) : (r.memberId ? String(r.memberId) : ''),
+            status: r.Status || 'Member',
+            dob: r.DOB || '',
+            bornAgain: r.BornAgain || '',
+            inChurch: r.InChurch || '',
+            occupation: r.Occupation || '',
+            gender: r.Gender || '',
+            email: r.Email || '',
+            location: r.Location || '',
+            maritalStatus: r.MaritalStatus || '',
+            workPlace: r.WorkPlace || '',
+            belongsToOvercomers: r.BelongsToOvercomers || '',
+            churchName: r.ChurchName || '',
+            testimony: r.Testimony || '',
+            prayerRequest: r.PrayerRequest || '',
+            comments: r.Comments || ''
+          };
 
-        kymMembersCache = baseMembers;
-        kymRenderList(baseMembers);
+          if (byNorm[key]) {
+            if (!extra.contact && byNorm[key].contact) extra.contact = byNorm[key].contact;
+            Object.assign(byNorm[key], extra);
+          } else {
+            byNorm[key] = extra;
+            merged.push(extra);
+          }
+        });
+
+        kymMembersCache = merged;
+        kymRenderList(merged);
         var banner = document.getElementById('kymLoadingBanner');
         if (banner) banner.style.display = 'none';
       }
@@ -7858,14 +7977,14 @@
           state.shepherdType = 'mc';
         }
       }
-      if (!state.shepherdType && state.shepherd) {
+      if (state.shepherd) {
         var savedType2 = localStorage.getItem('onc_logged_in_type');
         if (savedType2) {
           state.shepherdType = savedType2;
-        } else if (typeof microchurchShepherdData !== 'undefined' && microchurchShepherdData[state.shepherd]) {
-          state.shepherdType = 'mc';
-        } else {
-          state.shepherdType = 'sps';
+        }
+        var rosterCheck = kymGetRosterForShepherd(state.shepherd);
+        if (rosterCheck && rosterCheck.type) {
+          state.shepherdType = rosterCheck.type;
         }
       }
       return state.shepherd;

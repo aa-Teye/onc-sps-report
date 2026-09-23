@@ -61,7 +61,7 @@ self.addEventListener('notificationclick', function (event) {
 });
 
 // ── Cache ────────────────────────────────────────────────────────
-const CACHE_NAME = 'onc-sps-v97';
+const CACHE_NAME = 'onc-sps-v99';
 const CACHE_URLS = [
   '/onc-sps-report/',
   '/onc-sps-report/index.html',
@@ -119,6 +119,16 @@ self.addEventListener('fetch', function (event) {
   if (event.request.url.includes('fonts.googleapis.com')) return;
   if (event.request.url.includes('fonts.gstatic.com')) return;
   if (event.request.url.includes('gstatic.com/firebasejs')) return;
+
+  // On localhost / 127.0.0.1, always fetch from network first so local edits reflect immediately!
+  if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
+    event.respondWith(
+      fetch(event.request).catch(function () {
+        return caches.match(event.request);
+      })
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then(function (cached) {
