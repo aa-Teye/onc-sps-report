@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v94';
+      var CURRENT_BUILD = 'onc-sps-v95';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -2082,7 +2082,7 @@
 
       <div class="section" id="secKnowYourMembers">
         <div style="display:flex;align-items:center;
-          gap:12px;margin-bottom:20px;">
+          gap:12px;margin-bottom:16px;">
           <button onclick="showSection('secLanding')" style="background:none;border:none;
             color:var(--gray);cursor:pointer;
             font-size:20px;">←</button>
@@ -2102,6 +2102,24 @@
             border-radius:10px;white-space:nowrap;">
             + Add
           </button>
+        </div>
+
+        <!-- Total Flock Summary Banner -->
+        <div id="kymSummaryBanner" style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);color:white;border-radius:14px;padding:14px 18px;margin-bottom:14px;box-shadow:0 4px 14px rgba(30,58,138,0.18);">
+          <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;opacity:0.85;font-weight:700;">Total Flock Strength</div>
+            <div id="kymTotalCountDisplay" style="font-size:22px;font-weight:900;font-family:'Nunito',sans-serif;line-height:1.2;margin-top:2px;">0 Members</div>
+          </div>
+          <div id="kymBreakdownPills" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+            <span id="kymRegularCountBadge" style="background:rgba(255,255,255,0.22);backdrop-filter:blur(4px);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:800;">0 Members</span>
+            <span id="kymSeekerCountBadge" style="background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:800;display:none;">0 Seekers</span>
+          </div>
+        </div>
+
+        <!-- Fast Search / Filter Input -->
+        <div style="position:relative;margin-bottom:14px;">
+          <input type="text" id="kymSearchInput" placeholder="🔍 Search flock by name, phone or seeker..." oninput="kymFilterList()" style="width:100%;box-sizing:border-box;padding:11px 14px 11px 38px;border-radius:12px;border:1.5px solid #e2e8f0;background:white;font-size:13.5px;font-family:inherit;outline:none;" />
+          <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--gray);pointer-events:none;">🔍</span>
         </div>
 
         <div id="kymLoadingBanner" style="display:none;text-align:center;
@@ -3278,7 +3296,7 @@
       "Emmanuel Mensah": ["Valerie Ofooley", "Jehoshaphat Mills", "Christian Koomson", "Aaron Ofori", "Reginald Ofori", "Prince Acquah", "Kelvin Aryeetey", "Bismark Duker", "Esther Opare", "George Otabil", "Kwaku Baah", "Theodora Mills", "Miriam Opare", "Hanson Dzebu", "Karen Bonsu"],
       "Eric Appiah": ["Louisa Ashong", "Robert Ansah", "Precious Mmeso", "Princess Izubge", "Annabelle Forson", "Alexander Mantey", "Ameyaw Mehra", "Arnold Doe", "Regina Kwardefio", "Jackline Odoi", "Lilian Amoh", "Raymond Agbosu", "Abena Owusu", "Michelin Gyampoh"],
       "Alex Teye Ametepey": ["Samuel Amon Kotey", "Jeffrey Kleku", "Millicent Kudawoo", "Destiny Akadu", "Mabel Sena Okyere"],
-      "Rev Dr Ebenezer Okronipa": ["Wilhelmina Komesour", "Aisha Mohammed", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Philip Ofosuhene", "Louisa Nutakor", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah", "Nadia Okine", "Favour Okine", "Harriet Ampofo", "Ruth Dadzie"],
+      "Rev Dr Ebenezer Okronipa": ["Bernice", "Millicent Antwi Boasiako", "Godfred Okine", "Victoria Amuzu", "Kate Armah Hammond", "Akpene Anatsui", "Emmanuel Ohene", "Isaac Ohene Offei", "Amina Alhassan", "Wilhelmina Komesour", "Aisha Mohammed", "Harriet Ampofo", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Louisa Nutakor", "Nadia Okine", "Favour Okine", "Philip Ofosuhene", "Ruth Dadzie", "Georgina Nana Ama Gyane", "Christiana Lartebea", "Aisha Mohammad", "Kate Amarh Hammond", "Roslyn Okine", "Benedicta Aryeetey", "Benedicta Gharbah", "Magdalene Adjeetey", "Ebenezer Okronipa", "Sunday Amuzu", "Benedicta Adjeetey", "Gifty Noi", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah"],
       "Bernice Amuzu": ["Justina Ackon", "Rashida Alhassan", "Abel Nego", "Gentle Sordji", "Christabel", "Winnifred Ndobo", "Latifa", "Bernice Amuzu", "Carol Nkansah", "Nhyira Antwi", "Abigail Antwi", "Gloria Antwi"],
       "Rosemond Quaicoe": ["Lydia Odame Antwi", "Mrs Priscilla Effah", "Edna Asare"],
       "Henry Mensah": ["Patience Mensah", "Bryan Mensah", "Brielle Mensah", "Fredrick", "Cisse Quaye"],
@@ -7414,7 +7432,22 @@
               comments: r.Comments || r.comments || ''
             });
           });
-          if (mapped.length > 0) return mapped;
+          if (mapped.length > 0) {
+            // Also merge any static members that might be missing from cachedKym
+            var staticBase = (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ?
+              ((typeof microchurchShepherdData !== 'undefined' && microchurchShepherdData[shepherdName]) || []) :
+              ((typeof shepherdData !== 'undefined' && shepherdData[shepherdName] && shepherdData[shepherdName].members) || []);
+            var mappedNames = {};
+            mapped.forEach(function (m) { mappedNames[(m.name || '').toLowerCase().trim()] = true; });
+            staticBase.forEach(function (s) {
+              var sName = typeof s === 'string' ? s.trim() : (s.name || '').trim();
+              if (sName && !mappedNames[sName.toLowerCase()] && !deletedList.includes(sName.toLowerCase())) {
+                mapped.push({ name: sName, contact: '', status: 'Member' });
+                mappedNames[sName.toLowerCase()] = true;
+              }
+            });
+            return mapped;
+          }
         }
       } catch (e) { }
 
@@ -7469,14 +7502,58 @@
       });
     }
 
-    function kymRenderList(members) {
+    function kymFilterList() {
+      var input = document.getElementById('kymSearchInput');
+      var q = (input && input.value || '').toLowerCase().trim();
+      if (!q) {
+        kymRenderList(kymMembersCache);
+        return;
+      }
+      var filtered = (kymMembersCache || []).filter(function (m) {
+        var n = (m.name || '').toLowerCase();
+        var p = (m.contact || '').toLowerCase();
+        var s = (m.status || '').toLowerCase();
+        return n.indexOf(q) !== -1 || p.indexOf(q) !== -1 || s.indexOf(q) !== -1;
+      });
+      kymRenderList(filtered, true);
+    }
+
+    function kymRenderList(members, isFiltered) {
       var list = document.getElementById('kymMembersList');
       if (!list) return;
 
+      var allMembers = kymMembersCache || members || [];
+      var totalCount = allMembers.length;
+      var seekerCount = 0;
+      allMembers.forEach(function (m) {
+        if ((m.status || '').toString().toLowerCase() === 'seeker') seekerCount++;
+      });
+      var regularCount = totalCount - seekerCount;
+
+      var totalDisplay = document.getElementById('kymTotalCountDisplay');
+      if (totalDisplay) {
+        if (isFiltered) {
+          totalDisplay.textContent = (members ? members.length : 0) + ' of ' + totalCount + ' Members';
+        } else {
+          totalDisplay.textContent = totalCount + (totalCount === 1 ? ' Member' : ' Total Members');
+        }
+      }
+      var regBadge = document.getElementById('kymRegularCountBadge');
+      if (regBadge) {
+        regBadge.textContent = regularCount + ' ' + (regularCount === 1 ? 'Member' : 'Members');
+      }
+      var seekerBadgeEl = document.getElementById('kymSeekerCountBadge');
+      if (seekerBadgeEl) {
+        seekerBadgeEl.textContent = seekerCount + ' ' + (seekerCount === 1 ? 'Seeker' : 'Seekers');
+        seekerBadgeEl.style.display = seekerCount > 0 ? 'inline-block' : 'none';
+      }
+
       if (!members || members.length === 0) {
-        var msg = (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ?
-          'No members listed for this microchurch' :
-          'No members assigned yet.';
+        var msg = isFiltered ?
+          'No members found matching your search.' :
+          ((state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ?
+            'No members listed for this microchurch' :
+            'No members assigned yet.');
 
         list.innerHTML =
           '<div style="text-align:center;' +
@@ -7755,7 +7832,12 @@
       // If fresh in memory or localStorage cache, render immediately without banner
       if (kymCacheIsFresh(shepherdName)) {
         applyRecords(kymRawRecordsCache.records);
-        return;
+        var staticCount = (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') ?
+          ((typeof microchurchShepherdData !== 'undefined' && microchurchShepherdData[shepherdName]) ? microchurchShepherdData[shepherdName].length : 0) :
+          ((typeof shepherdData !== 'undefined' && shepherdData[shepherdName] && shepherdData[shepherdName].members) ? shepherdData[shepherdName].members.length : 0);
+        if ((kymRawRecordsCache.records || []).length >= staticCount) {
+          return;
+        }
       }
 
       // If existing cached records in localStorage, render them immediately (0ms view)
@@ -7811,6 +7893,9 @@
 
     function showKnowYourMembers() {
       kymEnsureShepherdState();
+      var searchInput = document.getElementById('kymSearchInput');
+      if (searchInput) searchInput.value = '';
+
       var nameEl = document.getElementById(
         'kymShepherdName');
       if (nameEl) {
