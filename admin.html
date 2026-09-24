@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v99';
+      var CURRENT_BUILD = 'onc-sps-v100';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -35,7 +35,7 @@
           }
           // Clear stale roster & KYM caches so names re-fetch fresh from DB
           Object.keys(localStorage).forEach(function (k) {
-            if (k.startsWith('onc_db_roster_') || k.startsWith('onc_kym_records_') || k.startsWith('onc_kym_time_')) {
+            if (k.startsWith('onc_db_roster_') || k.startsWith('onc_kym_records_') || k.startsWith('onc_kym_time_') || k.startsWith('onc_shep_deleted_')) {
               localStorage.removeItem(k);
             }
           });
@@ -4455,7 +4455,7 @@
       // Register service worker for PWA offline support
       // (shares sw.js / cache with index.html — same scope, can't register a separate worker)
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=99').then(function (reg) {
+        navigator.serviceWorker.register('./sw.js?v=100').then(function (reg) {
           if (reg) reg.update();
         }).catch(function () {});
 

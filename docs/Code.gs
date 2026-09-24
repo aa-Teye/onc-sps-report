@@ -2794,7 +2794,7 @@ function getShepherdMembers(shepherdName) {
     var shep = (r.Shepherd || '').toString().trim().toLowerCase();
     var normShep = shep.replace(/[.,\/#!$%\^&\*;:{}=\-_`~]/g, '').replace(/\s+/g, ' ');
     var isMatch = (shep === cleanQuery) || (normShep === normQuery);
-    return isMatch && st !== 'deleted' && st !== 'visitor';
+    return isMatch && st !== 'visitor';
   });
   return { status: 'success', members: records };
 }
@@ -2899,15 +2899,18 @@ function deleteMemberRecord(data) {
     });
   }
   if (!rec && name) {
+    var cleanShepQuery = shepherd.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~]/g, '').replace(/\s+/g, ' ');
     rec = records.find(function (r) {
       var matchName = r.Name && r.Name.toString().trim().toLowerCase() === name.toLowerCase();
-      var matchShep = !shepherd || (r.Shepherd && r.Shepherd.toString().trim().toLowerCase() === shepherd.toLowerCase());
+      var shep = (r.Shepherd || '').toString().trim().toLowerCase();
+      var normShep = shep.replace(/[.,\/#!$%\^&\*;:{}=\-_`~]/g, '').replace(/\s+/g, ' ');
+      var matchShep = !shepherd || (shep === shepherd.toLowerCase()) || (normShep === cleanShepQuery);
       return matchName && matchShep;
     });
   }
 
   if (rec) {
-    sheet.deleteRow(rec._row);
+    sheet.getRange(rec._row, 8).setValue('Deleted');
     logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DELETED', deletedBy, (rec.Name || memberId));
     return { status: 'success' };
   }
@@ -2920,7 +2923,7 @@ function deleteMemberRecord(data) {
     sheet.getRange(newRow, 3).setNumberFormat('@');
     sheet.getRange(newRow, 7).setNumberFormat('@');
     sheet.getRange(newRow, 1, 1, 8).setValues([[
-      newId, name, '', shepherd || '', '', 'sps', formatDate(now), 'Deleted'
+      newId, name, '', shepherd || '', '', 'mc', formatDate(now), 'Deleted'
     ]]);
     logAudit(SpreadsheetApp.getActiveSpreadsheet(), 'MEMBER_DELETED', deletedBy, name + ' (Static Roster)');
     return { status: 'success' };
