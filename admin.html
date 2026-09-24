@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v100';
+      var CURRENT_BUILD = 'onc-sps-v101';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -4455,7 +4455,7 @@
       // Register service worker for PWA offline support
       // (shares sw.js / cache with index.html — same scope, can't register a separate worker)
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=100').then(function (reg) {
+        navigator.serviceWorker.register('./sw.js?v=101').then(function (reg) {
           if (reg) reg.update();
         }).catch(function () {});
 
@@ -4605,29 +4605,10 @@
         { name: "Akpene Komedio Anatsui", microchurch: "AFROPA 1", contact: "574776380" }
       ];
 
-      window.mcMemberData = {
-        "Michael Ayisia": ["Addo Benedict", "Harriet Mensah", "Frank Armah", "Thomas Daitey", "Samuel Obeng", "Caleb Dzifa", "Joshua Anatsui"],
-        "Michael Ameyaw (Tesano 2)": ["Christiana Konzondong", "Esther Konzondong", "Felix Konzondong", "Daniel"],
-        "Michael Ameyaw (Tesano 3)": ["Ashaley Badu", "Rebecca Ankrah"],
-        "Augustina Selinam Abbah": ["Joel Amfo", "Blessing Akoto", "Aseda Munach", "Elvis Abbey", "Steven Tetteh Antwi", "Regina Twum", "Nasara Naa Issaka", "Zakiatu Ibrahim", "Martin Amponsah", "Emmanuel Tetteh Akoto", "Prince France", "Princess France", "Ababibatu Ibrahim", "Rolanda France"],
-        "Blessing Solomon": ["Solomon Aziakah", "Linda Solomon", "Altheaella Bruce", "Peniel Solomon", "Shine Asinyo", "Lucy Agbekornyi"],
-        "Lp Esther Okronipa": ["Gifty Ametepey", "Ruth Yeboah"],
-        "Benjamin Senyasu": ["Mafred Normesinu Danquah", "Mitchell Normesinu Danquah", "Nina Asinyo", "Adelaide Lamptey", "Asinyo Martha", "Lordina Amoah", "Antony Boateng", "Susan Selorm Budu"],
-        "Emmanuel Mensah": ["Valerie Ofooley", "Jehoshaphat Mills", "Christian Koomson", "Aaron Ofori", "Reginald Ofori", "Prince Acquah", "Kelvin Aryeetey", "Bismark Duker", "Esther Opare", "George Otabil", "Kwaku Baah", "Theodora Mills", "Miriam Opare", "Hanson Dzebu", "Karen Bonsu"],
-        "Eric Appiah": ["Louisa Ashong", "Robert Ansah", "Precious Mmeso", "Princess Izubge", "Annabelle Forson", "Alexander Mantey", "Ameyaw Mehra", "Arnold Doe", "Regina Kwardefio", "Jackline Odoi", "Lilian Amoh", "Raymond Agbosu", "Abena Owusu", "Michelin Gyampoh"],
-        "Alex Teye Ametepey": ["Samuel Amon Kotey", "Jeffrey Kleku", "Millicent Kudawoo", "Destiny Akadu", "Mabel Sena Okyere"],
-        "Rev Dr Ebenezer Okronipa": ["Bernice", "Millicent Antwi Boasiako", "Godfred Okine", "Victoria Amuzu", "Kate Armah Hammond", "Akpene Anatsui", "Emmanuel Ohene", "Isaac Ohene Offei", "Amina Alhassan", "Wilhelmina Komesour", "Aisha Mohammed", "Harriet Ampofo", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Louisa Nutakor", "Nadia Okine", "Favour Okine", "Philip Ofosuhene", "Ruth Dadzie", "Benedicta Aryeetey", "Benedicta Gharbah", "Sunday Amuzu", "Benedicta Adjeetey", "Gifty Noi", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah"],
-        "Bernice Amuzu": ["Justina Ackon", "Rashida Alhassan", "Abel Nego", "Gentle Sordji", "Christabel", "Winnifred Ndobo", "Latifa", "Bernice Amuzu", "Carol Nkansah", "Nhyira Antwi", "Abigail Antwi", "Gloria Antwi"],
-        "Rosemond Quaicoe": ["Lydia Odame Antwi", "Mrs Priscilla Effah", "Edna Asare"],
-        "Henry Mensah": ["Patience Mensah", "Bryan Mensah", "Brielle Mensah", "Fredrick", "Cisse Quaye"],
-        "Abigail Ankomah": ["Jackson Ankomah", "Vivian Mensah", "Frederick Ankomah"],
-        "Alice Ametepey": ["Patience Addo", "Samuel Boadu", "Reginald Mensah", "Kelvin Twumasi", "Mikel Owusu", "Nana Opoku", "Cassandra Arthur", "Ruby Lartey", "Blessed Mensah", "Gloria Lartey"],
-        "Samuel Opare": ["Janet Tetteh", "Jedidiah Wiafe", "Deborah Quaye", "Albert Ladi Mensah", "Daniella Ladi Mensah", "Nathaniel Ladi Mensah", "Johnathan Ladi Mensah", "Joel Wiafe", "Simon Wegah", "Francis Awuku", "Abigail Ayimbilah"],
-        "Esther Doku": ["Mama Doris Otumfour", "Benjamin Justice Tandoh Arthur", "Nadia Awentemi", "Mr Ebenezer Okronipa Snr", "Alexis Nhyira Destiny", "Emmalyn Sackey", "Clifford Obeng", "Lawrencia Thompson"],
-        "Samuel Oteng": ["Rebecca Quaye", "Mary Quaye", "Laudice Quaye", "Oscar Abane", "Oswell Abane", "Daniel Takan"],
-        "Sandra Boateng": ["Edmund Oteng-Mawia", "Elinam Dowetin", "Ryan Elinam Tettey", "Jacinta Quaye", "George Essel"],
-        "Akpene Komedio Anatsui": ["Blessing Donkor", "Elizabeth Ashie", "Gifty Donkor", "Empress", "Felix", "Peniel", "Winifred Aickins", "Samuel Donkor", "Blessing Bimbim", "Antoinette", "Emefa Blebo", "Quad", "Stephen Tetteh", "Joel"]
-      };
+      window.mcMemberData = {};
+      ALL_MC_SHEPHERDS.forEach(function(s) {
+        window.mcMemberData[s.name] = [];
+      });
 
       // ── GLOBAL DATE FORMATTER & PARSER (STRICT DAY / MONTH / YEAR) ──
       // Standardizes all date input/output across the platform to DD/MM/YYYY
@@ -4896,62 +4877,7 @@
         { name: "Michael Effah", contact: "0546973347", zone: "Zone 3" }
       ];
 
-      const memberData = {
-        "Julianna Owusu Ansah": "Michael Effah",
-        "Sylvester Aggre": "Michael Effah",
-        "Peace Amoah": "Frank Armah",
-        "Christiana Adjei": "Frank Armah",
-        "Majeed Saleem": "Bright Mamene",
-        "Samuel Torto": "Bright Mamene",
-        "Mrs. Petrina Gyan": "Bright Mamene",
-        "Emmanuel Nii-Lantei": "Bright Mamene",
-        "Rebecca Donkor": "Bright Mamene",
-        "Bernice Mensah": "Christiana Konzondong",
-        "Lewis Nana Kojo": "Christiana Konzondong",
-        "David Kudadze": "Gloria Owusu Ansah",
-        "Loretta Owusu": "Gloria Owusu Ansah",
-        "Mary Seke": "Linda Neequaye",
-        "Jedidiah Wiafe": "Linda Neequaye",
-        "Samuel Boadu": "Getrude Abena Owusu Achiaa",
-        "Alberta Manu": "Getrude Abena Owusu Achiaa",
-        "Isaac Yeboah": "Gloria Lartey",
-        "Eugene Ampadu": "Gloria Lartey",
-        "Grace Sakyibea": "Gloria Lartey",
-        "Melchizedek Ofori": "Priscilla Sedi Anatsui",
-        "Promise Bamflo": "Priscilla Sedi Anatsui",
-        "Deborah Quaye": "Abigail Akakpo",
-        "Veronica Bemponmaa Boateng": "Abigail Akakpo",
-        "Rebecca Opoku": "Abigail Akakpo",
-        "Janelle Kekeli Dartey": "LP. Sophia Korkor",
-        "Emmanuel Kwaku Amon": "LP. Sophia Korkor",
-        "Francis Kweku Opoku Ivan": "LP. Sophia Korkor",
-        "Dorcas Janssen": "Wisdom Akakpo",
-        "Lawrence Gbeku": "Wisdom Akakpo",
-        "Victoria Amuzu": "Wisdom Akakpo",
-        "Abraham Delove": "Cyril Amevor",
-        "Julianna Owusu Ansah": "Cyril Amevor",
-        "Mrs. Elizabeth Agbedo": "Solomon Aziakah",
-        "Shirley Williams": "Solomon Aziakah",
-        "George Sarfo Mensah": "Deborah Otumfuor",
-        "Madam Paulina Mansa Atiase": "Deborah Otumfuor",
-        "Janet Oye": "Patience Addo",
-        "Maame Efua Owusu Boateng": "Patience Addo",
-        "Agnes Amoako": "Benjamin Armah Agyeman",
-        "Ruth Otoo": "Benjamin Armah Agyeman",
-        "Stanley Boateng": "Martha Asinyo",
-        "Abigail Asantewaa-Boadu": "Martha Asinyo",
-        "Rosemary Obeng Appiah": "Shine Asinyo",
-        "Sunday Amuzu": "Shine Asinyo",
-        "Florence Ablordey": "Patience Mensah",
-        "Bernice Agyapong Quaye": "Patience Mensah",
-        "Lucy Yaa B Agyemang": "Patience Mensah",
-        "Selina Ofeibea": "Ruth Yeboah",
-        "Isaac Oblitey": "Ruth Yeboah",
-        "Justina Tetteh": "Ruth Yeboah",
-        "Joseph Atsu": "Sharon Tricia Amanu",
-        "Bernice Can-Tamakloe": "Sharon Tricia Amanu",
-        "Michael Kwabena Agyapong Effah": "Sharon Tricia Amanu"
-      };
+      const memberData = {};
 
       // Merge custom approved members from localStorage
       try {
@@ -6024,9 +5950,11 @@
       function getUnifiedMemberList() {
         var map = {};
 
-        // 1. Process all database members (seekersData holds the full roster from getMembersRoster)
+        // Process all database members from live Google Sheets (seekersData holds the full roster from getMembersRoster)
         (seekersData || []).forEach(function (s) {
           if (!s.Name) return;
+          var st = (s.Status || '').toString().toLowerCase();
+          if (st === 'deleted') return;
           var key = s.Name.trim().toLowerCase();
           map[key] = {
             name: s.Name.trim(),
@@ -6038,48 +5966,6 @@
             status: s.Status || 'Member'
           };
         });
-
-        // 2. Include SPS shepherds' memberData if not already keyed
-        if (typeof memberData === 'object') {
-          Object.keys(memberData).forEach(function (name) {
-            var key = name.trim().toLowerCase();
-            if (!map[key]) {
-              var shep = memberData[name];
-              var shepObj = ALL_SHEPHERDS.find(function (s) { return s.name === shep; });
-              map[key] = {
-                name: name.trim(),
-                phone: '',
-                shepherd: shep,
-                stream: 'sps',
-                zone: (shepObj && shepObj.zone) || '',
-                memberId: '',
-                status: 'Member'
-              };
-            }
-          });
-        }
-
-        // 3. Include MC shepherds' mcMemberData if not already keyed
-        if (window.mcMemberData && typeof window.mcMemberData === 'object') {
-          Object.keys(window.mcMemberData).forEach(function (shep) {
-            var list = window.mcMemberData[shep] || [];
-            var shepObj = (typeof ALL_MC_SHEPHERDS !== 'undefined' ? ALL_MC_SHEPHERDS : []).find(function (s) { return s.name === shep; });
-            list.forEach(function (mName) {
-              var key = mName.trim().toLowerCase();
-              if (!map[key]) {
-                map[key] = {
-                  name: mName.trim(),
-                  phone: '',
-                  shepherd: shep,
-                  stream: 'mc',
-                  zone: (shepObj && shepObj.microchurch) || '',
-                  memberId: '',
-                  status: 'Member'
-                };
-              }
-            });
-          });
-        }
 
         return Object.values(map).sort(function (a, b) {
           return a.name.localeCompare(b.name);
@@ -9086,48 +8972,46 @@
       // Used by the Shepherds/MC Shepherds card expansion and the
       // Know Your Heads tab, so all three stay in sync off one source.
       function spsMembersFor(shepherdName) {
-        return Object.keys(memberData).filter(function (m) { return memberData[m] === shepherdName; });
+        var clean = (shepherdName || '').trim().toLowerCase();
+        return (seekersData || []).filter(function (r) {
+          var shep = (r.Shepherd || '').trim().toLowerCase();
+          return shep === clean && (r.Status || '').toLowerCase() === 'member';
+        }).map(function (r) { return r.Name; });
       }
       function mcMembersFor(shepherdName) {
-        return (window.mcMemberData && window.mcMemberData[shepherdName]) || [];
+        var clean = (shepherdName || '').trim().toLowerCase();
+        return (seekersData || []).filter(function (r) {
+          var shep = (r.Shepherd || '').trim().toLowerCase();
+          return shep === clean && (r.Status || '').toLowerCase() === 'member';
+        }).map(function (r) { return r.Name; });
       }
       function seekersFor(shepherdName) {
+        var clean = (shepherdName || '').trim().toLowerCase();
         return (seekersData || []).filter(function (r) {
-          return r.Shepherd === shepherdName && (r.Status === 'Pending' || r.Status === 'Seeker');
+          var shep = (r.Shepherd || '').trim().toLowerCase();
+          var st = (r.Status || '').toLowerCase();
+          return shep === clean && (st === 'pending' || st === 'seeker');
         });
       }
-      // Members added straight from admin (via the Add Member modal below,
-      // or self-added by the shepherd) land in the Members sheet with
-      // Status='Member' - separate from spsMembersFor/mcMembersFor, which
-      // only reflect the static churchData.js roster.
       function dynamicMembersFor(shepherdName) {
+        var clean = (shepherdName || '').trim().toLowerCase();
         return (seekersData || []).filter(function (r) {
-          return r.Shepherd === shepherdName && r.Status === 'Member';
+          var shep = (r.Shepherd || '').trim().toLowerCase();
+          return shep === clean && (r.Status || '').toLowerCase() === 'member';
         });
       }
       function renderShepherdMembersBlock(shepherdName, stream) {
-        var members = stream === 'mc' ? mcMembersFor(shepherdName) : spsMembersFor(shepherdName);
         var dynMembers = dynamicMembersFor(shepherdName);
         var seekers = seekersFor(shepherdName);
-        var totalMembers = members.length + dynMembers.length;
+        var totalMembers = dynMembers.length;
         var memberList = totalMembers
-          ? members.map(function (m) {
+          ? dynMembers.map(function (r) {
               return '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;padding:3px 0;color:#334155;">' +
-                '<span>• ' + m + '</span>' +
+                '<span>• ' + (r.Name || '') + (r.Phone ? (' <span style="font-size:11px;color:#64748b;">(' + r.Phone + ')</span>') : '') + '</span>' +
                 '<div style="display:flex;gap:4px;">' +
-                '<button type="button" onclick="event.stopPropagation();openReassignMemberModal(\'\',\'' + m.replace(/'/g,"\\'") + '\',\'' + shepherdName.replace(/'/g,"\\'") + '\',\'' + stream + '\')" ' +
+                '<button type="button" onclick="event.stopPropagation();openReassignMemberModal(\'' + (r.MemberID || '') + '\',\'' + (r.Name || '').replace(/'/g,"\\'") + '\',\'' + shepherdName.replace(/'/g,"\\'") + '\',\'' + stream + '\')" ' +
                 'style="flex-shrink:0;padding:2px 6px;background:#fff7ed;color:#c2410c;border:none;border-radius:6px;font-weight:700;font-size:10px;cursor:pointer;">🔀</button>' +
-                '<button type="button" onclick="event.stopPropagation();deleteSeekerAction(\'\',\'' + m.replace(/'/g,"\\'") + '\',\'' + shepherdName.replace(/'/g,"\\'") + '\')" ' +
-                'style="flex-shrink:0;padding:2px 6px;background:#fee2e2;color:#b91c1c;border:none;border-radius:6px;font-weight:700;font-size:10px;cursor:pointer;">🗑️</button>' +
-                '</div></div>';
-            }).join('') +
-            dynMembers.map(function (r) {
-              return '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;padding:3px 0;color:#334155;">' +
-                '<span>• ' + (r.Name || '') + ' <span style="font-size:10px;color:#64748b;">(added ' + (r.ImportDate || '') + ')</span></span>' +
-                '<div style="display:flex;gap:4px;">' +
-                '<button type="button" onclick="event.stopPropagation();openReassignMemberModal(\'' + r.MemberID + '\',\'' + (r.Name || '').replace(/'/g,"\\'") + '\',\'' + shepherdName.replace(/'/g,"\\'") + '\',\'' + stream + '\')" ' +
-                'style="flex-shrink:0;padding:2px 6px;background:#fff7ed;color:#c2410c;border:none;border-radius:6px;font-weight:700;font-size:10px;cursor:pointer;">🔀</button>' +
-                '<button type="button" onclick="event.stopPropagation();deleteSeekerAction(\'' + r.MemberID + '\',\'' + (r.Name || '').replace(/'/g,"\\'") + '\',\'' + shepherdName.replace(/'/g,"\\'") + '\')" ' +
+                '<button type="button" onclick="event.stopPropagation();deleteSeekerAction(\'' + (r.MemberID || '') + '\',\'' + (r.Name || '').replace(/'/g,"\\'") + '\',\'' + shepherdName.replace(/'/g,"\\'") + '\')" ' +
                 'style="flex-shrink:0;padding:2px 6px;background:#fee2e2;color:#b91c1c;border:none;border-radius:6px;font-weight:700;font-size:10px;cursor:pointer;">🗑️</button>' +
                 '</div></div>';
             }).join('')

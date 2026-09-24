@@ -17,7 +17,7 @@
   <!-- Automated Cache Blast Engine -->
   <script>
     (function () {
-      var CURRENT_BUILD = 'onc-sps-v99';
+      var CURRENT_BUILD = 'onc-sps-v101';
       try {
         var stored = localStorage.getItem('onc_app_build_version');
         if (stored && stored !== CURRENT_BUILD) {
@@ -35,7 +35,7 @@
           }
           // Clear stale roster & KYM caches so names re-fetch fresh from DB
           Object.keys(localStorage).forEach(function (k) {
-            if (k.startsWith('onc_db_roster_') || k.startsWith('onc_kym_records_') || k.startsWith('onc_kym_time_')) {
+            if (k.startsWith('onc_db_roster_') || k.startsWith('onc_kym_records_') || k.startsWith('onc_kym_time_') || k.startsWith('onc_shep_deleted_')) {
               localStorage.removeItem(k);
             }
           });
@@ -3121,7 +3121,7 @@
   <script>
     // Register service worker for PWA offline support
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=99').then(function (reg) {
+      navigator.serviceWorker.register('./sw.js?v=101').then(function (reg) {
         if (reg) reg.update();
       }).catch(function () { });
 
@@ -3287,59 +3287,59 @@
     const ICON_SMS = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>';
 
     let shepherdData = {
-      "Frank Armah": { members: ["Peace Amoah", "Christiana Adjei"], pin: "0000" },
-      "Bright Mamene": { members: ["Majeed Saleem", "Isaac Yeboah", "Emmanuel Nii-Lantei", "Rebecca Donkor"], pin: "0000" },
-      "Christiana Konzondong": { members: ["Bernice Mensah", "Isabel Opoku"], pin: "0000" },
-      "Gloria Owusu Ansah": { members: ["David Kudadze", "Rebecca Opoku"], pin: "0000" },
-      "Linda Neequaye": { members: ["Mary Seke", "Jedidiah Wiafe"], pin: "0000" },
-      "Getrude Abena Owusu Achiaa": { members: ["Williams Asomaning Ameyaw", "Mr. Abraham Can-Tamakloe"], pin: "0000" },
-      "Gloria Lartey": { members: ["Eugene Ampadu", "Grace Sakyibea"], pin: "0000" },
-      "Priscilla Sedi Anatsui": { members: ["Sunday Amuzu", "Promise Bamflo"], pin: "0000" },
-      "Abigail Akakpo": { members: ["Deborah Quaye", "Veronica Bemponmaa Boateng"], pin: "0000" },
-      "LP. Sophia Korkor": { members: ["Janelle Kekeli Dartey", "Emmanuel Kwaku Amon", "Francis Kweku Opoku Ivan"], pin: "0000" },
-      "Wisdom Akakpo": { members: ["Dorcas Janssen", "Lawrence Gbeku"], pin: "0000" },
-      "Cyril Amevor": { members: ["Princess Gyamfuaa", "Philip Boateng"], pin: "0000" },
-      "Solomon Aziakah": { members: ["Mrs. Elizabeth Agbedo", "Shirley Williams"], pin: "0000" },
-      "Deborah Otumfuor": { members: ["George Sarfo Mensah", "Madam Paulina Mansa Atiase"], pin: "0000" },
-      "Patience Addo": { members: ["Janet Oye", "Maame Efua Owusu Boateng"], pin: "0000" },
-      "Benjamin Armah Agyeman": { members: ["Sylvester Effah", "Ruth Otoo"], pin: "0000" },
-      "Martha Asinyo": { members: ["Stanley Boateng", "Abigail Asantewaa-Boadu"], pin: "0000" },
-      "Shine Asinyo": { members: ["Rosemary Obeng Appiah", "Lewis Nana Kojo"], pin: "0000" },
-      "Patience Mensah": { members: ["Florence Ablordey", "Bernice Agyapong Quaye", "Lucy Yaa B Agyemang"], pin: "0000" },
-      "Ruth Yeboah": { members: ["Selina Ofeibea", "Isaac Oblitey", "Justina Tetteh"], pin: "0000" },
-      "Sharon Tricia Amanu": { members: ["Joseph Atsu", "Michael Kwabena Agyapong Effah"], pin: "0000" },
-      "Mrs Petrina Gyane": { members: ["Kevin Nyarko", "Agnes Amoako"], pin: "0000" },
-      "Samuel Tortor": { members: ["Danis Agbormava", "Diana Ameyaw"], pin: "0000" },
-      "Loretta Owusu": { members: ["Gerald Opoku"], pin: "0000" },
-      "Melchizedek Ofori": { members: ["Kingsley Kobina Aduful", "Titus Quaye"], pin: "0000" },
-      "Ruth Dadzie": { members: ["Samuel Adama", "Hannah Akuffo France"], pin: "0000" },
-      "Anita Asamoah": { members: ["Joseph Asmah", "Jeremiah Asante"], pin: "0000" },
+      "Frank Armah": { members: [], pin: "0000" },
+      "Bright Mamene": { members: [], pin: "0000" },
+      "Christiana Konzondong": { members: [], pin: "0000" },
+      "Gloria Owusu Ansah": { members: [], pin: "0000" },
+      "Linda Neequaye": { members: [], pin: "0000" },
+      "Getrude Abena Owusu Achiaa": { members: [], pin: "0000" },
+      "Gloria Lartey": { members: [], pin: "0000" },
+      "Priscilla Sedi Anatsui": { members: [], pin: "0000" },
+      "Abigail Akakpo": { members: [], pin: "0000" },
+      "LP. Sophia Korkor": { members: [], pin: "0000" },
+      "Wisdom Akakpo": { members: [], pin: "0000" },
+      "Cyril Amevor": { members: [], pin: "0000" },
+      "Solomon Aziakah": { members: [], pin: "0000" },
+      "Deborah Otumfuor": { members: [], pin: "0000" },
+      "Patience Addo": { members: [], pin: "0000" },
+      "Benjamin Armah Agyeman": { members: [], pin: "0000" },
+      "Martha Asinyo": { members: [], pin: "0000" },
+      "Shine Asinyo": { members: [], pin: "0000" },
+      "Patience Mensah": { members: [], pin: "0000" },
+      "Ruth Yeboah": { members: [], pin: "0000" },
+      "Sharon Tricia Amanu": { members: [], pin: "0000" },
+      "Mrs Petrina Gyane": { members: [], pin: "0000" },
+      "Samuel Tortor": { members: [], pin: "0000" },
+      "Loretta Owusu": { members: [], pin: "0000" },
+      "Melchizedek Ofori": { members: [], pin: "0000" },
+      "Ruth Dadzie": { members: [], pin: "0000" },
+      "Anita Asamoah": { members: [], pin: "0000" },
       "Christabel Arhin": { members: [], pin: "0000" },
-      "Michael Effah": { members: ["Julianna Owusu Ansah", "Sylvester Aggre"], pin: "0000" }
+      "Michael Effah": { members: [], pin: "0000" }
     };
 
     let microchurchShepherdData = {
-      "Michael Ayisia": ["Addo Benedict", "Harriet Mensah", "Frank Armah", "Thomas Daitey", "Samuel Obeng", "Caleb Dzifa", "Joshua Anatsui"],
-      "Michael Ameyaw (Tesano 2)": ["Christiana Konzondong", "Esther Konzondong", "Felix Konzondong", "Daniel"],
-      "Michael Ameyaw (Tesano 3)": ["Ashaley Badu", "Rebecca Ankrah"],
-      "Augustina Selinam Abbah": ["Joel Amfo", "Blessing Akoto", "Aseda Munach", "Elvis Abbey", "Steven Tetteh Antwi", "Regina Twum", "Nasara Naa Issaka", "Zakiatu Ibrahim", "Martin Amponsah", "Emmanuel Tetteh Akoto", "Prince France", "Princess France", "Ababibatu Ibrahim", "Rolanda France"],
-      "Blessing Solomon": ["Solomon Aziakah", "Linda Solomon", "Altheaella Bruce", "Peniel Solomon", "Shine Asinyo", "Lucy Agbekornyi"],
-      "Lp Esther Okronipa": ["Gifty Ametepey", "Ruth Yeboah"],
-      "Benjamin Senyasu": ["Mafred Normesinu Danquah", "Mitchell Normesinu Danquah", "Nina Asinyo", "Adelaide Lamptey", "Asinyo Martha", "Lordina Amoah", "Antony Boateng", "Susan Selorm Budu"],
-      "Emmanuel Mensah": ["Valerie Ofooley", "Jehoshaphat Mills", "Christian Koomson", "Aaron Ofori", "Reginald Ofori", "Prince Acquah", "Kelvin Aryeetey", "Bismark Duker", "Esther Opare", "George Otabil", "Kwaku Baah", "Theodora Mills", "Miriam Opare", "Hanson Dzebu", "Karen Bonsu"],
-      "Eric Appiah": ["Louisa Ashong", "Robert Ansah", "Precious Mmeso", "Princess Izubge", "Annabelle Forson", "Alexander Mantey", "Ameyaw Mehra", "Arnold Doe", "Regina Kwardefio", "Jackline Odoi", "Lilian Amoh", "Raymond Agbosu", "Abena Owusu", "Michelin Gyampoh"],
-      "Alex Teye Ametepey": ["Samuel Amon Kotey", "Jeffrey Kleku", "Millicent Kudawoo", "Destiny Akadu", "Mabel Sena Okyere"],
-      "Rev Dr Ebenezer Okronipa": ["Bernice", "Millicent Antwi Boasiako", "Godfred Okine", "Victoria Amuzu", "Kate Armah Hammond", "Akpene Anatsui", "Emmanuel Ohene", "Isaac Ohene Offei", "Amina Alhassan", "Wilhelmina Komesour", "Aisha Mohammed", "Harriet Ampofo", "Christiana Akosua Latibea", "Celestine Baatu", "Kukua McKay", "Vivian Allotey", "Georgina Gyane", "Monica Aboagyewaa", "Roselyn Okine", "Frederica Okine", "Freda Okine", "Freeman Okine", "Steven Okine", "Francis Okine", "Louisa Nutakor", "Nadia Okine", "Favour Okine", "Philip Ofosuhene", "Ruth Dadzie", "Benedicta Aryeetey", "Benedicta Gharbah", "Sunday Amuzu", "Benedicta Adjeetey", "Gifty Noi", "Jason Boateng", "Kobby Boateng", "Diamond Boateng", "Kezia Ofosuhene", "Kingsford Philip Quaicoo", "Adom Ackah"],
-      "Bernice Amuzu": ["Justina Ackon", "Rashida Alhassan", "Abel Nego", "Gentle Sordji", "Christabel", "Winnifred Ndobo", "Latifa", "Bernice Amuzu", "Carol Nkansah", "Nhyira Antwi", "Abigail Antwi", "Gloria Antwi"],
-      "Rosemond Quaicoe": ["Lydia Odame Antwi", "Mrs Priscilla Effah", "Edna Asare"],
-      "Henry Mensah": ["Patience Mensah", "Bryan Mensah", "Brielle Mensah", "Fredrick", "Cisse Quaye"],
-      "Abigail Ankomah": ["Jackson Ankomah", "Vivian Mensah", "Frederick Ankomah"],
-      "Alice Ametepey": ["Patience Addo", "Samuel Boadu", "Reginald Mensah", "Kelvin Twumasi", "Mikel Owusu", "Nana Opoku", "Cassandra Arthur", "Ruby Lartey", "Blessed Mensah", "Gloria Lartey"],
-      "Samuel Opare": ["Janet Tetteh", "Jedidiah Wiafe", "Deborah Quaye", "Albert Ladi Mensah", "Daniella Ladi Mensah", "Nathaniel Ladi Mensah", "Johnathan Ladi Mensah", "Joel Wiafe", "Simon Wegah", "Francis Awuku", "Abigail Ayimbilah"],
-      "Esther Doku": ["Mama Doris Otumfour", "Benjamin Justice Tandoh Arthur", "Nadia Awentemi", "Mr Ebenezer Okronipa Snr", "Alexis Nhyira Destiny", "Emmalyn Sackey", "Clifford Obeng", "Lawrencia Thompson"],
-      "Samuel Oteng": ["Rebecca Quaye", "Mary Quaye", "Laudice Quaye", "Oscar Abane", "Oswell Abane", "Daniel Takan"],
-      "Sandra Boateng": ["Edmund Oteng-Mawia", "Elinam Dowetin", "Ryan Elinam Tettey", "Jacinta Quaye", "George Essel"],
-      "Akpene Komedio Anatsui": ["Blessing Donkor", "Elizabeth Ashie", "Gifty Donkor", "Empress", "Felix", "Peniel", "Winifred Aickins", "Samuel Donkor", "Blessing Bimbim", "Antoinette", "Emefa Blebo", "Quad", "Stephen Tetteh", "Joel"]
+      "Michael Ayisia": [],
+      "Michael Ameyaw (Tesano 2)": [],
+      "Michael Ameyaw (Tesano 3)": [],
+      "Augustina Selinam Abbah": [],
+      "Blessing Solomon": [],
+      "Lp Esther Okronipa": [],
+      "Benjamin Senyasu": [],
+      "Emmanuel Mensah": [],
+      "Eric Appiah": [],
+      "Alex Teye Ametepey": [],
+      "Rev Dr Ebenezer Okronipa": [],
+      "Bernice Amuzu": [],
+      "Rosemond Quaicoe": [],
+      "Henry Mensah": [],
+      "Abigail Ankomah": [],
+      "Alice Ametepey": [],
+      "Samuel Opare": [],
+      "Esther Doku": [],
+      "Samuel Oteng": [],
+      "Sandra Boateng": [],
+      "Akpene Komedio Anatsui": []
     };
 
     let microchurchNames = {
@@ -3424,7 +3424,7 @@
         window[cbName] = null;
 
         var records = (data && data.members) || [];
-        if (records.length > 0) {
+        if (data && Array.isArray(data.members)) {
           var liveNames = [];
           var statuses = {};
           records.forEach(function (r) {
@@ -7880,31 +7880,33 @@
 
         var byNorm = {};
         var merged = [];
-        (baseMembers || []).forEach(function (m) {
-          if (!m || !m.name) return;
-          var key = (m.name || '').toLowerCase().trim();
-          if (deletedList.includes(key)) return;
-          var copy = Object.assign({}, m);
-          byNorm[key] = copy;
-          merged.push(copy);
-        });
 
+        // Build list exclusively from live database records
         (records || []).forEach(function (r) {
           if (!r || !r.Name) return;
-          var key = (r.Name || '').toLowerCase().trim();
+          var cleanName = String(r.Name || '').trim();
+          if (!cleanName) return;
+          var key = cleanName.toLowerCase();
           var st = (r.Status || '').toString().toLowerCase();
 
           if (st === 'deleted' || st === 'visitor' || deletedList.includes(key)) {
-            if (byNorm[key]) {
-              var idx = merged.indexOf(byNorm[key]);
-              if (idx > -1) merged.splice(idx, 1);
-              delete byNorm[key];
+            if (st === 'deleted') {
+              try {
+                var shepDelKey = 'onc_shep_deleted_' + shepherdName;
+                var curDel = JSON.parse(localStorage.getItem(shepDelKey) || '[]');
+                if (!curDel.includes(key)) {
+                  curDel.push(key);
+                  localStorage.setItem(shepDelKey, JSON.stringify(curDel));
+                }
+              } catch (e) { }
             }
             return;
           }
 
+          if (byNorm[key]) return;
+
           var extra = {
-            name: String(r.Name || '').trim(),
+            name: cleanName,
             contact: r.Phone ? String(r.Phone).trim() : (r.contact ? String(r.contact).trim() : ''),
             memberId: r.MemberID ? String(r.MemberID) : (r.memberId ? String(r.memberId) : ''),
             status: r.Status || 'Member',
@@ -7924,14 +7926,24 @@
             comments: r.Comments || ''
           };
 
-          if (byNorm[key]) {
-            if (!extra.contact && byNorm[key].contact) extra.contact = byNorm[key].contact;
-            Object.assign(byNorm[key], extra);
-          } else {
-            byNorm[key] = extra;
-            merged.push(extra);
-          }
+          byNorm[key] = extra;
+          merged.push(extra);
         });
+
+        // Update local caches so offline / fast reload reflects live database
+        try {
+          var liveNames = merged.map(function(m) { return m.name; });
+          var statuses = {};
+          merged.forEach(function(m) { if (m.status && m.status !== 'Member') statuses[m.name] = m.status; });
+          localStorage.setItem('onc_db_roster_' + shepherdName, JSON.stringify({ names: liveNames, statuses: statuses, time: Date.now() }));
+          localStorage.setItem('onc_kym_records_' + shepherdName, JSON.stringify(merged));
+          if (state.shepherdType === 'mc' || state.shepherdType === 'microchurch') {
+            microchurchShepherdData[shepherdName] = liveNames;
+          } else {
+            if (!shepherdData[shepherdName]) shepherdData[shepherdName] = { members: [], pin: '0000' };
+            shepherdData[shepherdName].members = liveNames;
+          }
+        } catch (e) { }
 
         kymMembersCache = merged;
         kymRenderList(merged);
