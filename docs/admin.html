@@ -2824,25 +2824,56 @@
               </div>
             </div>
 
-            <!-- 4 KPI Summary Cards -->
-            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;margin-bottom:24px;">
-              <!-- This Week Total -->
+            <!-- HERO: ALL-TIME CUMULATIVE OFFERINGS -->
+            <div style="background:linear-gradient(135deg, #064e3b 0%, #047857 40%, #0f2044 100%);color:white;border-radius:20px;padding:24px 28px;margin-bottom:20px;box-shadow:0 8px 24px rgba(6,78,59,0.25);position:relative;overflow:hidden;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;position:relative;z-index:2;">
+                <div>
+                  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;backdrop-filter:blur(4px);">
+                    <span>👑</span> ALL-TIME CUMULATIVE OFFERINGS
+                  </div>
+                  <div id="financesTotalAllTime" style="font-size:38px;font-weight:900;letter-spacing:-1px;color:#fde047;line-height:1.1;margin-bottom:6px;">
+                    GH₵ 0.00
+                  </div>
+                  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:14px;font-size:13px;opacity:0.95;">
+                    <span>📊 Total Sessions: <strong id="financesAllTimeCount">0</strong></span>
+                    <span>•</span>
+                    <span>🗓️ Period: <strong id="financesAllTimePeriod">Since Day 1</strong></span>
+                    <span id="financesCarryoverWrapper" style="display:none;">• Starting Baseline: <strong id="financesCarryoverDisplay">GH₵ 0.00</strong></span>
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <button type="button" onclick="editOfferingCarryover()"
+                    style="padding:8px 14px;background:rgba(255,255,255,0.18);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;backdrop-filter:blur(4px);display:inline-flex;align-items:center;gap:6px;">
+                    ⚙️ Set Baseline
+                  </button>
+                  <button type="button" onclick="toggleMonthlyRollup()" id="toggleMonthlyRollupBtn"
+                    style="padding:8px 14px;background:#fde047;color:#0f2044;border:none;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);display:inline-flex;align-items:center;gap:6px;">
+                    📊 Monthly Rollup
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4 Dynamic KPI Summary Cards -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;margin-bottom:20px;">
+              <!-- Selected Period Total -->
               <div style="background:linear-gradient(135deg, #0f2044, #1e3a8a);color:white;border-radius:18px;padding:20px;box-shadow:0 4px 14px rgba(15,32,68,0.15);position:relative;overflow:hidden;">
                 <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:0.85;margin-bottom:6px;">
-                  📅 This Week's Total Offering
+                  📅 Selected Period Total
                 </div>
-                <div id="financesTotalWeek" style="font-size:30px;font-weight:900;letter-spacing:-0.5px;color:#fde047;">
+                <div id="financesTotalPeriodAmt" style="font-size:30px;font-weight:900;letter-spacing:-0.5px;color:#fde047;">
                   GH₵ 0.00
                 </div>
-                <div id="financesWeekLabel" style="font-size:12px;opacity:0.8;margin-top:4px;">
-                  Current Week
+                <div id="financesPeriodLabel" style="font-size:12px;opacity:0.85;margin-top:4px;">
+                  All Time
                 </div>
               </div>
 
               <!-- Month Cumulative -->
               <div style="background:white;border-radius:18px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.05);border-left:5px solid #10b981;">
                 <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:6px;">
-                  📊 Month Cumulative Offering
+                  📊 Month Cumulative
                 </div>
                 <div id="financesTotalMonth" style="font-size:30px;font-weight:900;letter-spacing:-0.5px;color:#0f2044;">
                   GH₵ 0.00
@@ -2861,7 +2892,7 @@
                   GH₵ 0.00
                 </div>
                 <div id="financesSpsSubtitle" style="font-size:12px;color:#64748b;margin-top:4px;">
-                  This Month
+                  Filtered Period
                 </div>
               </div>
 
@@ -2874,8 +2905,45 @@
                   GH₵ 0.00
                 </div>
                 <div id="financesMcSubtitle" style="font-size:12px;color:#64748b;margin-top:4px;">
-                  This Month
+                  Filtered Period
                 </div>
+              </div>
+            </div>
+
+            <!-- EXPANDABLE MONTHLY & QUARTERLY CUMULATIVE PROGRESS ROLLUP -->
+            <div id="financesMonthlyRollupCard" style="display:none;background:white;border-radius:18px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e2e8f0;margin-bottom:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+                <div>
+                  <h3 style="font-size:16px;font-weight:800;color:var(--navy);margin:0 0 2px;display:flex;align-items:center;gap:6px;">
+                    <span>📈</span> Monthly Cumulative Progress Rollup
+                  </h3>
+                  <p style="font-size:12px;color:#64748b;margin:0;">
+                    Month-by-month collections with running cumulative totals and progression bars.
+                  </p>
+                </div>
+                <button type="button" onclick="toggleMonthlyRollup()"
+                  style="padding:6px 12px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;font-weight:700;color:#475569;cursor:pointer;">
+                  ✕ Close Rollup
+                </button>
+              </div>
+
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;text-align:left;">
+                  <thead>
+                    <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:0.5px;">
+                      <th style="padding:10px 14px;">Month</th>
+                      <th style="padding:10px 14px;text-align:center;">Sessions</th>
+                      <th style="padding:10px 14px;text-align:right;">Monthly Total</th>
+                      <th style="padding:10px 14px;text-align:right;">Cumulative Running Total</th>
+                      <th style="padding:10px 14px;">Progress</th>
+                    </tr>
+                  </thead>
+                  <tbody id="financesMonthlyRollupBody">
+                    <tr>
+                      <td colspan="5" style="text-align:center;padding:20px;color:#94a3b8;">Loading monthly rollup...</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
@@ -2887,12 +2955,35 @@
                 </div>
 
                 <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
-                  <!-- Period filter -->
+                  <!-- Flexible Period filter -->
                   <select id="financesPeriodFilter" onchange="renderFinancesTab()"
                     style="padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:700;color:var(--navy);background:white;outline:none;">
-                    <option value="this-week">This Week</option>
-                    <option value="this-month">This Month</option>
-                    <option value="all">All Time</option>
+                    <option value="all" selected>👑 All Time (Cumulative)</option>
+                    <optgroup label="── By Year ──">
+                      <option value="year-2026">Full Year 2026</option>
+                    </optgroup>
+                    <optgroup label="── By Quarter (2026) ──">
+                      <option value="q4-2026">Quarter 4 (Oct - Dec 2026)</option>
+                      <option value="q3-2026">Quarter 3 (Jul - Sep 2026)</option>
+                      <option value="q2-2026">Quarter 2 (Apr - Jun 2026)</option>
+                      <option value="q1-2026">Quarter 1 (Jan - Mar 2026)</option>
+                    </optgroup>
+                    <optgroup label="── By Month ──">
+                      <option value="month-10-2026">October 2026</option>
+                      <option value="month-9-2026">September 2026</option>
+                      <option value="month-8-2026">August 2026</option>
+                      <option value="month-7-2026">July 2026</option>
+                      <option value="month-6-2026">June 2026</option>
+                      <option value="month-5-2026">May 2026</option>
+                      <option value="month-4-2026">April 2026</option>
+                      <option value="month-3-2026">March 2026</option>
+                      <option value="month-2-2026">February 2026</option>
+                      <option value="month-1-2026">January 2026</option>
+                    </optgroup>
+                    <optgroup label="── Quick Views ──">
+                      <option value="this-month">Current Month</option>
+                      <option value="this-week">This Week</option>
+                    </optgroup>
                   </select>
 
                   <!-- Stream filter -->
@@ -2919,11 +3010,12 @@
                       <th style="padding:12px 14px;">Stream</th>
                       <th style="padding:12px 14px;">Zone / Fellowship</th>
                       <th style="padding:12px 14px;text-align:right;">Offering Amount</th>
+                      <th style="padding:12px 14px;text-align:right;">Running Balance</th>
                     </tr>
                   </thead>
                   <tbody id="financesTableBody">
                     <tr>
-                      <td colspan="5" style="text-align:center;padding:36px;color:#94a3b8;">
+                      <td colspan="6" style="text-align:center;padding:36px;color:#94a3b8;">
                         Loading offerings...
                       </td>
                     </tr>
@@ -5246,7 +5338,7 @@
         });
       }
 
-      // ── FINANCES TAB CONTROLLERS ──
+      // ── FINANCES & CUMULATIVE OFFERINGS CONTROLLERS ──
       window._filteredFinancesList = [];
 
       function parseOfferingAmount(val) {
@@ -5260,12 +5352,45 @@
         return 'GH₵ ' + (amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       }
 
+      function getOfferingCarryover() {
+        try {
+          var v = localStorage.getItem('onc_offering_carryover');
+          return v ? (parseFloat(v) || 0) : 0;
+        } catch(e) {
+          return 0;
+        }
+      }
+
+      function editOfferingCarryover() {
+        var curr = getOfferingCarryover();
+        var input = prompt('Enter starting cash balance / historical carryover (GH₵) to add to Cumulative Offerings:', curr > 0 ? curr : '0');
+        if (input !== null) {
+          var val = parseFloat(input.replace(/[^0-9.]/g, ''));
+          if (isNaN(val) || val < 0) val = 0;
+          try {
+            localStorage.setItem('onc_offering_carryover', val);
+          } catch(e) {}
+          renderFinancesTab();
+          if (typeof adminToast === 'function') adminToast('Baseline carryover updated to ' + formatGHS(val));
+        }
+      }
+
+      function toggleMonthlyRollup() {
+        var card = document.getElementById('financesMonthlyRollupCard');
+        var btn = document.getElementById('toggleMonthlyRollupBtn');
+        if (!card) return;
+        var isHidden = card.style.display === 'none' || !card.style.display;
+        card.style.display = isHidden ? 'block' : 'none';
+        if (btn) btn.innerHTML = isHidden ? '✕ Hide Rollup' : '📊 Monthly Rollup';
+      }
+
       function renderFinancesTab() {
         var currWk = (typeof getCurrentISOWeek === 'function') ? getCurrentISOWeek() : 35;
         var now = new Date();
         var currentYear = now.getFullYear();
         var currentMonth = now.getMonth();
         var monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+        var carryover = getOfferingCarryover();
 
         // 1. Extract SPS offerings
         var spsItems = (allReports || []).map(function(r) {
@@ -5310,17 +5435,157 @@
         }).filter(function(x) { return x.given && x.amount > 0; });
 
         var allItems = spsItems.concat(mcItems);
+
+        // 3. Compute running cumulative balance chronologically
+        var chronological = allItems.slice().sort(function(a, b) {
+          var ta = a.parsedDate ? a.parsedDate.getTime() : 0;
+          var tb = b.parsedDate ? b.parsedDate.getTime() : 0;
+          if (ta !== tb) return ta - tb;
+          return (a._arrivalIndex || 0) - (b._arrivalIndex || 0);
+        });
+
+        var runBal = carryover;
+        chronological.forEach(function(item) {
+          runBal += item.amount;
+          item.runningBalance = runBal;
+        });
+
+        // Sort for table display (most recent arrival on top)
         if (typeof window.compareArrivalsDesc === 'function') {
           allItems.sort(window.compareArrivalsDesc);
+        } else {
+          allItems.sort(function(a, b) {
+            var ta = a.parsedDate ? a.parsedDate.getTime() : 0;
+            var tb = b.parsedDate ? b.parsedDate.getTime() : 0;
+            return tb - ta;
+          });
         }
 
-        // 3. KPI Aggregations
-        // Week totals
-        var spsWeekTotal = spsItems.filter(function(x) { return x.weekNumber === currWk; }).reduce(function(sum, x) { return sum + x.amount; }, 0);
-        var mcWeekTotal  = mcItems.filter(function(x) { return x.weekNumber === currWk; }).reduce(function(sum, x) { return sum + x.amount; }, 0);
-        var totalThisWeek = spsWeekTotal + mcWeekTotal;
+        // 4. Hero All-Time Cumulative Card population
+        var totalRecorded = allItems.reduce(function(sum, x) { return sum + x.amount; }, 0);
+        var grandAllTime = totalRecorded + carryover;
 
-        // Month totals
+        var allTimeEl = document.getElementById('financesTotalAllTime');
+        if (allTimeEl) allTimeEl.textContent = formatGHS(grandAllTime);
+
+        var allTimeCountEl = document.getElementById('financesAllTimeCount');
+        if (allTimeCountEl) allTimeCountEl.textContent = allItems.length + ' sessions';
+
+        var carryoverWrap = document.getElementById('financesCarryoverWrapper');
+        var carryoverDisplay = document.getElementById('financesCarryoverDisplay');
+        if (carryoverWrap && carryoverDisplay) {
+          if (carryover > 0) {
+            carryoverWrap.style.display = 'inline';
+            carryoverDisplay.textContent = formatGHS(carryover);
+          } else {
+            carryoverWrap.style.display = 'none';
+          }
+        }
+
+        // 5. Build Monthly Cumulative Progress Rollup
+        var monthlyMap = {};
+        chronological.forEach(function(it) {
+          if (!it.parsedDate) return;
+          var y = it.parsedDate.getFullYear();
+          var m = it.parsedDate.getMonth();
+          var key = y + '-' + String(m + 1).padStart(2, '0');
+          var mName = it.parsedDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+          if (!monthlyMap[key]) {
+            monthlyMap[key] = { key: key, monthName: mName, total: 0, count: 0 };
+          }
+          monthlyMap[key].total += it.amount;
+          monthlyMap[key].count++;
+        });
+
+        var monthlyKeys = Object.keys(monthlyMap).sort();
+        var rollCum = carryover;
+        monthlyKeys.forEach(function(k) {
+          rollCum += monthlyMap[k].total;
+          monthlyMap[k].cumulative = rollCum;
+        });
+
+        var rollupTbody = document.getElementById('financesMonthlyRollupBody');
+        if (rollupTbody) {
+          if (!monthlyKeys.length) {
+            rollupTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;color:#94a3b8;">No monthly offering data recorded yet.</td></tr>';
+          } else {
+            // Display latest month on top
+            rollupTbody.innerHTML = monthlyKeys.slice().reverse().map(function(k) {
+              var mObj = monthlyMap[k];
+              var pct = grandAllTime > 0 ? Math.min(100, Math.round((mObj.cumulative / grandAllTime) * 100)) : 0;
+              return '<tr style="border-bottom:1px solid #f1f5f9;">' +
+                '<td style="padding:12px 14px;font-weight:800;color:var(--navy);">' + mObj.monthName + '</td>' +
+                '<td style="padding:12px 14px;text-align:center;color:#64748b;font-weight:700;">' + mObj.count + '</td>' +
+                '<td style="padding:12px 14px;text-align:right;font-weight:800;color:#0f2044;">' + formatGHS(mObj.total) + '</td>' +
+                '<td style="padding:12px 14px;text-align:right;font-weight:900;color:#15803d;font-size:14px;">' + formatGHS(mObj.cumulative) + '</td>' +
+                '<td style="padding:12px 14px;min-width:140px;">' +
+                  '<div style="display:flex;align-items:center;gap:8px;">' +
+                    '<div style="flex:1;background:#e2e8f0;height:7px;border-radius:999px;overflow:hidden;">' +
+                      '<div style="width:' + pct + '%;background:#10b981;height:100%;border-radius:999px;"></div>' +
+                    '</div>' +
+                    '<span style="font-size:11px;font-weight:800;color:#64748b;width:32px;text-align:right;">' + pct + '%</span>' +
+                  '</div>' +
+                '</td>' +
+              '</tr>';
+            }).join('');
+          }
+        }
+
+        // 6. Filtering for Selected Period
+        var periodFilter = document.getElementById('financesPeriodFilter') ? document.getElementById('financesPeriodFilter').value : 'all';
+        var streamFilter = document.getElementById('financesStreamFilter') ? document.getElementById('financesStreamFilter').value : 'all';
+        var searchVal = (document.getElementById('financesSearchInput') ? document.getElementById('financesSearchInput').value : '').toLowerCase().trim();
+
+        var periodLabelText = 'All Time (Cumulative)';
+        var filtered = allItems.filter(function(x) {
+          if (!x.parsedDate && periodFilter !== 'all') return false;
+
+          if (periodFilter === 'all') {
+            periodLabelText = 'All Time (Cumulative)';
+          } else if (periodFilter === 'year-2026') {
+            periodLabelText = 'Full Year 2026';
+            if (x.parsedDate.getFullYear() !== 2026) return false;
+          } else if (periodFilter === 'q1-2026') {
+            periodLabelText = 'Quarter 1 (Jan - Mar 2026)';
+            if (x.parsedDate.getFullYear() !== 2026 || x.parsedDate.getMonth() > 2) return false;
+          } else if (periodFilter === 'q2-2026') {
+            periodLabelText = 'Quarter 2 (Apr - Jun 2026)';
+            var m2 = x.parsedDate.getMonth();
+            if (x.parsedDate.getFullYear() !== 2026 || m2 < 3 || m2 > 5) return false;
+          } else if (periodFilter === 'q3-2026') {
+            periodLabelText = 'Quarter 3 (Jul - Sep 2026)';
+            var m3 = x.parsedDate.getMonth();
+            if (x.parsedDate.getFullYear() !== 2026 || m3 < 6 || m3 > 8) return false;
+          } else if (periodFilter === 'q4-2026') {
+            periodLabelText = 'Quarter 4 (Oct - Dec 2026)';
+            var m4 = x.parsedDate.getMonth();
+            if (x.parsedDate.getFullYear() !== 2026 || m4 < 9 || m4 > 11) return false;
+          } else if (periodFilter.startsWith('month-')) {
+            var parts = periodFilter.split('-');
+            var targetM = parseInt(parts[1], 10) - 1;
+            var targetY = parseInt(parts[2], 10);
+            var mDate = new Date(targetY, targetM, 1);
+            periodLabelText = mDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+            if (x.parsedDate.getFullYear() !== targetY || x.parsedDate.getMonth() !== targetM) return false;
+          } else if (periodFilter === 'this-month') {
+            periodLabelText = monthName;
+            if (x.parsedDate.getFullYear() !== currentYear || x.parsedDate.getMonth() !== currentMonth) return false;
+          } else if (periodFilter === 'this-week') {
+            periodLabelText = 'Week ' + currWk + ' (Current)';
+            if (x.weekNumber !== currWk) return false;
+          }
+
+          if (streamFilter !== 'all' && x.stream !== streamFilter) return false;
+          if (searchVal && !x.shepherd.toLowerCase().includes(searchVal) && !(x.zone || '').toLowerCase().includes(searchVal)) return false;
+          return true;
+        });
+
+        // 7. Dynamic KPI Cards for the filtered period
+        var filteredPeriodTotal = filtered.reduce(function(sum, x) { return sum + x.amount; }, 0);
+        var filteredSpsTotal = filtered.filter(function(x) { return x.stream === 'sps'; }).reduce(function(sum, x) { return sum + x.amount; }, 0);
+        var filteredMcTotal  = filtered.filter(function(x) { return x.stream === 'mc'; }).reduce(function(sum, x) { return sum + x.amount; }, 0);
+
+        // Current month total (always shows current active month)
         var spsMonthTotal = spsItems.filter(function(x) {
           return x.parsedDate && x.parsedDate.getFullYear() === currentYear && x.parsedDate.getMonth() === currentMonth;
         }).reduce(function(sum, x) { return sum + x.amount; }, 0);
@@ -5328,60 +5593,43 @@
         var mcMonthTotal = mcItems.filter(function(x) {
           return x.parsedDate && x.parsedDate.getFullYear() === currentYear && x.parsedDate.getMonth() === currentMonth;
         }).reduce(function(sum, x) { return sum + x.amount; }, 0);
+        var currentMonthTotal = spsMonthTotal + mcMonthTotal;
 
-        var totalThisMonth = spsMonthTotal + mcMonthTotal;
+        var periodAmtEl = document.getElementById('financesTotalPeriodAmt');
+        if (periodAmtEl) periodAmtEl.textContent = formatGHS(filteredPeriodTotal);
 
-        // Populate KPI elements
-        var weekEl = document.getElementById('financesTotalWeek');
-        if (weekEl) weekEl.textContent = formatGHS(totalThisWeek);
-
-        var weekLbl = document.getElementById('financesWeekLabel');
-        if (weekLbl) weekLbl.textContent = 'Week ' + currWk + ' (Current)';
+        var periodLblEl = document.getElementById('financesPeriodLabel');
+        if (periodLblEl) periodLblEl.textContent = periodLabelText;
 
         var monthEl = document.getElementById('financesTotalMonth');
-        if (monthEl) monthEl.textContent = formatGHS(totalThisMonth);
+        if (monthEl) monthEl.textContent = formatGHS(currentMonthTotal);
 
         var monthLbl = document.getElementById('financesMonthLabel');
         if (monthLbl) monthLbl.textContent = monthName;
 
         var spsEl = document.getElementById('financesTotalSps');
-        if (spsEl) spsEl.textContent = formatGHS(spsMonthTotal);
+        if (spsEl) spsEl.textContent = formatGHS(filteredSpsTotal);
 
         var spsSub = document.getElementById('financesSpsSubtitle');
-        if (spsSub) spsSub.textContent = 'This Week: ' + formatGHS(spsWeekTotal) + ' | ' + monthName + ': ' + formatGHS(spsMonthTotal);
+        if (spsSub) spsSub.textContent = periodLabelText;
 
         var mcEl = document.getElementById('financesTotalMc');
-        if (mcEl) mcEl.textContent = formatGHS(mcMonthTotal);
+        if (mcEl) mcEl.textContent = formatGHS(filteredMcTotal);
 
         var mcSub = document.getElementById('financesMcSubtitle');
-        if (mcSub) mcSub.textContent = 'This Week: ' + formatGHS(mcWeekTotal) + ' | ' + monthName + ': ' + formatGHS(mcMonthTotal);
-
-        // 4. Filtering for Table
-        var periodFilter = document.getElementById('financesPeriodFilter') ? document.getElementById('financesPeriodFilter').value : 'this-week';
-        var streamFilter = document.getElementById('financesStreamFilter') ? document.getElementById('financesStreamFilter').value : 'all';
-        var searchVal = (document.getElementById('financesSearchInput') ? document.getElementById('financesSearchInput').value : '').toLowerCase().trim();
-
-        var filtered = allItems.filter(function(x) {
-          if (periodFilter === 'this-week' && x.weekNumber !== currWk) return false;
-          if (periodFilter === 'this-month') {
-            if (!x.parsedDate || x.parsedDate.getFullYear() !== currentYear || x.parsedDate.getMonth() !== currentMonth) return false;
-          }
-          if (streamFilter !== 'all' && x.stream !== streamFilter) return false;
-          if (searchVal && !x.shepherd.toLowerCase().includes(searchVal) && !(x.zone || '').toLowerCase().includes(searchVal)) return false;
-          return true;
-        });
+        if (mcSub) mcSub.textContent = periodLabelText;
 
         // Update count pill
         var pill = document.getElementById('financesCountPill');
         if (pill) pill.textContent = filtered.length;
 
-        // Render Table Body
+        // 8. Render Table Body (with Running Balance)
         var tbody = document.getElementById('financesTableBody');
         var tfoot = document.getElementById('financesTableFoot');
         if (!tbody) return;
 
         if (!filtered.length) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:36px;color:#94a3b8;">No offerings reported for the selected filter.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:36px;color:#94a3b8;">No offerings reported for the selected filter.</td></tr>';
           if (tfoot) tfoot.innerHTML = '';
           window._filteredFinancesList = [];
           return;
@@ -5399,6 +5647,7 @@
             '<td style="padding:12px 14px;"><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:800;background:' + badgeBg + ';color:' + badgeFg + ';">' + x.streamLabel + '</span></td>' +
             '<td style="padding:12px 14px;color:#64748b;">' + (x.zone || '—') + '</td>' +
             '<td style="padding:12px 14px;text-align:right;font-weight:900;color:#15803d;font-size:14px;">' + formatGHS(x.amount) + '</td>' +
+            '<td style="padding:12px 14px;text-align:right;font-weight:800;color:#0f2044;font-size:13px;background:rgba(16,185,129,0.04);">' + formatGHS(x.runningBalance) + '</td>' +
             '</tr>';
         }).join('');
 
@@ -5406,6 +5655,7 @@
           tfoot.innerHTML = '<tr>' +
             '<td colspan="4" style="padding:14px;text-align:right;font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:0.5px;">Filtered Total:</td>' +
             '<td style="padding:14px;text-align:right;font-weight:900;color:#15803d;font-size:16px;">' + formatGHS(visibleSum) + '</td>' +
+            '<td style="padding:14px;text-align:right;font-weight:800;color:#64748b;font-size:12px;">Cumulative</td>' +
             '</tr>';
         }
 
@@ -5418,7 +5668,7 @@
           alert('No offerings to export.');
           return;
         }
-        var csv = ['Date,Shepherd,Stream,Zone/Fellowship,Offering Amount (GHS)'];
+        var csv = ['Date,Shepherd,Stream,Zone/Fellowship,Offering Amount (GHS),Running Cumulative Balance (GHS)'];
         list.forEach(function(x) {
           var dateStr = (typeof window.formatDayMonthYear === 'function') ? window.formatDayMonthYear(x.date) : (x.date || '');
           csv.push([
@@ -5426,7 +5676,8 @@
             '"' + (x.shepherd || '').replace(/"/g, '""') + '"',
             '"' + x.stream.toUpperCase() + '"',
             '"' + (x.zone || '').replace(/"/g, '""') + '"',
-            x.amount.toFixed(2)
+            x.amount.toFixed(2),
+            (x.runningBalance !== undefined ? x.runningBalance.toFixed(2) : '')
           ].join(','));
         });
         var blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
